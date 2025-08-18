@@ -17,6 +17,8 @@ import os
 env = environ.Env()
 environ.Env.read_env()  # reads .env file
 
+AUTH_USER_MODEL = 'webapp.usuario'
+
 #SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False)
 
