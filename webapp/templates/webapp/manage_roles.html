@@ -1,0 +1,46 @@
+{% extends "webapp/base.html" %}
+
+{% block content %}
+<h1>Manage Roles & Permissions</h1>
+
+<p>Logged in as: {{ user.username }}</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Roles</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>
+                {% for g in u.groups.all %}
+                    {{ g.name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    None
+                {% endfor %}
+            </td>
+            <td>
+                <!-- Add role links -->
+                {% for role in all_roles %}
+                    {% if role.name not in u.groups.all.values_list 'name', flat=True %}
+                        <a href="{% url 'assign_role' u.id role.name %}">Add {{ role.name }}</a> |
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Remove role links -->
+                {% for g in u.groups.all %}
+                    <a href="{% url 'remove_role' u.id g.name %}">Remove {{ g.name }}</a>{% if not forloop.last %} | {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

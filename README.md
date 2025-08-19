@@ -34,6 +34,21 @@ python manage.py migrate
 ```
 
 
+How to add more roles and permissions
+1- Go to /admin/ → Groups → Add new group (e.g., “Manager”)
+2- Assign permissions to it (Django model permissions or custom permissions)
+3- Assign users to that group
+4- Protect views using:
+
+@role_required("Manager")
+def manager_screen(request):
+    ...
+
+in views.py
+
+
+
+
 Proyecto creado con ayuda de estos tutoriales:
 
 https://code.visualstudio.com/docs/python/tutorial-django

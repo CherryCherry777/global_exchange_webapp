@@ -1,12 +1,19 @@
 from django.urls import path
 from . import views
+from .views import CustomLoginView
 
 #aqui van las url para el programa, si no estaan aqui no seran accesibles
 urlpatterns = [
     path("register/", views.register, name="register"),
     path("verify/<uidb64>/<token>/", views.verify_email, name="verify-email"),
-    path("login/", views.CustomLoginView.as_view(), name="login"),
+    path("login/", CustomLoginView.as_view(), name="login"),
     path("logout/", views.CustomLogoutView.as_view(), name="logout"),
     path("profile/", views.profile, name="profile"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
+    path("admin_dashboard/", views.admin_dash, name="admin_dashboard"),
+    path("employee_dashboard/", views.employee_dash, name="employee_dashboard"),
+    path("manage_roles/", views.manage_roles, name="manage_roles"),
+    path("", views.landing_page, name="landing"),
+    path('manage_roles/<int:user_id>/<str:role>/', views.manage_roles, name='assign_role')
+    path('remove-role/<int:user_id>/<str:role>/', views.remove_role, name='remove_role'),
 ]
