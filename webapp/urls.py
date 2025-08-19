@@ -14,6 +14,14 @@ urlpatterns = [
     path("employee_dashboard/", views.employee_dash, name="employee_dashboard"),
     path("manage_roles/", views.manage_roles, name="manage_roles"),
     path("", views.landing_page, name="landing"),
-    path('manage_roles/<int:user_id>/<str:role>/', views.manage_roles, name='assign_role')
-    path('remove-role/<int:user_id>/<str:role>/', views.remove_role, name='remove_role'),
+    path('manage_roles/<int:user_id>/<str:role>/', views.manage_roles, name='assign_role'),
+    path('remove_role/<int:user_id>/<str:role>/', views.remove_role, name='remove_role'),
+    path('users/', views.UserListView.as_view(), name='user_list'),
+    path('users/create/', views.UserCreateView.as_view(), name='user-create'),
+    path('users/<int:pk>/update/', views.UserUpdateView.as_view(), name='user_update'),
+    path('users/<int:pk>/delete/', views.UserDeleteView.as_view(), name='user_delete'),
+    path('manage_roles/', views.manage_roles, name='manage_roles'),
+    path('add_role/<int:user_id>/', views.add_role, name='add_role'),
+    path('remove_role/<int:user_id>/<str:role>/', views.remove_role, name='remove_role'),
+
 ]

@@ -1,21 +1,25 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.core.mail import send_mail
 from django.contrib.auth import login, logout
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from .forms import UserUpdateForm
-from .decorators import role_required
+from django.contrib.auth.models import Group, User
 from django.contrib.auth.views import LoginView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+
 from .utils import get_user_primary_role
-from django.contrib.auth.models import Group
 
 from .forms import RegistrationForm, LoginForm
+from .forms import UserUpdateForm
+
+from .decorators import role_required
 
 User = get_user_model()
 
@@ -91,11 +95,44 @@ def edit_profile(request):
         form = UserUpdateForm(instance=request.user)
     return render(request, "webapp/edit_profile.html", {"form": form})
 
-@role_required("Administrator")
 def manage_roles(request):
-    # Solo admins pueden acceder
-    users = User.objects.all()
-    return render(request, "webapp/manage_roles.html", {"users":users})
+    users = User.objects.all().prefetch_related("groups")
+    roles = Group.objects.all()
+
+    # Prepare data for template
+    user_roles = []
+    for u in users:
+        user_group_names = set(g.name for g in u.groups.all())
+        role_status = []
+        for r in roles:
+            role_status.append({
+                "name": r.name,
+                "has_role": r.name in user_group_names
+            })
+        user_roles.append({
+            "user": u,
+            "roles": role_status
+        })
+
+    return render(request, "webapp/manage_roles.html", {
+        "user_roles": user_roles
+    })
+
+
+# --- Add Role ---
+def add_role(request, user_id, role_name):
+    user = get_object_or_404(User, id=user_id)
+    group = get_object_or_404(Group, name=role_name)
+    user.groups.add(group)
+    return redirect("manage_roles")
+
+
+# --- Remove Role ---
+def remove_role(request, user_id, role_name):
+    user = get_object_or_404(User, id=user_id)
+    group = get_object_or_404(Group, name=role_name)
+    user.groups.remove(group)
+    return redirect("manage_roles")
 
 class CustomLoginView(LoginView):
     template_name = "webapp/login.html"
@@ -147,6 +184,45 @@ def remove_role(request, user_id, role):
     user.save()
     return redirect("manage_roles")
 
+@login_required
+@role_required("Administrator")
+def add_role(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == "POST":
+        role_name = request.POST.get("role")
+        if role_name:
+            group = get_object_or_404(Group, name=role_name)
+            user.groups.add(group)
+            user.save()
+        return redirect("manage_roles")
+
+
+class UserListView(ListView):
+    model = User
+    template_name = 'webapp/user_list.html'
+    context_object_name = 'users'
+
+class UserCreateView(CreateView):
+    model = User
+    template_name = 'webapp/user_form.html'
+    fields = ['username', 'password', 'email', 'first_name', 'last_name']
+    success_url = reverse_lazy('user_list')
+
+    def form_valid(self, form):
+        # Hash password before saving
+        form.instance.set_password(form.instance.password)
+        return super().form_valid(form)
+
+class UserUpdateView(UpdateView):
+    model = User
+    template_name = 'webapp/user_form.html'
+    fields = ['username', 'email', 'first_name', 'last_name']
+    success_url = reverse_lazy('user_list')
+
+class UserDeleteView(DeleteView):
+    model = User
+    template_name = 'webapp/user_confirm_delete.html'
+    success_url = reverse_lazy('user_list')
 
 """
 
