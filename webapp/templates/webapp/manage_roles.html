@@ -1,35 +1,46 @@
+{% extends 'webapp/base.html' %}
+
+{% block title %}Manage Roles{% endblock %}
+
+{% block content %}
 <h1>Manage User Roles</h1>
 
-<table border="1">
-    <tr>
-        <th>User</th>
-        <th>Current Roles</th>
-        <th>Add Role</th>
-    </tr>
-    {% for user in users %}
-    <tr>
-        <td>{{ user.username }}</td>
-        <td>
-            {% for group in user.groups.all %}
-                {{ group.name }} 
-                <a href="{% url 'remove_role' user.id group.name %}">[Remove]</a>
-            {% empty %}
-                No roles
-            {% endfor %}
-        </td>
-        <td>
-            <form method="post" action="{% url 'add_role' user.id %}">
-                {% csrf_token %}
-                <select name="role">
-                    {% for role in all_roles %}
-                        {% if role not in user.groups.all %}
-                            <option value="{{ role.name }}">{{ role.name }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-                <button type="submit">Add</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+<table class="roles-table">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Current Roles</th>
+            <th>Add Role</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>
+                {% for group in user.groups.all %}
+                    <span class="role-badge">{{ group.name }}
+                        <a href="{% url 'remove_role' user.id group.name %}" class="remove-btn">&times;</a>
+                    </span>
+                {% empty %}
+                    <span class="no-role">No roles</span>
+                {% endfor %}
+            </td>
+            <td>
+                <form method="post" action="{% url 'add_role' user.id %}" class="add-role-form">
+                    {% csrf_token %}
+                    <select name="role">
+                        {% for role in all_roles %}
+                            {% if role not in user.groups.all %}
+                                <option value="{{ role.name }}">{{ role.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="add-btn">Add</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+{% endblock %}

@@ -1,2 +1,25 @@
-<h1>Logged out</h1>
-<a href="{% url 'login' %}">Log in again</a>
+{% extends 'webapp/base.html' %}
+
+{% block title %}Logged Out{% endblock %}
+
+{% block content %}
+<div class="logout-container">
+    <h2>You have been logged out.</h2>
+    <p>You will be redirected to the home page in <span id="countdown">5</span> seconds.</p>
+    <p>If not, <a href="{% url 'landing_page' %}">click here</a>.</p>
+</div>
+
+<script>
+    // Simple countdown redirect
+    let seconds = 5;
+    const countdown = document.getElementById('countdown');
+    const interval = setInterval(() => {
+        seconds--;
+        countdown.textContent = seconds;
+        if (seconds <= 0) {
+            clearInterval(interval);
+            window.location.href = "{% url 'landing_page' %}";
+        }
+    }, 1000);
+</script>
+{% endblock %}

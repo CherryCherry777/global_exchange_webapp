@@ -77,8 +77,9 @@ class CustomLoginView(LoginView):
     form_class = LoginForm
     template_name = "webapp/login.html"
 
-class CustomLogoutView(LogoutView):
-    template_name = "webapp/logout.html"
+def custom_logout(request):
+    logout(request)
+    return render(request, "webapp/logout.html")
 
 @login_required
 def profile(request):
