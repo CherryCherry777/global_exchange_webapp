@@ -23,6 +23,9 @@ from .decorators import role_required
 
 User = get_user_model()
 
+def public_home(request):
+    return render(request, "webapp/home.html")
+
 # Registration
 def register(request):
     if request.method == "POST":
@@ -74,8 +77,12 @@ def verify_email(request, uidb64, token):
 from django.contrib.auth.views import LoginView, LogoutView
 
 class CustomLoginView(LoginView):
-    form_class = LoginForm
     template_name = "webapp/login.html"
+    form_class = LoginForm
+
+    def get_success_url(self):
+        # Redirect to the named URL 'landing'
+        return reverse_lazy('landing')
 
 def custom_logout(request):
     logout(request)
@@ -135,23 +142,6 @@ def remove_role(request, user_id, role_name):
     user.groups.remove(group)
     return redirect("manage_roles")
 
-class CustomLoginView(LoginView):
-    template_name = "webapp/login.html"
-    
-    
-    def get_success_url(self):
-        return "/"
-        """
-        role = get_user_primary_role(self.request.user)
-        if role == "Administrator":
-            return "/admin_dashboard/"  # change to your admin dashboard URL
-        elif role == "Employee":
-            return "/employee_dashboard/"
-        else:
-            return "/profile/"  # default for regular users
-            """
-    
-
 
 @role_required("Administrator")
 def admin_dash(request):
@@ -164,7 +154,7 @@ def employee_dash(request):
 @login_required
 def landing_page(request):
     role = get_user_primary_role(request.user)
-    context = {"role": role}
+    context = {"role": role}  # still available if needed
     return render(request, "webapp/landing.html", context)
 
 @login_required

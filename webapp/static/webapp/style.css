@@ -81,3 +81,97 @@
 .logout-container a:hover {
     text-decoration: underline;
 }
+
+/* Homepage styles */
+.homepage-container {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.homepage-container h1 {
+    font-size: 2.5em;
+    color: #4CAF50;
+    margin-bottom: 10px;
+}
+
+.homepage-container p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+    color: #555;
+}
+
+.homepage-links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.homepage-links .home-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.homepage-links .home-btn:hover {
+    background-color: #45a049;
+}
+
+/* Header nav styling */
+.header-nav {
+    background-color: #f4f4f9;
+    padding: 10px 20px;
+}
+
+.header-nav li {
+    margin: 0;
+}
+
+.header-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.header-nav .header-btn:hover {
+    background-color: #45a049;
+}
+
+/* Optional: adjust logo margin */
+.header-nav .logo {
+    margin-right: 20px;
+}
+
+.img-header{
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width:200px;
+    margin-left: auto;
+    margin-right: auto;
+    align-self: center;
+}
+
+.nav-links {
+    display: flex;
+    gap: 10px;
+}
+
+.logo-container .img-header {
+    width: 200; /* adjust size */
+    align-items: center;
+    display:block;
+}
+
+.nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* logo left, buttons right */
+}

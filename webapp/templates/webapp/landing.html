@@ -1,17 +1,26 @@
-<h1>Welcome, {{ user.username }}!</h1>
-<p>Your role: {{ role }}</p>
+{% extends 'webapp/base.html' %}
 
-<ul>
-  {% if role == "Administrator" %}
-    <li><a href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
-    <li><a href="{% url 'manage_roles' %}">Manage Roles & Permissions</a></li>
-  {% endif %}
+{% load static%}
 
-  {% if role == "Employee" or role == "Administrator" %}
-    <li><a href="{% url 'employee_dashboard' %}">Employee Dashboard</a></li>
-  {% endif %}
+{% block title %}Home{% endblock %}
 
-  <li><a href="{% url 'profile' %}">My Profile</a></li>
-  <li><a href="{% url 'edit_profile' %}">Edit Profile</a></li>
-  <li><a href="{% url 'logout' %}">Logout</a></li>
-</ul>
+{% block content %}
+<div class="homepage-container">
+    <!--<img src="{% static 'webapp/global_exchange_logo.png' %}" alt="Company Logo" class="logo">-->
+    <h1>Welcome to My Business!</h1>
+    <p>We provide awesome services to make your life easier.</p>
+
+    <div class="homepage-links">
+        {% if user.is_authenticated %}
+            <a href="{% url 'profile' %}" class="home-btn">Your Profile</a>
+            {% if is_admin %}
+                <a href="{% url 'manage_roles' %}" class="home-btn">Manage Roles</a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="home-btn">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="home-btn">Login</a>
+            <a href="{% url 'register' %}" class="home-btn">Register</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
