@@ -1,0 +1,13 @@
+<h1>Welcome, {{ user.username }}!</h1>
+
+<p><strong>Email:</strong> {{ user.email }}</p>
+
+{% if user.bio %}
+  <p><strong>Bio:</strong> {{ user.bio }}</p>
+{% endif %}
+
+{% if user.birthdate %}
+  <p><strong>Birthdate:</strong> {{ user.birthdate }}</p>
+{% endif %}
+
+<a href="{% url 'logout' %}">Logout</a>

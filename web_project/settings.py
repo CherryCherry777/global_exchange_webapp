@@ -17,7 +17,11 @@ import os
 env = environ.Env()
 environ.Env.read_env()  # reads .env file
 
-AUTH_USER_MODEL = 'webapp.usuario'
+#para registro y login
+AUTH_USER_MODEL = 'webapp.CustomUser'
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+LOGIN_REDIRECT_URL = "profile"
+LOGOUT_REDIRECT_URL = "login"
 
 #SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False)
@@ -47,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'webapp'
 ]
 
 MIDDLEWARE = [
