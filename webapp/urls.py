@@ -24,5 +24,9 @@ urlpatterns = [
     path('manage_user_roles/', views.manage_user_roles, name='manage_user_roles'),
     path('add_role/<int:user_id>/', views.add_role, name='add_role'),
     path('remove_role/<int:user_id>/<str:role>/', views.remove_role, name='remove_role'),
+    path("roles/", views.manage_roles, name="manage_roles"),
+    path("roles/create/", views.create_role, name="create_role"),
+    path("roles/<int:role_id>/delete/", views.delete_role, name="delete_role"),
+    path("roles/<int:role_id>/update/", views.update_role_permissions, name="update_role_permissions"),
 
 ]
