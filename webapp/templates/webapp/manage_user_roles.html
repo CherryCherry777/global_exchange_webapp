@@ -1,43 +1,55 @@
-{% extends 'webapp/base.html' %}
-
-{% block title %}Manage Roles{% endblock %}
+{% extends "webapp/base.html" %}
+{% block title %}Manage User Roles{% endblock %}
 
 {% block content %}
-<h1>Manage User Roles</h1>
+<h2>Manage User Roles</h2>
 
 <table class="roles-table">
     <thead>
         <tr>
             <th>User</th>
-            <th>Current Roles</th>
+            <th>Roles</th>
             <th>Add Role</th>
         </tr>
     </thead>
     <tbody>
-        {% for user in users %}
+        {% for ud in user_data %}
         <tr>
-            <td>{{ user.username }}</td>
+            <td>{{ ud.user.username }}</td>
+            
+            <!-- Existing Roles -->
             <td>
-                {% for group in user.groups.all %}
-                    <span class="role-badge">{{ group.name }}
-                        <a href="{% url 'remove_role' user.id group.name %}" class="remove-btn">&times;</a>
-                    </span>
+                {% for r in ud.roles %}
+                    {{ r.name }}
+                    {% if r.name != ud.highest_role %}
+                        <form method="post" action="{% url 'remove_role_from_user' ud.user.id r.name %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="add-btn">Remove</button>
+                        </form>
+                    {% else %}
+                        <span class="role-badge protected">{{ r.name }}</span>
+                    {% endif %}
+                    <br>
                 {% empty %}
-                    <span class="no-role">No roles</span>
+                    <span class="no-role">No roles assigned</span>
                 {% endfor %}
             </td>
+
+            <!-- Dropdown to Add Role -->
             <td>
-                <form method="post" action="{% url 'add_role' user.id %}" class="add-role-form">
+                {% if ud.addable_roles %}
+                <form method="post" action="{% url 'add_role_to_user' ud.user.id %}">
                     {% csrf_token %}
                     <select name="role">
-                        {% for role in all_roles %}
-                            {% if role not in user.groups.all %}
-                                <option value="{{ role.name }}">{{ role.name }}</option>
-                            {% endif %}
+                        {% for r in ud.addable_roles %}
+                        <option value="{{ r.name }}">{{ r.name }}</option>
                         {% endfor %}
                     </select>
                     <button type="submit" class="add-btn">Add</button>
                 </form>
+                {% else %}
+                    <span>All roles assigned</span>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}

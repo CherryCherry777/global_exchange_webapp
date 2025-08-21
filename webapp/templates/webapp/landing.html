@@ -14,7 +14,8 @@
         {% if user.is_authenticated %}
             <a href="{% url 'profile' %}" class="home-btn">Your Profile</a>
             {% if is_admin %}
-                <a href="{% url 'manage_user_roles' %}" class="home-btn">Manage Roles</a>
+            <a href="{% url 'manage_roles' %}" class="header-btn">Manage Roles</a>
+                <a href="{% url 'manage_user_roles' %}" class="home-btn">Manage User Roles</a>
             {% endif %}
             <a href="{% url 'logout' %}" class="home-btn">Logout</a>
         {% else %}
