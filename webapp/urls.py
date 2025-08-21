@@ -35,4 +35,10 @@ urlpatterns = [
     path("users/create/", views.UserCreateView.as_view(), name="user_create"),
     path("users/update/<int:pk>/", views.UserUpdateView.as_view(), name="user_update"),
     path("users/delete/<int:pk>/", views.UserDeleteView.as_view(), name="user_delete"),
+
+    # managing users
+    path('manage-users/', views.manage_users, name='manage_users'),
+    path('manage-users/add-role/<int:user_id>/', views.add_role_to_user, name='add_role_to_user'),
+    path('manage-users/remove-role/<int:user_id>/<str:role_name>/', views.remove_role_from_user, name='remove_role_from_user'),
+    path('manage-users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
 ]

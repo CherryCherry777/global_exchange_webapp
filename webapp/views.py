@@ -357,3 +357,79 @@ def admin_dash(request):
 @role_required("Employee")
 def employee_dash(request):
     return render(request, "webapp/employee_dashboard.html")
+
+
+#managing users
+@login_required
+@role_required("Administrator")
+def manage_users(request):
+    users = User.objects.all()
+    roles_list = Group.objects.all()
+
+    # Determine current user's highest-tier role
+    current_user_roles = request.user.groups.all()
+    current_user_tier = min(ROLE_TIERS.get(r.name, 99) for r in current_user_roles) if current_user_roles else 99
+
+    # Prepare data for template
+    user_data_list = []
+    for u in users:
+        roles_info = []
+        user_role_names = [g.name for g in u.groups.all()]
+
+        for r in u.groups.all():
+            role_tier = ROLE_TIERS.get(r.name, 99)
+            can_remove = not (u == request.user and role_tier <= current_user_tier)
+            roles_info.append({
+                "role": r,
+                "can_remove": can_remove
+            })
+
+        user_data_list.append({
+            "user": u,
+            "roles_info": roles_info,
+            "user_role_names": user_role_names
+        })
+
+    return render(request, "webapp/manage_users.html", {
+        "user_data_list": user_data_list,
+        "roles_list": roles_list
+    })
+
+
+@login_required
+@role_required("Administrator")
+def add_role_to_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == "POST":
+        role_name = request.POST.get("role")
+        if role_name and role_name not in [g.name for g in user.groups.all()]:
+            group = get_object_or_404(Group, name=role_name)
+            user.groups.add(group)
+    return redirect("manage_users")
+
+
+@login_required
+@role_required("Administrator")
+def remove_role_from_user(request, user_id, role_name):
+    user = get_object_or_404(User, id=user_id)
+    group = get_object_or_404(Group, name=role_name)
+
+    current_user_roles = request.user.groups.all()
+    current_user_tier = min(ROLE_TIERS.get(r.name, 99) for r in current_user_roles) if current_user_roles else 99
+    role_tier = ROLE_TIERS.get(group.name, 99)
+
+    if not (user == request.user and role_tier <= current_user_tier):
+        user.groups.remove(group)
+
+    return redirect("manage_users")
+
+
+@login_required
+@role_required("Administrator")
+def delete_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    # Optional protection: prevent deleting self
+    if user != request.user:
+        user.delete()
+    return redirect("manage_users")
+
