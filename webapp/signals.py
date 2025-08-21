@@ -1,10 +1,12 @@
 """
 Este archivo indica que se auto-crearan grupos (roles) en el setup de la app
 """
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_migrate, post_save
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
+
+User = get_user_model()
 
 #esto automaticamente crea los grupos de permisos, y el admin por defecto
 @receiver(post_migrate)
@@ -29,3 +31,13 @@ def create_default_roles_and_admin(sender, **kwargs):
             print(f"Default admin user '{username}' created with password '{password}'")
         else:
             print(f"Default admin user '{username}' already exists")
+
+
+@receiver(post_save, sender=User)
+def assign_default_role(sender, instance, created, **kwargs):
+    if created:  # only for new users
+        try:
+            regular_user_group, _ = Group.objects.get_or_create(name="Regular User")
+            instance.groups.add(regular_user_group)
+        except Group.DoesNotExist:
+            pass

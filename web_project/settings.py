@@ -2,13 +2,19 @@ from pathlib import Path
 import environ
 import os
 
+env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# === Django-environ ===
-env = environ.Env(
-    DEBUG=(bool, False)
-)
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+env_file = BASE_DIR / ".env"
+if env_file.exists():
+    environ.Env.read_env(str(env_file))
+else:
+    print("⚠️ WARNING: .env file not found at", env_file)
+
+#environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+
+
+#print("DB_NAME", env("DB_NAME", default="not set"))
 
 # Usuario custom
 AUTH_USER_MODEL = 'webapp.CustomUser'
@@ -21,7 +27,7 @@ LOGOUT_REDIRECT_URL = "login"
 # Seguridad
 SECRET_KEY = 'django-insecure-)p9*n*q!wuaxfx-f4lnm8($i^606cz*#29!6t5rb2wigihdq-t'
 DEBUG = env.bool('DEBUG', default=True)
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 # Apps
 INSTALLED_APPS = [
