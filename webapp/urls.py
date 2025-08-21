@@ -29,6 +29,7 @@ urlpatterns = [
     path("roles/create/", views.create_role, name="create_role"),
     path("roles/delete/<int:role_id>/", views.delete_role, name="delete_role"),
     path("roles/update-permissions/<int:role_id>/", views.update_role_permissions, name="update_role_permissions"),
+    path('manage-roles/delete/<int:role_id>/confirm/', views.confirm_delete_role, name='confirm_delete_role'),
 
     # User CRUD
     path("users/", views.UserListView.as_view(), name="user_list"),
@@ -37,8 +38,17 @@ urlpatterns = [
     path("users/delete/<int:pk>/", views.UserDeleteView.as_view(), name="user_delete"),
 
     # managing users
+    #path('manage-users/', views.manage_users, name='manage_users'),
+    #path('manage-users/add-role/<int:user_id>/', views.add_role_to_user, name='add_role_to_user'),
+    #path('manage-users/remove-role/<int:user_id>/<str:role_name>/', views.remove_role_from_user, name='remove_role_from_user'),
+    #path('manage-users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
+    #path('manage-users/delete/<int:user_id>/confirm/', views.confirm_delete_user, name='confirm_delete_user'),
+    #path('manage-users/<int:user_id>/modify/', views.modify_user, name='modify_user'),
+    #path('manage-users/delete/<int:user_id>/confirm/', views.confirm_delete_user, name='confirm_delete_user'),
+    # Users
     path('manage-users/', views.manage_users, name='manage_users'),
-    path('manage-users/add-role/<int:user_id>/', views.add_role_to_user, name='add_role_to_user'),
-    path('manage-users/remove-role/<int:user_id>/<str:role_name>/', views.remove_role_from_user, name='remove_role_from_user'),
-    path('manage-users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
+    path('manage-users/<int:user_id>/modify/', views.modify_users, name='modify_users'),
+    path('manage-users/delete/<int:user_id>/confirm/', views.confirm_delete_user, name='confirm_delete_user'),
+
+
 ]

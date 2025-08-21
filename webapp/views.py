@@ -308,6 +308,22 @@ def delete_role(request, role_id):
 
 @login_required
 @role_required("Administrator")
+def confirm_delete_role(request, role_id):
+    role = get_object_or_404(Group, id=role_id)
+    if role.name in PROTECTED_ROLES:
+        messages.error(request, f"You cannot delete the '{role.name}' role.")
+        return redirect("manage_roles")
+
+    if request.method == "POST":
+        role.delete()
+        messages.success(request, f"Role '{role.name}' has been deleted.")
+        return redirect("manage_roles")
+
+    return render(request, "webapp/confirm_delete_role.html", {"role": role})
+
+
+@login_required
+@role_required("Administrator")
 def update_role_permissions(request, role_id):
     role = get_object_or_404(Group, id=role_id)
     if request.method == "POST":
@@ -364,36 +380,8 @@ def employee_dash(request):
 @role_required("Administrator")
 def manage_users(request):
     users = User.objects.all()
-    roles_list = Group.objects.all()
+    return render(request, "webapp/manage_users.html", {"users": users})
 
-    # Determine current user's highest-tier role
-    current_user_roles = request.user.groups.all()
-    current_user_tier = min(ROLE_TIERS.get(r.name, 99) for r in current_user_roles) if current_user_roles else 99
-
-    # Prepare data for template
-    user_data_list = []
-    for u in users:
-        roles_info = []
-        user_role_names = [g.name for g in u.groups.all()]
-
-        for r in u.groups.all():
-            role_tier = ROLE_TIERS.get(r.name, 99)
-            can_remove = not (u == request.user and role_tier <= current_user_tier)
-            roles_info.append({
-                "role": r,
-                "can_remove": can_remove
-            })
-
-        user_data_list.append({
-            "user": u,
-            "roles_info": roles_info,
-            "user_role_names": user_role_names
-        })
-
-    return render(request, "webapp/manage_users.html", {
-        "user_data_list": user_data_list,
-        "roles_list": roles_list
-    })
 
 
 @login_required
@@ -432,4 +420,62 @@ def delete_user(request, user_id):
     if user != request.user:
         user.delete()
     return redirect("manage_users")
+
+
+@login_required
+@role_required("Administrator")
+def confirm_delete_user(request, user_id):
+    user_obj = get_object_or_404(User, id=user_id)
+    if request.method == "POST":
+        user_obj.delete()
+        messages.success(request, f"User '{user_obj.username}' deleted successfully!")
+        return redirect("manage_users")
+    return render(request, "webapp/confirm_delete_user.html", {"user_obj": user_obj})
+
+
+@login_required
+@role_required("Administrator")
+def modify_users(request, user_id):
+    user_obj = get_object_or_404(User, id=user_id)
+
+    # Prevent admin from removing their own highest role here
+    ROLE_TIERS = {"Administrator": 3, "Employee": 2, "User": 1}
+
+    if request.method == "POST":
+        # Update basic info
+        user_obj.username = request.POST.get("username", user_obj.username)
+        user_obj.email = request.POST.get("email", user_obj.email)
+        user_obj.first_name = request.POST.get("first_name", user_obj.first_name)
+        user_obj.last_name = request.POST.get("last_name", user_obj.last_name)
+        user_obj.save()
+
+        # Role management
+        selected_roles = request.POST.getlist("roles")  # list of role names
+        current_user_roles = {g.name for g in request.user.groups.all()}
+        highest_current_tier = max([ROLE_TIERS.get(r, 0) for r in current_user_roles], default=0)
+
+        # Add/remove roles while respecting tier logic
+        for role in Group.objects.all():
+            role_name = role.name
+            if role_name in selected_roles and role_name not in {g.name for g in user_obj.groups.all()}:
+                # Can only add role lower than or equal to your own highest tier
+                if ROLE_TIERS.get(role_name, 0) <= highest_current_tier:
+                    user_obj.groups.add(role)
+            elif role_name not in selected_roles and role_name in {g.name for g in user_obj.groups.all()}:
+                # Can only remove role lower than your own highest tier
+                if ROLE_TIERS.get(role_name, 0) < highest_current_tier or user_obj != request.user:
+                    user_obj.groups.remove(role)
+
+        messages.success(request, f"User '{user_obj.username}' updated successfully.")
+        return redirect("manage_users")
+
+    roles = Group.objects.all()
+    user_roles = {g.name for g in user_obj.groups.all()}
+
+    return render(request, "webapp/modify_users.html", {
+        "user_obj": user_obj,
+        "roles": roles,
+        "user_roles": user_roles,
+        "ROLE_TIERS": {"Administrator": 3, "Employee": 2, "User": 1}
+    })
 

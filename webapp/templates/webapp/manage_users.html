@@ -2,61 +2,30 @@
 {% block title %}Manage Users{% endblock %}
 
 {% block content %}
-<h1>Manage Users</h1>
-
-<table class="roles-table">
-    <thead>
-        <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Roles</th>
-            <th>Add Role</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for udata in user_data_list %}
-        <tr>
-            <td>{{ udata.user.username }}</td>
-            <td>{{ udata.user.email }}</td>
-
-            <!-- Roles with remove buttons -->
-            <td>
-                {% for role_info in udata.roles_info %}
-                    <span class="role-badge">
-                        {{ role_info.role.name }}
-                        {% if role_info.can_remove %}
-                            <a href="{% url 'remove_role_from_user' udata.user.id role_info.role.name %}" class="remove-btn">×</a>
-                        {% endif %}
-                    </span>
-                {% empty %}
-                    <span class="no-role">No roles</span>
-                {% endfor %}
-            </td>
-
-            <!-- Add role dropdown -->
-            <td>
-                <form method="POST" action="{% url 'add_role_to_user' udata.user.id %}" class="add-role-form">
-                    {% csrf_token %}
-                    <select name="role">
-                        {% for role in roles_list %}
-                            {% if role.name not in udata.user_role_names %}
-                                <option value="{{ role.name }}">{{ role.name }}</option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="add-btn">Add</button>
-                </form>
-            </td>
-
-            <!-- Actions -->
-            <td>
-                {% if udata.user != request.user %}
-                    <a href="{% url 'delete_user' udata.user.id %}" class="header-btn">Delete</a>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="homepage-container">
+    <h2>Manage Users</h2>
+    <table class="roles-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Full Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.first_name }} {{ user.last_name }}</td>
+                <td>
+                    <a href="{% url 'modify_users' user.id %}" class="header-btn">Modify</a>
+                    <a href="{% url 'confirm_delete_user' user.id %}" class="header-btn">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
