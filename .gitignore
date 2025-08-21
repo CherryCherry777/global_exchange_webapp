@@ -30,3 +30,5 @@ staticfiles/
 
 # MacOS
 .DS_Store
+
+.migrations/
