@@ -9,7 +9,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group, User, Permission
 from django.contrib.auth.views import LoginView
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -20,6 +20,8 @@ from .forms import RegistrationForm, LoginForm
 from .forms import UserUpdateForm
 
 from .decorators import role_required
+
+PROTECTED_ROLES = ["Administrator", "Employee", "User"]
 
 User = get_user_model()
 
@@ -122,7 +124,7 @@ def manage_roles(request):
             "roles": role_status
         })
 
-    return render(request, "webapp/manage_roles.html", {
+    return render(request, "webapp/manage_user_roles.html", {
         "user_roles": user_roles
     })
 
@@ -132,7 +134,7 @@ def add_role(request, user_id, role_name):
     user = get_object_or_404(User, id=user_id)
     group = get_object_or_404(Group, name=role_name)
     user.groups.add(group)
-    return redirect("manage_roles")
+    return redirect("manage_user_roles")
 
 
 # --- Remove Role ---
@@ -140,7 +142,7 @@ def remove_role(request, user_id, role_name):
     user = get_object_or_404(User, id=user_id)
     group = get_object_or_404(Group, name=role_name)
     user.groups.remove(group)
-    return redirect("manage_roles")
+    return redirect("manage_user_roles")
 
 
 @role_required("Administrator")
@@ -159,11 +161,11 @@ def landing_page(request):
 
 @login_required
 @role_required("Administrator")
-def manage_roles(request):
+def manage_user_roles(request):
     User = get_user_model()
     users = User.objects.all()
     all_roles = Group.objects.all()
-    return render(request, "webapp/manage_roles.html", {"users": users, "all_roles": all_roles})
+    return render(request, "webapp/manage_user_roles.html", {"users": users, "all_roles": all_roles})
 
 @login_required
 @role_required("Administrator")
@@ -173,7 +175,7 @@ def remove_role(request, user_id, role):
     group = get_object_or_404(Group, name=role)
     user.groups.remove(group)
     user.save()
-    return redirect("manage_roles")
+    return redirect("manage_user_roles")
 
 @login_required
 @role_required("Administrator")
@@ -185,7 +187,7 @@ def add_role(request, user_id):
             group = get_object_or_404(Group, name=role_name)
             user.groups.add(group)
             user.save()
-        return redirect("manage_roles")
+        return redirect("manage_user_roles")
 
 
 class UserListView(ListView):
@@ -214,6 +216,51 @@ class UserDeleteView(DeleteView):
     model = User
     template_name = 'webapp/user_confirm_delete.html'
     success_url = reverse_lazy('user_list')
+
+
+
+@login_required
+def manage_roles(request):
+    roles = Group.objects.all().order_by("name")
+    permissions = Permission.objects.all()
+    return render(request, "webapp/manage_roles.html", {
+        "roles": roles,
+        "permissions": permissions
+    })
+
+
+@login_required
+def create_role(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        if name in PROTECTED_ROLES:
+            messages.error(request, "This role name is reserved.")
+        else:
+            Group.objects.create(name=name)
+            messages.success(request, f"Role '{name}' created successfully!")
+    return redirect("manage_roles")
+
+
+@login_required
+def delete_role(request, role_id):
+    role = get_object_or_404(Group, id=role_id)
+    if role.name in PROTECTED_ROLES:
+        messages.error(request, f"You cannot delete the '{role.name}' role.")
+    else:
+        role.delete()
+        messages.success(request, f"Role '{role.name}' deleted successfully!")
+    return redirect("manage_roles")
+
+
+@login_required
+def update_role_permissions(request, role_id):
+    role = get_object_or_404(Group, id=role_id)
+    if request.method == "POST":
+        # Replace existing permissions with submitted ones
+        selected = request.POST.getlist("permissions")
+        role.permissions.set(selected)
+        messages.success(request, f"Permissions updated for role '{role.name}'.")
+    return redirect("manage_roles")
 
 """
 
