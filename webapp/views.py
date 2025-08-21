@@ -20,6 +20,12 @@ from .utils import get_user_primary_role
 
 User = get_user_model()
 PROTECTED_ROLES = ["Administrator", "Employee", "User"]
+ROLE_TIERS = {
+    "Administrator": 1, #numero menor: mas alto
+    "Employee": 2,
+    "User": 3,
+}
+
 
 # -----------------------
 # Public / Auth views
@@ -112,42 +118,11 @@ def landing_page(request):
 # -----------------------
 # Assign roles to users
 
-@login_required
-@role_required("Administrator")
-def manage_user_roles(request):
-    users = User.objects.all().prefetch_related("groups")
-    all_roles = Group.objects.all()
-
-    if request.method == "POST":
-        action = request.POST.get("action")
-        user_id = request.POST.get("user_id")
-        role_name = request.POST.get("role_name")
-        user = get_object_or_404(User, id=user_id)
-        group = get_object_or_404(Group, name=role_name)
-
-        # Add role
-        if action == "add_role":
-            if group not in user.groups.all():
-                user.groups.add(group)
-                messages.success(request, f"Role '{role_name}' added to {user.username}.")
-            return redirect("manage_user_roles")
-
-        # Remove role
-        elif action == "remove_role":
-            # Block removing current user's top-tier role
-            current_user_roles = [g.name for g in request.user.groups.all()]
-            if user == request.user and role_name in current_user_roles:
-                messages.error(request, "You cannot remove your own top-tier role.")
-            else:
-                user.groups.remove(group)
-                messages.success(request, f"Role '{role_name}' removed from {user.username}.")
-            return redirect("manage_user_roles")
-
-    return render(request, "webapp/manage_user_roles.html", {
-        "users": users,
-        "all_roles": all_roles,
-        "protected_roles": PROTECTED_ROLES,
-    })
+def get_highest_role_tier(user):
+    user_roles = [g.name for g in user.groups.all()]
+    if not user_roles:
+        return 0  # No roles
+    return max(ROLE_TIERS.get(r, 0) for r in user_roles)
 
 @login_required
 @role_required("Administrator")
@@ -160,36 +135,89 @@ def user_role_list(request):
     })
 
 @login_required
-@role_required("Administrator")
+def manage_user_roles(request):
+    users = User.objects.all()
+    roles_list = Group.objects.all()
+
+    # Determine current user's highest-tier role
+    current_user_roles = request.user.groups.all()
+    current_user_tier = min(ROLE_TIERS.get(r.name, 99) for r in current_user_roles) if current_user_roles else 99
+
+    # Prepare data for template
+    user_roles_data = []
+    for u in users:
+        roles_info = []
+        user_role_names = [g.name for g in u.groups.all()]
+
+        for r in u.groups.all():
+            role_tier = ROLE_TIERS.get(r.name, 99)
+            # Can remove if not removing own highest-tier role
+            can_remove = not (u == request.user and role_tier <= current_user_tier)
+            roles_info.append({
+                "role": r,
+                "can_remove": can_remove
+            })
+
+        user_roles_data.append({
+            "user": u,
+            "roles_info": roles_info,
+            "user_role_names": user_role_names
+        })
+
+    return render(request, "webapp/manage_user_roles.html", {
+        "user_roles_data": user_roles_data,
+        "roles_list": roles_list
+    })
+
+
+@login_required
 def add_role_to_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     if request.method == "POST":
         role_name = request.POST.get("role")
         if role_name:
             group = get_object_or_404(Group, name=role_name)
-            user.groups.add(group)
-            user.save()
+            if group.name not in [g.name for g in user.groups.all()]:
+                user.groups.add(group)
     return redirect("manage_user_roles")
 
 
+
 @login_required
-@role_required("Administrator")
 def remove_role_from_user(request, user_id, role_name):
     user = get_object_or_404(User, id=user_id)
-
-    # Prevent the current user from removing their own top-tier role
-    current_user_roles = [g.name for g in request.user.groups.all()]
-    if user == request.user and role_name in current_user_roles:
-        # Optionally, only block if it's a protected role
-        if role_name in PROTECTED_ROLES:
-            messages.error(request, "You cannot remove your own top-tier role.")
-            return redirect("manage_user_roles")
-
-    # Remove the role from the other user
     group = get_object_or_404(Group, name=role_name)
-    user.groups.remove(group)
-    user.save()
-    messages.success(request, f"Role '{role_name}' removed from {user.username}.")
+
+    # Check tiers before removal
+    current_user_roles = request.user.groups.all()
+    current_user_tier = min(ROLE_TIERS.get(r.name, 99) for r in current_user_roles) if current_user_roles else 99
+    role_tier = ROLE_TIERS.get(group.name, 99)
+
+    # Only prevent removing own highest-tier role
+    if not (user == request.user and role_tier <= current_user_tier):
+        user.groups.remove(group)
+
+    return redirect("manage_user_roles")
+
+    # Determine tiers
+    current_user_roles = request.user.groups.all()
+    current_user_tier = min(ROLE_TIERS.get(r.name, 99) for r in current_user_roles) if current_user_roles else 99
+    target_user_roles = user_to_edit.groups.all()
+    target_user_highest_tier = min(ROLE_TIERS.get(r.name, 99) for r in target_user_roles) if target_user_roles else 99
+
+    # Prevent removing protected roles or higher-tier roles than current user
+    if role_to_remove.name in PROTECTED_ROLES:
+        messages.error(request, f"You cannot remove the {role_to_remove.name} role.")
+    elif ROLE_TIERS.get(role_to_remove.name, 99) < current_user_tier:
+        messages.error(request, "You cannot remove a role higher than your own.")
+    elif user_to_edit == request.user and ROLE_TIERS.get(role_to_remove.name, 99) == current_user_tier:
+        messages.error(request, "You cannot remove your own highest-tier role.")
+    elif role_to_remove not in user_to_edit.groups.all():
+        messages.warning(request, f"{user_to_edit.username} does not have the {role_to_remove.name} role.")
+    else:
+        user_to_edit.groups.remove(role_to_remove)
+        messages.success(request, f"{role_to_remove.name} removed from {user_to_edit.username}.")
+
     return redirect("manage_user_roles")
 
 
@@ -202,41 +230,47 @@ def remove_role_from_user(request, user_id, role_name):
 def manage_roles(request):
     roles = Group.objects.all()
     permissions = Permission.objects.all()
+    protected_roles = PROTECTED_ROLES
+    user_tier = get_highest_role_tier(request.user)
 
     if request.method == "POST":
         action = request.POST.get("action")
         role_id = request.POST.get("role_id")
-        perm_id = request.POST.get("permission_id")
+        role = Group.objects.get(id=role_id)
+        role_tier = ROLE_TIERS.get(role.name, 0)
 
-        role = get_object_or_404(Group, id=role_id)
-
-        # Add permission
-        if action == "add_permission" and perm_id:
-            perm = get_object_or_404(Permission, id=perm_id)
-            role.permissions.add(perm)
-            messages.success(request, f"Added permission '{perm.name}' to role '{role.name}'.")
-
-        # Remove permission
-        elif action == "remove_permission" and perm_id:
-            perm = get_object_or_404(Permission, id=perm_id)
-            role.permissions.remove(perm)
-            messages.success(request, f"Removed permission '{perm.name}' from role '{role.name}'.")
-
-        # Delete role
-        elif action == "delete_role":
-            if role.name not in PROTECTED_ROLES:
-                role.delete()
-                messages.success(request, f"Deleted role '{role.name}'.")
+        if action == "delete_role":
+            if role.name in protected_roles:
+                messages.error(request, "You cannot delete a protected role.")
+            elif role_tier >= user_tier:
+                messages.error(request, "You cannot delete a role equal or higher than your own.")
             else:
-                messages.error(request, f"You cannot delete protected role '{role.name}'.")
+                role.delete()
+                messages.success(request, f"Deleted role {role.name}.")
+
+        # handle add/remove permissions as before
+        elif action == "add_permission":
+            perm_id = request.POST.get("permission_id")
+            if perm_id:
+                perm = Permission.objects.get(id=perm_id)
+                role.permissions.add(perm)
+                messages.success(request, f"Added {perm.name} to {role.name}.")
+        elif action == "remove_permission":
+            perm_id = request.POST.get("permission_id")
+            if perm_id:
+                perm = Permission.objects.get(id=perm_id)
+                role.permissions.remove(perm)
+                messages.success(request, f"Removed {perm.name} from {role.name}.")
 
         return redirect("manage_roles")
 
     return render(request, "webapp/manage_roles.html", {
         "roles": roles,
         "permissions": permissions,
-        "protected_roles": PROTECTED_ROLES,
+        "protected_roles": protected_roles,
+        "user_tier": user_tier,
     })
+
 
 
 @login_required

@@ -1,13 +1,24 @@
 {% extends "webapp/base.html" %}
+{% load static %}
+{% load custom_filters %} {# for dictionary lookup if needed #}
+
 {% block title %}Manage Roles{% endblock %}
 
 {% block content %}
 <h1>Manage Roles</h1>
 
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
 <table class="roles-table">
     <thead>
         <tr>
-            <th>Role</th>
+            <th>Role Name</th>
             <th>Permissions</th>
             <th>Add Permission</th>
             <th>Remove Permission</th>
@@ -21,53 +32,62 @@
 
             <!-- Current permissions -->
             <td>
-                {% for perm in role.permissions.all %}
-                    {{ perm.name }}<br>
-                {% empty %}
+                {% if role.permissions.all %}
+                    {% for perm in role.permissions.all %}
+                        <span class="role-badge">{{ perm.name }}</span>
+                    {% endfor %}
+                {% else %}
                     <span class="no-role">No permissions</span>
-                {% endfor %}
+                {% endif %}
             </td>
 
-            <!-- Add permission dropdown -->
+            <!-- Add permission -->
             <td>
-                <form method="post">
+                <form method="POST" action="{% url 'manage_roles' %}">
                     {% csrf_token %}
+                    <input type="hidden" name="action" value="add_permission">
                     <input type="hidden" name="role_id" value="{{ role.id }}">
-                    <select name="permission_id">
+                    <select name="permission_id" required>
+                        <option value="">Select permission</option>
                         {% for perm in permissions %}
                             {% if perm not in role.permissions.all %}
                                 <option value="{{ perm.id }}">{{ perm.name }}</option>
                             {% endif %}
                         {% endfor %}
                     </select>
-                    <button type="submit" name="action" value="add_permission" class="add-btn">Add</button>
+                    <button type="submit" class="add-btn">Add</button>
                 </form>
             </td>
 
-            <!-- Remove permission dropdown -->
+            <!-- Remove permission -->
             <td>
-                <form method="post">
+                <form method="POST" action="{% url 'manage_roles' %}">
                     {% csrf_token %}
+                    <input type="hidden" name="action" value="remove_permission">
                     <input type="hidden" name="role_id" value="{{ role.id }}">
-                    <select name="permission_id">
+                    <select name="permission_id" required>
+                        <option value="">Select permission</option>
                         {% for perm in role.permissions.all %}
                             <option value="{{ perm.id }}">{{ perm.name }}</option>
                         {% endfor %}
                     </select>
-                    <button type="submit" name="action" value="remove_permission" class="add-btn">Remove</button>
+                    <button type="submit" class="add-btn">Remove</button>
                 </form>
             </td>
 
-            <!-- Delete role button -->
+            <!-- Delete role -->
             <td>
-                {% if role.name not in protected_roles %}
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="role_id" value="{{ role.id }}">
-                    <button type="submit" name="action" value="delete_role" class="add-btn">Delete</button>
-                </form>
+                {% if role.name in protected_roles %}
+                    <button type="button" class="add-btn" disabled>Protected</button>
+                {% elif ROLE_TIERS|get_item:role.name >= user_tier %}
+                    <button type="button" class="add-btn" disabled>Cannot delete</button>
                 {% else %}
-                    Protected
+                    <form method="POST" action="{% url 'manage_roles' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_role">
+                        <input type="hidden" name="role_id" value="{{ role.id }}">
+                        <button type="submit" class="add-btn">Delete</button>
+                    </form>
                 {% endif %}
             </td>
         </tr>
@@ -76,8 +96,8 @@
 </table>
 
 <!-- Add new role -->
-<h2>Create New Role</h2>
-<form method="post" action="{% url 'create_role' %}">
+<h2>Add New Role</h2>
+<form method="POST" action="{% url 'create_role' %}">
     {% csrf_token %}
     <input type="text" name="name" placeholder="Role name" required>
     <button type="submit" class="add-btn">Create Role</button>

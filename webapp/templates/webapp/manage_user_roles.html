@@ -1,4 +1,6 @@
 {% extends "webapp/base.html" %}
+{% load static %}
+
 {% block title %}Manage User Roles{% endblock %}
 
 {% block content %}
@@ -13,41 +15,37 @@
         </tr>
     </thead>
     <tbody>
-        {% for user in users %}
+        {% for udata in user_roles_data %}
         <tr>
-            <td>{{ user.username }}</td>
+            <!-- User -->
+            <td>{{ udata.user.username }}</td>
 
-            <!-- Existing roles with remove button -->
+            <!-- User Roles with remove buttons -->
             <td>
-                {% for role in user.groups.all %}
-                    {{ role.name }}
-                    {% if user != request.user or role.name not in protected_roles %}
-                        <form method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <input type="hidden" name="user_id" value="{{ user.id }}">
-                            <input type="hidden" name="role_name" value="{{ role.name }}">
-                            <button type="submit" name="action" value="remove_role" class="add-btn">×</button>
-                        </form>
-                    {% endif %}
-                    <br>
+                {% for role_info in udata.roles_info %}
+                    <span class="role-badge">
+                        {{ role_info.role.name }}
+                        {% if role_info.can_remove %}
+                            <a href="{% url 'remove_role_user' udata.user.id role_info.role.name %}" class="remove-btn">×</a>
+                        {% endif %}
+                    </span>
                 {% empty %}
                     <span class="no-role">No roles</span>
                 {% endfor %}
             </td>
 
-            <!-- Add role dropdown -->
+            <!-- Add Role Dropdown -->
             <td>
-                <form method="post">
+                <form method="POST" action="{% url 'add_role_user' udata.user.id %}" class="add-role-form">
                     {% csrf_token %}
-                    <input type="hidden" name="user_id" value="{{ user.id }}">
-                    <select name="role_name">
-                        {% for role in all_roles %}
-                            {% if role not in user.groups.all %}
+                    <select name="role">
+                        {% for role in roles_list %}
+                            {% if role.name not in udata.user_role_names %}
                                 <option value="{{ role.name }}">{{ role.name }}</option>
                             {% endif %}
                         {% endfor %}
                     </select>
-                    <button type="submit" name="action" value="add_role" class="add-btn">Add</button>
+                    <button type="submit" class="add-btn">Add</button>
                 </form>
             </td>
         </tr>
