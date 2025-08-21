@@ -182,3 +182,37 @@
     border-radius: 4px;
     padding: 6px;
 }
+
+/* Make the homepage-container more compact */
+.homepage-container.compact-form {
+    padding: 40px 20px;   /* reduce top/bottom padding */
+    max-width: 1000px;     /* limit container width */
+    margin: 40px auto;    /* center with less vertical space */
+}
+
+/* Tighten form spacing */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;            /* reduce gap between inputs */
+}
+
+.form-container input,
+.form-container select,
+.form-container textarea {
+    padding: 8px;          /* smaller padding */
+    font-size: 0.95em;     /* slightly smaller text */
+}
+
+.form-container button {
+    width: 60%;
+    align-self: center;
+    padding: 10px;
+    font-size: 0.95em;
+}
+
+.form-link {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9em;
+}

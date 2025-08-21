@@ -1,6 +1,17 @@
-<h1>Register</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Register</button>
-</form>
+{% extends "webapp/base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="homepage-container compact-form">
+    <h1>Register</h1>
+    <p>Create your account to access the platform.</p>
+
+    <form method="post" class="form-container">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="home-btn">Register</button>
+    </form>
+
+    <p class="form-link">Already have an account? <a href="{% url 'login' %}" class="header-btn">Login here</a></p>
+</div>
+{% endblock %}
