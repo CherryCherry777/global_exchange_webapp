@@ -27,7 +27,7 @@ LOGOUT_REDIRECT_URL = "login"
 # Seguridad
 SECRET_KEY = 'django-insecure-)p9*n*q!wuaxfx-f4lnm8($i^606cz*#29!6t5rb2wigihdq-t'
 DEBUG = env.bool('DEBUG', default=True)
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Apps
 INSTALLED_APPS = [
