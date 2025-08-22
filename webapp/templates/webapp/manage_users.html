@@ -3,14 +3,14 @@
 
 {% block content %}
 <div class="homepage-container">
-    <h2>Manage Users</h2>
+    <h2>Administrar Usuarios</h2>
     <table class="roles-table">
         <thead>
             <tr>
-                <th>Username</th>
+                <th>Nombre de usuario</th>
                 <th>Email</th>
-                <th>Full Name</th>
-                <th>Actions</th>
+                <th>Nombre Completo</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -20,8 +20,8 @@
                 <td>{{ user.email }}</td>
                 <td>{{ user.first_name }} {{ user.last_name }}</td>
                 <td>
-                    <a href="{% url 'modify_users' user.id %}" class="header-btn">Modify</a>
-                    <a href="{% url 'confirm_delete_user' user.id %}" class="header-btn">Delete</a>
+                    <a href="{% url 'modify_users' user.id %}" class="header-btn">Modificar</a>
+                    <a href="{% url 'confirm_delete_user' user.id %}" class="header-btn">Eliminar</a>
                 </td>
             </tr>
             {% endfor %}

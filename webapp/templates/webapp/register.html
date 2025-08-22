@@ -1,17 +1,17 @@
 {% extends "webapp/base.html" %}
-{% block title %}Register{% endblock %}
+{% block title %}Registrarse{% endblock %}
 
 {% block content %}
 <div class="homepage-container compact-form">
-    <h1>Register</h1>
-    <p>Create your account to access the platform.</p>
+    <h1>Registrarse</h1>
+    <p>Cree su cuenta para ingresar a la plataforma.</p>
 
     <form method="post" class="form-container">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="home-btn">Register</button>
+        <button type="submit" class="home-btn">Registrarse</button>
     </form>
 
-    <p class="form-link">Already have an account? <a href="{% url 'login' %}" class="header-btn">Login here</a></p>
+    <p class="form-link">Ya tiene una cuenta? <a href="{% url 'login' %}" class="header-btn">Ingrese aqui</a></p>
 </div>
 {% endblock %}

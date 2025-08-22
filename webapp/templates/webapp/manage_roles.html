@@ -2,10 +2,10 @@
 {% load static %}
 {% load custom_filters %} {# for dictionary lookup if needed #}
 
-{% block title %}Manage Roles{% endblock %}
+{% block title %}Administrar Roles{% endblock %}
 
 {% block content %}
-<h1>Manage Roles</h1>
+<h1>Administrar Roles</h1>
 
 {% if messages %}
 <ul class="messages">
@@ -18,11 +18,11 @@
 <table class="roles-table">
     <thead>
         <tr>
-            <th>Role Name</th>
-            <th>Permissions</th>
-            <th>Add Permission</th>
-            <th>Remove Permission</th>
-            <th>Delete Role</th>
+            <th>Nombre de Rol</th>
+            <th>Permisos</th>
+            <th>Anhadir Permiso</th>
+            <th>Eliminar Permiso</th>
+            <th>Eliminar Rol</th>
         </tr>
     </thead>
     <tbody>
@@ -37,7 +37,7 @@
                         <span class="role-badge">{{ perm.name }}</span>
                     {% endfor %}
                 {% else %}
-                    <span class="no-role">No permissions</span>
+                    <span class="no-role">Sin permisos</span>
                 {% endif %}
             </td>
 
@@ -48,14 +48,14 @@
                     <input type="hidden" name="action" value="add_permission">
                     <input type="hidden" name="role_id" value="{{ role.id }}">
                     <select name="permission_id" required>
-                        <option value="">Select permission</option>
+                        <option value="">Seleccionar permiso</option>
                         {% for perm in permissions %}
                             {% if perm not in role.permissions.all %}
                                 <option value="{{ perm.id }}">{{ perm.name }}</option>
                             {% endif %}
                         {% endfor %}
                     </select>
-                    <button type="submit" class="add-btn">Add</button>
+                    <button type="submit" class="add-btn">Anhadir</button>
                 </form>
             </td>
 
@@ -66,21 +66,21 @@
                     <input type="hidden" name="action" value="remove_permission">
                     <input type="hidden" name="role_id" value="{{ role.id }}">
                     <select name="permission_id" required>
-                        <option value="">Select permission</option>
+                        <option value="">Seleccionar permiso</option>
                         {% for perm in role.permissions.all %}
                             <option value="{{ perm.id }}">{{ perm.name }}</option>
                         {% endfor %}
                     </select>
-                    <button type="submit" class="add-btn">Remove</button>
+                    <button type="submit" class="add-btn">Eliminar</button>
                 </form>
             </td>
 
             <!-- Delete role -->
             <td>
                 {% if role.name in protected_roles %}
-                    <button type="button" class="add-btn" disabled>Protected</button>
+                    <button type="button" class="add-btn" disabled>Protegido</button>
                 {% elif ROLE_TIERS|get_item:role.name >= user_tier %}
-                    <button type="button" class="add-btn" disabled>Cannot delete</button>
+                    <button type="button" class="add-btn" disabled>No se puede eliminar</button>
                 {% else %}
                     <form method="POST" action="{% url 'manage_roles' %}" style="display:inline;">
                         {% csrf_token %}
@@ -96,10 +96,10 @@
 </table>
 
 <!-- Add new role -->
-<h2>Add New Role</h2>
+<h2>Anhadir nuevo Rol</h2>
 <form method="POST" action="{% url 'create_role' %}">
     {% csrf_token %}
-    <input type="text" name="name" placeholder="Role name" required>
-    <button type="submit" class="add-btn">Create Role</button>
+    <input type="text" name="name" placeholder="Nombre de Rol" required>
+    <button type="submit" class="add-btn">Crear Rol</button>
 </form>
 {% endblock %}

@@ -13,9 +13,9 @@ User = get_user_model()
 def create_default_roles_and_admin(sender, **kwargs):
     if sender.name == "webapp":
         # 1. Create groups
-        regular_group, _ = Group.objects.get_or_create(name="Regular User")
-        employee_group, _ = Group.objects.get_or_create(name="Employee")
-        admin_group, _ = Group.objects.get_or_create(name="Administrator")
+        regular_group, _ = Group.objects.get_or_create(name="Usuario")
+        employee_group, _ = Group.objects.get_or_create(name="Empleado")
+        admin_group, _ = Group.objects.get_or_create(name="Administrador")
 
         # 2. Create default admin user
         User = get_user_model()
@@ -28,16 +28,16 @@ def create_default_roles_and_admin(sender, **kwargs):
             user.groups.add(admin_group)
             user.is_active = True
             user.save()
-            print(f"Default admin user '{username}' created with password '{password}'")
+            print(f"Usuario admin por defecto '{username}' creado con contrasenha '{password}'")
         else:
-            print(f"Default admin user '{username}' already exists")
+            print(f"Usuario admin '{username}' ya existe")
 
 
 @receiver(post_save, sender=User)
 def assign_default_role(sender, instance, created, **kwargs):
     if created:  # only for new users
         try:
-            regular_user_group, _ = Group.objects.get_or_create(name="Regular User")
+            regular_user_group, _ = Group.objects.get_or_create(name="Usuario")
             instance.groups.add(regular_user_group)
         except Group.DoesNotExist:
             pass
