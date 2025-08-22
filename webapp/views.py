@@ -19,11 +19,11 @@ from .decorators import role_required
 from .utils import get_user_primary_role
 
 User = get_user_model()
-PROTECTED_ROLES = ["Administrator", "Employee", "User"]
+PROTECTED_ROLES = ["Administrador", "Empleado", "Usuario"]
 ROLE_TIERS = {
-    "Administrator": 1, #numero menor: mas alto
-    "Employee": 2,
-    "User": 3,
+    "Administrador": 1, #numero menor: mas alto
+    "Empleado": 2,
+    "Usuario": 3,
 }
 
 
@@ -49,11 +49,11 @@ def register(request):
             )
 
             # PRINT TO TERMINAL
-            print("=== VERIFICATION LINK ===")
+            print("=== LINK DE VERIFICACION ===")
             print(link)
-            print("=========================")
+            print("============================")
 
-            messages.success(request, "Registration successful! Check console for verification link.")
+            messages.success(request, "Registro Exitoso! Por favor presione su link de verificacion.")
             return redirect("login")
         else:
             # Print form errors if invalid
@@ -76,10 +76,10 @@ def verify_email(request, uidb64, token):
     if user and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
-        messages.success(request, "Email verified! You can now log in.")
+        messages.success(request, "Email verificado! Ahora puede hacer login.")
         return redirect("login")
     else:
-        messages.error(request, "Invalid or expired verification link.")
+        messages.error(request, "Link de verificacion expirado o invalido.")
         return redirect("register")
 
 class CustomLoginView(LoginView):
@@ -125,7 +125,7 @@ def get_highest_role_tier(user):
     return max(ROLE_TIERS.get(r, 0) for r in user_roles)
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def user_role_list(request):
     users = User.objects.all().prefetch_related("groups")
     all_roles = Group.objects.all()
@@ -226,7 +226,7 @@ def remove_role_from_user(request, user_id, role_name):
 # Role / Permission Management
 # -----------------------
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def manage_roles(request):
     roles = Group.objects.all()
     permissions = Permission.objects.all()
@@ -241,9 +241,9 @@ def manage_roles(request):
 
         if action == "delete_role":
             if role.name in protected_roles:
-                messages.error(request, "You cannot delete a protected role.")
+                messages.error(request, "No puede borrar un rol protegido.")
             elif role_tier >= user_tier:
-                messages.error(request, "You cannot delete a role equal or higher than your own.")
+                messages.error(request, "No puede borrar o modificar un rol mas alto que el suyo.")
             else:
                 role.delete()
                 messages.success(request, f"Deleted role {role.name}.")
@@ -274,7 +274,7 @@ def manage_roles(request):
 
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def create_role(request):
     if request.method == "POST":
         roles = Group.objects.all()
@@ -285,7 +285,7 @@ def create_role(request):
                 messages.error(request, "Ya existe rol con este nombre.")
         """
         if name in PROTECTED_ROLES:
-            messages.error(request, "This role name is reserved.")
+            messages.error(request, "El nombre de este rol esta reservado.")
         else:
             try:
                 Group.objects.create(name=name)
@@ -296,40 +296,40 @@ def create_role(request):
     return redirect("manage_roles")
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def delete_role(request, role_id):
     role = get_object_or_404(Group, id=role_id)
     if role.name in PROTECTED_ROLES:
-        messages.error(request, f"You cannot delete the '{role.name}' role.")
+        messages.error(request, f"No puede eliminar el rol '{role.name}'.")
     else:
         role.delete()
-        messages.success(request, f"Role '{role.name}' deleted successfully!")
+        messages.success(request, f"El rol '{role.name}' fue eliminado exitosamente.")
     return redirect("role_list")
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def confirm_delete_role(request, role_id):
     role = get_object_or_404(Group, id=role_id)
     if role.name in PROTECTED_ROLES:
-        messages.error(request, f"You cannot delete the '{role.name}' role.")
+        messages.error(request, f"No puede eliminar el rol '{role.name}'.")
         return redirect("manage_roles")
 
     if request.method == "POST":
         role.delete()
-        messages.success(request, f"Role '{role.name}' has been deleted.")
+        messages.success(request, f"El rol '{role.name}' fue eliminado exitosamente.")
         return redirect("manage_roles")
 
     return render(request, "webapp/confirm_delete_role.html", {"role": role})
 
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def update_role_permissions(request, role_id):
     role = get_object_or_404(Group, id=role_id)
     if request.method == "POST":
         selected_perms = request.POST.getlist("permissions")
         role.permissions.set(selected_perms)
-        messages.success(request, f"Permissions updated for role '{role.name}'.")
+        messages.success(request, f"Permisos actualizados para el rol '{role.name}'.")
     return redirect("role_list")
 
 # -----------------------
@@ -366,18 +366,18 @@ class UserDeleteView(DeleteView):
 # -----------------------
 # Dashboards
 # -----------------------
-@role_required("Administrator")
+@role_required("Administrador")
 def admin_dash(request):
     return render(request, "webapp/admin_dashboard.html")
 
-@role_required("Employee")
+@role_required("Empleado")
 def employee_dash(request):
     return render(request, "webapp/employee_dashboard.html")
 
 
 #managing users
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def manage_users(request):
     users = User.objects.all()
     return render(request, "webapp/manage_users.html", {"users": users})
@@ -385,7 +385,7 @@ def manage_users(request):
 
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def add_role_to_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     if request.method == "POST":
@@ -397,7 +397,7 @@ def add_role_to_user(request, user_id):
 
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def remove_role_from_user(request, user_id, role_name):
     user = get_object_or_404(User, id=user_id)
     group = get_object_or_404(Group, name=role_name)
@@ -413,7 +413,7 @@ def remove_role_from_user(request, user_id, role_name):
 
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def delete_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     # Optional protection: prevent deleting self
@@ -423,23 +423,23 @@ def delete_user(request, user_id):
 
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def confirm_delete_user(request, user_id):
     user_obj = get_object_or_404(User, id=user_id)
     if request.method == "POST":
         user_obj.delete()
-        messages.success(request, f"User '{user_obj.username}' deleted successfully!")
+        messages.success(request, f"Usuario '{user_obj.username}' eliminado exitosamente!")
         return redirect("manage_users")
     return render(request, "webapp/confirm_delete_user.html", {"user_obj": user_obj})
 
 
 @login_required
-@role_required("Administrator")
+@role_required("Administrador")
 def modify_users(request, user_id):
     user_obj = get_object_or_404(User, id=user_id)
 
     # Prevent admin from removing their own highest role here
-    ROLE_TIERS = {"Administrator": 3, "Employee": 2, "User": 1}
+    ROLE_TIERS = {"Administrador": 3, "Empleado": 2, "Usuario": 1}
 
     if request.method == "POST":
         # Update basic info
@@ -476,6 +476,6 @@ def modify_users(request, user_id):
         "user_obj": user_obj,
         "roles": roles,
         "user_roles": user_roles,
-        "ROLE_TIERS": {"Administrator": 3, "Employee": 2, "User": 1}
+        "ROLE_TIERS": {"Administrador": 3, "Empleado": 2, "Usuario": 1}
     })
 

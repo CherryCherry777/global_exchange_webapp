@@ -1,7 +1,7 @@
 
 {% extends 'webapp/base.html' %}
 {% load static %}
-{% block title %}Welcome to My Business{% endblock %}
+{% block title %}Global Exchange{% endblock %}
 
 {% block content %}
 <div class="homepage-container">
@@ -9,13 +9,13 @@
     <!--<img src="{% static 'webapp/global_exchange_logo.png' %}" alt="Company Logo" class="logo">-->
 
     <!-- Hero Text -->
-    <h1>Welcome to Global Exchange!</h1>
-    <p>Discover our amazing services and get started today.</p>
+    <h1>Bienvenido a Global Exchange!</h1>
+    <p>Descubra nuestros servicios.</p>
 
     <!-- Call-to-action buttons -->
     <div class="homepage-links">
-        <a href="{% url 'login' %}" class="home-btn">Login</a>
-        <a href="{% url 'register' %}" class="home-btn">Register</a>
+        <a href="{% url 'login' %}" class="home-btn">Ingresar</a>
+        <a href="{% url 'register' %}" class="home-btn">Registrarse</a>
     </div>
 </div>
 {% endblock %}

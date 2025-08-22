@@ -1,11 +1,11 @@
 <h1>Users</h1>
-<a href="{% url 'user-create' %}">Create User</a>
+<a href="{% url 'user-create' %}">Crear Usuario</a>
 <ul>
   {% for user in users %}
     <li>
       {{ user.username }} 
-      (<a href="{% url 'user-update' user.pk %}">Edit</a> |
-       <a href="{% url 'user-delete' user.pk %}">Delete</a>)
+      (<a href="{% url 'user-update' user.pk %}">Editar</a> |
+       <a href="{% url 'user-delete' user.pk %}">Eliminar</a>)
     </li>
   {% endfor %}
 </ul>

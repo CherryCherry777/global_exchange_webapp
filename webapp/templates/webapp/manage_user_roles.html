@@ -1,17 +1,17 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 
-{% block title %}Manage User Roles{% endblock %}
+{% block title %}Administrar Roles de Usuario{% endblock %}
 
 {% block content %}
-<h1>Manage User Roles</h1>
+<h1>Administrar Roles de Usuario</h1>
 
 <table class="roles-table">
     <thead>
         <tr>
-            <th>User</th>
+            <th>Usuario</th>
             <th>Roles</th>
-            <th>Add Role</th>
+            <th>Anhadir Rol</th>
         </tr>
     </thead>
     <tbody>
@@ -30,7 +30,7 @@
                         {% endif %}
                     </span>
                 {% empty %}
-                    <span class="no-role">No roles</span>
+                    <span class="no-role">Sin Roles</span>
                 {% endfor %}
             </td>
 
@@ -45,7 +45,7 @@
                             {% endif %}
                         {% endfor %}
                     </select>
-                    <button type="submit" class="add-btn">Add</button>
+                    <button type="submit" class="add-btn">Anhadir</button>
                 </form>
             </td>
         </tr>

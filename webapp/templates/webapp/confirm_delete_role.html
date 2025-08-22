@@ -1,14 +1,14 @@
 {% extends "webapp/base.html" %}
-{% block title %}Confirm Delete Role{% endblock %}
+{% block title %}Confirmar Eliminacion de Rol{% endblock %}
 
 {% block content %}
 <div class="logout-container">
-    <h2>Confirm Delete Role</h2>
-    <p>Are you sure you want to delete the role <strong>{{ role.name }}</strong>?</p>
+    <h2>Confirmar Eliminacion de Rol</h2>
+    <p>Esta seguro de querer eliminar <strong>{{ role.name }}</strong>?</p>
     <form method="POST">
         {% csrf_token %}
-        <button type="submit" class="header-btn">Yes, Delete</button>
-        <a href="{% url 'manage_roles' %}" class="header-btn">Cancel</a>
+        <button type="submit" class="header-btn">Si, Eliminar</button>
+        <a href="{% url 'manage_roles' %}" class="header-btn">Cancelar</a>
     </form>
 </div>
 {% endblock %}
