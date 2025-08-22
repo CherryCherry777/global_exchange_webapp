@@ -17,6 +17,7 @@ class LoginForm(AuthenticationForm):
         model = CustomUser
         fields = ["username", "password"]
 
+#formulario útil para que los usuarios puedan actualizar su información
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
