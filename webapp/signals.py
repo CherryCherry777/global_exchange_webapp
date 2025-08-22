@@ -19,9 +19,9 @@ def create_default_roles_and_admin(sender, **kwargs):
 
         # 2. Create default admin user
         User = get_user_model()
-        username = "superadmin"
+        username = "superadmin2"
         password = "password12345"  # change this after first login
-        email = "admin@example.com"
+        email = "admin2@example.com"
 
         if not User.objects.filter(username=username).exists():
             user = User.objects.create_user(username=username, password=password, email=email)
