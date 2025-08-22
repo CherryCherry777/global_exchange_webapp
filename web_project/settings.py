@@ -98,7 +98,10 @@ USE_TZ = True
 
 # Archivos estáticos
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+
+#el archivo statics no se encuentra en la raíz del directorio del proyecto. 
+#comento para que pueda configurar los test, ya que esta línea hace que busque en la raíz, pero esta en otra carpeta
+#STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

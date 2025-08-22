@@ -41,7 +41,7 @@ def register(request):
             user.is_active = False
             user.save()
 
-            # Generate verification link
+            # Generación del enlace de verificación por email (impreso en consola por ahora)
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             link = request.build_absolute_uri(

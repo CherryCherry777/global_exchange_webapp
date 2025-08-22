@@ -9,3 +9,4 @@ typing_extensions==4.14.1
 sphinx
 sphinx-autobuild
 sphinx-rtd-theme
+coverage
