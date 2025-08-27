@@ -216,3 +216,28 @@
     margin-top: 10px;
     font-size: 0.9em;
 }
+
+.inactive-role {
+    opacity: 0.5;
+    background-color: #f9d6d5; /* rojizo claro */
+}
+
+.inactive-role td {
+    text-decoration: line-through;
+}
+
+/* Usuarios desactivados */
+.inactive-user {
+    opacity: 0.6;
+    background-color: #f9d6d5;
+}
+
+.inactive-user td {
+    text-decoration: line-through;
+}
+
+.inactive-user button {
+    cursor: not-allowed;
+    background-color: #e0e0e0;
+    color: #888;
+}

@@ -1,9 +1,16 @@
 {% extends "webapp/base.html" %}
-{% block title %}Manage Users{% endblock %}
+{% block title %}Administrar Usuarios{% endblock %}
 
 {% block content %}
 <div class="homepage-container">
     <h2>Administrar Usuarios</h2>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
     <table class="roles-table">
         <thead>
             <tr>
@@ -15,13 +22,23 @@
         </thead>
         <tbody>
             {% for user in users %}
-            <tr>
+            <tr class="{% if not user.is_active %}inactive-user{% endif %}">
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.first_name }} {{ user.last_name }}</td>
                 <td>
                     <a href="{% url 'modify_users' user.id %}" class="header-btn">Modificar</a>
-                    <a href="{% url 'confirm_delete_user' user.id %}" class="header-btn">Eliminar</a>
+
+                    <form method="POST" action="{% url 'manage_users' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="toggle_user">
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        {% if user.is_active %}
+                            <button type="submit" class="header-btn">Desactivar</button>
+                        {% else %}
+                            <button type="submit" class="header-btn">Activar</button>
+                        {% endif %}
+                    </form>
                 </td>
             </tr>
             {% endfor %}

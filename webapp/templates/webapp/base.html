@@ -22,14 +22,7 @@
             <div class="nav-links">
                 {% if user.is_authenticated %}
                     <a href="{% url 'profile' %}" class="header-btn">Perfil</a>
-                    <!---
-                    {% if is_admin %}
-                        <a href="{% url 'manage_user_roles' %}" class="header-btn">Manage Roles</a>
-                    {% endif %}-->
                     <a href="{% url 'logout' %}" class="header-btn">Salir</a>
-                {% else %}
-                    <a href="{% url 'login' %}" class="header-btn">Login</a>
-                    <a href="{% url 'register' %}" class="header-btn">Registrarse</a>
                 {% endif %}
             </div>
         </nav>

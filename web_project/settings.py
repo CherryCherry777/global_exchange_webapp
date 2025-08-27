@@ -1,6 +1,7 @@
 from pathlib import Path
 import environ
 import os
+from django.urls import reverse_lazy
 
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +22,8 @@ AUTH_USER_MODEL = 'webapp.CustomUser'
 
 # Autenticación
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-LOGIN_REDIRECT_URL = "profile"
+LOGIN_URL = reverse_lazy('login')
+LOGIN_REDIRECT_URL = '/landing/'
 LOGOUT_REDIRECT_URL = "login"
 
 # Seguridad
@@ -91,7 +93,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internacionalización
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True

@@ -1,43 +1,51 @@
-"""
-Este archivo indica que se auto-crearan grupos (roles) en el setup de la app
-"""
+# signals.py
+from django.conf import settings
 from django.db.models.signals import post_migrate, post_save
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
+from .models import Role
 
 User = get_user_model()
 
-#esto automaticamente crea los grupos de permisos, y el admin por defecto
+
+# Función para borrar sesiones solo en desarrollo
+def clear_sessions(sender, **kwargs):
+    if settings.DEBUG:
+        print("Borrando todas las sesiones activas (solo dev)...")
+        # importar aquí dentro, no al nivel de módulo
+        from django.contrib.sessions.models import Session
+        Session.objects.all().delete()
+
+
 @receiver(post_migrate)
 def create_default_roles_and_admin(sender, **kwargs):
     if sender.name == "webapp":
-        # 1. Create groups
-        regular_group, _ = Group.objects.get_or_create(name="Usuario")
-        employee_group, _ = Group.objects.get_or_create(name="Empleado")
-        admin_group, _ = Group.objects.get_or_create(name="Administrador")
+        for role_name in ["Usuario", "Empleado", "Administrador"]:
+            group, _ = Group.objects.get_or_create(name=role_name)
+            Role.objects.get_or_create(group=group)
 
-        # 2. Create default admin user
-        User = get_user_model()
         username = "superadmin2"
-        password = "password12345"  # change this after first login
+        password = "password12345"
         email = "admin2@example.com"
 
         if not User.objects.filter(username=username).exists():
+            admin_group = Group.objects.get(name="Administrador")
             user = User.objects.create_user(username=username, password=password, email=email)
             user.groups.add(admin_group)
             user.is_active = True
             user.save()
-            print(f"Usuario admin por defecto '{username}' creado con contrasenha '{password}'")
+            print(f"Usuario admin por defecto '{username}' creado con contraseña '{password}'")
         else:
             print(f"Usuario admin '{username}' ya existe")
 
 
 @receiver(post_save, sender=User)
 def assign_default_role(sender, instance, created, **kwargs):
-    if created:  # only for new users
+    if created:
         try:
-            regular_user_group, _ = Group.objects.get_or_create(name="Usuario")
-            instance.groups.add(regular_user_group)
+            default_group = Group.objects.get(name="Usuario")
+            Role.objects.get_or_create(group=default_group)
+            instance.groups.add(default_group)
         except Group.DoesNotExist:
             pass

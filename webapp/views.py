@@ -17,6 +17,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import RegistrationForm, LoginForm, UserUpdateForm
 from .decorators import role_required
 from .utils import get_user_primary_role
+from .models import Role
 
 User = get_user_model()
 PROTECTED_ROLES = ["Administrador", "Empleado", "Usuario"]
@@ -228,39 +229,61 @@ def remove_role_from_user(request, user_id, role_name):
 @login_required
 @role_required("Administrador")
 def manage_roles(request):
-    roles = Group.objects.all()
+    roles = Role.objects.select_related("group").all()
     permissions = Permission.objects.all()
     protected_roles = PROTECTED_ROLES
     user_tier = get_highest_role_tier(request.user)
 
     if request.method == "POST":
         action = request.POST.get("action")
-        role_id = request.POST.get("role_id")
-        role = Group.objects.get(id=role_id)
-        role_tier = ROLE_TIERS.get(role.name, 0)
+        
+        # Solo procesamos acciones que necesitan un role_id
+        if action in ["toggle_role", "add_permission", "remove_permission"]:
+            role_id = request.POST.get("role_id")
+            if not role_id:
+                messages.error(request, "No se especificó un rol válido.")
+                return redirect("manage_roles")
+            
+            try:
+                role = Role.objects.get(id=role_id)
+            except Role.DoesNotExist:
+                messages.error(request, "Rol no encontrado.")
+                return redirect("manage_roles")
 
-        if action == "delete_role":
-            if role.name in protected_roles:
-                messages.error(request, "No puede borrar un rol protegido.")
-            elif role_tier >= user_tier:
-                messages.error(request, "No puede borrar o modificar un rol mas alto que el suyo.")
-            else:
-                role.delete()
-                messages.success(request, f"Deleted role {role.name}.")
+            role_tier = ROLE_TIERS.get(role.group.name, 0)
 
-        # handle add/remove permissions as before
-        elif action == "add_permission":
-            perm_id = request.POST.get("permission_id")
-            if perm_id:
-                perm = Permission.objects.get(id=perm_id)
-                role.permissions.add(perm)
-                messages.success(request, f"Added {perm.name} to {role.name}.")
-        elif action == "remove_permission":
-            perm_id = request.POST.get("permission_id")
-            if perm_id:
-                perm = Permission.objects.get(id=perm_id)
-                role.permissions.remove(perm)
-                messages.success(request, f"Removed {perm.name} from {role.name}.")
+            # Bloquear acciones sobre roles protegidos o de mayor nivel
+            if role.group.name in protected_roles or role_tier >= user_tier:
+                messages.error(request, "No puede modificar este rol.")
+                return redirect("manage_roles")
+
+            if action == "toggle_role":
+                role.is_active = not role.is_active
+                role.save()
+                messages.success(
+                    request,
+                    f"Rol '{role.group.name}' {'activado' if role.is_active else 'desactivado'}."
+                )
+
+            elif action == "add_permission":
+                perm_id = request.POST.get("permission_id")
+                if perm_id:
+                    try:
+                        perm = Permission.objects.get(id=perm_id)
+                        role.permissions.add(perm)
+                        messages.success(request, f"Se agregó '{perm.name}' a '{role.group.name}'.")
+                    except Permission.DoesNotExist:
+                        messages.error(request, "Permiso no encontrado.")
+
+            elif action == "remove_permission":
+                perm_id = request.POST.get("permission_id")
+                if perm_id:
+                    try:
+                        perm = Permission.objects.get(id=perm_id)
+                        role.permissions.remove(perm)
+                        messages.success(request, f"Se eliminó '{perm.name}' de '{role.group.name}'.")
+                    except Permission.DoesNotExist:
+                        messages.error(request, "Permiso no encontrado.")
 
         return redirect("manage_roles")
 
@@ -380,6 +403,39 @@ def employee_dash(request):
 @role_required("Administrador")
 def manage_users(request):
     users = User.objects.all()
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        user_id = request.POST.get("user_id")
+        if not user_id:
+            messages.error(request, "No se especificó un usuario válido.")
+            return redirect("manage_users")
+        
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            messages.error(request, "Usuario no encontrado.")
+            return redirect("manage_users")
+
+        # Evitar desactivar admins o tu propio usuario si quieres
+        if user.is_superuser:
+            messages.error(request, "No puede modificar un usuario administrador.")
+            return redirect("manage_users")
+
+        if action == "toggle_user":
+            if user == request.user:
+                messages.error(request, "No puede desactivar su propio usuario.")
+                return redirect("manage_users")
+
+            user.is_active = not user.is_active
+            user.save()
+            messages.success(
+                request,
+                f"Usuario '{user.username}' {'activado' if user.is_active else 'desactivado'}."
+            )
+        
+        return redirect("manage_users")
+
     return render(request, "webapp/manage_users.html", {"users": users})
 
 
