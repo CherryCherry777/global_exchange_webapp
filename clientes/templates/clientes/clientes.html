@@ -1,0 +1,100 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Clientes{% endblock %}
+
+{% block content %}
+<h1>Gestión de Clientes</h1>
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<!-- Crear nuevo cliente -->
+<h2>Registrar nuevo Cliente</h2>
+<form method="POST" action="{% url 'crear_cliente' %}">
+    {% csrf_token %}
+    <input type="text" name="nombre" placeholder="Nombre" required>
+    <input type="text" name="documento" placeholder="Documento" required>
+    <input type="email" name="correo" placeholder="Correo" required>
+    <input type="text" name="telefono" placeholder="Teléfono">
+    <select name="tipoCliente" required>
+        <option value="">Seleccionar tipo</option>
+        {% for val, label in cliente_tipos %}
+            <option value="{{ val }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+    <select name="categoria" required>
+        <option value="">Seleccionar categoría</option>
+        {% for val, label in cliente_categorias %}
+            <option value="{{ val }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="add-btn">Crear Cliente</button>
+    </form>
+
+<table class="clientes-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Documento</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cliente in clientes %}
+        <tr>
+            <td>{{ cliente.id }}</td>
+            <td>{{ cliente.nombre }}</td>
+            <td>{{ cliente.get_tipoCliente_display }}</td>
+            <td>{{ cliente.documento }}</td>
+            <td>{{ cliente.correo }}</td>
+            <td>{{ cliente.telefono }}</td>
+            <td>{{ cliente.get_categoria_display }}</td>
+            <td>
+                {% if cliente.estado %}
+                    <span class="role-badge">Activo</span>
+                {% else %}
+                    <span class="no-role">Inactivo</span>
+                {% endif %}
+            </td>
+            <td>
+                <!-- Asignar usuario -->
+                <form method="POST" action="{% url 'asignar_usuario' cliente.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="add-btn">Asignar</button>
+                </form>
+
+                <!-- Editar cliente -->
+                <a href="{% url 'editar_cliente' cliente.id %}" class="add-btn">Editar</a>
+
+                <!-- Inactivar cliente -->
+                <form method="POST" action="{% url 'inactivar_cliente' cliente.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="add-btn" 
+                        onclick="return confirm('¿Estás seguro de que deseas inactivar este cliente?')">
+                        Inactivar
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9" style="text-align:center;">No hay clientes registrados</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+{% endblock %}

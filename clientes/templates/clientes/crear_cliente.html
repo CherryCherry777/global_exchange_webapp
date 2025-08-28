@@ -1,0 +1,25 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Crear Cliente{% endblock %}
+
+{% block content %}
+<h1>Registrar nuevo Cliente</h1>
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ form.as_p }}
+    </div>
+    <button type="submit" class="add-btn">Guardar Cliente</button>
+    <a href="{% url 'clientes' %}" class="add-btn">Cancelar</a>
+</form>
+{% endblock %}
