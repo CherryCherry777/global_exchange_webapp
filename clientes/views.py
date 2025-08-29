@@ -21,6 +21,7 @@ def manage_clientes(request):                       # Vista que lista todos los 
 # --------------------------------------------
 # Vista para crear un cliente
 # --------------------------------------------
+@permitir_permisos(['clientes.add_cliente'])
 def crear_cliente(request):
     if request.method == "POST":
         form = ClienteForm(request.POST)  # Crea un formulario con los datos enviados
@@ -39,6 +40,7 @@ def crear_cliente(request):
 # --------------------------------------------
 # Vista para listar todos los clientes
 # --------------------------------------------
+@permitir_permisos(['clientes.view_cliente'])
 def clientes(request):
     clientes = Cliente.objects.all()  # Trae todos los clientes de la base de datos
     # Renderiza la tabla de clientes
@@ -48,6 +50,7 @@ def clientes(request):
 # --------------------------------------------
 # Vista para inactivar un cliente
 # --------------------------------------------
+@permitir_permisos(['clientes.change_cliente', 'clientes.delete_clientes'])
 def inactivar_cliente(request, pk):
     # Busca el cliente por ID o devuelve 404 si no existe
     cliente = get_object_or_404(Cliente, pk=pk)
@@ -62,6 +65,7 @@ def inactivar_cliente(request, pk):
 # --------------------------------------------
 # Vista para activar un cliente
 # --------------------------------------------
+@permitir_permisos(['clientes.change_cliente'])
 def activar_cliente(request, pk):
     # Busca el cliente por ID o devuelve 404
     cliente = get_object_or_404(Cliente, pk=pk)

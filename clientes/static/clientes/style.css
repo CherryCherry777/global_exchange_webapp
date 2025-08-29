@@ -61,3 +61,27 @@
 .cancel-btn:hover {
     background-color: #c0392b;
 }
+
+.error-message {
+    color: #e63946;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding: 5px 8px;
+    background-color: #ffe5e5;
+    border-left: 4px solid #e63946;
+    border-radius: 4px;
+}
+
+input.form-control.is-invalid,
+select.form-control.is-invalid {
+    border-color: #e63946;
+    background-color: #fff5f5;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center; /* Centra verticalmente el checkbox con el texto */
+    gap: 8px;            /* Espacio entre checkbox y label */
+    cursor: pointer;      /* Cambia el cursor al pasar por el label */
+}

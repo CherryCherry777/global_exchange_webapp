@@ -1,7 +1,7 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 {% load permissions_tags %}
-{% block messages %}{% endblock %}
+{% block messages %}{% endblock %} <!-- sobrescribe el bloque de mensajes de webapp/base.html -->
 
 {% block title %}Gestión de Clientes{% endblock %}
 
@@ -78,6 +78,7 @@
                     Activar
                 </a>
                 {% endif %}
+
             </td>
         </tr>
         {% empty %}
