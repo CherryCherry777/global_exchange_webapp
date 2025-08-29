@@ -1,25 +1,44 @@
 {% extends "webapp/base.html" %}
 {% load static %}
+{% load permissions_tags %}
 
+{% has_perms user 'clientes.add_cliente' as can_add_clientes %} <!--Guarda el valor booleano que arroja el templatetag has_perms-->
+{% if can_add_clientes %}
 {% block title %}Crear Cliente{% endblock %}
 
 {% block content %}
-<h1>Registrar nuevo Cliente</h1>
+<div class="cliente-form-container">
+    <h2>Registrar nuevo Cliente</h2>
 
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-        <li class="{{ message.tags }}">{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+    <form method="POST">
+        {% csrf_token %}
 
-<form method="POST">
-    {% csrf_token %}
-    <div class="form-group">
-        {{ form.as_p }}
-    </div>
-    <button type="submit" class="add-btn">Guardar Cliente</button>
-    <a href="{% url 'clientes' %}" class="add-btn">Cancelar</a>
-</form>
+        <div class="form-container">
+            <label for="{{ form.nombre.id_for_label }}">Nombre</label>
+            {{ form.nombre }}
+
+            <label for="{{ form.documento.id_for_label }}">Documento</label>
+            {{ form.documento }}
+
+            <label for="{{ form.correo.id_for_label }}">Correo</label>
+            {{ form.correo }}
+
+            <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
+            {{ form.telefono }}
+
+            <label for="{{ form.tipoCliente.id_for_label }}">Tipo Cliente</label>
+            {{ form.tipoCliente }}
+
+            <label for="{{ form.categoria.id_for_label }}">Categoría</label>
+            {{ form.categoria }}
+        </div>
+
+        <!-- Botones alineados a la derecha -->
+        <div class="form-buttons">
+            <a href="{% url 'crear_cliente' %}" class="add-btn cancel-btn">Cancelar</a>
+            <button type="submit" class="add-btn">Guardar</button>
+        </div>
+    </form>
+</div>
 {% endblock %}
+{% endif %}
