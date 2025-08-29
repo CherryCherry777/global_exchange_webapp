@@ -1,10 +1,12 @@
 from clientes.decorators import permitir_permisos    # Importamos el decorador personalizado para controlar roles/permiso en las vistas.
-from django.shortcuts import render, redirect           # Importamos render para devolver plantillas HTML con contexto.
+from django.shortcuts import render, redirect, get_object_or_404           # Importamos render para devolver plantillas HTML con contexto.
 from clientes.models import Cliente, ClienteUsuario  # Importamos los modelos que vamos a usar.
+from webapp.models import CustomUser
 from clientes.forms import ClienteForm
 from django.contrib import messages
+from django.http import JsonResponse
 
-# Create your views here.   # Comentario por defecto que pone Django en views.py
+# Create your views here.
 
 def es_admin(user):                                 # Función auxiliar para verificar si un usuario es admin.
     return user.is_authenticated and user.is_superuser  
@@ -16,22 +18,56 @@ def manage_clientes(request):                       # Vista que lista todos los 
     return render(request, "clientes/clientes.html", {"clientes": clientes})  
     # Retornamos la plantilla "clientes.html" pasando como contexto la lista de clientes.
 
+# --------------------------------------------
+# Vista para crear un cliente
+# --------------------------------------------
 def crear_cliente(request):
     if request.method == "POST":
-        form = ClienteForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Cliente creado exitosamente.")
-            return redirect('clientes')  # nombre de la url donde está la lista
+        form = ClienteForm(request.POST)  # Crea un formulario con los datos enviados
+        if form.is_valid():               # Valida que los datos sean correctos
+            form.save()                   # Guarda el nuevo cliente en la base de datos
+            messages.success(request, "Cliente creado exitosamente.")  # Mensaje de éxito
+            form = ClienteForm()          # Reinicia el formulario vacío
         else:
-            messages.error(request, "Por favor corrige los errores.")
+            messages.error(request, "Por favor corrige los errores.")  # Mensaje de error si el form no es válido
     else:
-        form = ClienteForm()
+        form = ClienteForm()              # Si es GET, crea un formulario vacío
 
-    return render(request, 'webapp/crear_cliente.html', {'form': form})
+    # Renderiza el template con el formulario
+    return render(request, 'clientes/crear_cliente.html', {'form': form})
 
-from .models import Cliente
-
+# --------------------------------------------
+# Vista para listar todos los clientes
+# --------------------------------------------
 def clientes(request):
-    clientes = Cliente.objects.all()
+    clientes = Cliente.objects.all()  # Trae todos los clientes de la base de datos
+    # Renderiza la tabla de clientes
     return render(request, 'webapp/clientes.html', {'clientes': clientes})
+
+
+# --------------------------------------------
+# Vista para inactivar un cliente
+# --------------------------------------------
+def inactivar_cliente(request, pk):
+    # Busca el cliente por ID o devuelve 404 si no existe
+    cliente = get_object_or_404(Cliente, pk=pk)
+    cliente.estado = False                # Cambia el estado a "inactivo"
+    cliente.save()                        # Guarda el cambio en la base de datos
+    # Mensaje de éxito
+    messages.success(request, f"Cliente '{cliente.nombre}' inactivado correctamente.")
+    # Redirige a la vista principal de gestión de clientes
+    return redirect('manage_clientes')
+
+
+# --------------------------------------------
+# Vista para activar un cliente
+# --------------------------------------------
+def activar_cliente(request, pk):
+    # Busca el cliente por ID o devuelve 404
+    cliente = get_object_or_404(Cliente, pk=pk)
+    cliente.estado = True                 # Cambia el estado a "activo"
+    cliente.save()                        # Guarda el cambio
+    # Mensaje de éxito
+    messages.success(request, f"Cliente '{cliente.nombre}' activado correctamente.")
+    # Redirige a la vista principal de gestión de clientes
+    return redirect('manage_clientes')

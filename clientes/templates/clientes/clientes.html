@@ -1,43 +1,37 @@
 {% extends "webapp/base.html" %}
 {% load static %}
+{% load permissions_tags %}
+{% block messages %}{% endblock %}
 
 {% block title %}Gestión de Clientes{% endblock %}
 
+{% has_perms user 'clientes.view_cliente' as can_view_clientes %} <!--Guarda el valor booleano que arroja el templatetag has_perms-->
+{% if can_view_clientes %}
 {% block content %}
 <h1>Gestión de Clientes</h1>
 
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-        <li class="{{ message.tags }}">{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+<!-- Barra de acciones -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <!-- Botón para crear cliente -->
+    <!-- Usuarios con permisos de ver/listar registros de clientes pueden acceder a la vista de gestión de clientes -->
+    {% has_perms user 'clientes.add_cliente' as can_add_clientes %}
+    {% if can_add_clientes %}
+    <a href="{% url 'crear_cliente' %}" class="add-btn" style="padding: 8px 14px; background-color: #4CAF50; color: white; border-radius: 6px; text-decoration: none;">
+        + Crear Cliente
+    </a>
+    {% endif %}
 
-<!-- Crear nuevo cliente -->
-<h2>Registrar nuevo Cliente</h2>
-<form method="POST" action="{% url 'crear_cliente' %}">
-    {% csrf_token %}
-    <input type="text" name="nombre" placeholder="Nombre" required>
-    <input type="text" name="documento" placeholder="Documento" required>
-    <input type="email" name="correo" placeholder="Correo" required>
-    <input type="text" name="telefono" placeholder="Teléfono">
-    <select name="tipoCliente" required>
-        <option value="">Seleccionar tipo</option>
-        {% for val, label in cliente_tipos %}
-            <option value="{{ val }}">{{ label }}</option>
-        {% endfor %}
-    </select>
-    <select name="categoria" required>
-        <option value="">Seleccionar categoría</option>
-        {% for val, label in cliente_categorias %}
-            <option value="{{ val }}">{{ label }}</option>
-        {% endfor %}
-    </select>
-    <button type="submit" class="add-btn">Crear Cliente</button>
-    </form>
+    <!-- Buscador de clientes -->
+    <input 
+        type="text" 
+        id="clienteSearch" 
+        placeholder="Buscar cliente por nombre, documento o correo..." 
+        style="padding: 6px; width: 300px; border-radius: 4px; border: 1px solid #ccc;"
+    >
+</div>
 
-<table class="clientes-table">
+<!-- Tabla de clientes -->
+<table class="clientes-table" id="clientesTable">
     <thead>
         <tr>
             <th>ID</th>
@@ -69,23 +63,21 @@
                 {% endif %}
             </td>
             <td>
-                <!-- Asignar usuario -->
-                <form method="POST" action="{% url 'asignar_usuario' cliente.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="add-btn">Asignar</button>
-                </form>
 
-                <!-- Editar cliente -->
-                <a href="{% url 'editar_cliente' cliente.id %}" class="add-btn">Editar</a>
-
-                <!-- Inactivar cliente -->
-                <form method="POST" action="{% url 'inactivar_cliente' cliente.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="add-btn" 
-                        onclick="return confirm('¿Estás seguro de que deseas inactivar este cliente?')">
-                        Inactivar
-                    </button>
-                </form>
+                <!-- Botón para activar/inactivar -->
+                {% if cliente.estado %}
+                <a href="{% url 'inactivar_cliente' cliente.id %}" 
+                   class="add-btn" 
+                   style="background-color: #e74c3c; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none;">
+                    Inactivar
+                </a>
+                {% else %}
+                <a href="{% url 'activar_cliente' cliente.id %}" 
+                   class="add-btn" 
+                   style="background-color: #2ecc71; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none;">
+                    Activar
+                </a>
+                {% endif %}
             </td>
         </tr>
         {% empty %}
@@ -96,5 +88,18 @@
     </tbody>
 </table>
 
+<!-- Script para el buscador -->
+<script>
+document.getElementById("clienteSearch").addEventListener("keyup", function() {
+    let value = this.value.toLowerCase();
+    let rows = document.querySelectorAll("#clientesTable tbody tr");
+
+    rows.forEach(function(row) {
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(value) ? "" : "none";
+    });
+});
+</script>
 
 {% endblock %}
+{% endif %}

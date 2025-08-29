@@ -1,296 +1,63 @@
-/* Table styling */
-.roles-table {
-    width: 100%;
-    border-collapse: collapse;
+.cliente-form-container {
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 20px;
+    border-radius: 8px;
+    background: #fafafa;
+    border: 1px solid #ddd;
+}
+
+.cliente-form-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #4CAF50;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-container label {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.form-container input,
+.form-container select {
+    padding: 8px;
+    font-size: 1em;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
     margin-top: 20px;
 }
 
-.roles-table th, .roles-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-}
-
-.roles-table th {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.role-badge {
-    display: inline-block;
-    background-color: #2196F3;
-    color: white;
-    padding: 4px 8px;
-    margin: 2px 2px 2px 0;
-    border-radius: 12px;
-    font-size: 0.85em;
-}
-
-.role-badge .remove-btn {
-    color: white;
-    text-decoration: none;
-    margin-left: 6px;
-    font-weight: bold;
-}
-
-.role-badge .remove-btn:hover {
-    color: #ffcccc;
-}
-
-.no-role {
-    color: #888;
-    font-style: italic;
-}
-
-.add-role-form select {
-    padding: 4px 6px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    margin-right: 6px;
-}
-
 .add-btn {
-    background-color: #4CAF50;
-    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
     border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em;
+    text-decoration: none;
+    color: white;
+    background-color: #4CAF50;
+    transition: background 0.2s;
 }
 
 .add-btn:hover {
     background-color: #45a049;
 }
 
-.logout-container {
-    text-align: center;
-    padding: 40px;
+.cancel-btn {
+    background-color: #e74c3c;
 }
 
-.logout-container h2 {
-    color: #4CAF50;
-}
-
-.logout-container a {
-    color: #2196F3;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.logout-container a:hover {
-    text-decoration: underline;
-}
-
-/* Homepage styles */
-.homepage-container {
-    text-align: center;
-    padding: 60px 20px;
-}
-
-.homepage-container h1 {
-    font-size: 2.5em;
-    color: #4CAF50;
-    margin-bottom: 10px;
-}
-
-.homepage-container p {
-    font-size: 1.2em;
-    margin-bottom: 30px;
-    color: #555;
-}
-
-.homepage-links {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.homepage-links .home-btn {
-    background-color: #4CAF50;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s;
-}
-
-.homepage-links .home-btn:hover {
-    background-color: #45a049;
-}
-
-/* Header nav styling */
-.header-nav {
-    background-color: #f4f4f9;
-    padding: 10px 20px;
-}
-
-.header-nav li {
-    margin: 0;
-}
-
-.header-btn {
-    padding: 8px 16px;
-    border-radius: 6px;
-    background-color: #4CAF50;
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s;
-}
-
-.header-nav .header-btn:hover {
-    background-color: #45a049;
-}
-
-/* Optional: adjust logo margin */
-.header-nav .logo {
-    margin-right: 20px;
-}
-
-.img-header{
-    margin-top: 20px;
-    margin-bottom: 20px;
-    width:200px;
-    margin-left: auto;
-    margin-right: auto;
-    align-self: center;
-}
-
-.nav-links {
-    display: flex;
-    gap: 10px;
-}
-
-.logo-container .img-header {
-    width: 200; /* adjust size */
-    align-items: center;
-    display:block;
-}
-
-.nav-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between; /* logo left, buttons right */
-}
-
-.role-select {
-    width: 200px;
-    height: auto;
-    border-radius: 4px;
-    padding: 6px;
-}
-
-/* Make the homepage-container more compact */
-.homepage-container.compact-form {
-    padding: 40px 20px;   /* reduce top/bottom padding */
-    max-width: 1000px;     /* limit container width */
-    margin: 40px auto;    /* center with less vertical space */
-}
-
-/* Tighten form spacing */
-.form-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;            /* reduce gap between inputs */
-}
-
-.form-container input,
-.form-container select,
-.form-container textarea {
-    padding: 8px;          /* smaller padding */
-    font-size: 0.95em;     /* slightly smaller text */
-}
-
-.form-container button {
-    width: 60%;
-    align-self: center;
-    padding: 10px;
-    font-size: 0.95em;
-}
-
-.form-link {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 0.9em;
-}
-
-/* --- Clientes table styling (igual que roles, pero separado por semántica) --- */
-.clientes-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.clientes-table th, .clientes-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-}
-
-.clientes-table th {
-    background-color: #4CAF50;
-    color: white;
-}
-
-/* Estado de cliente */
-.estado-activo, .role-badge {
-    display: inline-block;
-    background-color: #2196F3;
-    color: white;
-    padding: 4px 8px;
-    margin: 2px 2px 2px 0;
-    border-radius: 12px;
-    font-size: 0.85em;
-}
-
-.estado-inactivo, .no-role {
-    color: #888;
-    font-style: italic;
-}
-
-/* --- Formularios de clientes --- */
-.cliente-form-container {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fafafa;
-}
-
-.cliente-form-container h2 {
-    margin-bottom: 15px;
-    color: #4CAF50;
-}
-
-.cliente-form-container form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.cliente-form-container input,
-.cliente-form-container select,
-.cliente-form-container textarea {
-    padding: 10px;
-    font-size: 1em;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-}
-
-.cliente-form-container button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1em;
-}
-
-.cliente-form-container button:hover {
-    background-color: #45a049;
+.cancel-btn:hover {
+    background-color: #c0392b;
 }
