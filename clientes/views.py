@@ -12,6 +12,9 @@ def es_admin(user):                                 # Función auxiliar para ver
     return user.is_authenticated and user.is_superuser  
     # Devuelve True si el usuario está autenticado y además es superusuario.
 
+# --------------------------------------------
+# Vista para listar todos los clientes
+# --------------------------------------------
 @permitir_permisos(['clientes.add_cliente', 'clientes.change_cliente', 'clientes.delete_cliente', 'clientes.view_cliente', 'clientes.add_clienteusuario', 'clientes.change_clienteusuario', 'clientes.delete_clienteusuario', 'clientes.view_clienteusuario'])      # Decorador que limita el acceso a usuarios con permisos específicos.
 def manage_clientes(request):                       # Vista que lista todos los clientes.
     clientes = Cliente.objects.all()                # Consultamos todos los registros de la tabla Cliente.
@@ -36,16 +39,6 @@ def crear_cliente(request):
 
     # Renderiza el template con el formulario
     return render(request, 'clientes/crear_cliente.html', {'form': form})
-
-# --------------------------------------------
-# Vista para listar todos los clientes
-# --------------------------------------------
-@permitir_permisos(['clientes.view_cliente'])
-def clientes(request):
-    clientes = Cliente.objects.all()  # Trae todos los clientes de la base de datos
-    # Renderiza la tabla de clientes
-    return render(request, 'webapp/clientes.html', {'clientes': clientes})
-
 
 # --------------------------------------------
 # Vista para inactivar un cliente
@@ -75,3 +68,23 @@ def activar_cliente(request, pk):
     messages.success(request, f"Cliente '{cliente.nombre}' activado correctamente.")
     # Redirige a la vista principal de gestión de clientes
     return redirect('manage_clientes')
+
+# --------------------------------------------
+# Vista para modificar un cliente
+# --------------------------------------------
+@permitir_permisos(['clientes.change_cliente'])
+def modificar_cliente(request, cliente_id):
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+
+    if request.method == "POST":
+        form = ClienteForm(request.POST, instance=cliente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "El cliente fue modificado correctamente.")
+            return redirect("manage_clientes")
+        else:
+            messages.error(request, "Por favor corrige los errores.")
+    else:
+        form = ClienteForm(instance=cliente)
+
+    return render(request, "clientes/modificar_cliente.html", {"form": form})
