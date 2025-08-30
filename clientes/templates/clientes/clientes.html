@@ -1,0 +1,114 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+{% load permissions_tags %}
+{% block messages %}{% endblock %}
+
+{% block title %}Gestión de Clientes{% endblock %}
+
+{% has_perms user 'clientes.view_cliente' as can_view_clientes %}
+{% if can_view_clientes %}
+{% block content %}
+<h1>Gestión de Clientes</h1>
+
+<!-- Barra de acciones -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    {% has_perms user 'clientes.add_cliente' as can_add_clientes %}
+    {% if can_add_clientes %}
+    <a href="{% url 'crear_cliente' %}" class="add-btn" style="padding: 8px 14px; background-color: #4CAF50; color: white; border-radius: 6px; text-decoration: none;">
+        + Crear Cliente
+    </a>
+    {% endif %}
+
+    <input 
+        type="text" 
+        id="clienteSearch" 
+        placeholder="Buscar cliente por nombre, documento o correo..." 
+        style="padding: 6px; width: 300px; border-radius: 4px; border: 1px solid #ccc;"
+    >
+</div>
+
+<!-- Tabla de clientes -->
+<table class="clientes-table" id="clientesTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Razón Social</th>
+            <th>Tipo</th>
+            <th>Documento</th>
+            <th>RUC</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Dirección</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cliente in clientes %}
+        <tr>
+            <td>{{ cliente.id }}</td>
+            <td>{{ cliente.nombre }}</td>
+            <td>{{ cliente.razonSocial }}</td>
+            <td>{{ cliente.get_tipoCliente_display }}</td>
+            <td>{{ cliente.documento }}</td>
+            <td>{{ cliente.ruc }}</td>
+            <td>{{ cliente.correo }}</td>
+            <td>{{ cliente.telefono }}</td>
+            <td>{{ cliente.direccion }}</td>
+            <td>{{ cliente.get_categoria_display }}</td>
+            <td>
+                {% if cliente.estado %}
+                    <span class="role-badge">Activo</span>
+                {% else %}
+                    <span class="no-role">Inactivo</span>
+                {% endif %}
+            </td>
+            <td>
+                <!-- Botón para modificar cliente -->
+                <a href="{% url 'modificar_cliente' cliente.id %}" 
+                   class="add-btn" 
+                   style="background-color: #3498db; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none; margin-right: 5px;">
+                    Modificar
+                </a>
+
+                <!-- Botón para activar/inactivar -->
+                {% if cliente.estado %}
+                <a href="{% url 'inactivar_cliente' cliente.id %}" 
+                   class="add-btn" 
+                   style="background-color: #e74c3c; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none;">
+                    Inactivar
+                </a>
+                {% else %}
+                <a href="{% url 'activar_cliente' cliente.id %}" 
+                   class="add-btn" 
+                   style="background-color: #2ecc71; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none;">
+                    Activar
+                </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="12" style="text-align:center;">No hay clientes registrados</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Script para el buscador -->
+<script>
+document.getElementById("clienteSearch").addEventListener("keyup", function() {
+    let value = this.value.toLowerCase();
+    let rows = document.querySelectorAll("#clientesTable tbody tr");
+
+    rows.forEach(function(row) {
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(value) ? "" : "none";
+    });
+});
+</script>
+
+{% endblock %}
+{% endif %}

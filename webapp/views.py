@@ -534,4 +534,3 @@ def modify_users(request, user_id):
         "user_roles": user_roles,
         "ROLE_TIERS": {"Administrador": 3, "Empleado": 2, "Usuario": 1}
     })
-

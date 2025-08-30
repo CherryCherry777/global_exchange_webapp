@@ -1,6 +1,8 @@
 {% extends 'webapp/base.html' %}
 
-{% load static%}
+{% load static %}
+
+{% load permissions_tags %}
 
 {% block title %}Home{% endblock %}
 
@@ -17,6 +19,11 @@
                 <a href="{% url 'manage_users' %}" class="home-btn">Administrar Usuarios</a>
                 <a href="{% url 'manage_roles' %}" class="home-btn">Administrar Roles</a>
                 <a href="{% url 'manage_user_roles' %}" class="home-btn">Administrar Roles de Usuario</a>
+            {% endif %}
+            <!-- Usuarios con permisos de ver/listar registros de clientes pueden acceder a la vista de gestión de clientes -->
+            {% has_perms user 'clientes.view_cliente' as can_view_clientes %} <!--Guarda el valor booleano que arroja el templatetag has_perms-->
+            {% if can_view_clientes %}
+                <a href="{% url 'manage_clientes' %}" class="home-btn">Administrar Clientes</a>
             {% endif %}
             <a href="{% url 'logout' %}" class="home-btn">Salir</a>
         {% else %}

@@ -217,27 +217,80 @@
     font-size: 0.9em;
 }
 
-.inactive-role {
-    opacity: 0.5;
-    background-color: #f9d6d5; /* rojizo claro */
+/* --- Clientes table styling (igual que roles, pero separado por semántica) --- */
+.clientes-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 }
 
-.inactive-role td {
-    text-decoration: line-through;
+.clientes-table th, .clientes-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
 }
 
-/* Usuarios desactivados */
-.inactive-user {
-    opacity: 0.6;
-    background-color: #f9d6d5;
+.clientes-table th {
+    background-color: #4CAF50;
+    color: white;
 }
 
-.inactive-user td {
-    text-decoration: line-through;
+/* Estado de cliente */
+.estado-activo, .role-badge {
+    display: inline-block;
+    background-color: #2196F3;
+    color: white;
+    padding: 4px 8px;
+    margin: 2px 2px 2px 0;
+    border-radius: 12px;
+    font-size: 0.85em;
 }
 
-.inactive-user button {
-    cursor: not-allowed;
-    background-color: #e0e0e0;
+.estado-inactivo, .no-role {
     color: #888;
+    font-style: italic;
+}
+
+/* --- Formularios de clientes --- */
+.cliente-form-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
+.cliente-form-container h2 {
+    margin-bottom: 15px;
+    color: #4CAF50;
+}
+
+.cliente-form-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cliente-form-container input,
+.cliente-form-container select,
+.cliente-form-container textarea {
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.cliente-form-container button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.cliente-form-container button:hover {
+    background-color: #45a049;
 }
