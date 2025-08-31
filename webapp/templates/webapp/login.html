@@ -2,16 +2,21 @@
 {% block title %}Ingresar{% endblock %}
 
 {% block content %}
-<div class="homepage-container compact-form">
-    <h1>Ingresar</h1>
-    <p>Ingrese sus credenciales para acceder a su cuenta.</p>
+<div class="auth-wrapper">
+    <div class="homepage-container compact-form">
+        <div class="auth-card">
+            <h1>Ingresar</h1>
+            <p>Ingrese sus credenciales para acceder a su cuenta.</p>
 
-    <form method="post" class="form-container">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="home-btn">Login</button>
-    </form>
+            <form method="post" class="form-container">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="home-btn">Login</button>
+            </form>
 
-    <p class="form-link">No tiene cuenta? <a href="{% url 'register' %}" class="header-btn">Registrese aqui</a></p>
+            <p class="form-link">No tiene cuenta?</p>
+            <a href="{% url 'register' %}" class="home-btn">Registrese aqui</a>
+        </div>
+    </div>
 </div>
 {% endblock %}
