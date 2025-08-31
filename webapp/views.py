@@ -234,6 +234,13 @@ def manage_roles(request):
     protected_roles = PROTECTED_ROLES
     user_tier = get_highest_role_tier(request.user)
 
+    roles_with_permissions = []
+    for role in roles:
+        role.available_permissions = permissions.exclude(
+            id__in=role.group.permissions.values_list("id", flat=True)
+        )
+        roles_with_permissions.append(role)
+
     if request.method == "POST":
         action = request.POST.get("action")
         
@@ -288,7 +295,7 @@ def manage_roles(request):
         return redirect("manage_roles")
 
     return render(request, "webapp/manage_roles.html", {
-        "roles": roles,
+        "roles": roles_with_permissions,
         "permissions": permissions,
         "protected_roles": protected_roles,
         "user_tier": user_tier,

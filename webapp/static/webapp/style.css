@@ -294,3 +294,17 @@
 .cliente-form-container button:hover {
     background-color: #45a049;
 }
+
+.roles-table td .permissions-list {
+    max-height: 150px;   /* o lo que te parezca cómodo */
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.role-badge {
+    background: #45a049;
+    padding: 3px 6px;
+    border-radius: 5px;
+    font-size: 12px;
+}
