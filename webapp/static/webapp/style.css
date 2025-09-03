@@ -1,51 +1,8 @@
-/* Table styling */
-.roles-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.roles-table th, .roles-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-}
-
-.roles-table th {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.role-badge .remove-btn {
-    color: white;
-    text-decoration: none;
-    margin-left: 6px;
-    font-weight: bold;
-}
-
-.role-badge .remove-btn:hover {
-    color: #ffcccc;
-}
-
 .add-role-form select {
     padding: 4px 6px;
     border-radius: 4px;
     border: 1px solid #ccc;
     margin-right: 6px;
-}
-
-.add-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-}
-
-.add-btn:hover {
-    background-color: #45a049;
 }
 
 .logout-container {
@@ -102,6 +59,11 @@
     margin: 0;
 }
 
+.nav-links {
+    display: flex;
+    gap: 10px;
+}
+
 .header-btn {
     padding: 8px 16px;
     border-radius: 6px;
@@ -128,11 +90,6 @@
     margin-left: auto;
     margin-right: auto;
     align-self: center;
-}
-
-.nav-links {
-    display: flex;
-    gap: 10px;
 }
 
 .logo-container .img-header {
@@ -239,6 +196,92 @@
     background-color: #45a049;
 }
 
+/* ---------- Modificar Usuario ---------- */
+.user-edit .roles { 
+    border:1px solid #eee; 
+    border-radius:12px; 
+    padding:12px 14px; 
+    margin-top:6px; 
+}
+
+.user-edit a.add-btn,
+.user-edit button.add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  text-decoration: none;
+}
+
+.user-edit .roles legend { 
+    font-weight:700; 
+    padding:0 6px; 
+}
+
+.user-edit .roles .check { 
+    display:flex; 
+    align-items:center; 
+    gap:10px; 
+    margin:.2rem 0; 
+}
+
+.user-edit .form-actions { 
+    display:flex; 
+    flex-wrap:wrap; 
+    gap:12px; 
+    justify-content:center; 
+    margin-top:8px; 
+}
+.user-edit .form-actions .btn { 
+    min-width:180px; 
+}
+
+.user-edit .auth-title { letter-spacing:.3px; }
+
+.user-edit input[type="checkbox"] { 
+    width:16px; 
+    height:16px; 
+}
+
+/* ---------- Perfil de Usuario ---------- */
+.home-view .home-header{
+    display:flex; 
+    align-items:center; 
+    gap:16px; 
+    margin-bottom:8px;
+}
+
+.home-view .user-info{ 
+    margin:8px 0 16px; 
+}
+.home-view .user-info .row{
+    display:flex; 
+    gap:12px; 
+    align-items:flex-start;
+    padding:10px 12px; 
+    margin-bottom:10px;
+    background:#fafafa; 
+    border:1px solid #f0f0f0; 
+    border-radius:10px;
+}
+.home-view dt{ 
+    width:180px; 
+    font-weight:700; 
+    margin:0; 
+}
+.home-view dd{ 
+    margin:0; 
+    flex:1; 
+}
+
+/* Reutiliza el mismo bloque de acciones de formularios */
+.home-view .form-actions{
+    display:flex; 
+    justify-content:flex-end; 
+    gap:12px; 
+    margin-top:8px;
+}
+
 /* ---------- Layout base ---------- */
 .auth-wrapper {
   min-height: 100dvh;
@@ -263,13 +306,19 @@
   border-radius: 16px;
   padding: 28px 24px;
   width: 100%;
-  max-width: 520px;
+  max-width: 720px;
   margin: 0 auto;
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Encabezados y textos del card (manteniendo color de marca) */
+.auth-title { 
+    text-align:center; 
+    margin:8px 0 20px; 
+    font-size:clamp(20px, 2.6vw, 28px); 
+}
+
+/* Encabezados y textos del card */
 .auth-card h1 {
   font-size: 1.9rem;
   line-height: 1.2;
@@ -282,11 +331,19 @@
   margin: 0 0 18px 0;
 }
 
+
 /* ---------- Formulario ---------- */
 .form-container {
   display: flex;
   flex-direction: column;
-  gap: 14px; /* un poco más de aire entre campos */
+  gap: 14px;
+  margin-bottom:16px;
+}
+
+.form-container-row { 
+    display:grid; 
+    grid-template-columns:1fr; 
+    gap:16px; 
 }
 
 .form-container p {
@@ -301,7 +358,6 @@
   font-weight: 600;
 }
 
-/* Inputs, selects y textareas */
 .form-container input,
 .form-container select,
 .form-container textarea {
@@ -314,7 +370,6 @@
     transform 0.02s ease-in-out;
 }
 
-/* Hover/focus accesibles manteniendo color de marca */
 .form-container input:hover,
 .form-container select:hover,
 .form-container textarea:hover {
@@ -329,12 +384,6 @@
   box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.12);
 }
 
-.form-container .form-group{
-  display: grid;
-  gap: 6px;              /* separa label y control */
-  margin: 0 0 14px 0;    /* mismo aire entre campos que en login */
-}
-
 /* Etiquetas dentro del grupo */
 .form-container .form-group label{
   font-size: 0.95rem;
@@ -342,8 +391,8 @@
   font-weight: 600;
 }
 
+/* ---------- Botones ---------- */
 
-/* Botón principal (Login) (Registro)*/
 .home-btn {
   background-color: #4caf50;
   color: #fff;
@@ -367,10 +416,10 @@ a.home-btn{
   display: block;
   text-align: center;
   text-decoration: none;
-  color: #fff;           /* asegura el color del texto en el link */
+  color: #fff;
 }
 a.home-btn:visited{
-  color: #fff;           /* evita el morado del link visitado */
+  color: #fff;
 }
 
 .home-btn:hover {
@@ -379,6 +428,141 @@ a.home-btn:visited{
 
 .home-btn:active {
   transform: translateY(1px);
+}
+
+/* ---------- Contenedor del botón volver ---------- */
+.back-container {
+    margin: 10px 0 20px 0;
+}
+.btn-back {
+    display: inline-block;
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+.btn-back:hover {
+    background-color: #45a049;
+}
+
+/* ---------- Caja para nuevo rol ---------- */
+.new-role-box {
+    background: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.new-role-box form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.new-role-box input[type="text"] {
+    flex: 1; 
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 200px;
+}
+
+/* ---------- Tabla ---------- */
+.roles-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.roles-table th, .roles-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.roles-table th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: 600;
+}
+
+.roles-table tr:nth-child(even) {
+    background: #f7f7f7;
+}
+
+/* Formularios dentro de la tabla */
+.roles-table form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Seleccionador */
+.roles-table select {
+    width: 120px; 
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fdfdfd; 
+    font-size: 0.9em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Efecto hover/focus */
+.roles-table select:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+    outline: none;
+}
+
+/* Botón consistente */
+.roles-table .add-btn {
+    width: 120px;
+    text-align: center;
+}
+
+/* ---------- Botones Cuadro Admin ---------- */
+.add-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    width: 10rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+.add-btn:hover {
+    background-color: #45a049;
+}
+.add-btn:disabled {
+    background-color: #a5d6a7;
+    cursor: not-allowed;
+}
+
+/* ---------- Badges. ---------- */
+.role-badge {
+    display: inline-block;
+    background-color: #2196F3;
+    color: white;
+    padding: 4px 8px;
+    margin: 2px 2px 2px 0;
+    border-radius: 12px;
+    font-size: 0.85em;
+}
+
+.no-role {
+    color: #888;
+    font-style: italic;
 }
 
 
@@ -406,11 +590,17 @@ a.home-btn:visited{
 
 /* ---------- Responsivo ---------- */
 @media (max-width: 480px) {
-  .auth-card {
-    padding: 22px 18px;
-    border-radius: 14px;
-  }
-  .auth-card h1 {
-    font-size: 1.7rem;
-  }
+    .auth-card {
+        padding: 22px 18px;
+        border-radius: 14px;
+    }
+    .auth-card h1 {
+        font-size: 1.7rem;
+    }
 }
+@media (min-width: 640px) { 
+    .form-row { 
+        grid-template-columns:1fr 1fr; 
+    } 
+}
+
