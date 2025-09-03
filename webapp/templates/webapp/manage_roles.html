@@ -15,8 +15,13 @@
 </ul>
 {% endif %}
 
-<!-- Crear rol -->
-<div class="new-role-section">
+<!-- Botón para volver -->
+<div class="back-container">
+    <a href="javascript:history.back()" class="btn-back">← Volver</a>
+</div>
+
+<!-- Crear nuevo rol -->
+<div class="new-role-box">
     <h2>Añadir nuevo Rol</h2>
     <form method="POST" action="{% url 'create_role' %}">
         {% csrf_token %}
@@ -26,21 +31,20 @@
 </div>
 
 <!-- Tabla de roles -->
-<div class="roles-container">
-    <table class="roles-table">
-        <thead>
-            <tr>
-                <th>Nombre de Rol</th>
-                <th>Permisos</th>
-                <th>Añadir Permiso</th>
-                <th>Eliminar Permiso</th>
-                <th>Desactivar/Activar Rol</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for role in roles %}
-            <tr class="{% if not role.is_active %}inactive-role{% endif %}">
-                <td>{{ role.group.name }}</td>
+<table class="roles-table">
+    <thead>
+        <tr>
+            <th>Nombre de Rol</th>
+            <th>Permisos</th>
+            <th>Añadir Permiso</th>
+            <th>Eliminar Permiso</th>
+            <th>Desactivar/Activar Rol</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for role in roles %}
+        <tr class="{% if not role.is_active %}inactive-role{% endif %}">
+            <td>{{ role.group.name }}</td>
 
                 <!-- Permisos actuales -->
                 <td>

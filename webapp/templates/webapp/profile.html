@@ -2,18 +2,37 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h1>Bienvenido, {{ user.username }}!</h1>
+<div class="auth-container home-view">
+    <div class="auth-card">
 
-<p><strong>Email:</strong> {{ user.email }}</p>
+        <h1 class="auth-title">Bienvenido, {{ user.username }}!</h1>
 
-{% if user.bio %}
-  <p><strong>Bio:</strong> {{ user.bio }}</p>
-{% endif %}
+        <dl class="user-info">
+            <div class="row">
+                <dt>Email</dt>
+                <dd>{{ user.email }}</dd>
+            </div>
 
-{% if user.birthdate %}
-  <p><strong>Fecha de Nacimiento:</strong> {{ user.birthdate }}</p>
-{% endif %}
+            <div class="row">
+                <dt>Nombre y Apellido</dt>
+                <dd>{{ user.get_full_name|default:user.username }}</dd>
+            </div>
 
-<a href="{% url 'logout' %}">Salir</a>
+            {% if user.bio %}
+              <div class="row">
+                  <dt>Bio</dt>
+                  <dd>{{ user.bio }}</dd>
+              </div>
+            {% endif %}
 
+            {% if user.birthdate %}
+              <div class="row">
+                  <dt>Fecha de Nacimiento</dt>
+                  <dd>{{ user.birthdate }}</dd>
+              </div>
+            {% endif %}
+        </dl>
+
+    </div>
+</div>
 {% endblock %}

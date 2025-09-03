@@ -1,66 +1,8 @@
-/* Table styling */
-.roles-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.roles-table th, .roles-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-}
-
-.roles-table th {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.role-badge {
-    display: inline-block;
-    background-color: #2196F3;
-    color: white;
-    padding: 4px 8px;
-    margin: 2px 2px 2px 0;
-    border-radius: 12px;
-    font-size: 0.85em;
-}
-
-.role-badge .remove-btn {
-    color: white;
-    text-decoration: none;
-    margin-left: 6px;
-    font-weight: bold;
-}
-
-.role-badge .remove-btn:hover {
-    color: #ffcccc;
-}
-
-.no-role {
-    color: #888;
-    font-style: italic;
-}
-
 .add-role-form select {
     padding: 4px 6px;
     border-radius: 4px;
     border: 1px solid #ccc;
     margin-right: 6px;
-}
-
-.add-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-}
-
-.add-btn:hover {
-    background-color: #45a049;
 }
 
 .logout-container {
@@ -107,20 +49,6 @@
     flex-wrap: wrap;
 }
 
-.homepage-links .home-btn {
-    background-color: #4CAF50;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s;
-}
-
-.homepage-links .home-btn:hover {
-    background-color: #45a049;
-}
-
 /* Header nav styling */
 .header-nav {
     background-color: #f4f4f9;
@@ -129,6 +57,11 @@
 
 .header-nav li {
     margin: 0;
+}
+
+.nav-links {
+    display: flex;
+    gap: 10px;
 }
 
 .header-btn {
@@ -159,11 +92,6 @@
     align-self: center;
 }
 
-.nav-links {
-    display: flex;
-    gap: 10px;
-}
-
 .logo-container .img-header {
     width: 200; /* adjust size */
     align-items: center;
@@ -188,33 +116,6 @@
     padding: 40px 20px;   /* reduce top/bottom padding */
     max-width: 1000px;     /* limit container width */
     margin: 40px auto;    /* center with less vertical space */
-}
-
-/* Tighten form spacing */
-.form-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;            /* reduce gap between inputs */
-}
-
-.form-container input,
-.form-container select,
-.form-container textarea {
-    padding: 8px;          /* smaller padding */
-    font-size: 0.95em;     /* slightly smaller text */
-}
-
-.form-container button {
-    width: 60%;
-    align-self: center;
-    padding: 10px;
-    font-size: 0.95em;
-}
-
-.form-link {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 0.9em;
 }
 
 /* --- Clientes table styling (igual que roles, pero separado por semántica) --- */
@@ -295,16 +196,410 @@
     background-color: #45a049;
 }
 
-.roles-table td .permissions-list {
-    max-height: 150px;   /* o lo que te parezca cómodo */
-    overflow-y: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
+/* ---------- Modificar Usuario ---------- */
+.user-edit .roles { 
+    border:1px solid #eee; 
+    border-radius:12px; 
+    padding:12px 14px; 
+    margin-top:6px; 
 }
+
+.user-edit a.add-btn,
+.user-edit button.add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  text-decoration: none;
+}
+
+.user-edit .roles legend { 
+    font-weight:700; 
+    padding:0 6px; 
+}
+
+.user-edit .roles .check { 
+    display:flex; 
+    align-items:center; 
+    gap:10px; 
+    margin:.2rem 0; 
+}
+
+.user-edit .form-actions { 
+    display:flex; 
+    flex-wrap:wrap; 
+    gap:12px; 
+    justify-content:center; 
+    margin-top:8px; 
+}
+.user-edit .form-actions .btn { 
+    min-width:180px; 
+}
+
+.user-edit .auth-title { letter-spacing:.3px; }
+
+.user-edit input[type="checkbox"] { 
+    width:16px; 
+    height:16px; 
+}
+
+/* ---------- Perfil de Usuario ---------- */
+.home-view .home-header{
+    display:flex; 
+    align-items:center; 
+    gap:16px; 
+    margin-bottom:8px;
+}
+
+.home-view .user-info{ 
+    margin:8px 0 16px; 
+}
+.home-view .user-info .row{
+    display:flex; 
+    gap:12px; 
+    align-items:flex-start;
+    padding:10px 12px; 
+    margin-bottom:10px;
+    background:#fafafa; 
+    border:1px solid #f0f0f0; 
+    border-radius:10px;
+}
+.home-view dt{ 
+    width:180px; 
+    font-weight:700; 
+    margin:0; 
+}
+.home-view dd{ 
+    margin:0; 
+    flex:1; 
+}
+
+/* Reutiliza el mismo bloque de acciones de formularios */
+.home-view .form-actions{
+    display:flex; 
+    justify-content:flex-end; 
+    gap:12px; 
+    margin-top:8px;
+}
+
+/* ---------- Layout base ---------- */
+.auth-wrapper {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(
+      1200px 600px at 10% -10%,
+      rgba(76, 175, 80, 0.06),
+      transparent 70%
+    ),
+    radial-gradient(
+      900px 500px atform-link 110% 10%,
+      rgba(76, 175, 80, 0.05),
+      transparent 70%
+    );
+}
+
+/* Card principal del login */
+.auth-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.auth-title { 
+    text-align:center; 
+    margin:8px 0 20px; 
+    font-size:clamp(20px, 2.6vw, 28px); 
+}
+
+/* Encabezados y textos del card */
+.auth-card h1 {
+  font-size: 1.9rem;
+  line-height: 1.2;
+  color: #4caf50;
+  margin: 0 0 6px 0;
+}
+
+.auth-card > p {
+  color: #555;
+  margin: 0 0 18px 0;
+}
+
+
+/* ---------- Formulario ---------- */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom:16px;
+}
+
+.form-container-row { 
+    display:grid; 
+    grid-template-columns:1fr; 
+    gap:16px; 
+}
+
+.form-container p {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.form-container label {
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.form-container input,
+.form-container select,
+.form-container textarea {
+  padding: 12px 14px;
+  font-size: 1rem;
+  border: 1px solid #dcdcdc;
+  border-radius: 12px;
+  background: #fff;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease,
+    transform 0.02s ease-in-out;
+}
+
+.form-container input:hover,
+.form-container select:hover,
+.form-container textarea:hover {
+  border-color: #cfcfcf;
+}
+
+.form-container input:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.12);
+}
+
+/* Etiquetas dentro del grupo */
+.form-container .form-group label{
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 600;
+}
+
+/* ---------- Botones ---------- */
+
+.home-btn {
+  background-color: #4caf50;
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  max-width: 250px;
+  margin: 4px auto 0;
+  transition: transform 0.04s ease, background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 6px 14px rgba(76, 175, 80, 0.25);
+  font-family: inherit;
+  margin-bottom: 14px;
+}
+
+a.home-btn{
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+}
+a.home-btn:visited{
+  color: #fff;
+}
+
+.home-btn:hover {
+  background-color: #45a049;
+}
+
+.home-btn:active {
+  transform: translateY(1px);
+}
+
+/* ---------- Contenedor del botón volver ---------- */
+.back-container {
+    margin: 10px 0 20px 0;
+}
+.btn-back {
+    display: inline-block;
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+.btn-back:hover {
+    background-color: #45a049;
+}
+
+/* ---------- Caja para nuevo rol ---------- */
+.new-role-box {
+    background: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.new-role-box form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.new-role-box input[type="text"] {
+    flex: 1; 
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 200px;
+}
+
+/* ---------- Tabla ---------- */
+.roles-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.roles-table th, .roles-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.roles-table th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: 600;
+}
+
+.roles-table tr:nth-child(even) {
+    background: #f7f7f7;
+}
+
+/* Formularios dentro de la tabla */
+.roles-table form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Seleccionador */
+.roles-table select {
+    width: 120px; 
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fdfdfd; 
+    font-size: 0.9em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Efecto hover/focus */
+.roles-table select:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+    outline: none;
+}
+
+/* Botón consistente */
+.roles-table .add-btn {
+    width: 120px;
+    text-align: center;
+}
+
+/* ---------- Botones Cuadro Admin ---------- */
+.add-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    width: 10rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+.add-btn:hover {
+    background-color: #45a049;
+}
+.add-btn:disabled {
+    background-color: #a5d6a7;
+    cursor: not-allowed;
+}
+
+/* ---------- Badges. ---------- */
 .role-badge {
-    background: #45a049;
-    padding: 3px 6px;
-    border-radius: 5px;
-    font-size: 12px;
+    display: inline-block;
+    background-color: #2196F3;
+    color: white;
+    padding: 4px 8px;
+    margin: 2px 2px 2px 0;
+    border-radius: 12px;
+    font-size: 0.85em;
+}
+
+.no-role {
+    color: #888;
+    font-style: italic;
+}
+
+
+/* ---------- Errores Django / helptext ---------- */
+.errorlist {
+  list-style: none;
+  margin: 6px 0 0 0;
+  padding: 0;
+  color: #b00020; 
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.errorlist li {
+  background: rgba(176, 0, 32, 0.06);
+  border: 1px solid rgba(176, 0, 32, 0.25);
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.helptext {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 22px 18px;
+        border-radius: 14px;
+    }
+    .auth-card h1 {
+        font-size: 1.7rem;
+    }
+}
+@media (min-width: 640px) { 
+    .form-row { 
+        grid-template-columns:1fr 1fr; 
+    } 
 }
