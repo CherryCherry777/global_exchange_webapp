@@ -15,15 +15,23 @@
 </ul>
 {% endif %}
 
-<table class="roles-table">
-    <!-- Add new role -->
+<!-- Botón para volver -->
+<div class="back-container">
+    <a href="javascript:history.back()" class="btn-back">← Volver</a>
+</div>
+
+<!-- Crear nuevo rol -->
+<div class="new-role-box">
     <h2>Añadir nuevo Rol</h2>
     <form method="POST" action="{% url 'create_role' %}">
         {% csrf_token %}
         <input type="text" name="name" placeholder="Nombre de Rol" required>
         <button type="submit" class="add-btn">Crear Rol</button>
     </form>
+</div>
 
+<!-- Tabla de roles -->
+<table class="roles-table">
     <thead>
         <tr>
             <th>Nombre de Rol</th>
