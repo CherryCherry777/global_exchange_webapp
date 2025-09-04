@@ -1,0 +1,6 @@
+Hola {{ user.get_full_name|default:user.username }},
+Confirma tu correo para activar tu cuenta en {{ project_name }}:
+
+{{ activation_link }}
+
+Si no creaste esta cuenta, ignora este mensaje.
