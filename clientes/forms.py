@@ -1,7 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
 import re
-from .models import Cliente
+from .models import Cliente, ClienteUsuario
+from webapp.models import CustomUser
 
 
 class ClienteForm(forms.ModelForm):
@@ -85,3 +86,31 @@ class ClienteForm(forms.ModelForm):
             if not ruc.isdigit():
                 raise ValidationError("El RUC debe contener solo números.")
         return ruc
+
+
+class AsignarClienteForm(forms.Form):
+    cliente = forms.ModelChoiceField(
+        queryset=Cliente.objects.filter(estado=True).order_by('nombre'),
+        empty_label="Seleccione un cliente",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label="Cliente"
+    )
+    
+    usuario = forms.ModelChoiceField(
+        queryset=CustomUser.objects.filter(is_active=True).order_by('username'),
+        empty_label="Seleccione un usuario",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label="Usuario"
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        cliente = cleaned_data.get('cliente')
+        usuario = cleaned_data.get('usuario')
+        
+        if cliente and usuario:
+            # Verificar si ya existe la asignación
+            if ClienteUsuario.objects.filter(cliente=cliente, usuario=usuario).exists():
+                raise ValidationError("Esta asignación ya existe.")
+        
+        return cleaned_data

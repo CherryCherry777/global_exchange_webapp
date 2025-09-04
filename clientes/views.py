@@ -2,9 +2,10 @@ from clientes.decorators import permitir_permisos    # Importamos el decorador p
 from django.shortcuts import render, redirect, get_object_or_404           # Importamos render para devolver plantillas HTML con contexto.
 from clientes.models import Cliente, ClienteUsuario  # Importamos los modelos que vamos a usar.
 from webapp.models import CustomUser
-from clientes.forms import ClienteForm
+from clientes.forms import ClienteForm, AsignarClienteForm
 from django.contrib import messages
 from django.http import JsonResponse
+from django.db import IntegrityError
 
 # Create your views here.
 
@@ -88,3 +89,48 @@ def modificar_cliente(request, cliente_id):
         form = ClienteForm(instance=cliente)
 
     return render(request, "clientes/modificar_cliente.html", {"form": form})
+
+# --------------------------------------------
+# Vista para asignar clientes a usuarios
+# --------------------------------------------
+@permitir_permisos(['clientes.add_clienteusuario', 'clientes.view_clienteusuario'])
+def asignar_cliente_usuario(request):
+    if request.method == "POST":
+        form = AsignarClienteForm(request.POST)
+        if form.is_valid():
+            try:
+                # Crear la relación ClienteUsuario
+                ClienteUsuario.objects.create(
+                    cliente=form.cleaned_data['cliente'],
+                    usuario=form.cleaned_data['usuario']
+                )
+                messages.success(request, f"Cliente '{form.cleaned_data['cliente'].nombre}' asignado exitosamente al usuario '{form.cleaned_data['usuario'].username}'.")
+                return redirect('asignar_cliente_usuario')
+            except IntegrityError:
+                messages.error(request, "Esta asignación ya existe.")
+        else:
+            messages.error(request, "Por favor corrige los errores en el formulario.")
+    else:
+        form = AsignarClienteForm()
+    
+    # Obtener todas las asignaciones existentes para mostrar
+    asignaciones = ClienteUsuario.objects.select_related('cliente', 'usuario').all().order_by('-fecha_asignacion')
+    
+    return render(request, 'clientes/asignar_cliente_usuario.html', {
+        'form': form,
+        'asignaciones': asignaciones
+    })
+
+# --------------------------------------------
+# Vista para desasignar cliente de usuario
+# --------------------------------------------
+@permitir_permisos(['clientes.delete_clienteusuario'])
+def desasignar_cliente_usuario(request, asignacion_id):
+    asignacion = get_object_or_404(ClienteUsuario, id=asignacion_id)
+    cliente_nombre = asignacion.cliente.nombre
+    usuario_username = asignacion.usuario.username
+    
+    asignacion.delete()
+    messages.success(request, f"Cliente '{cliente_nombre}' desasignado del usuario '{usuario_username}'.")
+    
+    return redirect('asignar_cliente_usuario')
