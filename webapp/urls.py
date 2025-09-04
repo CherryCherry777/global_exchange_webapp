@@ -50,5 +50,10 @@ urlpatterns = [
     path('manage-users/<int:user_id>/modify/', views.modify_users, name='modify_users'),
     path('manage-users/delete/<int:user_id>/confirm/', views.confirm_delete_user, name='confirm_delete_user'),
 
-
+    #Currency Manager
+    path('currency/', views.currency_list, name='currency_list'),
+    path('currency/crear/', views.create_currency, name='create_currency'),
+    path('currency/editar/<int:currency_id>/', views.edit_currency, name='edit_currency'),
+    path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
 ]
+

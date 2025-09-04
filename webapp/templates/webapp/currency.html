@@ -1,0 +1,110 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Administrar Monedas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Administrar Monedas</h1>
+
+    <!-- Botón para volver -->
+    <div class="back-container">
+        <a href="javascript:history.back()" class="btn-back">← Volver</a>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <!-- Formulario para agregar nueva moneda -->
+    <div class="new-role-box">
+        <h2>Añadir nueva Moneda</h2>
+        <form method="POST" action="{% url 'create_currency' %}">
+            {% csrf_token %}
+            <div class="form-container">
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_code">Código:</label>
+                        <input type="text" name="code" id="id_code" placeholder="USD, EUR, etc." maxlength="3" required>
+                    </p>
+                    <p>
+                        <label for="id_name">Nombre:</label>
+                        <input type="text" name="name" id="id_name" placeholder="Dólar Estadounidense" required>
+                    </p>
+                </div>
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_symbol">Símbolo:</label>
+                        <input type="text" name="symbol" id="id_symbol" placeholder="$" required>
+                    </p>
+                    <p>
+                        <label for="id_exchange_rate">Tipo de cambio:</label>
+                        <input type="number" name="exchange_rate" id="id_exchange_rate" step="0.0001" placeholder="1.0000" required>
+                    </p>
+                </div>
+            </div>
+            <button type="submit" class="add-btn">Crear Moneda</button>
+        </form>
+    </div>
+
+    <!-- Tabla de monedas -->
+    <table class="roles-table">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Símbolo</th>
+                <th>Tipo de Cambio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for currency in currencies %}
+            <tr class="{% if not currency.is_active %}inactive-role{% endif %}">
+                <td>{{ currency.code }}</td>
+                <td>{{ currency.name }}</td>
+                <td>{{ currency.symbol }}</td>
+                <td>{{ currency.exchange_rate }}</td>
+                <td>
+                    {% if currency.is_active %}
+                        <span class="estado-activo">Activo</span>
+                    {% else %}
+                        <span class="estado-inactivo">Inactivo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <!-- Editar moneda -->
+                        <a href="{% url 'edit_currency' currency.id %}" class="add-btn" style="padding: 6px 12px; text-align: center; text-decoration: none;">
+                            Editar
+                        </a>
+                        
+                        <!-- Activar/Desactivar moneda -->
+                        <form method="POST" action="{% url 'toggle_currency' %}" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="currency_id" value="{{ currency.id }}">
+                            {% if currency.is_active %}
+                                <button type="submit" class="add-btn" style="background-color: #f44336;">Desactivar</button>
+                            {% else %}
+                                <button type="submit" class="add-btn">Activar</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;">No hay monedas registradas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

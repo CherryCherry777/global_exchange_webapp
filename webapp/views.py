@@ -19,6 +19,9 @@ from .forms import RegistrationForm, LoginForm, UserUpdateForm
 from .decorators import role_required
 from .utils import get_user_primary_role
 from .models import Role
+from django.contrib.auth.decorators import permission_required
+from .models import Currency
+
 
 User = get_user_model()
 PROTECTED_ROLES = ["Administrador", "Empleado", "Usuario"]
@@ -535,3 +538,62 @@ def modify_users(request, user_id):
         "user_roles": user_roles,
         "ROLE_TIERS": {"Administrador": 3, "Empleado": 2, "Usuario": 1}
     })
+
+@login_required
+def currency_list(request):
+    currencies = Currency.objects.all()
+    return render(request, 'webapp/currency_list.html', {'currencies': currencies})
+
+@login_required
+def create_currency(request):
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        name = request.POST.get('name')
+        symbol = request.POST.get('symbol')
+        exchange_rate = request.POST.get('exchange_rate')
+        
+        # Validar que el código no exista
+        if Currency.objects.filter(code=code).exists():
+            messages.error(request, 'El código de moneda ya existe.')
+            return redirect('currency_list')
+        
+        # Crear la moneda
+        Currency.objects.create(
+            code=code.upper(),
+            name=name,
+            symbol=symbol,
+            exchange_rate=exchange_rate
+        )
+        messages.success(request, 'Moneda creada exitosamente.')
+        return redirect('currency_list')
+    
+    return redirect('currency_list')
+
+@login_required
+def edit_currency(request, currency_id):
+    currency = get_object_or_404(Currency, id=currency_id)
+    
+    if request.method == 'POST':
+        currency.name = request.POST.get('name')
+        currency.symbol = request.POST.get('symbol')
+        currency.exchange_rate = request.POST.get('exchange_rate')
+        currency.save()
+        
+        messages.success(request, 'Moneda actualizada exitosamente.')
+        return redirect('currency_list')
+    
+    return render(request, 'webapp/edit_currency.html', {'currency': currency})
+
+@login_required
+def toggle_currency(request):
+    if request.method == 'POST':
+        currency_id = request.POST.get('currency_id')
+        currency = get_object_or_404(Currency, id=currency_id)
+        
+        currency.is_active = not currency.is_active
+        currency.save()
+        
+        status = "activada" if currency.is_active else "desactivada"
+        messages.success(request, f'Moneda {status} exitosamente.')
+    
+    return redirect('currency_list')

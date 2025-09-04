@@ -1,0 +1,52 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Editar Moneda{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Editar Moneda: {{ currency.code }}</h1>
+
+    <div class="back-container">
+        <a href="{% url 'currency_list' %}" class="btn-back">← Volver al listado</a>
+    </div>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="cliente-form-container">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-container">
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_code">Código:</label>
+                        <input type="text" value="{{ currency.code }}" disabled>
+                        <small>El código de moneda no puede modificarse</small>
+                    </p>
+                    <p>
+                        <label for="id_name">Nombre:</label>
+                        <input type="text" name="name" id="id_name" value="{{ currency.name }}" required>
+                    </p>
+                </div>
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_symbol">Símbolo:</label>
+                        <input type="text" name="symbol" id="id_symbol" value="{{ currency.symbol }}" required>
+                    </p>
+                    <p>
+                        <label for="id_exchange_rate">Tipo de cambio:</label>
+                        <input type="number" name="exchange_rate" id="id_exchange_rate" step="0.0001" value="{{ currency.exchange_rate }}" required>
+                    </p>
+                </div>
+            </div>
+            <button type="submit" class="add-btn">Actualizar Moneda</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
