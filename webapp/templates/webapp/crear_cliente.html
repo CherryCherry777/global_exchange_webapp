@@ -1,96 +1,97 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 {% load permissions_tags %}
+{% block messages %} <!-- sobrescribe el bloque de mensajes de webapp/base.html -->
+{% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %} 
 
-{% has_perms user 'clientes.change_cliente' as can_change_clientes %}
-{% if can_change_clientes %}
-{% block title %}Modificar Cliente{% endblock %}
+{% has_perms user 'webapp.add_cliente' as can_add_clientes %}
+{% if can_add_clientes %}
+{% block title %}Crear Cliente{% endblock %}
 
 {% block content %}
 <div class="cliente-form-container">
-    <h2>Modificar Cliente</h2>
+    <h2>Registrar nuevo Cliente</h2>
 
     <form method="POST">
         {% csrf_token %}
-        
+
         <div class="form-container">
-            <!-- Nombre -->
             <label for="{{ form.nombre.id_for_label }}">Nombre</label>
             {{ form.nombre }}
             {% for error in form.nombre.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
 
-            <!-- Razón Social -->
             <label for="{{ form.razonSocial.id_for_label }}">Razón Social</label>
             {{ form.razonSocial }}
             {% for error in form.razonSocial.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
 
-            <!-- Documento -->
             <label for="{{ form.documento.id_for_label }}">Documento</label>
             {{ form.documento }}
             {% for error in form.documento.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
 
-            <!-- RUC -->
             <label for="{{ form.ruc.id_for_label }}">RUC</label>
             {{ form.ruc }}
             {% for error in form.ruc.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
 
-            <!-- Correo -->
             <label for="{{ form.correo.id_for_label }}">Correo</label>
             {{ form.correo }}
             {% for error in form.correo.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
 
-            <!-- Teléfono -->
             <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
             {{ form.telefono }}
             {% for error in form.telefono.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
 
-            <!-- Dirección -->
             <label for="{{ form.direccion.id_for_label }}">Dirección</label>
             {{ form.direccion }}
             {% for error in form.direccion.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
 
-            <!-- Tipo Cliente -->
             <label for="{{ form.tipoCliente.id_for_label }}">Tipo Cliente</label>
             {{ form.tipoCliente }}
             {% for error in form.tipoCliente.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
 
-            <!-- Categoría -->
             <label for="{{ form.categoria.id_for_label }}">Categoría</label>
             {{ form.categoria }}
             {% for error in form.categoria.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
 
-            <!-- Estado -->
             <label for="{{ form.estado.id_for_label }}" class="checkbox-label">
-                {{ form.estado }}
                 Activo
+                {{ form.estado }}
             </label>
             {% for error in form.estado.errors %}
                 <div class="error-message">{{ error }}</div>
             {% endfor %}
         </div>
 
-        <!-- Botones -->
+        <!-- Botones alineados a la derecha -->
         <div class="form-buttons">
-            <a href="{% url 'manage_clientes' %}" class="add-btn cancel-btn">Cancelar</a>
-            <button type="submit" class="add-btn">Guardar Cambios</button>
+            <a href="{% url 'crear_cliente' %}" class="add-btn cancel-btn">Cancelar</a>
+            <button type="submit" class="add-btn">Guardar</button>
         </div>
     </form>
 </div>

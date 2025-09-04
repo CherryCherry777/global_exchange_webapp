@@ -15,12 +15,11 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from webapp.emails import send_activation_email
-from .forms import RegistrationForm, LoginForm, UserUpdateForm
-from .decorators import role_required
+from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm
+from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Role
+from .models import Role, Currency, Cliente, ClienteUsuario
 from django.contrib.auth.decorators import permission_required
-from .models import Currency
 
 
 User = get_user_model()
@@ -597,3 +596,119 @@ def toggle_currency(request):
         messages.success(request, f'Moneda {status} exitosamente.')
     
     return redirect('currency_list')
+
+
+# ===========================================
+# VISTAS PARA GESTIÓN DE CLIENTES
+# ===========================================
+
+# --------------------------------------------
+# Vista para listar todos los clientes
+# --------------------------------------------
+@permitir_permisos(['webapp.add_cliente', 'webapp.change_cliente', 'webapp.delete_cliente', 'webapp.view_cliente', 'webapp.add_clienteusuario', 'webapp.change_clienteusuario', 'webapp.delete_clienteusuario', 'webapp.view_clienteusuario'])
+def manage_clientes(request):
+    clientes = Cliente.objects.all()
+    return render(request, "webapp/clientes.html", {"clientes": clientes})
+
+# --------------------------------------------
+# Vista para crear un cliente
+# --------------------------------------------
+@permitir_permisos(['webapp.add_cliente'])
+def crear_cliente(request):
+    if request.method == "POST":
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Cliente creado exitosamente.")
+            form = ClienteForm()
+        else:
+            messages.error(request, "Por favor corrige los errores.")
+    else:
+        form = ClienteForm()
+
+    return render(request, 'webapp/crear_cliente.html', {'form': form})
+
+# --------------------------------------------
+# Vista para inactivar un cliente
+# --------------------------------------------
+@permitir_permisos(['webapp.change_cliente', 'webapp.delete_cliente'])
+def inactivar_cliente(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    cliente.estado = False
+    cliente.save()
+    messages.success(request, f"Cliente '{cliente.nombre}' inactivado correctamente.")
+    return redirect('manage_clientes')
+
+# --------------------------------------------
+# Vista para activar un cliente
+# --------------------------------------------
+@permitir_permisos(['webapp.change_cliente'])
+def activar_cliente(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    cliente.estado = True
+    cliente.save()
+    messages.success(request, f"Cliente '{cliente.nombre}' activado correctamente.")
+    return redirect('manage_clientes')
+
+# --------------------------------------------
+# Vista para modificar un cliente
+# --------------------------------------------
+@permitir_permisos(['webapp.change_cliente'])
+def modificar_cliente(request, cliente_id):
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+
+    if request.method == "POST":
+        form = ClienteForm(request.POST, instance=cliente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "El cliente fue modificado correctamente.")
+            return redirect("manage_clientes")
+        else:
+            messages.error(request, "Por favor corrige los errores.")
+    else:
+        form = ClienteForm(instance=cliente)
+
+    return render(request, "webapp/modificar_cliente.html", {"form": form})
+
+# --------------------------------------------
+# Vista para asignar clientes a usuarios
+# --------------------------------------------
+@permitir_permisos(['webapp.add_clienteusuario', 'webapp.view_clienteusuario'])
+def asignar_cliente_usuario(request):
+    if request.method == "POST":
+        form = AsignarClienteForm(request.POST)
+        if form.is_valid():
+            try:
+                ClienteUsuario.objects.create(
+                    cliente=form.cleaned_data['cliente'],
+                    usuario=form.cleaned_data['usuario']
+                )
+                messages.success(request, f"Cliente '{form.cleaned_data['cliente'].nombre}' asignado exitosamente al usuario '{form.cleaned_data['usuario'].username}'.")
+                return redirect('asignar_cliente_usuario')
+            except IntegrityError:
+                messages.error(request, "Esta asignación ya existe.")
+        else:
+            messages.error(request, "Por favor corrige los errores en el formulario.")
+    else:
+        form = AsignarClienteForm()
+    
+    asignaciones = ClienteUsuario.objects.select_related('cliente', 'usuario').all().order_by('-fecha_asignacion')
+    
+    return render(request, 'webapp/asignar_cliente_usuario.html', {
+        'form': form,
+        'asignaciones': asignaciones
+    })
+
+# --------------------------------------------
+# Vista para desasignar cliente de usuario
+# --------------------------------------------
+@permitir_permisos(['webapp.delete_clienteusuario'])
+def desasignar_cliente_usuario(request, asignacion_id):
+    asignacion = get_object_or_404(ClienteUsuario, id=asignacion_id)
+    cliente_nombre = asignacion.cliente.nombre
+    usuario_username = asignacion.usuario.username
+    
+    asignacion.delete()
+    messages.success(request, f"Cliente '{cliente_nombre}' desasignado del usuario '{usuario_username}'.")
+    
+    return redirect('asignar_cliente_usuario')

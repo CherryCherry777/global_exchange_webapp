@@ -5,14 +5,14 @@
 
 {% block title %}Gestión de Clientes{% endblock %}
 
-{% has_perms user 'clientes.view_cliente' as can_view_clientes %}
+{% has_perms user 'webapp.view_cliente' as can_view_clientes %}
 {% if can_view_clientes %}
 {% block content %}
 <h1>Gestión de Clientes</h1>
 
 <!-- Barra de acciones -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-    {% has_perms user 'clientes.add_cliente' as can_add_clientes %}
+    {% has_perms user 'webapp.add_cliente' as can_add_clientes %}
     {% if can_add_clientes %}
     <a href="{% url 'crear_cliente' %}" class="add-btn" style="padding: 8px 14px; background-color: #4CAF50; color: white; border-radius: 6px; text-decoration: none;">
         + Crear Cliente

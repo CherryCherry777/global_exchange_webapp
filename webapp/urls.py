@@ -55,5 +55,14 @@ urlpatterns = [
     path('currency/crear/', views.create_currency, name='create_currency'),
     path('currency/editar/<int:currency_id>/', views.edit_currency, name='edit_currency'),
     path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
+
+    # Clientes Management
+    path('clientes/', views.manage_clientes, name="manage_clientes"),
+    path('clientes/crear/', views.crear_cliente, name='crear_cliente'),
+    path('clientes/asignar-usuario/', views.asignar_cliente_usuario, name='asignar_cliente_usuario'),
+    path('clientes/desasignar/<int:asignacion_id>/', views.desasignar_cliente_usuario, name='desasignar_cliente_usuario'),
+    path("clientes/modificar/<int:cliente_id>/", views.modificar_cliente, name="modificar_cliente"),
+    path('clientes/inactivar/<int:pk>/', views.inactivar_cliente, name='inactivar_cliente'),
+    path('clientes/activar/<int:pk>/', views.activar_cliente, name='activar_cliente'),
 ]
 
