@@ -21,10 +21,17 @@ else:
 AUTH_USER_MODEL = 'webapp.CustomUser'
 
 # Autenticación
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 LOGIN_URL = reverse_lazy('login')
 LOGIN_REDIRECT_URL = '/landing/'
 LOGOUT_REDIRECT_URL = "login"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = env("EMAIL_HOST", default="sandbox.smtp.mailtrap.io")
+EMAIL_PORT = env.int("EMAIL_PORT", default=2525)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+DEFAULT_FROM_EMAIL = "Global Exchange <no-reply@globalexchange.test>"
+
 
 # Seguridad
 SECRET_KEY = 'django-insecure-)p9*n*q!wuaxfx-f4lnm8($i^606cz*#29!6t5rb2wigihdq-t'

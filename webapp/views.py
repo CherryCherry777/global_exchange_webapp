@@ -14,6 +14,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from webapp.emails import send_activation_email
 from .forms import RegistrationForm, LoginForm, UserUpdateForm
 from .decorators import role_required
 from .utils import get_user_primary_role
@@ -42,19 +43,12 @@ def register(request):
             user.is_active = False
             user.save()
 
-            # Generación del enlace de verificación por email (impreso en consola por ahora)
-            token = default_token_generator.make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            link = request.build_absolute_uri(
-                reverse("verify-email", kwargs={"uidb64": uid, "token": token})
+            # enviar correo real a Mailtrap
+            send_activation_email(request, user)
+
+            messages.success(
+                request, "Registro Exitoso! Por favor presione su link de verificacion."
             )
-
-            # PRINT TO TERMINAL
-            print("=== LINK DE VERIFICACION ===")
-            print(link)
-            print("============================")
-
-            messages.success(request, "Registro Exitoso! Por favor presione su link de verificacion.")
             return redirect("login")
         else:
             # Print form errors if invalid
