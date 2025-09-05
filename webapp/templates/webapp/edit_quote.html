@@ -1,0 +1,57 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Editar Cotización{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Editar Cotización</h1>
+
+    <div class="back-container">
+        <a href="{% url 'quote_list' %}?date={{ quote.effective_date|date:'Y-m-d' }}" class="btn-back">← Volver al listado</a>
+    </div>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="cliente-form-container">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-container">
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_currency">Moneda:</label>
+                        <input type="text" value="{{ quote.currency.code }} - {{ quote.currency.name }}" disabled>
+                    </p>
+                    <p>
+                        <label for="id_payment_type">Tipo de Pago:</label>
+                        <input type="text" value="{{ quote.payment_type.name }}" disabled>
+                    </p>
+                </div>
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_buy_rate">Precio Compra:</label>
+                        <input type="number" name="buy_rate" id="id_buy_rate" step="0.0001" value="{{ quote.buy_rate }}" required>
+                    </p>
+                    <p>
+                        <label for="id_sell_rate">Precio Venta:</label>
+                        <input type="number" name="sell_rate" id="id_sell_rate" step="0.0001" value="{{ quote.sell_rate }}" required>
+                    </p>
+                </div>
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_effective_date">Fecha Vigencia:</label>
+                        <input type="date" name="effective_date" id="id_effective_date" value="{{ quote.effective_date|date:'Y-m-d' }}" required>
+                    </p>
+                </div>
+            </div>
+            <button type="submit" class="add-btn">Actualizar Cotización</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

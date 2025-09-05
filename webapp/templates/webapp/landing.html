@@ -19,6 +19,7 @@
             <a href="{% url 'manage_user_roles' %}" class="home-btn">Administrar Roles de Usuario</a>
             <a href="{% url 'asignar_cliente_usuario' %}" class="home-btn">Asignar Clientes a Usuarios</a>
             <a href="{% url 'currency_list' %}" class="home-btn">Monedas</a>
+            <a href="{% url 'quote_list' %}" class="home-btn">Cotizaciones de Monedas</a>
         {% endif %}
         <!-- Usuarios con permisos de ver/listar registros de clientes pueden acceder a la vista de gestión de clientes -->
         {% has_perms user 'clientes.view_cliente' as can_view_clientes %} <!--Guarda el valor booleano que arroja el templatetag has_perms-->

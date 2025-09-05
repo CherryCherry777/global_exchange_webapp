@@ -1,0 +1,146 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Administrar Cotizaciones{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Administrar Cotizaciones</h1>
+
+    <!-- Botón para volver -->
+    <div class="back-container">
+        <a href="javascript:history.back()" class="btn-back">← Volver</a>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <!-- Selector de fecha -->
+    <div class="date-selector" style="margin-bottom: 20px;">
+        <form method="GET" action="{% url 'quote_list' %}">
+            <label for="date">Seleccionar fecha:</label>
+            <input type="date" name="date" id="date" value="{{ effective_date }}" required>
+            <button type="submit" class="add-btn">Buscar</button>
+        </form>
+    </div>
+
+    <!-- Formulario para agregar nueva cotización -->
+    <div class="new-role-box">
+        <h2>Añadir nueva Cotización</h2>
+        <form method="POST" action="{% url 'create_quote' %}">
+            {% csrf_token %}
+            <input type="hidden" name="effective_date" value="{{ effective_date }}">
+            
+            <div class="form-container">
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_currency">Moneda:</label>
+                        <select name="currency" id="id_currency" required>
+                            <option value="">Seleccionar moneda</option>
+                            {% for currency in currencies %}
+                                <option value="{{ currency.id }}">{{ currency.code }} - {{ currency.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </p>
+                    <p>
+                        <label for="id_payment_type">Tipo de Pago:</label>
+                        <select name="payment_type" id="id_payment_type" required>
+                            <option value="">Seleccionar tipo de pago</option>
+                            {% for payment_type in payment_types %}
+                                <option value="{{ payment_type.id }}">{{ payment_type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </p>
+                </div>
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_buy_rate">Precio Compra:</label>
+                        <input type="number" name="buy_rate" id="id_buy_rate" step="0.0001" placeholder="0.0000" required>
+                    </p>
+                    <p>
+                        <label for="id_sell_rate">Precio Venta:</label>
+                        <input type="number" name="sell_rate" id="id_sell_rate" step="0.0001" placeholder="0.0000" required>
+                    </p>
+                </div>
+            </div>
+            <button type="submit" class="add-btn">Crear Cotización</button>
+        </form>
+    </div>
+
+    <!-- Tabla de cotizaciones -->
+    <table class="roles-table">
+        <thead>
+            <tr>
+                <th>Moneda</th>
+                <th>Tipo de Pago</th>
+                <th>Precio Compra</th>
+                <th>Precio Venta</th>
+                <th>Fecha Vigencia</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for quote in quotes %}
+            <tr>
+                <td>{{ quote.currency.code }} - {{ quote.currency.name }}</td>
+                <td>{{ quote.payment_type.name }}</td>
+                <td>{{ quote.buy_rate }}</td>
+                <td>{{ quote.sell_rate }}</td>
+                <td>{{ quote.effective_date }}</td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <!-- Editar cotización -->
+                        <a href="{% url 'edit_quote' quote.id %}" class="add-btn" style="padding: 6px 12px; text-align: center; text-decoration: none;">
+                            Editar
+                        </a>
+                        
+                        <!-- Eliminar cotización -->
+                        <form method="POST" action="{% url 'delete_quote' quote.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="add-btn" style="background-color: #f44336;" 
+                                    onclick="return confirm('¿Estás seguro de que deseas eliminar esta cotización?')">
+                                Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;">No hay cotizaciones para la fecha seleccionada</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Validación para evitar duplicados
+    document.addEventListener('DOMContentLoaded', function() {
+        const currencySelect = document.getElementById('id_currency');
+        const paymentTypeSelect = document.getElementById('id_payment_type');
+        const form = document.querySelector('form');
+        const existingCombinations = JSON.parse('{{ existing_combinations|safe }}'.replace(/&quot;/g, '"'));
+        
+        form.addEventListener('submit', function(e) {
+            const currencyId = currencySelect.value;
+            const paymentTypeId = paymentTypeSelect.value;
+            
+            if (currencyId && paymentTypeId) {
+                const combination = [parseInt(currencyId), parseInt(paymentTypeId)];
+                
+                if (existingCombinations.some(c => c[0] === combination[0] && c[1] === combination[1])) {
+                    e.preventDefault();
+                    alert('Ya existe una cotización para esta combinación de moneda y tipo de pago en la fecha seleccionada.');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

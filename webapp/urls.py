@@ -55,5 +55,11 @@ urlpatterns = [
     path('currency/crear/', views.create_currency, name='create_currency'),
     path('currency/editar/<int:currency_id>/', views.edit_currency, name='edit_currency'),
     path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
-]
 
+    #Manager de Cotizaciones
+    path('cotizaciones/', views.quote_list, name='quote_list'),
+    path('cotizaciones/crear/', views.create_quote, name='create_quote'),
+    path('cotizaciones/editar/<int:quote_id>/', views.edit_quote, name='edit_quote'),
+    path('cotizaciones/eliminar/<int:quote_id>/', views.delete_quote, name='delete_quote'),
+
+]

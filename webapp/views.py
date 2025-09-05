@@ -21,6 +21,8 @@ from .utils import get_user_primary_role
 from .models import Role
 from django.contrib.auth.decorators import permission_required
 from .models import Currency
+from .models import Quote, PaymentType, Currency
+from datetime import date
 
 
 User = get_user_model()
@@ -597,3 +599,128 @@ def toggle_currency(request):
         messages.success(request, f'Moneda {status} exitosamente.')
     
     return redirect('currency_list')
+
+@login_required
+#@permission_required('webapp.view_quote', raise_exception=True)
+def quote_list(request):
+    # Obtener la fecha actual si no se especifica otra
+    quote_date = request.GET.get('date', date.today().isoformat())
+    
+    try:
+        effective_date = date.fromisoformat(quote_date)
+    except ValueError:
+        effective_date = date.today()
+        messages.error(request, 'Fecha inválida. Mostrando cotizaciones para hoy.')
+    
+    quotes = Quote.objects.filter(effective_date=effective_date, is_active=True)
+    
+    # Obtener todos los tipos de pago y monedas para el formulario
+    payment_types = PaymentType.objects.filter(is_active=True)
+    currencies = Currency.objects.filter(is_active=True)
+    
+    # Verificar qué combinaciones ya existen para la fecha seleccionada
+    existing_combinations = {(q.currency_id, q.payment_type_id) for q in quotes}
+    
+    context = {
+        'quotes': quotes,
+        'payment_types': payment_types,
+        'currencies': currencies,
+        'effective_date': effective_date.isoformat(),
+        'existing_combinations': existing_combinations,
+    }
+    
+    return render(request, 'webapp/quote_list.html', context)
+
+@login_required
+#@permission_required('webapp.add_quote', raise_exception=True)
+def create_quote(request):
+    if request.method == 'POST':
+        currency_id = request.POST.get('currency')
+        payment_type_id = request.POST.get('payment_type')
+        buy_rate = request.POST.get('buy_rate')
+        sell_rate = request.POST.get('sell_rate')
+        effective_date = request.POST.get('effective_date')
+        
+        # Validaciones
+        if not all([currency_id, payment_type_id, buy_rate, sell_rate, effective_date]):
+            messages.error(request, 'Todos los campos son obligatorios.')
+            return redirect('quote_list')
+        
+        try:
+            effective_date_obj = date.fromisoformat(effective_date)
+        except ValueError:
+            messages.error(request, 'Fecha inválida.')
+            return redirect('quote_list')
+        
+        # Verificar si ya existe una cotización para esta combinación en la misma fecha
+        if Quote.objects.filter(currency_id=currency_id, 
+                               payment_type_id=payment_type_id, 
+                               effective_date=effective_date_obj).exists():
+            messages.error(request, 'Ya existe una cotización para esta moneda y tipo de pago en la fecha seleccionada.')
+            return redirect('quote_list')
+        
+        # Crear la cotización
+        Quote.objects.create(
+            currency_id=currency_id,
+            payment_type_id=payment_type_id,
+            buy_rate=buy_rate,
+            sell_rate=sell_rate,
+            effective_date=effective_date_obj
+        )
+        
+        messages.success(request, 'Cotización creada exitosamente.')
+        return redirect('quote_list')
+    
+    return redirect('quote_list')
+
+@login_required
+#@permission_required('webapp.change_quote', raise_exception=True)
+def edit_quote(request, quote_id):
+    quote = get_object_or_404(Quote, id=quote_id)
+    
+    if request.method == 'POST':
+        buy_rate = request.POST.get('buy_rate')
+        sell_rate = request.POST.get('sell_rate')
+        effective_date = request.POST.get('effective_date')
+        
+        # Validaciones
+        if not all([buy_rate, sell_rate, effective_date]):
+            messages.error(request, 'Todos los campos son obligatorios.')
+            return redirect('quote_list')
+        
+        try:
+            effective_date_obj = date.fromisoformat(effective_date)
+        except ValueError:
+            messages.error(request, 'Fecha inválida.')
+            return redirect('quote_list')
+        
+        # Actualizar la cotización
+        quote.buy_rate = buy_rate
+        quote.sell_rate = sell_rate
+        quote.effective_date = effective_date_obj
+        quote.save()
+        
+        messages.success(request, 'Cotización actualizada exitosamente.')
+        return redirect('quote_list')
+    
+    payment_types = PaymentType.objects.filter(is_active=True)
+    currencies = Currency.objects.filter(is_active=True)
+    
+    context = {
+        'quote': quote,
+        'payment_types': payment_types,
+        'currencies': currencies,
+    }
+    
+    return render(request, 'webapp/edit_quote.html', context)
+
+@login_required
+#@permission_required('webapp.delete_quote', raise_exception=True)
+def delete_quote(request, quote_id):
+    quote = get_object_or_404(Quote, id=quote_id)
+    
+    if request.method == 'POST':
+        quote.delete()
+        messages.success(request, 'Cotización eliminada exitosamente.')
+    
+    return redirect('quote_list')
