@@ -10,35 +10,61 @@
 
             <form method="POST">
                 {% csrf_token %}
+                
+                <!-- Mostrar errores generales del formulario -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+                
                 <div class="form-container-row">
                     <div class="form-container">
-                        <label for="first_name">Nombre</label>
-                        <input id="first_name" name="first_name" type="text" class="input" value="{{ user.first_name }}" />
+                        {{ form.first_name.label_tag }}
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="error-message">{{ form.first_name.errors }}</div>
+                        {% endif %}
                     </div>
                     <div class="form-container">
-                        <label for="last_name">Apellido</label>
-                        <input id="last_name" name="last_name" type="text" class="input" value="{{ user.last_name }}" />
+                        {{ form.last_name.label_tag }}
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="error-message">{{ form.last_name.errors }}</div>
+                        {% endif %}
                     </div>
                 </div>
+                
                 <div class="form-container">
-                    <label for="username">Nombre de usuario</label>
-                    <input id="username" name="username" type="text" class="input" value="{{ user.username }}" />
+                    {{ form.username.label_tag }}
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="error-message">{{ form.username.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <div class="form-container">
-                    <label for="email">Email</label>
-                    <input id="email" name="email" type="email" class="input" value="{{ user.email }}" />
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="error-message">{{ form.email.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <div class="form-container">
                     {{ form.password1.label_tag }}
                     {{ form.password1 }}
-                    {{ form.password1.errors }}
+                    {% if form.password1.errors %}
+                        <div class="error-message">{{ form.password1.errors }}</div>
+                    {% endif %}
                 </div>
+                
                 <div class="form-container">
                     {{ form.password2.label_tag }}
                     {{ form.password2 }}
-                    {{ form.password2.errors }}
+                    {% if form.password2.errors %}
+                        <div class="error-message">{{ form.password2.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <button type="submit" class="home-btn">Registrarse</button>
