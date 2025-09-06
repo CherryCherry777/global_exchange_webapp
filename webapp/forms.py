@@ -10,15 +10,21 @@ User = get_user_model()
 class RegistrationForm(UserCreationForm):
     first_name = forms.CharField(
         label="Nombre",
-        widget=forms.TextInput(attrs={"placeholder": "Ingrese su nombre"})
+        widget=forms.TextInput(attrs={"placeholder": "Ingrese su nombre"}),
+        min_length=2,
+        max_length=30
     )
     last_name = forms.CharField(
         label="Apellido",
-        widget=forms.TextInput(attrs={"placeholder": "Ingrese su apellido"})
+        widget=forms.TextInput(attrs={"placeholder": "Ingrese su apellido"}),
+        min_length=2,
+        max_length=30
     )
     username = forms.CharField(
         label="Nombre de usuario",
-        widget=forms.TextInput(attrs={"placeholder": "Elija un nombre de usuario"})
+        widget=forms.TextInput(attrs={"placeholder": "Elija un nombre de usuario"}),
+        min_length=3,
+        max_length=30
     )
     email = forms.EmailField(
         label="Correo electrónico",
@@ -36,11 +42,48 @@ class RegistrationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ["first_name", "last_name", "username", "email", "password1", "password2"]
+    
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            # Verificar que no contenga caracteres especiales
+            if not username.replace('_', '').replace('-', '').isalnum():
+                raise forms.ValidationError(
+                    "El nombre de usuario solo puede contener letras, números, guiones y guiones bajos."
+                )
+        return username
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Verificar que el email no esté ya registrado
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError(
+                    "Ya existe una cuenta con este correo electrónico."
+                )
+        return email
 
 class LoginForm(AuthenticationForm):
     class Meta:
         model = CustomUser
         fields = ["username", "password"]
+    
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+        
+        if username and password:
+            try:
+                user = CustomUser.objects.get(username=username)
+                if not user.is_active:
+                    raise forms.ValidationError(
+                        "Su cuenta no está activa. Por favor revise su correo y confirme su cuenta haciendo clic en el enlace de verificación.",
+                        code='inactive'
+                    )
+            except CustomUser.DoesNotExist:
+                pass  # Django manejará el error de autenticación
+        
+        return super().clean()
 
 #formulario útil para que los usuarios puedan actualizar su información
 class UserUpdateForm(forms.ModelForm):

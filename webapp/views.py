@@ -79,12 +79,37 @@ def verify_email(request, uidb64, token):
         messages.error(request, "Link de verificacion expirado o invalido.")
         return redirect("register")
 
+def resend_verification_email(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            if not user.is_active:
+                send_activation_email(request, user)
+                messages.success(request, "Email de verificación reenviado. Por favor revise su correo.")
+            else:
+                messages.info(request, "Su cuenta ya está activa. Puede hacer login.")
+        except User.DoesNotExist:
+            messages.error(request, "No se encontró una cuenta con este correo electrónico.")
+        return redirect("login")
+    
+    return render(request, "webapp/resend_verification.html")
+
 class CustomLoginView(LoginView):
     template_name = "webapp/login.html"
     form_class = LoginForm
 
     def get_success_url(self):
         return reverse_lazy("landing")
+    
+    def form_invalid(self, form):
+        # Agregar mensaje específico para cuentas inactivas
+        if form.errors.get('__all__'):
+            for error in form.errors['__all__']:
+                if 'inactive' in str(error):
+                    messages.error(self.request, str(error))
+                    break
+        return super().form_invalid(form)
 
 def custom_logout(request):
     logout(request)
