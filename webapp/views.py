@@ -168,6 +168,7 @@ def manage_user_roles(request):
 
 
 @login_required
+@role_required("Administrador")
 def add_role_to_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     if request.method == "POST":
@@ -179,8 +180,8 @@ def add_role_to_user(request, user_id):
     return redirect("manage_user_roles")
 
 
-
 @login_required
+@role_required("Administrador")
 def remove_role_from_user(request, user_id, role_name):
     user = get_object_or_404(User, id=user_id)
     group = get_object_or_404(Group, name=role_name)
@@ -273,7 +274,10 @@ def manage_roles(request):
                 if perm_id:
                     try:
                         perm = Permission.objects.get(id=perm_id)
-                        role.permissions.add(perm)
+                        # Acceder al grupo
+                        group = role.group
+                        # Agregar permiso
+                        group.permissions.add(perm)
                         messages.success(request, f"Se agregó '{perm.name}' a '{role.group.name}'.")
                     except Permission.DoesNotExist:
                         messages.error(request, "Permiso no encontrado.")
@@ -283,7 +287,10 @@ def manage_roles(request):
                 if perm_id:
                     try:
                         perm = Permission.objects.get(id=perm_id)
-                        role.permissions.remove(perm)
+                        # Acceder al grupo
+                        group = role.group
+                        # Agregar permiso
+                        group.permissions.remove(perm)
                         messages.success(request, f"Se eliminó '{perm.name}' de '{role.group.name}'.")
                     except Permission.DoesNotExist:
                         messages.error(request, "Permiso no encontrado.")
@@ -314,12 +321,16 @@ def create_role(request):
             messages.error(request, "El nombre de este rol esta reservado.")
         else:
             try:
-                Group.objects.create(name=name)
+                group = Group.objects.create(name=name)
+
+                # Crear el Role asociado
+                Role.objects.create(group=group, is_active=True)
                 messages.success(request, f"Role '{name}' created successfully!")
             except IntegrityError:
                 messages.error(request, "Ya existe rol con este nombre.")
 
     return redirect("manage_roles")
+
 
 @login_required
 @role_required("Administrador")
@@ -331,6 +342,7 @@ def delete_role(request, role_id):
         role.delete()
         messages.success(request, f"El rol '{role.name}' fue eliminado exitosamente.")
     return redirect("role_list")
+
 
 @login_required
 @role_required("Administrador")
@@ -440,36 +452,6 @@ def manage_users(request):
         return redirect("manage_users")
 
     return render(request, "webapp/manage_users.html", {"users": users})
-
-
-
-@login_required
-@role_required("Administrador")
-def add_role_to_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    if request.method == "POST":
-        role_name = request.POST.get("role")
-        if role_name and role_name not in [g.name for g in user.groups.all()]:
-            group = get_object_or_404(Group, name=role_name)
-            user.groups.add(group)
-    return redirect("manage_users")
-
-
-@login_required
-@role_required("Administrador")
-def remove_role_from_user(request, user_id, role_name):
-    user = get_object_or_404(User, id=user_id)
-    group = get_object_or_404(Group, name=role_name)
-
-    current_user_roles = request.user.groups.all()
-    current_user_tier = min(ROLE_TIERS.get(r.name, 99) for r in current_user_roles) if current_user_roles else 99
-    role_tier = ROLE_TIERS.get(group.name, 99)
-
-    if not (user == request.user and role_tier <= current_user_tier):
-        user.groups.remove(group)
-
-    return redirect("manage_users")
-
 
 @login_required
 @role_required("Administrador")
@@ -605,7 +587,7 @@ def toggle_currency(request):
 # --------------------------------------------
 # Vista para listar todos los clientes
 # --------------------------------------------
-@permitir_permisos(['webapp.add_cliente', 'webapp.change_cliente', 'webapp.delete_cliente', 'webapp.view_cliente', 'webapp.add_clienteusuario', 'webapp.change_clienteusuario', 'webapp.delete_clienteusuario', 'webapp.view_clienteusuario'])
+@permitir_permisos(['webapp.add_cliente', 'webapp.change_cliente', 'webapp.delete_cliente', 'webapp.view_cliente'])
 def manage_clientes(request):
     clientes = Cliente.objects.all()
     return render(request, "webapp/clientes.html", {"clientes": clientes})
