@@ -15,6 +15,13 @@ urlpatterns = [
     path("profile/", views.profile, name="profile"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
 
+    # Cliente Management (Admin only)
+    path("manage-clientes/", views.manage_clientes, name="manage_clientes"),
+    path("create-cliente/", views.create_cliente, name="create_cliente"),
+    path("update-cliente/<int:cliente_id>/", views.update_cliente, name="update_cliente"),
+    path("delete-cliente/<int:cliente_id>/", views.delete_cliente, name="delete_cliente"),
+    path("view-cliente/<int:cliente_id>/", views.view_cliente, name="view_cliente"),
+
     # Landing pages
     path("landing/", views.landing_page, name="landing"),
     path("admin-dashboard/", views.admin_dash, name="admin_dashboard"),
@@ -58,7 +65,7 @@ urlpatterns = [
     path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
 
     # Clientes Management
-    path('clientes/', views.manage_clientes, name="manage_clientes"),
+    path('clientes/', views.manage_clientes, name="clientes_list"),
     path('clientes/crear/', views.crear_cliente, name='crear_cliente'),
     path('clientes/asignar-usuario/', views.asignar_cliente_usuario, name='asignar_cliente_usuario'),
     path('clientes/desasignar/<int:asignacion_id>/', views.desasignar_cliente_usuario, name='desasignar_cliente_usuario'),

@@ -85,6 +85,94 @@ class LoginForm(AuthenticationForm):
         
         return super().clean()
 
+class ClienteCreateForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = [
+            'tipoCliente', 'nombre', 'razonSocial', 'documento', 'ruc',
+            'correo', 'telefono', 'direccion', 'categoria', 'estado'
+        ]
+        widgets = {
+            'tipoCliente': forms.Select(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el nombre completo'}),
+            'razonSocial': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese la razón social (opcional)'}),
+            'documento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 12345678'}),
+            'ruc': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 12345678-9 (opcional)'}),
+            'correo': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'correo@ejemplo.com'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: +595 21 123 456'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dirección completa'}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'estado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'tipoCliente': 'Tipo de Cliente',
+            'nombre': 'Nombre',
+            'razonSocial': 'Razón Social',
+            'documento': 'Documento',
+            'ruc': 'RUC',
+            'correo': 'Correo Electrónico',
+            'telefono': 'Teléfono',
+            'direccion': 'Dirección',
+            'categoria': 'Categoría',
+            'estado': 'Activo',
+        }
+
+    def clean_correo(self):
+        correo = self.cleaned_data.get('correo')
+        if correo and Cliente.objects.filter(correo=correo).exists():
+            raise forms.ValidationError("Ya existe un cliente con este correo electrónico.")
+        return correo
+
+    def clean_documento(self):
+        documento = self.cleaned_data.get('documento')
+        if documento and Cliente.objects.filter(documento=documento).exists():
+            raise forms.ValidationError("Ya existe un cliente con este documento.")
+        return documento
+
+class ClienteUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = [
+            'tipoCliente', 'nombre', 'razonSocial', 'documento', 'ruc',
+            'correo', 'telefono', 'direccion', 'categoria', 'estado'
+        ]
+        widgets = {
+            'tipoCliente': forms.Select(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'razonSocial': forms.TextInput(attrs={'class': 'form-control'}),
+            'documento': forms.TextInput(attrs={'class': 'form-control'}),
+            'ruc': forms.TextInput(attrs={'class': 'form-control'}),
+            'correo': forms.EmailInput(attrs={'class': 'form-control'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'estado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'tipoCliente': 'Tipo de Cliente',
+            'nombre': 'Nombre',
+            'razonSocial': 'Razón Social',
+            'documento': 'Documento',
+            'ruc': 'RUC',
+            'correo': 'Correo Electrónico',
+            'telefono': 'Teléfono',
+            'direccion': 'Dirección',
+            'categoria': 'Categoría',
+            'estado': 'Activo',
+        }
+
+    def clean_correo(self):
+        correo = self.cleaned_data.get('correo')
+        if correo and Cliente.objects.filter(correo=correo).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Ya existe un cliente con este correo electrónico.")
+        return correo
+
+    def clean_documento(self):
+        documento = self.cleaned_data.get('documento')
+        if documento and Cliente.objects.filter(documento=documento).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Ya existe un cliente con este documento.")
+        return documento
+
 #formulario útil para que los usuarios puedan actualizar su información
 class UserUpdateForm(forms.ModelForm):
     class Meta:

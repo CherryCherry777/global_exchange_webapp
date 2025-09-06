@@ -1,4 +1,4 @@
-from django.db import IntegrityError
+from django.db import IntegrityError, models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.core.mail import send_mail
@@ -15,7 +15,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from webapp.emails import send_activation_email
-from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm
+from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteCreateForm, ClienteUpdateForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
 from .models import Role, Currency, Cliente, ClienteUsuario
@@ -25,9 +25,9 @@ from django.contrib.auth.decorators import permission_required
 User = get_user_model()
 PROTECTED_ROLES = ["Administrador", "Empleado", "Usuario"]
 ROLE_TIERS = {
-    "Administrador": 1, #numero menor: mas alto
+    "Administrador": 3, #numero mayor: mas alto
     "Empleado": 2,
-    "Usuario": 3,
+    "Usuario": 1,
 }
 
 
@@ -95,6 +95,115 @@ def resend_verification_email(request):
     
     return render(request, "webapp/resend_verification.html")
 
+# -----------------------
+# Cliente Management Views
+# -----------------------
+@login_required
+@role_required("Administrador")
+def manage_clientes(request):
+    """Vista principal para gestionar clientes - Lista todos los clientes"""
+    clientes = Cliente.objects.all().order_by('-fechaRegistro')
+    
+    # Filtros
+    search_query = request.GET.get('search', '')
+    categoria_filter = request.GET.get('categoria', '')
+    estado_filter = request.GET.get('estado', '')
+    
+    if search_query:
+        clientes = clientes.filter(
+            models.Q(nombre__icontains=search_query) |
+            models.Q(correo__icontains=search_query) |
+            models.Q(documento__icontains=search_query)
+        )
+    
+    if categoria_filter:
+        clientes = clientes.filter(categoria=categoria_filter)
+    
+    if estado_filter:
+        estado_bool = estado_filter == 'activo'
+        clientes = clientes.filter(estado=estado_bool)
+    
+    context = {
+        'clientes': clientes,
+        'search_query': search_query,
+        'categoria_filter': categoria_filter,
+        'estado_filter': estado_filter,
+        'categoria_choices': Cliente._meta.get_field('categoria').choices,
+    }
+    
+    return render(request, "webapp/manage_clientes.html", context)
+
+@login_required
+@role_required("Administrador")
+def create_cliente(request):
+    """Vista para crear un nuevo cliente"""
+    if request.method == "POST":
+        form = ClienteCreateForm(request.POST)
+        if form.is_valid():
+            cliente = form.save()
+            messages.success(request, f"Cliente '{cliente.nombre}' creado exitosamente.")
+            return redirect("manage_clientes")
+    else:
+        form = ClienteCreateForm()
+    
+    return render(request, "webapp/cliente_form.html", {
+        'form': form,
+        'title': 'Crear Cliente',
+        'action': 'create'
+    })
+
+@login_required
+@role_required("Administrador")
+def update_cliente(request, cliente_id):
+    """Vista para actualizar un cliente existente"""
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    
+    if request.method == "POST":
+        form = ClienteUpdateForm(request.POST, instance=cliente)
+        if form.is_valid():
+            cliente = form.save()
+            messages.success(request, f"Cliente '{cliente.nombre}' actualizado exitosamente.")
+            return redirect("manage_clientes")
+    else:
+        form = ClienteUpdateForm(instance=cliente)
+    
+    return render(request, "webapp/cliente_form.html", {
+        'form': form,
+        'title': 'Editar Cliente',
+        'action': 'update',
+        'cliente': cliente
+    })
+
+@login_required
+@role_required("Administrador")
+def delete_cliente(request, cliente_id):
+    """Vista para eliminar un cliente"""
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    
+    if request.method == "POST":
+        cliente_nombre = cliente.nombre
+        cliente.delete()
+        messages.success(request, f"Cliente '{cliente_nombre}' eliminado exitosamente.")
+        return redirect("manage_clientes")
+    
+    return render(request, "webapp/confirm_delete_cliente.html", {'cliente': cliente})
+
+@login_required
+@role_required("Administrador")
+def view_cliente(request, cliente_id):
+    """Vista para ver los detalles de un cliente"""
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    
+    # Obtener usuarios asignados a este cliente
+    usuarios_asignados = ClienteUsuario.objects.filter(cliente=cliente).select_related('usuario')
+    
+    context = {
+        'cliente': cliente,
+        'usuarios_asignados': usuarios_asignados,
+    }
+    
+    return render(request, "webapp/view_cliente.html", context)
+
 class CustomLoginView(LoginView):
     template_name = "webapp/login.html"
     form_class = LoginForm
@@ -144,7 +253,7 @@ def get_highest_role_tier(user):
     user_roles = [g.name for g in user.groups.all()]
     if not user_roles:
         return 0  # No roles
-    return max(ROLE_TIERS.get(r, 0) for r in user_roles)
+    return min(ROLE_TIERS.get(r, 99) for r in user_roles)
 
 @login_required
 @role_required("Administrador")
@@ -174,7 +283,7 @@ def manage_user_roles(request):
         for r in u.groups.all():
             role_tier = ROLE_TIERS.get(r.name, 99)
             # Can remove if not removing own highest-tier role
-            can_remove = not (u == request.user and role_tier <= current_user_tier)
+            can_remove = not (u == request.user and role_tier >= current_user_tier)
             roles_info.append({
                 "role": r,
                 "can_remove": can_remove
@@ -217,7 +326,7 @@ def remove_role_from_user(request, user_id, role_name):
     role_tier = ROLE_TIERS.get(group.name, 99)
 
     # Only prevent removing own highest-tier role
-    if not (user == request.user and role_tier <= current_user_tier):
+    if not (user == request.user and role_tier >= current_user_tier):
         user.groups.remove(group)
 
     return redirect("manage_user_roles")
@@ -231,7 +340,7 @@ def remove_role_from_user(request, user_id, role_name):
     # Prevent removing protected roles or higher-tier roles than current user
     if role_to_remove.name in PROTECTED_ROLES:
         messages.error(request, f"You cannot remove the {role_to_remove.name} role.")
-    elif ROLE_TIERS.get(role_to_remove.name, 99) < current_user_tier:
+    elif ROLE_TIERS.get(role_to_remove.name, 99) > current_user_tier:
         messages.error(request, "You cannot remove a role higher than your own.")
     elif user_to_edit == request.user and ROLE_TIERS.get(role_to_remove.name, 99) == current_user_tier:
         messages.error(request, "You cannot remove your own highest-tier role.")
@@ -282,7 +391,7 @@ def manage_roles(request):
             role_tier = ROLE_TIERS.get(role.group.name, 0)
 
             # Bloquear acciones sobre roles protegidos o de mayor nivel
-            if role.group.name in protected_roles or role_tier >= user_tier:
+            if role.group.name in protected_roles or role_tier <= user_tier:
                 messages.error(request, "No puede modificar este rol.")
                 return redirect("manage_roles")
 
@@ -504,9 +613,6 @@ def confirm_delete_user(request, user_id):
 def modify_users(request, user_id):
     user_obj = get_object_or_404(User, id=user_id)
 
-    # Prevent admin from removing their own highest role here
-    ROLE_TIERS = {"Administrador": 3, "Empleado": 2, "Usuario": 1}
-
     if request.method == "POST":
         # Update basic info
         user_obj.username = request.POST.get("username", user_obj.username)
@@ -518,18 +624,18 @@ def modify_users(request, user_id):
         # Role management
         selected_roles = request.POST.getlist("roles")  # list of role names
         current_user_roles = {g.name for g in request.user.groups.all()}
-        highest_current_tier = max([ROLE_TIERS.get(r, 0) for r in current_user_roles], default=0)
+        highest_current_tier = min([ROLE_TIERS.get(r, 99) for r in current_user_roles], default=99)
 
         # Add/remove roles while respecting tier logic
         for role in Group.objects.all():
             role_name = role.name
             if role_name in selected_roles and role_name not in {g.name for g in user_obj.groups.all()}:
                 # Can only add role lower than or equal to your own highest tier
-                if ROLE_TIERS.get(role_name, 0) <= highest_current_tier:
+                if ROLE_TIERS.get(role_name, 99) >= highest_current_tier:
                     user_obj.groups.add(role)
             elif role_name not in selected_roles and role_name in {g.name for g in user_obj.groups.all()}:
                 # Can only remove role lower than your own highest tier
-                if ROLE_TIERS.get(role_name, 0) < highest_current_tier or user_obj != request.user:
+                if ROLE_TIERS.get(role_name, 99) > highest_current_tier or user_obj != request.user:
                     user_obj.groups.remove(role)
 
         messages.success(request, f"User '{user_obj.username}' updated successfully.")
@@ -610,12 +716,8 @@ def toggle_currency(request):
 # ===========================================
 
 # --------------------------------------------
-# Vista para listar todos los clientes
+# Vista para listar todos los clientes (ELIMINADA - DUPLICADA)
 # --------------------------------------------
-@permitir_permisos(['webapp.add_cliente', 'webapp.change_cliente', 'webapp.delete_cliente', 'webapp.view_cliente'])
-def manage_clientes(request):
-    clientes = Cliente.objects.all()
-    return render(request, "webapp/clientes.html", {"clientes": clientes})
 
 # --------------------------------------------
 # Vista para crear un cliente

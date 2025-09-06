@@ -10,18 +10,14 @@
 {% block content %}
 <h1>Gestión de Clientes</h1>
 
+
 <!-- Barra de acciones -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
     <div style="display: flex; gap: 10px; align-items: center;">
-        {% has_perms user 'webapp.add_cliente' as can_add_clientes %}
-        {% if can_add_clientes %}
-        <a href="{% url 'create_cliente' %}" class="add-btn" style="padding: 10px 20px; background-color: #4CAF50; color: white; border-radius: 8px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+        <!-- Botones siempre visibles para administradores -->
+        <a href="{% url 'create_cliente' %}" class="add-btn" style="padding: 12px 24px; background-color: #4CAF50; color: white; border-radius: 8px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-size: 16px;">
             + Crear Cliente
         </a>
-        <a href="{% url 'create_cliente' %}" class="add-btn" style="padding: 8px 16px; background-color: #2196F3; color: white; border-radius: 6px; text-decoration: none;">
-            Nuevo
-        </a>
-        {% endif %}
     </div>
 
     <input 
@@ -71,27 +67,26 @@
                 {% endif %}
             </td>
             <td>
-                <!-- Botón para modificar cliente -->
-                <a href="{% url 'modificar_cliente' cliente.id %}" 
+                <!-- Botón para ver detalles -->
+                <a href="{% url 'view_cliente' cliente.id %}" 
                    class="add-btn" 
                    style="background-color: #3498db; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none; margin-right: 5px;">
-                    Modificar
+                    Ver
+                </a>
+                
+                <!-- Botón para modificar cliente -->
+                <a href="{% url 'update_cliente' cliente.id %}" 
+                   class="add-btn" 
+                   style="background-color: #f39c12; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none; margin-right: 5px;">
+                    Editar
                 </a>
 
-                <!-- Botón para activar/inactivar -->
-                {% if cliente.estado %}
-                <a href="{% url 'inactivar_cliente' cliente.id %}" 
+                <!-- Botón para eliminar -->
+                <a href="{% url 'delete_cliente' cliente.id %}" 
                    class="add-btn" 
                    style="background-color: #e74c3c; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none;">
-                    Inactivar
+                    Eliminar
                 </a>
-                {% else %}
-                <a href="{% url 'activar_cliente' cliente.id %}" 
-                   class="add-btn" 
-                   style="background-color: #2ecc71; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none;">
-                    Activar
-                </a>
-                {% endif %}
             </td>
         </tr>
         {% empty %}
@@ -100,12 +95,9 @@
                 <div style="padding: 40px;">
                     <h3 style="color: #666; margin-bottom: 20px;">No hay clientes registrados</h3>
                     <p style="color: #888; margin-bottom: 30px;">Comienza agregando tu primer cliente al sistema</p>
-                    {% has_perms user 'webapp.add_cliente' as can_add_clientes %}
-                    {% if can_add_clientes %}
                     <a href="{% url 'create_cliente' %}" class="add-btn" style="padding: 12px 24px; background-color: #4CAF50; color: white; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold;">
                         + Crear Primer Cliente
                     </a>
-                    {% endif %}
                 </div>
             </td>
         </tr>
@@ -126,35 +118,15 @@ document.getElementById("clienteSearch").addEventListener("keyup", function() {
 });
 </script>
 
-<!-- Botón flotante fijo -->
-{% has_perms user 'webapp.add_cliente' as can_add_clientes %}
-{% if can_add_clientes %}
-<div style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
-    <a href="{% url 'create_cliente' %}" style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border-radius: 50%; text-decoration: none; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4); font-size: 24px; font-weight: bold; transition: all 0.3s ease;">
-        +
-    </a>
-</div>
-{% endif %}
 
 <style>
-/* Animación para el botón flotante */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-div[style*="position: fixed"] a:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
-}
-
 /* Mejorar el estilo de los botones */
 .add-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     transition: all 0.3s ease;
 }
+
 </style>
 
 {% endblock %}
