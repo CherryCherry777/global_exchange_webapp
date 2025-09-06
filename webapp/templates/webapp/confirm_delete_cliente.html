@@ -1,0 +1,65 @@
+{% extends "webapp/base.html" %}
+{% block title %}Confirmar Eliminación{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                    </div>
+                    
+                    <p>¿Está seguro de que desea eliminar el siguiente cliente?</p>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5>{{ cliente.nombre }}</h5>
+                            <p class="mb-1"><strong>Tipo:</strong> 
+                                {% if cliente.tipoCliente == 'persona_fisica' %}Persona Física{% else %}Persona Jurídica{% endif %}
+                            </p>
+                            <p class="mb-1"><strong>Documento:</strong> {{ cliente.documento }}</p>
+                            <p class="mb-1"><strong>Correo:</strong> {{ cliente.correo }}</p>
+                            <p class="mb-0"><strong>Estado:</strong> 
+                                <span class="badge {% if cliente.estado %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if cliente.estado %}Activo{% else %}Inactivo{% endif %}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <p class="text-danger">
+                            <strong>Consecuencias de la eliminación:</strong>
+                        </p>
+                        <ul class="text-danger">
+                            <li>Se eliminarán todas las asignaciones de usuarios a este cliente</li>
+                            <li>Se perderá toda la información del cliente</li>
+                            <li>Esta acción no se puede deshacer</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <form method="POST" class="d-flex justify-content-between">
+                        {% csrf_token %}
+                        <a href="{% url 'manage_clientes' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Sí, Eliminar Cliente
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

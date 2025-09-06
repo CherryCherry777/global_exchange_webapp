@@ -98,7 +98,7 @@
             <td>
                 {% if role.group.name in protected_roles %}
                     <button type="button" class="add-btn" disabled>Protegido</button>
-                {% elif ROLE_TIERS|get_item:role.group.name >= user_tier %}
+                {% elif ROLE_TIERS|get_item:role.group.name <= user_tier %}
                     <button type="button" class="add-btn" disabled>No se puede modificar</button>
                 {% else %}
                     <form method="POST" action="{% url 'manage_roles' %}" style="display:inline;">
