@@ -1,22 +1,102 @@
-{% extends "webapp/base.html" %}
-{% block title %}Ingresar{% endblock %}
-
-{% block content %}
-<div class="auth-wrapper">
-    <div class="homepage-container compact-form">
-        <div class="auth-card">
-            <h1 class="auth-title">Ingresar</h1>
-            <p>Ingrese sus credenciales para acceder a su cuenta.</p>
-
-            <form method="post" class="form-container">
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Iniciar Sesión - Global Exchange</title>
+    <link rel="stylesheet" href="{% static 'webapp/style.css' %}" />
+</head>
+<body>
+<div class="login-container">
+    <!-- Left Side - Login Form -->
+    <div class="login-form-section">
+        <div class="login-form-wrapper">
+            <h1 class="login-title">Iniciar Sesión</h1>
+            
+            <form method="post" class="login-form">
                 {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="home-btn">Login</button>
-            </form>
+                
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="username">Nombre de usuario</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" name="username" placeholder="Introduzca su nombre de usuario" class="form-input" required>
+                    </div>
+                </div>
 
-            <p class="form-link">No tiene cuenta?</p>
-            <a href="{% url 'register' %}" class="home-btn">Registrese aqui</a>
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password-input">Contraseña</label>
+                    <div class="input-wrapper">
+                        <input type="password" name="password" placeholder="Introduzca su contraseña" class="form-input" id="password-input" required>
+                        <span class="password-toggle" onclick="togglePassword()">👁️</span>
+                    </div>
+                </div>
+
+                <!-- Remember Me and Forgot Password -->
+                <div class="form-options">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" name="remember_me">
+                        <span>Recordarme</span>
+                    </label>
+                    <a href="#" class="forgot-password">¿Olvidó su contraseña?</a>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="login-button">Iniciar Sesión</button>
+
+                <!-- Registration Link -->
+                <div class="registration-link">
+                    <span>¿No tiene cuenta? </span>
+                    <a href="{% url 'register' %}">Registrarse</a>
+                </div>
+
+                <!-- Social Login Divider -->
+                <div class="social-divider">
+                    <div class="divider-line"></div>
+                    <div class="divider-circle"></div>
+                    <div class="divider-line"></div>
+                </div>
+
+                <!-- Social Login Buttons -->
+                <div class="social-login">
+                    <button type="button" class="social-button google-button">
+                        <img src="{% static 'webapp/pantalla_iniciar_sesion/Google_logo.png' %}" alt="Google" class="social-icon">
+                        Continuar con Google
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Side - GIF Section -->
+    <div class="gif-section">
+        <!-- Logo Header -->
+        <div class="gif-header">
+            <img src="{% static 'webapp/logo.png' %}" alt="Global Exchange Logo" class="gif-logo">
+        </div>
+        
+        <!-- GIF Container -->
+        <div class="gif-container">
+            <img src="{% static 'webapp/pantalla_iniciar_sesion/StockGIF.gif' %}" alt="Financial Data" class="financial-gif">
         </div>
     </div>
 </div>
-{% endblock %}
+
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('password-input');
+    const toggleIcon = document.querySelector('.password-toggle');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.style.opacity = '0.7';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.style.opacity = '1';
+    }
+}
+</script>
+</body>
+</html>
