@@ -825,20 +825,20 @@
     );
 }
 
-/* ---------- Login Page Layout ---------- */
+/* ---------- Auth Page Layout ---------- */
 body {
     margin: 0;
     padding: 0;
 }
 
-.login-container {
+.auth-container {
     display: flex;
     min-height: 100vh;
     background: #f8fafc;
 }
 
-/* Left Side - Login Form */
-.login-form-section {
+/* Auth Form */
+.auth-form-section {
     flex: 1;
     display: flex;
     align-items: center;
@@ -847,12 +847,12 @@ body {
     padding: 40px;
 }
 
-.login-form-wrapper {
+.auth-form-wrapper {
     width: 100%;
     max-width: 400px;
 }
 
-.login-title {
+.auth-title {
     font-size: 2.5rem;
     font-weight: 700;
     color: #1f2937;
@@ -860,23 +860,23 @@ body {
     text-align: center;
 }
 
-.login-form {
+.auth-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.form-group {
+.auth-form-group {
     margin-bottom: 20px;
 }
 
-.input-wrapper {
+.auth-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-.input-icon {
+.auth-input-icon {
     position: absolute;
     left: 15px;
     width: 20px;
@@ -885,7 +885,7 @@ body {
     opacity: 0.6;
 }
 
-.form-input {
+.auth-form-input {
     width: 100%;
     padding: 15px 15px 15px 50px;
     border: 2px solid #e5e7eb;
@@ -893,16 +893,17 @@ body {
     font-size: 16px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
     background: #f9fafb;
+    box-sizing: border-box;
 }
 
-.form-input:focus {
+.auth-form-input:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     background: white;
 }
 
-.password-toggle {
+.auth-password-toggle {
     position: absolute;
     right: 15px;
     width: 20px;
@@ -912,18 +913,18 @@ body {
     transition: opacity 0.3s ease;
 }
 
-.password-toggle:hover {
+.auth-password-toggle:hover {
     opacity: 1;
 }
 
-.form-options {
+.auth-form-options {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
 
-.checkbox-wrapper {
+.auth-checkbox-wrapper {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -932,33 +933,33 @@ body {
     color: #6b7280;
 }
 
-.checkbox-wrapper input[type="checkbox"] {
+.auth-checkbox-wrapper input[type="checkbox"] {
     display: none;
 }
 
-.checkbox-icon {
+.auth-checkbox-icon {
     width: 16px;
     height: 16px;
     opacity: 0.3;
     transition: opacity 0.3s ease;
 }
 
-.checkbox-wrapper input[type="checkbox"]:checked + .checkbox-icon {
+.auth-checkbox-wrapper input[type="checkbox"]:checked + .checkbox-icon {
     opacity: 1;
 }
 
-.forgot-password {
+.login-forgot-password {
     color: #3b82f6;
     text-decoration: none;
     font-size: 14px;
     transition: color 0.3s ease;
 }
 
-.forgot-password:hover {
+.login-forgot-password:hover {
     color: #1d4ed8;
 }
 
-.login-button {
+.auth-button {
     width: 100%;
     padding: 15px;
     background: #3b82f6;
@@ -972,26 +973,26 @@ body {
     margin-bottom: 20px;
 }
 
-.login-button:hover {
+.auth-button:hover {
     background: #2563eb;
     transform: translateY(-1px);
 }
 
-.registration-link {
+.auth-link {
     text-align: center;
     color: #6b7280;
     font-size: 14px;
     margin-bottom: 30px;
 }
 
-.registration-link a {
+.auth-link a {
     color: #3b82f6;
     text-decoration: none;
     font-weight: 600;
     transition: color 0.3s ease;
 }
 
-.registration-link a:hover {
+.auth-link a:hover {
     color: #1d4ed8;
 }
 
@@ -1015,13 +1016,13 @@ body {
     margin: 0 10px;
 }
 
-.social-login {
+.auth-social {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.social-button {
+.auth-social-button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1037,18 +1038,18 @@ body {
     transition: all 0.3s ease;
 }
 
-.social-button:hover {
+.auth-social-button:hover {
     border-color: #d1d5db;
     background: #f9fafb;
     transform: translateY(-1px);
 }
 
-.social-icon {
+.auth-social-icon {
     width: 18px;
     height: 18px;
 }
 
-/* Right Side - GIF Section */
+/* GIF Section for login and register */
 .gif-section {
     flex: 1;
     background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
@@ -1091,11 +1092,11 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .login-container {
+    .auth-container {
         flex-direction: column;
     }
     
-    .login-form-section {
+    .auth-form-section {
         padding: 20px;
     }
     
@@ -1108,63 +1109,31 @@ body {
         height: 80px;
     }
     
-    .login-title {
+    .auth-title {
         font-size: 2rem;
     }
 }
 
 @media (max-width: 480px) {
-    .login-form-wrapper {
+    .auth-form-wrapper {
         max-width: 100%;
     }
     
-    .form-options {
+    .auth-form-options {
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
     }
     
-    .social-login {
+    .auth-social {
         gap: 10px;
     }
     
-    .social-button {
+    .auth-social-button {
         padding: 10px;
         font-size: 13px;
     }
 }
-
-/* Card principal del login */
-.auth-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 28px 24px;
-  width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.auth-title { 
-    text-align:center; 
-    margin:8px 0 20px; 
-    font-size:clamp(20px, 2.6vw, 28px); 
-}
-
-/* Encabezados y textos del card */
-.auth-card h1 {
-  font-size: 1.9rem;
-  line-height: 1.2;
-  color: #4caf50;
-  margin: 0 0 6px 0;
-}
-
-.auth-card > p {
-  color: #555;
-  margin: 0 0 18px 0;
-}
-
 
 /* ---------- Formulario ---------- */
 .form-container {

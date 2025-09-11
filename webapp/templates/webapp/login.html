@@ -8,46 +8,60 @@
     <link rel="stylesheet" href="{% static 'webapp/style.css' %}" />
 </head>
 <body>
-<div class="login-container">
+<div class="auth-container">
     <!-- Left Side - Login Form -->
-    <div class="login-form-section">
-        <div class="login-form-wrapper">
-            <h1 class="login-title">Iniciar Sesión</h1>
+    <div class="auth-form-section">
+        <div class="auth-form-wrapper">
+            <h1 class="auth-title">Iniciar Sesión</h1>
             
-            <form method="post" class="login-form">
+            <form method="post" class="auth-form">
                 {% csrf_token %}
                 
                 <!-- Username Field -->
-                <div class="form-group">
+                <div class="auth-form-group">
                     <label for="username">Nombre de usuario</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="username" name="username" placeholder="Introduzca su nombre de usuario" class="form-input" required>
+                    <div class="auth-input-wrapper">
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            placeholder="Introduzca su nombre de usuario" 
+                            class="auth-form-input" 
+                            required
+                        >
                     </div>
                 </div>
 
                 <!-- Password Field -->
-                <div class="form-group">
+                <div class="auth-form-group">
                     <label for="password-input">Contraseña</label>
-                    <div class="input-wrapper">
-                        <input type="password" name="password" placeholder="Introduzca su contraseña" class="form-input" id="password-input" required>
-                        <span class="password-toggle" onclick="togglePassword()">👁️</span>
+                    <div class="auth-input-wrapper">
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="password-input" 
+                            placeholder="Introduzca su contraseña" 
+                            class="auth-form-input" 
+                            required
+                        >
+                        <span class="auth-password-toggle" onclick="togglePassword()">👁️</span>
                     </div>
                 </div>
 
                 <!-- Remember Me and Forgot Password -->
-                <div class="form-options">
-                    <label class="checkbox-wrapper">
+                <div class="auth-form-options">
+                    <label class="auth-checkbox-wrapper">
                         <input type="checkbox" name="remember_me">
                         <span>Recordarme</span>
                     </label>
-                    <a href="#" class="forgot-password">¿Olvidó su contraseña?</a>
+                    <a href="#" class="login-forgot-password">¿Olvidó su contraseña?</a>
                 </div>
 
                 <!-- Login Button -->
-                <button type="submit" class="login-button">Iniciar Sesión</button>
+                <button type="submit" class="auth-button">Iniciar Sesión</button>
 
                 <!-- Registration Link -->
-                <div class="registration-link">
+                <div class="auth-link">
                     <span>¿No tiene cuenta? </span>
                     <a href="{% url 'register' %}">Registrarse</a>
                 </div>
@@ -60,9 +74,13 @@
                 </div>
 
                 <!-- Social Login Buttons -->
-                <div class="social-login">
-                    <button type="button" class="social-button google-button">
-                        <img src="{% static 'webapp/pantalla_iniciar_sesion/Google_logo.png' %}" alt="Google" class="social-icon">
+                <div class="auth-social">
+                    <button type="button" class="auth-social-button google-button">
+                        <img 
+                            src="{% static 'webapp/pantalla_iniciar_sesion/Google_logo.png' %}" 
+                            alt="Google" 
+                            class="auth-social-icon"
+                        >
                         Continuar con Google
                     </button>
                 </div>
@@ -74,12 +92,18 @@
     <div class="gif-section">
         <!-- Logo Header -->
         <div class="gif-header">
-            <img src="{% static 'webapp/logo.png' %}" alt="Global Exchange Logo" class="gif-logo">
+            <a href="{% url 'public_home' %}">
+                <img src="{% static 'webapp/logo.png' %}" alt="Global Exchange Logo" class="gif-logo">
+            </a>
         </div>
         
         <!-- GIF Container -->
         <div class="gif-container">
-            <img src="{% static 'webapp/pantalla_iniciar_sesion/StockGIF.gif' %}" alt="Financial Data" class="financial-gif">
+            <img 
+                src="{% static 'webapp/pantalla_iniciar_sesion/StockGIF.gif' %}" 
+                alt="Financial Data" 
+                class="financial-gif"
+            >
         </div>
     </div>
 </div>
@@ -87,7 +111,7 @@
 <script>
 function togglePassword() {
     const passwordInput = document.getElementById('password-input');
-    const toggleIcon = document.querySelector('.password-toggle');
+    const toggleIcon = document.querySelector('.auth-password-toggle');
     
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';

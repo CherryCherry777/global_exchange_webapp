@@ -8,40 +8,59 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class RegistrationForm(UserCreationForm):
-    first_name = forms.CharField(
+    name = forms.CharField(
         label="Nombre",
-        widget=forms.TextInput(attrs={"placeholder": "Ingrese su nombre"}),
+        widget=forms.TextInput(attrs={
+            "placeholder": "Ingrese su nombre",
+            "class": "auth-form-input"
+        }),
         min_length=2,
         max_length=30
     )
     last_name = forms.CharField(
         label="Apellido",
-        widget=forms.TextInput(attrs={"placeholder": "Ingrese su apellido"}),
+        widget=forms.TextInput(attrs={
+            "placeholder": "Ingrese su apellido",
+            "class": "auth-form-input"
+        }),
         min_length=2,
         max_length=30
     )
     username = forms.CharField(
         label="Nombre de usuario",
-        widget=forms.TextInput(attrs={"placeholder": "Elija un nombre de usuario"}),
+        widget=forms.TextInput(attrs={
+            "placeholder": "Elija un nombre de usuario",
+            "class": "auth-form-input",
+            "id": "username" 
+        }),
         min_length=3,
         max_length=30
     )
     email = forms.EmailField(
         label="Correo electrónico",
-        widget=forms.EmailInput(attrs={"placeholder": "Ingrese su correo"})
+        widget=forms.EmailInput(attrs={
+            "placeholder": "Ingrese su correo",
+            "class": "auth-form-input"
+        })
     )
     password1 = forms.CharField(
         label="Contraseña",
-        widget=forms.PasswordInput(attrs={"placeholder": "Ingrese una contraseña"})
+        widget=forms.PasswordInput(attrs={
+            "placeholder": "Ingrese una contraseña",
+            "class": "auth-form-input",
+        })
     )
     password2 = forms.CharField(
         label="Confirmar contraseña",
-        widget=forms.PasswordInput(attrs={"placeholder": "Repita la contraseña"})
+        widget=forms.PasswordInput(attrs={
+            "placeholder": "Repita la contraseña",
+            "class": "auth-form-input"
+        })
     )
 
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "username", "email", "password1", "password2"]
+        fields = ["name", "last_name", "username", "email", "password1", "password2"]
     
     def clean_username(self):
         username = self.cleaned_data.get('username')
