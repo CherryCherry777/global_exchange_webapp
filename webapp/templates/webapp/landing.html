@@ -17,10 +17,11 @@
             <a href="{% url 'manage_users' %}" class="home-btn">Administrar Usuarios</a>
             <a href="{% url 'manage_roles' %}" class="home-btn">Administrar Roles</a>
             <a href="{% url 'manage_user_roles' %}" class="home-btn">Administrar Roles de Usuario</a>
-            <!-- Gestión de Clientes - Solo para Administradores -->
             <a href="{% url 'manage_clientes' %}" class="home-btn">Gestionar Clientes</a>
             <a href="{% url 'asignar_cliente_usuario' %}" class="home-btn">Asignar Clientes a Usuarios</a>
-            <a href="{% url 'currency_list' %}" class="home-btn">Monedas</a>
+        {% endif %}
+        {% if perms.webapp.view_currency %}
+                <a href="{% url 'currency_list' %}" class="home-btn">Gestión de Monedas</a>
         {% endif %}
     </div>
 </div>

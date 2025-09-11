@@ -39,11 +39,27 @@
                         <label for="id_symbol">Símbolo:</label>
                         <input type="text" name="symbol" id="id_symbol" value="{{ currency.symbol }}" required>
                     </p>
-                    <p>
-                        <label for="id_exchange_rate">Tipo de cambio:</label>
-                        <input type="number" name="exchange_rate" id="id_exchange_rate" step="0.0001" value="{{ currency.exchange_rate }}" required>
-                    </p>
+                        <p>
+                            <label for="id_buy_rate">Tasa de compra:</label>
+                            <input type="number" name="buy_rate" id="id_buy_rate" step="0.00000001" value="{{ currency.buy_rate }}" required>
+                        </p>
+                        <p>
+                            <label for="id_sell_rate">Tasa de venta:</label>
+                            <input type="number" name="sell_rate" id="id_sell_rate" step="0.00000001" value="{{ currency.sell_rate }}" required>
+                        </p>
                 </div>
+                    <div class="form-container-row">
+                        <p>
+                            <label for="id_decimales_cotizacion">Decimales para tasa de cambio:</label>
+                            <input type="number" name="decimales_cotizacion" id="id_decimales_cotizacion" min="0" max="8" value="{{ currency.decimales_cotizacion }}" required>
+                            <small>Valor entre 0 y 8</small>
+                        </p>
+                        <p>
+                            <label for="id_decimales_monto">Decimales para montos:</label>
+                            <input type="number" name="decimales_monto" id="id_decimales_monto" min="0" max="8" value="{{ currency.decimales_monto }}" required>
+                            <small>Valor entre 0 y 8</small>
+                        </p>
+                    </div>
             </div>
             <button type="submit" class="add-btn">Actualizar Moneda</button>
         </form>
