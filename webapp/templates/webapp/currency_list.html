@@ -25,7 +25,7 @@
     <!-- Formulario para agregar nueva moneda -->
     <div class="new-role-box">
         <h2>Añadir nueva Moneda</h2>
-        <form method="POST" action="{% url 'create_currency' %}">
+    <form method="POST" action="{% url 'create_currency' %}" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-container">
                 <div class="form-container-row">
@@ -44,9 +44,32 @@
                         <input type="text" name="symbol" id="id_symbol" placeholder="$" required>
                     </p>
                     <p>
-                        <label for="id_exchange_rate">Tipo de cambio:</label>
-                        <input type="number" name="exchange_rate" id="id_exchange_rate" step="0.0001" placeholder="1.0000" required>
+                        <label for="id_buy_rate">Tasa de compra:</label>
+                        <input type="number" name="buy_rate" id="id_buy_rate" step="0.0001" placeholder="1.0000" required>
                     </p>
+                </div>
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_sell_rate">Tasa de venta:</label>
+                        <input type="number" name="sell_rate" id="id_sell_rate" step="0.0001" placeholder="1.0000" required>
+                    </p>
+                    <p>
+                        <label for="id_flag_image">Bandera:</label>
+                        <input type="file" name="flag_image" id="id_flag_image" accept="image/*">
+                        <small>Dimensión sugerida: 255x135 px</small>
+                    </p>
+                    </div>
+                    <div class="form-container-row">
+                        <p>
+                            <label for="id_decimales_cotizacion">Decimales para tasa de cambio:</label>
+                            <input type="number" name="decimales_cotizacion" id="id_decimales_cotizacion" min="0" max="8" value="4" required>
+                            <small>Valor entre 0 y 8</small>
+                        </p>
+                        <p>
+                            <label for="id_decimales_monto">Decimales para montos:</label>
+                            <input type="number" name="decimales_monto" id="id_decimales_monto" min="0" max="8" value="2" required>
+                            <small>Valor entre 0 y 8</small>
+                        </p>
                 </div>
             </div>
             <button type="submit" class="add-btn">Crear Moneda</button>
@@ -57,10 +80,14 @@
     <table class="roles-table">
         <thead>
             <tr>
+                <th>Bandera</th>
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Símbolo</th>
-                <th>Tipo de Cambio</th>
+                <th>Tasa de Compra</th>
+                <th>Tasa de Venta</th>
+                <th>Decimales Tasa</th>
+                <th>Decimales Monto</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -68,10 +95,20 @@
         <tbody>
             {% for currency in currencies %}
             <tr class="{% if not currency.is_active %}inactive-role{% endif %}">
+                <td>
+                    {% if currency.flag_image %}
+                        <img src="{{ currency.flag_image.url }}" alt="Bandera {{ currency.code }}" style="width: 60px; height: 32px; object-fit: cover; border-radius: 4px;">
+                    {% else %}
+                        <span style="color: #888; font-size: 0.9em;">Sin imagen</span>
+                    {% endif %}
+                </td>
                 <td>{{ currency.code }}</td>
                 <td>{{ currency.name }}</td>
                 <td>{{ currency.symbol }}</td>
-                <td>{{ currency.exchange_rate }}</td>
+                <td>{{ currency.buy_rate }}</td>
+                <td>{{ currency.sell_rate }}</td>
+                <td>{{ currency.decimales_cotizacion }}</td>
+                <td>{{ currency.decimales_monto }}</td>
                 <td>
                     {% if currency.is_active %}
                         <span class="estado-activo">Activo</span>
@@ -85,7 +122,6 @@
                         <a href="{% url 'edit_currency' currency.id %}" class="add-btn" style="padding: 6px 12px; text-align: center; text-decoration: none;">
                             Editar
                         </a>
-                        
                         <!-- Activar/Desactivar moneda -->
                         <form method="POST" action="{% url 'toggle_currency' %}" style="display:inline;">
                             {% csrf_token %}

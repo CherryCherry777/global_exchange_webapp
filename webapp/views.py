@@ -35,7 +35,17 @@ ROLE_TIERS = {
 # Public / Auth views
 # -----------------------
 def public_home(request):
-    return render(request, "webapp/home.html")
+    can_access_gestiones = False
+    if request.user.is_authenticated:
+        user_groups = [g.name for g in request.user.groups.all()]
+        if "Administrador" in user_groups or "Analista" in user_groups:
+            can_access_gestiones = True
+    currencies = Currency.objects.filter(is_active=True)
+    return render(request, "webapp/home.html", {
+        "can_access_gestiones": can_access_gestiones,
+        "currencies": currencies
+    })
+
 
 def register(request):
     if request.method == "POST":
@@ -209,7 +219,7 @@ class CustomLoginView(LoginView):
     form_class = LoginForm
 
     def get_success_url(self):
-        return reverse_lazy("landing")
+        return reverse_lazy("public_home")
     
     def form_invalid(self, form):
         # Agregar mensaje específico para cuentas inactivas
@@ -311,8 +321,10 @@ def add_role_to_user(request, user_id):
             group = get_object_or_404(Group, name=role_name)
             if group.name not in [g.name for g in user.groups.all()]:
                 user.groups.add(group)
-    return redirect("manage_user_roles")
-
+                messages.success(request, f"Rol '{group.name}' asignado a '{user.username}'.")
+            else:
+                messages.info(request, f"El usuario ya tiene el rol '{group.name}'.")
+        return redirect("manage_user_roles")
 
 @login_required
 @role_required("Administrador")
@@ -390,10 +402,13 @@ def manage_roles(request):
 
             role_tier = ROLE_TIERS.get(role.group.name, 0)
 
-            # Bloquear acciones sobre roles protegidos o de mayor nivel
-            if role.group.name in protected_roles or role_tier <= user_tier:
+            # Check restrictions
+            if role.group.name in protected_roles:
                 messages.error(request, "No puede modificar este rol.")
                 return redirect("manage_roles")
+            elif role_tier <= user_tier and role.group.name not in protected_roles:
+                # Permitir modificar roles de igual o menor nivel si no son protegidos
+                pass
 
             if action == "toggle_role":
                 role.is_active = not role.is_active
@@ -652,6 +667,7 @@ def modify_users(request, user_id):
     })
 
 @login_required
+@permission_required('webapp.view_currency', raise_exception=True)
 def currency_list(request):
     currencies = Currency.objects.all()
     return render(request, 'webapp/currency_list.html', {'currencies': currencies})
@@ -662,23 +678,31 @@ def create_currency(request):
         code = request.POST.get('code')
         name = request.POST.get('name')
         symbol = request.POST.get('symbol')
-        exchange_rate = request.POST.get('exchange_rate')
-        
+        buy_rate = request.POST.get('buy_rate')
+        sell_rate = request.POST.get('sell_rate')
+        flag_image = request.FILES.get('flag_image')
+        decimales_cotizacion = request.POST.get('decimales_cotizacion')
+        decimales_monto = request.POST.get('decimales_monto')
+
         # Validar que el código no exista
         if Currency.objects.filter(code=code).exists():
             messages.error(request, 'El código de moneda ya existe.')
             return redirect('currency_list')
-        
+
         # Crear la moneda
         Currency.objects.create(
             code=code.upper(),
             name=name,
             symbol=symbol,
-            exchange_rate=exchange_rate
+            buy_rate=buy_rate,
+            sell_rate=sell_rate,
+            flag_image=flag_image,
+            decimales_cotizacion=decimales_cotizacion,
+            decimales_monto=decimales_monto
         )
         messages.success(request, 'Moneda creada exitosamente.')
         return redirect('currency_list')
-    
+
     return redirect('currency_list')
 
 @login_required
@@ -688,12 +712,13 @@ def edit_currency(request, currency_id):
     if request.method == 'POST':
         currency.name = request.POST.get('name')
         currency.symbol = request.POST.get('symbol')
-        currency.exchange_rate = request.POST.get('exchange_rate')
+        currency.buy_rate = request.POST.get('buy_rate')
+        currency.sell_rate = request.POST.get('sell_rate')
+        currency.decimales_cotizacion = request.POST.get('decimales_cotizacion')
+        currency.decimales_monto = request.POST.get('decimales_monto')
         currency.save()
-        
         messages.success(request, 'Moneda actualizada exitosamente.')
         return redirect('currency_list')
-    
     return render(request, 'webapp/edit_currency.html', {'currency': currency})
 
 @login_required

@@ -5,6 +5,13 @@ from django.conf import settings
 #Las clases van aqui
 #Los usuarios heredan AbstractUser
 class CustomUser(AbstractUser):
+    """
+    CustomUser model extends Django's AbstractUser to enforce unique email addresses.
+    Attributes:
+        email (EmailField): The user's email address. Must be unique.
+    Methods:
+        __str__(): Returns the username as the string representation of the user.
+    """
     email = models.EmailField(unique=True)
 
     def __str__(self):
@@ -22,7 +29,26 @@ class Currency(models.Model):
     code = models.CharField(max_length=3, unique=True, verbose_name="Código")
     name = models.CharField(max_length=50, verbose_name="Nombre")
     symbol = models.CharField(max_length=5, verbose_name="Símbolo")
-    exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, verbose_name="Tipo de cambio")
+    buy_rate = models.DecimalField(max_digits=23, decimal_places=8, verbose_name="Tasa de compra", default=1.0)
+    sell_rate = models.DecimalField(max_digits=23, decimal_places=8, verbose_name="Tasa de venta", default=1.0)
+    decimales_cotizacion = models.PositiveSmallIntegerField(
+        verbose_name="Decimales para tasa de cambio",
+        default=4,
+        help_text="Número de decimales para mostrar y almacenar la tasa de cambio (0-8)"
+    )
+    decimales_monto = models.PositiveSmallIntegerField(
+        verbose_name="Decimales para montos",
+        default=2,
+        help_text="Número de decimales para mostrar y almacenar los montos (0-8)"
+    )
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if not (0 <= self.decimales_cotizacion <= 8):
+            raise ValidationError({'decimales_cotizacion': 'El valor debe estar entre 0 y 8.'})
+        if not (0 <= self.decimales_monto <= 8):
+            raise ValidationError({'decimales_monto': 'El valor debe estar entre 0 y 8.'})
+    flag_image = models.ImageField(upload_to="currency_flags/", verbose_name="Bandera (255x135)", null=True, blank=True)
     is_active = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -167,4 +193,4 @@ class ClienteUsuario(models.Model):  # Define la relación entre Cliente y Usuar
         db_table = "cliente_usuario"                   # Nombre explícito de la tabla
         unique_together = ("cliente", "usuario")       # Evita que un mismo usuario se asigne dos veces al mismo cliente
         verbose_name = "Cliente-Usuario"               # Nombre singular para admin
-        verbose_name_plural = "Clientes-Usuarios"      # Nombre plural para admin 
+        verbose_name_plural = "Clientes-Usuarios"      # Nombre plural para admin

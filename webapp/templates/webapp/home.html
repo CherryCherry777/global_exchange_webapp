@@ -1,39 +1,56 @@
-
 {% extends 'webapp/base.html' %}
 {% load static %}
 {% block title %}Global Exchange - Inicio{% endblock %}
 
 {% block content %}
-<div class="homepage-hero">
-    <div class="hero-content">
-        <h1>Bienvenido a Global Exchange</h1>
-        <p class="hero-subtitle">Tu plataforma confiable para el intercambio de divisas y servicios financieros globales</p>
-        
-        <div class="hero-features">
-            <div class="feature-item">
-                <div class="feature-icon">💱</div>
-                <h3>Intercambio Seguro</h3>
-                <p>Transacciones seguras y confiables</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">🌍</div>
-                <h3>Global</h3>
-                <p>Acceso mundial a servicios financieros</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">⚡</div>
-                <h3>Rápido</h3>
-                <p>Procesamiento instantáneo</p>
-            </div>
-        </div>
 
-        <!-- Call-to-action buttons -->
-        {% if not user.is_authenticated %}
-            <div class="homepage-links">
+<div class="main-home-row" style="display: flex; gap: 32px; align-items: flex-start; justify-content: flex-start; background: #000; min-height: 480px; padding: 32px 0;">
+<div class="exchange-rates-box" style="flex: 1; min-width: 450px; max-width: 550px; background: #eaeaea; border-radius: 32px; padding: 30px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-left: 32px; margin-right: 32px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <span style="font-size: 1.8em; font-weight: bold; background: #bdbdbd; border-radius: 20px; padding: 10px 36px; display: inline-block;">Fecha: {% now "d/m/Y H:i" %}</span>
+        </div>
+        <table style="width: 100%; border-collapse: separate; border-spacing: 0; background: #eaeaea;">
+            <thead>
+                <tr style="background: #bdbdbd;">
+                    <th style="padding: 12px 10px; text-align: left; border-radius: 12px 0 0 0; font-size: 1.2em;">Moneda</th>
+                    <th style="padding: 12px 20px; text-align: right; font-size: 1.2em;">Compra</th>
+                    <th style="padding: 12px 10px; text-align: right; border-radius: 0 12px 0 0; font-size: 1.2em;">Venta</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for currency in currencies %}
+                <tr>
+                    <td style="padding: 10px 8px; display: flex; align-items: center; gap: 12px; font-size: 1.1em;">
+                        {% if currency.flag_image %}
+                            <img src="{{ currency.flag_image.url }}" alt="{{ currency.name }}" style="width: 40px; height: 26px; object-fit: cover; border-radius: 4px;">
+                        {% endif %}
+                        <span>{{ currency.name }}</span>
+                    </td>
+                    <td style="padding: 10px 20px; text-align: right; font-size: 1.1em;">{{ currency.buy_rate|floatformat:currency.decimales_cotizacion }}</td>
+                    <td style="padding: 10px 8px; text-align: right; font-size: 1.1em;">{{ currency.sell_rate|floatformat:currency.decimales_cotizacion }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="hero-content" style="flex: 1; min-width: 340px; color: #fff; text-align: left;">
+        <h1 style="font-size: 2em;">Bienvenido a Global Exchange</h1>
+        <p class="hero-subtitle" style="font-size: 1.1em;">Tu plataforma confiable para el intercambio de divisas y servicios financieros globales</p>
+        <div class="hero-features">
+            <div class="feature-item"><div class="feature-icon">💱</div><h3 style="font-size: 1.2em;">Intercambio Seguro</h3><p>Transacciones seguras y confiables</p></div>
+            <div class="feature-item"><div class="feature-icon">🌍</div><h3 style="font-size: 1.2em;">Global</h3><p>Acceso mundial a servicios financieros</p></div>
+            <div class="feature-item"><div class="feature-icon">⚡</div><h3 style="font-size: 1.2em;">Rápido</h3><p>Procesamiento instantáneo</p></div>
+        </div>
+        <div class="homepage-links">
+            {% if not user.is_authenticated %}
                 <a href="{% url 'login' %}" class="home-btn">Iniciar Sesión</a>
                 <a href="{% url 'register' %}" class="home-btn btn-primary">Registrarse</a>
-            </div>
-        {% endif %}
+            {% endif %}
+            {% if can_access_gestiones %}
+                <a href="{% url 'landing' %}" class="home-btn btn-primary">Ir a Gestiones</a>
+            {% endif %}
+        </div>
     </div>
 </div>
 
