@@ -28,10 +28,12 @@
         </div>
 
         <!-- Call-to-action buttons -->
-        <div class="homepage-links">
-            <a href="{% url 'login' %}" class="home-btn">Iniciar Sesión</a>
-            <a href="{% url 'register' %}" class="home-btn btn-primary">Registrarse</a>
-        </div>
+        {% if not user.is_authenticated %}
+            <div class="homepage-links">
+                <a href="{% url 'login' %}" class="home-btn">Iniciar Sesión</a>
+                <a href="{% url 'register' %}" class="home-btn btn-primary">Registrarse</a>
+            </div>
+        {% endif %}
     </div>
 </div>
 

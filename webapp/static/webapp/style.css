@@ -41,6 +41,7 @@
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: -1;
     background: radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
                 radial-gradient(circle at 40% 40%, rgba(99, 102, 241, 0.08) 0%, transparent 50%);
@@ -1407,4 +1408,20 @@ a.home-btn:visited{
     .form-row { 
         grid-template-columns:1fr 1fr; 
     } 
+}
+
+/*--- Landing Page Layout -----*/
+.landing-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+@media(min-width: 480px) {
+    .landing-links {
+        flex-direction: column;   
+        align-items: center;       
+        gap: 10px;
+    }
 }

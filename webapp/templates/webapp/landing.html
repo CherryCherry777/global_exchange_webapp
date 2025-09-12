@@ -7,12 +7,16 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<div class="homepage-container">
-    <!--<img src="{% static 'webapp/global_exchange_logo.png' %}" alt="Company Logo" class="logo">-->
-    <h1>Bienvenido a Global Exchange!</h1>
-    <p>Proveemos el mejor servicio de cambio de monedas.</p>
+<div class="homepage-hero">
+    {% if not is_admin %}
+        <h1>Bienvenido  a Global Exchange!</h1>
+        <p>Proveemos el mejor servicio de cambio de monedas.</p>
+    {% else %}
+        <h1>Panel de Administración</h1>
+    {% endif %}
+    <div class="landing-links">
+        <!--<img src="{% static 'webapp/global_exchange_logo.png' %}" alt="Company Logo" class="logo">-->
 
-    <div class="homepage-links">
         {% if is_admin %}
             <a href="{% url 'manage_users' %}" class="home-btn">Administrar Usuarios</a>
             <a href="{% url 'manage_roles' %}" class="home-btn">Administrar Roles</a>
