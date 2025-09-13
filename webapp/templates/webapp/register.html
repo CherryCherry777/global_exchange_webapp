@@ -1,79 +1,149 @@
-{% extends "webapp/base.html" %}
-{% block title %}Registrarse{% endblock %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Registrarse - Global Exchange</title>
+    <link rel="stylesheet" href="{% static 'webapp/style.css' %}" />
+</head>
+<body>
+<body>
+<div class="auth-container">
+    <!-- Left Side - GIF Section -->
+    <div class="gif-section">
+        <!-- Logo Header -->
+        <div class="gif-header">
+            <a href="{% url 'public_home' %}">
+                <img src="{% static 'webapp/logo.png' %}" alt="Global Exchange Logo" class="gif-logo">
+            </a>
+        </div>
+        <!-- GIF Container -->
+        <div class="gif-container">
+            <img src="{% static 'webapp/pantalla_iniciar_sesion/StockGIF.gif' %}" alt="Financial Data" class="financial-gif">
+        </div>
+    </div>
 
-{% block content %}
-<div class="auth-wrapper">
-    <div class="homepage-container compact-form">
-        <div class="auth-card">
+    <!-- Right Side - Register Form -->
+    <div class="auth-form-section">
+        <div class="auth-form-wrapper">
             <h1 class="auth-title">Registrarse</h1>
             <p>Cree su cuenta para ingresar a la plataforma.</p>
 
-            <form method="POST">
+            <form method="POST" class="auth-form">
                 {% csrf_token %}
-                
-                <!-- Mostrar errores generales del formulario -->
+
+                <!-- Display general form errors -->
                 {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
+                    <div class="errorlist">
                         {{ form.non_field_errors }}
                     </div>
                 {% endif %}
-                
-                <div class="form-container-row">
-                    <div class="form-container">
-                        {{ form.first_name.label_tag }}
-                        {{ form.first_name }}
-                        {% if form.first_name.errors %}
-                            <div class="error-message">{{ form.first_name.errors }}</div>
-                        {% endif %}
+
+                <!-- Name Field -->
+                <div class="auth-form-group">
+                    {{ form.name.label_tag }}
+                    <div class="auth-input-wrapper">
+                        {{ form.name }}
                     </div>
-                    <div class="form-container">
-                        {{ form.last_name.label_tag }}
-                        {{ form.last_name }}
-                        {% if form.last_name.errors %}
-                            <div class="error-message">{{ form.last_name.errors }}</div>
-                        {% endif %}
-                    </div>
+                    {% if form.name.errors %}
+                        <div class="error-message">{{ form.name.errors }}</div>
+                    {% endif %}
                 </div>
-                
-                <div class="form-container">
+
+                <!-- Last Name Field -->
+                <div class="auth-form-group">
+                    {{ form.last_name.label_tag }}
+                    <div class="auth-input-wrapper">
+                        {{ form.last_name }}
+                    </div>
+                    {% if form.last_name.errors %}
+                        <div class="error-message">{{ form.last_name.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Username Field -->
+                <div class="auth-form-group">
                     {{ form.username.label_tag }}
-                    {{ form.username }}
+                    <div class="auth-input-wrapper">
+                        {{ form.username }}
+                    </div>
                     {% if form.username.errors %}
                         <div class="error-message">{{ form.username.errors }}</div>
                     {% endif %}
                 </div>
 
-                <div class="form-container">
+                <!-- Email Field -->
+                <div class="auth-form-group">
                     {{ form.email.label_tag }}
-                    {{ form.email }}
+                    <div class="auth-input-wrapper">
+                        {{ form.email }}
+                    </div>
                     {% if form.email.errors %}
                         <div class="error-message">{{ form.email.errors }}</div>
                     {% endif %}
                 </div>
 
-                <div class="form-container">
+                <!-- Password Field -->
+                <div class="auth-form-group">
                     {{ form.password1.label_tag }}
-                    {{ form.password1 }}
+                    <div class="auth-input-wrapper">
+                        {{ form.password1 }}
+                        <span class="auth-password-toggle" onclick="togglePassword('id_password1', this)">👁️</span>
+                    </div>
                     {% if form.password1.errors %}
                         <div class="error-message">{{ form.password1.errors }}</div>
                     {% endif %}
                 </div>
-                
-                <div class="form-container">
+
+                <!-- Confirm Password Field -->
+                <div class="auth-form-group">
                     {{ form.password2.label_tag }}
-                    {{ form.password2 }}
+                    <div class="auth-input-wrapper">
+                        {{ form.password2 }}
+                        <span class="auth-password-toggle" onclick="togglePassword('id_password2', this)">👁️</span>
+                    </div>
                     {% if form.password2.errors %}
                         <div class="error-message">{{ form.password2.errors }}</div>
                     {% endif %}
                 </div>
 
-                <button type="submit" class="home-btn">Registrarse</button>
+                <!-- Register Button -->
+                <button type="submit" class="auth-button">Registrarse</button>
             </form>
 
-            <p class="form-link">¿Ya tiene una cuenta?</p>
-            <a href="{% url 'login' %}" class="home-btn">Ingrese aquí</a>
+            <div class="auth-link">
+                <span>¿Ya tiene una cuenta?</span>
+                <a href="{% url 'login' %}">Ingrese aquí</a>
+            </div>
+
+            <!-- Social Login Divider -->
+            <div class="social-divider">
+            <div class="divider-line"></div>
+            <div class="divider-circle"></div>
+            <div class="divider-line"></div>
         </div>
     </div>
 </div>
-{% endblock %}
+
+<script>
+function togglePassword(inputId, toggleElement) {
+    const passwordInput = document.getElementById(inputId);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleElement.style.opacity = '0.7';
+    } else {
+        passwordInput.type = 'password';
+        toggleElement.style.opacity = '1';
+    }
+}
+window.onload = function() {
+    document.getElementById('id_name').focus();
+};
+</script>
+</body>
+<html>
+
+
 

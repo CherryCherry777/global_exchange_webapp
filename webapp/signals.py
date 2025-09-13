@@ -5,6 +5,9 @@ from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
 from .models import Role
+from django.contrib.auth.models import Group, Permission
+from django.apps import apps
+
 
 User = get_user_model()
 
@@ -21,7 +24,7 @@ def clear_sessions(sender, **kwargs):
 @receiver(post_migrate)
 def create_default_roles_and_admin(sender, **kwargs):
     if sender.name == "webapp":
-        for role_name in ["Usuario", "Empleado", "Administrador"]:
+        for role_name in ["Usuario", "Empleado", "Administrador", "Analista"]:
             group, _ = Group.objects.get_or_create(name=role_name)
             Role.objects.get_or_create(group=group)
 
@@ -49,3 +52,15 @@ def assign_default_role(sender, instance, created, **kwargs):
             instance.groups.add(default_group)
         except Group.DoesNotExist:
             pass
+
+@receiver(post_migrate)
+def assign_all_permissions_to_admin(sender, **kwargs):
+    if sender.name == "webapp":
+        try:
+            admin_group = Group.objects.get(name="Administrador")
+        except Group.DoesNotExist:
+            return
+
+        # Asignar todos los permisos disponibles al grupo Administrador
+        all_permissions = Permission.objects.all()
+        admin_group.permissions.set(all_permissions)

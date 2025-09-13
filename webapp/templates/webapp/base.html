@@ -8,6 +8,16 @@
     <link rel="stylesheet" href="{% static 'webapp/style.css' %}" />
 </head>
 <body>
+    {% if messages %}
+        <div id="toast-container">
+            {% for message in messages %}
+                <div class="toast-message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <header class="header-nav">
         <nav class="nav-container">
             <!-- Logo on the left -->
@@ -45,15 +55,6 @@
     </header>
 
     <main>
-        {% block messages %}
-        {% if messages %}
-            <div class="django-messages">
-            {% for message in messages %}
-                <div class="alert {{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-            </div>
-        {% endif %}
-        {% endblock %}
         {% block content %}{% endblock %}
     </main>
 
@@ -89,6 +90,13 @@
                 observer.observe(servicesTitle);
             }
         });
+
+        setTimeout(function() {
+            var toasts = document.querySelectorAll('.toast-message');
+            toasts.forEach(function(toast) {
+                toast.style.display = 'none';
+            });
+        }, 4000); // Oculta después de 4 segundos
     </script>
 </body>
 </html>
