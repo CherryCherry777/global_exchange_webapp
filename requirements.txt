@@ -10,3 +10,4 @@ sphinx
 sphinx-autobuild
 sphinx-rtd-theme
 coverage
+Pillow

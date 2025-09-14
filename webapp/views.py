@@ -15,10 +15,10 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from webapp.emails import send_activation_email
-from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteCreateForm, ClienteUpdateForm
+from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Role, Currency, Cliente, ClienteUsuario
+from .models import Role, Currency, Cliente, ClienteUsuario, Categoria
 from django.contrib.auth.decorators import permission_required
 
 
@@ -104,155 +104,6 @@ def resend_verification_email(request):
         return redirect("login")
     
     return render(request, "webapp/resend_verification.html")
-
-# -----------------------
-# Cliente Management Views
-# -----------------------
-@login_required
-@role_required("Administrador")
-def manage_clientes(request):
-    """Vista principal para gestionar clientes - Lista todos los clientes"""
-    clientes = Cliente.objects.all().order_by('-fechaRegistro')
-    
-    # Filtros
-    search_query = request.GET.get('search', '')
-    categoria_filter = request.GET.get('categoria', '')
-    estado_filter = request.GET.get('estado', '')
-    
-    if search_query:
-        clientes = clientes.filter(
-            models.Q(nombre__icontains=search_query) |
-            models.Q(correo__icontains=search_query) |
-            models.Q(documento__icontains=search_query)
-        )
-    
-    if categoria_filter:
-        clientes = clientes.filter(categoria=categoria_filter)
-    
-    if estado_filter:
-        estado_bool = estado_filter == 'activo'
-        clientes = clientes.filter(estado=estado_bool)
-    
-    context = {
-        'clientes': clientes,
-        'search_query': search_query,
-        'categoria_filter': categoria_filter,
-        'estado_filter': estado_filter,
-        'categoria_choices': Cliente._meta.get_field('categoria').choices,
-    }
-    
-    return render(request, "webapp/manage_clientes.html", context)
-
-@login_required
-@role_required("Administrador")
-def create_cliente(request):
-    """Vista para crear un nuevo cliente"""
-    if request.method == "POST":
-        form = ClienteCreateForm(request.POST)
-        if form.is_valid():
-            cliente = form.save()
-            messages.success(request, f"Cliente '{cliente.nombre}' creado exitosamente.")
-            return redirect("manage_clientes")
-    else:
-        form = ClienteCreateForm()
-    
-    return render(request, "webapp/cliente_form.html", {
-        'form': form,
-        'title': 'Crear Cliente',
-        'action': 'create'
-    })
-
-@login_required
-@role_required("Administrador")
-def update_cliente(request, cliente_id):
-    """Vista para actualizar un cliente existente"""
-    cliente = get_object_or_404(Cliente, id=cliente_id)
-    
-    if request.method == "POST":
-        form = ClienteUpdateForm(request.POST, instance=cliente)
-        if form.is_valid():
-            cliente = form.save()
-            messages.success(request, f"Cliente '{cliente.nombre}' actualizado exitosamente.")
-            return redirect("manage_clientes")
-    else:
-        form = ClienteUpdateForm(instance=cliente)
-    
-    return render(request, "webapp/cliente_form.html", {
-        'form': form,
-        'title': 'Editar Cliente',
-        'action': 'update',
-        'cliente': cliente
-    })
-
-@login_required
-@role_required("Administrador")
-def delete_cliente(request, cliente_id):
-    """Vista para eliminar un cliente"""
-    cliente = get_object_or_404(Cliente, id=cliente_id)
-    
-    if request.method == "POST":
-        cliente_nombre = cliente.nombre
-        cliente.delete()
-        messages.success(request, f"Cliente '{cliente_nombre}' eliminado exitosamente.")
-        return redirect("manage_clientes")
-    
-    return render(request, "webapp/confirm_delete_cliente.html", {'cliente': cliente})
-
-@login_required
-@role_required("Administrador")
-def view_cliente(request, cliente_id):
-    """Vista para ver los detalles de un cliente"""
-    cliente = get_object_or_404(Cliente, id=cliente_id)
-    
-    # Obtener usuarios asignados a este cliente
-    usuarios_asignados = ClienteUsuario.objects.filter(cliente=cliente).select_related('usuario')
-    
-    context = {
-        'cliente': cliente,
-        'usuarios_asignados': usuarios_asignados,
-    }
-    
-    return render(request, "webapp/view_cliente.html", context)
-
-class CustomLoginView(LoginView):
-    template_name = "webapp/login.html"
-    form_class = LoginForm
-
-    def get_success_url(self):
-        return reverse_lazy("public_home")
-    
-    def form_invalid(self, form):
-        # Agregar mensaje específico para cuentas inactivas
-        if form.errors.get('__all__'):
-            for error in form.errors['__all__']:
-                if 'inactive' in str(error):
-                    messages.error(self.request, str(error))
-                    break
-        return super().form_invalid(form)
-
-def custom_logout(request):
-    logout(request)
-    return render(request, "webapp/logout.html")
-
-@login_required
-def profile(request):
-    return render(request, "webapp/profile.html", {"user": request.user})
-
-@login_required
-def edit_profile(request):
-    if request.method == "POST":
-        form = UserUpdateForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect("profile")
-    else:
-        form = UserUpdateForm(instance=request.user)
-    return render(request, "webapp/edit_profile.html", {"form": form})
-
-@login_required
-def landing_page(request):
-    role = get_user_primary_role(request.user)
-    return render(request, "webapp/landing.html", {"role": role})
 
 # -----------------------
 # User Role Management
@@ -519,9 +370,9 @@ def update_role_permissions(request, role_id):
         messages.success(request, f"Permisos actualizados para el rol '{role.name}'.")
     return redirect("role_list")
 
-# -----------------------
+# -----------------------------
 # User CRUD (class-based views)
-# -----------------------
+# -----------------------------
 class UserListView(ListView):
     model = User
     template_name = 'webapp/user_list.html'
@@ -782,30 +633,157 @@ def toggle_currency(request):
 
 
 # ===========================================
-# VISTAS PARA GESTIÓN DE CLIENTES
+# VISTAS PARA ADMINISTRACIÓN DE CLIENTES
 # ===========================================
 
-# --------------------------------------------
-# Vista para listar todos los clientes (ELIMINADA - DUPLICADA)
-# --------------------------------------------
+# -----------------------
+# Cliente Management Views
+# -----------------------
+@login_required
+@role_required("Administrador")
+def manage_clientes(request):
+    """Vista principal para gestionar clientes - Lista todos los clientes"""
+    clientes = Cliente.objects.all().order_by('-fechaRegistro')
+    
+    # Filtros
+    search_query = request.GET.get('search', '')
+    categoria_filter = request.GET.get('categoria', '')
+    estado_filter = request.GET.get('estado', '')
+    
+    if search_query:
+        clientes = clientes.filter(
+            models.Q(nombre__icontains=search_query) |
+            models.Q(correo__icontains=search_query) |
+            models.Q(documento__icontains=search_query)
+        )
+    
+    if categoria_filter:
+        clientes = clientes.filter(categoria=categoria_filter)
+    
+    if estado_filter:
+        estado_bool = estado_filter == 'activo'
+        clientes = clientes.filter(estado=estado_bool)
+    
+    context = {
+        'clientes': clientes,
+        'search_query': search_query,
+        'categoria_filter': categoria_filter,
+        'estado_filter': estado_filter,
+        'categoria_choices': Cliente._meta.get_field('categoria').choices,
+    }
+    
+    return render(request, "webapp/manage_clientes.html", context)
 
-# --------------------------------------------
-# Vista para crear un cliente
-# --------------------------------------------
-@permitir_permisos(['webapp.add_cliente'])
-def crear_cliente(request):
+@login_required
+@role_required("Administrador")
+def create_cliente(request):
+    """Vista para crear un nuevo cliente"""
     if request.method == "POST":
         form = ClienteForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Cliente creado exitosamente.")
-            form = ClienteForm()
-        else:
-            messages.error(request, "Por favor corrige los errores.")
+            cliente = form.save()
+            messages.success(request, f"Cliente '{cliente.nombre}' creado exitosamente.")
+            return redirect("manage_clientes")
     else:
         form = ClienteForm()
+    
+    return render(request, "webapp/cliente_form.html", {
+        'form': form,
+        'title': 'Crear Cliente',
+        'action': 'create'
+    })
 
-    return render(request, 'webapp/crear_cliente.html', {'form': form})
+@login_required
+@role_required("Administrador")
+def update_cliente(request, cliente_id):
+    """Vista para actualizar un cliente existente"""
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    
+    if request.method == "POST":
+        form = ClienteUpdateForm(request.POST, instance=cliente)
+        if form.is_valid():
+            cliente = form.save()
+            messages.success(request, f"Cliente '{cliente.nombre}' actualizado exitosamente.")
+            return redirect("manage_clientes")
+    else:
+        form = ClienteUpdateForm(instance=cliente)
+    
+    return render(request, "webapp/cliente_form.html", {
+        'form': form,
+        'title': 'Editar Cliente',
+        'action': 'update',
+        'cliente': cliente
+    })
+
+@login_required
+@role_required("Administrador")
+def delete_cliente(request, cliente_id):
+    """Vista para eliminar un cliente"""
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    
+    if request.method == "POST":
+        cliente_nombre = cliente.nombre
+        cliente.delete()
+        messages.success(request, f"Cliente '{cliente_nombre}' eliminado exitosamente.")
+        return redirect("manage_clientes")
+    
+    return render(request, "webapp/confirm_delete_cliente.html", {'cliente': cliente})
+
+@login_required
+@role_required("Administrador")
+def view_cliente(request, cliente_id):
+    """Vista para ver los detalles de un cliente"""
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    
+    # Obtener usuarios asignados a este cliente
+    usuarios_asignados = ClienteUsuario.objects.filter(cliente=cliente).select_related('usuario')
+    
+    context = {
+        'cliente': cliente,
+        'usuarios_asignados': usuarios_asignados,
+    }
+    
+    return render(request, "webapp/view_cliente.html", context)
+
+class CustomLoginView(LoginView):
+    template_name = "webapp/login.html"
+    form_class = LoginForm
+
+    def get_success_url(self):
+        return reverse_lazy("public_home")
+    
+    def form_invalid(self, form):
+        # Agregar mensaje específico para cuentas inactivas
+        if form.errors.get('__all__'):
+            for error in form.errors['__all__']:
+                if 'inactive' in str(error):
+                    messages.error(self.request, str(error))
+                    break
+        return super().form_invalid(form)
+
+def custom_logout(request):
+    logout(request)
+    return render(request, "webapp/logout.html")
+
+@login_required
+def profile(request):
+    return render(request, "webapp/profile.html", {"user": request.user})
+
+@login_required
+def edit_profile(request):
+    if request.method == "POST":
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect("profile")
+    else:
+        form = UserUpdateForm(instance=request.user)
+    return render(request, "webapp/edit_profile.html", {"form": form})
+
+@login_required
+def landing_page(request):
+    role = get_user_primary_role(request.user)
+    return render(request, "webapp/landing.html", {"role": role})
 
 # --------------------------------------------
 # Vista para inactivar un cliente
@@ -828,26 +806,6 @@ def activar_cliente(request, pk):
     cliente.save()
     messages.success(request, f"Cliente '{cliente.nombre}' activado correctamente.")
     return redirect('manage_clientes')
-
-# --------------------------------------------
-# Vista para modificar un cliente
-# --------------------------------------------
-@permitir_permisos(['webapp.change_cliente'])
-def modificar_cliente(request, cliente_id):
-    cliente = get_object_or_404(Cliente, id=cliente_id)
-
-    if request.method == "POST":
-        form = ClienteForm(request.POST, instance=cliente)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "El cliente fue modificado correctamente.")
-            return redirect("manage_clientes")
-        else:
-            messages.error(request, "Por favor corrige los errores.")
-    else:
-        form = ClienteForm(instance=cliente)
-
-    return render(request, "webapp/modificar_cliente.html", {"form": form})
 
 # --------------------------------------------
 # Vista para asignar clientes a usuarios
@@ -891,3 +849,46 @@ def desasignar_cliente_usuario(request, asignacion_id):
     messages.success(request, f"Cliente '{cliente_nombre}' desasignado del usuario '{usuario_username}'.")
     
     return redirect('asignar_cliente_usuario')
+
+# ===========================================
+# VISTAS PARA ADMINISTRACIÓN DE CATEGORÍAS
+# ===========================================
+
+def manage_categories(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        descuento_str = request.POST.get("descuento", "").strip()
+        categoria_id = request.POST.get("id")  # Si existe, es edición
+
+        # Validación básica
+        try:
+            descuento = float(descuento_str)
+        except ValueError:
+            messages.error(request, "El descuento debe ser un número válido")
+            return redirect("manage_categories")
+
+        if not (0 <= descuento <= 1):
+            messages.error(request, "El descuento debe estar entre 0 y 1(decimal)")
+            return redirect("manage_categories")
+
+        # Validar que tenga máximo un decimal
+        partes = str(descuento * 100).split(".")
+        if len(partes) > 1 and len(partes[1]) > 1:
+            messages.error(request, "El porcentaje solo puede tener un decimal")
+            return redirect("manage_categories")
+
+        if categoria_id:  # Editar
+            categoria = get_object_or_404(Categoria, pk=categoria_id)
+            categoria.nombre = nombre
+            categoria.descuento = descuento
+            categoria.save()
+            messages.success(request, f"Categoría '{categoria.nombre}' actualizada")
+        else:  # Crear
+            Categoria.objects.create(nombre=nombre, descuento=descuento)
+            messages.success(request, f"Categoría '{nombre}' creada")
+
+        return redirect("manage_categories")
+
+    # GET
+    categorias = Categoria.objects.all()
+    return render(request, "webapp/manage_categories.html", {"categorias": categorias})

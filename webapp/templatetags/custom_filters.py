@@ -23,3 +23,17 @@ def get_item(dictionary, key):
     if dictionary and key in dictionary:
         return dictionary.get(key)
     return None
+
+@register.filter
+def porcentaje(value):
+    """
+    Converts a decimal to a percentage for templates.
+    
+    Example:
+        0.3 -> 30
+        Usage: {{ categoria.descuento|porcentaje }}%
+    
+    Purpose:
+    - Store as decimal in DB, display as readable percentage in templates.
+    """
+    return round(value * 100, 1)
