@@ -4,143 +4,253 @@
 
 {% block title %}Administrar Monedas{% endblock %}
 
+{% block extra_css %}
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1>Administrar Monedas</h1>
-
-    <!-- Botón para volver -->
-    <div class="back-container">
-        <a href="javascript:history.back()" class="btn-back">← Volver</a>
-    </div>
-
-    <!-- Mensajes -->
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-
-    <!-- Formulario para agregar nueva moneda -->
-    <div class="new-role-box">
-        <h2>Añadir nueva Moneda</h2>
-    <form method="POST" action="{% url 'create_currency' %}" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="form-container">
-                <div class="form-container-row">
-                    <p>
-                        <label for="id_code">Código:</label>
-                        <input type="text" name="code" id="id_code" placeholder="USD, EUR, etc." maxlength="3" required>
-                    </p>
-                    <p>
-                        <label for="id_name">Nombre:</label>
-                        <input type="text" name="name" id="id_name" placeholder="Dólar Estadounidense" required>
-                    </p>
-                </div>
-                <div class="form-container-row">
-                    <p>
-                        <label for="id_symbol">Símbolo:</label>
-                        <input type="text" name="symbol" id="id_symbol" placeholder="$" required>
-                    </p>
-                    <p>
-                        <label for="id_buy_rate">Tasa de compra:</label>
-                        <input type="number" name="buy_rate" id="id_buy_rate" step="0.0001" placeholder="1.0000" required>
-                    </p>
-                </div>
-                <div class="form-container-row">
-                    <p>
-                        <label for="id_sell_rate">Tasa de venta:</label>
-                        <input type="number" name="sell_rate" id="id_sell_rate" step="0.0001" placeholder="1.0000" required>
-                    </p>
-                    <p>
-                        <label for="id_flag_image">Bandera:</label>
-                        <input type="file" name="flag_image" id="id_flag_image" accept="image/*">
-                        <small>Dimensión sugerida: 255x135 px</small>
-                    </p>
+<div class="admin-page-container">
+    <!-- Admin Page Header -->
+    <div class="admin-page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="{% url 'landing' %}" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Volver al Panel
+                </a>
+                <h1 class="page-title">Administrar Monedas</h1>
+                <p class="page-subtitle">Gestiona las monedas del sistema y sus tasas de cambio</p>
+            </div>
+            <div class="header-right">
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ currencies|length }}</span>
+                        <span class="stat-label">Monedas Totales</span>
                     </div>
-                    <div class="form-container-row">
-                        <p>
-                            <label for="id_decimales_cotizacion">Decimales para tasa de cambio:</label>
-                            <input type="number" name="decimales_cotizacion" id="id_decimales_cotizacion" min="0" max="8" value="4" required>
-                            <small>Valor entre 0 y 8</small>
-                        </p>
-                        <p>
-                            <label for="id_decimales_monto">Decimales para montos:</label>
-                            <input type="number" name="decimales_monto" id="id_decimales_monto" min="0" max="8" value="2" required>
-                            <small>Valor entre 0 y 8</small>
-                        </p>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ currencies|length|add:"-1" }}</span>
+                        <span class="stat-label">Monedas Activas</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ currencies|length|add:"-2" }}</span>
+                        <span class="stat-label">Con Bandera</span>
+                    </div>
                 </div>
             </div>
-            <button type="submit" class="add-btn">Crear Moneda</button>
-        </form>
+        </div>
     </div>
 
-    <!-- Tabla de monedas -->
-    <table class="roles-table">
-        <thead>
-            <tr>
-                <th>Bandera</th>
-                <th>Código</th>
-                <th>Nombre</th>
-                <th>Símbolo</th>
-                <th>Tasa de Compra</th>
-                <th>Tasa de Venta</th>
-                <th>Decimales Tasa</th>
-                <th>Decimales Monto</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for currency in currencies %}
-            <tr class="{% if not currency.is_active %}inactive-role{% endif %}">
-                <td>
-                    {% if currency.flag_image %}
-                        <img src="{{ currency.flag_image.url }}" alt="Bandera {{ currency.code }}" style="width: 60px; height: 32px; object-fit: cover; border-radius: 4px;">
-                    {% else %}
-                        <span style="color: #888; font-size: 0.9em;">Sin imagen</span>
-                    {% endif %}
-                </td>
-                <td>{{ currency.code }}</td>
-                <td>{{ currency.name }}</td>
-                <td>{{ currency.symbol }}</td>
-                <td>{{ currency.buy_rate }}</td>
-                <td>{{ currency.sell_rate }}</td>
-                <td>{{ currency.decimales_cotizacion }}</td>
-                <td>{{ currency.decimales_monto }}</td>
-                <td>
-                    {% if currency.is_active %}
-                        <span class="estado-activo">Activo</span>
-                    {% else %}
-                        <span class="estado-inactivo">Inactivo</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <div style="display: flex; gap: 8px;">
-                        <!-- Editar moneda -->
-                        <a href="{% url 'edit_currency' currency.id %}" class="add-btn" style="padding: 6px 12px; text-align: center; text-decoration: none;">
-                            Editar
-                        </a>
-                        <!-- Activar/Desactivar moneda -->
-                        <form method="POST" action="{% url 'toggle_currency' %}" style="display:inline;">
-                            {% csrf_token %}
-                            <input type="hidden" name="currency_id" value="{{ currency.id }}">
+    <!-- Messages Container -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="message message-{{ message.tags }}">
+            <div class="message-icon">
+                {% if message.tags == 'error' %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                {% elif message.tags == 'success' %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22,4 12,14.01 9,11.01"/>
+                    </svg>
+                {% else %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                {% endif %}
+            </div>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Create New Currency Button -->
+    <div class="create-currency-section">
+        <a href="{% url 'create_currency' %}" class="create-currency-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Crear Nueva Moneda
+        </a>
+    </div>
+
+    <!-- Currencies Table Container -->
+    <div class="table-container currency-list">
+        <div class="table-header">
+            <h3>Gestión de Monedas</h3>
+        </div>
+        
+        <div class="table-wrapper">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <div class="th-content">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                </svg>
+                                Bandera
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-content">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 12l2 2 4-4"/>
+                                    <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                                    <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                                </svg>
+                                Moneda
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-content">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                                Tasas
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-content">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M8 12h8"/>
+                                    <path d="M12 8v8"/>
+                                </svg>
+                                Estado
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-content">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                Acciones
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for currency in currencies %}
+                    <tr class="{% if not currency.is_active %}inactive-currency{% endif %}">
+                        <!-- Flag -->
+                        <td>
+                            <div class="currency-flag">
+                                {% if currency.flag_image %}
+                                    <img src="{{ currency.flag_image.url }}" alt="Bandera {{ currency.code }}" class="flag-image">
+                                {% else %}
+                                    <div class="no-flag">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                                            <polyline points="21,15 16,10 5,21"/>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- Currency Info (Code, Name, Symbol combined) -->
+                        <td>
+                            <div class="currency-info">
+                                <div class="currency-main">
+                                    <span class="currency-code">{{ currency.code }}</span>
+                                    <span class="currency-symbol">{{ currency.symbol }}</span>
+                                </div>
+                                <div class="currency-name">{{ currency.name }}</div>
+                            </div>
+                        </td>
+
+                        <!-- Rates (Buy and Sell combined) -->
+                        <td>
+                            <div class="currency-rates">
+                                <div class="rate-item">
+                                    <span class="rate-label">Compra:</span>
+                                    <span class="currency-rate buy-rate">{{ currency.buy_rate }}</span>
+                                </div>
+                                <div class="rate-item">
+                                    <span class="rate-label">Venta:</span>
+                                    <span class="currency-rate sell-rate">{{ currency.sell_rate }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Status -->
+                        <td>
                             {% if currency.is_active %}
-                                <button type="submit" class="add-btn" style="background-color: #f44336;">Desactivar</button>
+                                <span class="status-active">Activo</span>
                             {% else %}
-                                <button type="submit" class="add-btn">Activar</button>
+                                <span class="status-inactive">Inactivo</span>
                             {% endif %}
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" style="text-align: center;">No hay monedas registradas</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                        </td>
+
+                        <!-- Actions -->
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'edit_currency' currency.id %}" class="action-btn edit-btn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    Editar
+                                </a>
+                                <form method="POST" action="{% url 'toggle_currency' %}" class="inline-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="currency_id" value="{{ currency.id }}">
+                                    {% if currency.is_active %}
+                                        <button type="submit" class="action-btn deactivate-btn" 
+                                                onclick="return confirm('¿Estás seguro de que quieres desactivar la moneda {{ currency.code }}?')">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <line x1="8" y1="12" x2="16" y2="12"/>
+                                            </svg>
+                                            Desactivar
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="action-btn activate-btn">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <line x1="12" y1="8" x2="12" y2="16"/>
+                                                <line x1="8" y1="12" x2="16" y2="12"/>
+                                            </svg>
+                                            Activar
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="no-data">
+                            <div class="no-data-content">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="16"/>
+                                    <line x1="8" y1="12" x2="16" y2="12"/>
+                                </svg>
+                                <h4>No hay monedas registradas</h4>
+                                <p>Crea tu primera moneda usando el botón de arriba</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

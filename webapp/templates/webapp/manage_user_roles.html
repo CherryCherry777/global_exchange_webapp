@@ -3,58 +3,190 @@
 
 {% block title %}Administrar Roles de Usuario{% endblock %}
 
+{% block extra_css %}
+{% endblock %}
+
 {% block content %}
-<h1>Administrar Roles de Usuario</h1>
+<div class="admin-page-container">
+    <!-- Admin Page Header -->
+    <div class="admin-page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="{% url 'landing' %}" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Volver al Panel
+                </a>
+                <h1 class="page-title">Administrar Roles de Usuario</h1>
+                <p class="page-subtitle">Gestiona los roles asignados a cada usuario del sistema</p>
+            </div>
+            <div class="header-right">
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ user_roles_data|length }}</span>
+                        <span class="stat-label">Usuarios</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ roles_list|length }}</span>
+                        <span class="stat-label">Roles Disponibles</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<!-- Botón para volver -->
-<div class="back-container">
-    <a href="javascript:history.back()" class="btn-back">← Volver</a>
-</div>
-
-<table class="roles-table">
-    <thead>
-        <tr>
-            <th>Usuario</th>
-            <th>Roles</th>
-            <th>Anhadir Rol</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for udata in user_roles_data %}
-        <tr>
-            <!-- User -->
-            <td>{{ udata.user.username }}</td>
-
-            <!-- User Roles with remove buttons -->
-            <td>
-                {% for role_info in udata.roles_info %}
-                    <span class="role-badge">
-                        {{ role_info.role.name }}
-                        {% if role_info.can_remove %}
-                            <a href="{% url 'remove_role_user' udata.user.id role_info.role.name %}" class="remove-btn">×</a>
-                        {% endif %}
-                    </span>
-                {% empty %}
-                    <span class="no-role">Sin Roles</span>
-                {% endfor %}
-            </td>
-
-            <!-- Add Role Dropdown -->
-            <td>
-                <form method="POST" action="{% url 'add_role_user' udata.user.id %}" class="add-role-form">
-                    {% csrf_token %}
-                    <select name="role">
-                        {% for role in roles_list %}
-                            {% if role.name not in udata.user_role_names %}
-                                <option value="{{ role.name }}">{{ role.name }}</option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="add-btn">Anhadir</button>
-                </form>
-            </td>
-        </tr>
+    <!-- Messages Container -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="message message-{{ message.tags }}">
+            <div class="message-icon">
+                {% if message.tags == 'error' %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                {% elif message.tags == 'success' %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22,4 12,14.01 9,11.01"/>
+                    </svg>
+                {% else %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                {% endif %}
+            </div>
+            <span>{{ message }}</span>
+        </div>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+    {% endif %}
+
+    <!-- Table Container -->
+    <div class="table-container">
+        <div class="table-header">
+            <h3>Gestión de Roles por Usuario</h3>
+        </div>
+        
+        <div class="table-wrapper">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <div class="th-content">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                Usuario
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-content">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                Roles Asignados
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-content">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="16"/>
+                                    <line x1="8" y1="12" x2="16" y2="12"/>
+                                </svg>
+                                Añadir Rol
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for udata in user_roles_data %}
+                    <tr>
+                        <!-- User Info -->
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <span>{{ udata.user.username|first|upper }}</span>
+                                </div>
+                                <div class="user-details">
+                                    <div class="username">{{ udata.user.username }}</div>
+                                    <div class="email">{{ udata.user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- User Roles -->
+                        <td>
+                            <div class="roles-container">
+                                {% for role_info in udata.roles_info %}
+                                <div class="role-item">
+                                    <span class="role-badge role-{{ role_info.role.name|lower }}">
+                                        {{ role_info.role.name }}
+                                    </span>
+                                    {% if role_info.can_remove %}
+                                    <a href="{% url 'remove_role_user' udata.user.id role_info.role.name %}" 
+                                       class="remove-role-btn" 
+                                       title="Eliminar rol"
+                                       onclick="return confirm('¿Estás seguro de que quieres eliminar el rol {{ role_info.role.name }} de {{ udata.user.username }}?')">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                {% empty %}
+                                <div class="no-roles">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="15" y1="9" x2="9" y2="15"/>
+                                        <line x1="9" y1="9" x2="15" y2="15"/>
+                                    </svg>
+                                    Sin roles asignados
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </td>
+
+                        <!-- Add Role Form -->
+                        <td>
+                            <form method="POST" action="{% url 'add_role_user' udata.user.id %}" class="add-role-form">
+                                {% csrf_token %}
+                                <div class="form-group-inline">
+                                    <select name="role" class="role-select">
+                                        <option value="">Seleccionar rol...</option>
+                                        {% for role in roles_list %}
+                                            {% if role.name not in udata.user_role_names %}
+                                                <option value="{{ role.name }}">{{ role.name }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="add-role-btn" 
+                                            {% if not roles_list %}disabled{% endif %}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <line x1="12" y1="8" x2="12" y2="16"/>
+                                            <line x1="8" y1="12" x2="16" y2="12"/>
+                                        </svg>
+                                        Añadir
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

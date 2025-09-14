@@ -629,12 +629,56 @@ def modify_users(request, user_id):
     user_obj = get_object_or_404(User, id=user_id)
 
     if request.method == "POST":
+        # Get form data
+        new_username = request.POST.get("username", user_obj.username)
+        new_email = request.POST.get("email", user_obj.email)
+        new_first_name = request.POST.get("first_name", user_obj.first_name)
+        new_last_name = request.POST.get("last_name", user_obj.last_name)
+        
+        # Validate username uniqueness (only if it's different from current)
+        if new_username != user_obj.username:
+            if User.objects.filter(username=new_username).exists():
+                messages.error(request, f"El nombre de usuario '{new_username}' ya existe. Por favor, elige otro.")
+                roles = Group.objects.all()
+                user_roles = {g.name for g in user_obj.groups.all()}
+                return render(request, "webapp/modify_users.html", {
+                    "user_obj": user_obj,
+                    "roles": roles,
+                    "user_roles": user_roles,
+                    "ROLE_TIERS": {"Administrador": 3, "Empleado": 2, "Usuario": 1}
+                })
+        
+        # Validate email uniqueness (only if it's different from current)
+        if new_email != user_obj.email:
+            if User.objects.filter(email=new_email).exists():
+                messages.error(request, f"El email '{new_email}' ya está en uso. Por favor, elige otro.")
+                roles = Group.objects.all()
+                user_roles = {g.name for g in user_obj.groups.all()}
+                return render(request, "webapp/modify_users.html", {
+                    "user_obj": user_obj,
+                    "roles": roles,
+                    "user_roles": user_roles,
+                    "ROLE_TIERS": {"Administrador": 3, "Empleado": 2, "Usuario": 1}
+                })
+        
         # Update basic info
-        user_obj.username = request.POST.get("username", user_obj.username)
-        user_obj.email = request.POST.get("email", user_obj.email)
-        user_obj.first_name = request.POST.get("first_name", user_obj.first_name)
-        user_obj.last_name = request.POST.get("last_name", user_obj.last_name)
-        user_obj.save()
+        user_obj.username = new_username
+        user_obj.email = new_email
+        user_obj.first_name = new_first_name
+        user_obj.last_name = new_last_name
+        
+        try:
+            user_obj.save()
+        except Exception as e:
+            messages.error(request, f"Error al guardar los cambios: {str(e)}")
+            roles = Group.objects.all()
+            user_roles = {g.name for g in user_obj.groups.all()}
+            return render(request, "webapp/modify_users.html", {
+                "user_obj": user_obj,
+                "roles": roles,
+                "user_roles": user_roles,
+                "ROLE_TIERS": {"Administrador": 3, "Empleado": 2, "Usuario": 1}
+            })
 
         # Role management
         selected_roles = request.POST.getlist("roles")  # list of role names
@@ -653,7 +697,7 @@ def modify_users(request, user_id):
                 if ROLE_TIERS.get(role_name, 99) > highest_current_tier or user_obj != request.user:
                     user_obj.groups.remove(role)
 
-        messages.success(request, f"User '{user_obj.username}' updated successfully.")
+        messages.success(request, f"Usuario '{user_obj.username}' actualizado exitosamente.")
         return redirect("manage_users")
 
     roles = Group.objects.all()
@@ -687,7 +731,7 @@ def create_currency(request):
         # Validar que el código no exista
         if Currency.objects.filter(code=code).exists():
             messages.error(request, 'El código de moneda ya existe.')
-            return redirect('currency_list')
+            return render(request, 'webapp/create_currency.html')
 
         # Crear la moneda
         Currency.objects.create(
@@ -703,7 +747,8 @@ def create_currency(request):
         messages.success(request, 'Moneda creada exitosamente.')
         return redirect('currency_list')
 
-    return redirect('currency_list')
+    # GET request - mostrar formulario
+    return render(request, 'webapp/create_currency.html')
 
 @login_required
 def edit_currency(request, currency_id):
