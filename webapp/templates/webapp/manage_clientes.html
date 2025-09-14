@@ -8,7 +8,7 @@
 {% has_perms user 'webapp.view_cliente' as can_view_clientes %}
 {% if can_view_clientes %}
 {% block content %}
-<h1>Gestión de Clientes</h1>
+<h1>Administrar Clientes</h1>
 
 
 <!-- Barra de acciones -->
@@ -81,12 +81,28 @@
                     Editar
                 </a>
 
+                 <!-- Botón para activar/inactivar -->
+                {% if cliente.estado %}
+                <a href="{% url 'inactivar_cliente' cliente.id %}" 
+                   class="add-btn" 
+                   style="background-color: #e74c3c; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none; margin-right: 5px;">
+                    Inactivar
+                </a>
+                {% else %}
+                <a href="{% url 'activar_cliente' cliente.id %}" 
+                   class="add-btn" 
+                   style="background-color: #2ecc71; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none; margin-right: 5px;">
+                    Activar
+                </a>
+                {% endif %}
+
                 <!-- Botón para eliminar -->
                 <a href="{% url 'delete_cliente' cliente.id %}" 
                    class="add-btn" 
-                   style="background-color: #e74c3c; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none;">
+                   style="background-color: #000000; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none;">
                     Eliminar
                 </a>
+
             </td>
         </tr>
         {% empty %}

@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser, Group
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.conf import settings
 
@@ -123,16 +124,12 @@ class Cliente(models.Model):  # Definimos el modelo Cliente, que representa la t
         max_length=200,
         verbose_name="Dirección"
     )
-
-    # Categoría del cliente, definida mediante opciones
-    categoria = models.CharField(
-        max_length=50,
-        choices=[
-            ('mino', 'Minorista'),   # Cliente minorista
-            ('corp', 'Corporativo'), # Cliente corporativo
-            ('vip', 'VIP'),          # Cliente VIP
-        ],
-        default='mino',             # Valor por defecto: minorista
+    
+    # Relación con la tabla Categoria
+    categoria = models.ForeignKey(
+        "Categoria",
+        on_delete=models.PROTECT,  # Evita que se elimine una categoría si tiene clientes
+        related_name="clientes",
         verbose_name="Categoría"
     )
 
@@ -194,3 +191,41 @@ class ClienteUsuario(models.Model):  # Define la relación entre Cliente y Usuar
         unique_together = ("cliente", "usuario")       # Evita que un mismo usuario se asigne dos veces al mismo cliente
         verbose_name = "Cliente-Usuario"               # Nombre singular para admin
         verbose_name_plural = "Clientes-Usuarios"      # Nombre plural para admin
+
+# -------------------------------------
+# Modelo de la tabla de segmentaciones
+# -------------------------------------
+class Categoria(models.Model):
+    # Campo para el nombre de la categoría
+    # - máx. 25 caracteres
+    # - único (no se pueden repetir nombres)
+    # - con un label más descriptivo en el admin/django forms
+    nombre = models.CharField(
+        max_length=25,
+        unique=True,
+        verbose_name="Nombre de la categoría"
+    )
+
+    # Campo para el descuento asociado a la categoría
+    # - número decimal con hasta 4 dígitos en total y 3 decimales (ej: 0.200 = 20%, 0.050 = 5%)
+    # - validadores que limitan el rango: mínimo 0 (0%) y máximo 1 (100%)
+    # - label descriptivo en el admin/django forms
+    descuento = models.DecimalField(
+        max_digits=4, 
+        decimal_places=3,
+        validators=[MinValueValidator(0), MaxValueValidator(1)],
+        verbose_name="Descuento"
+    )
+
+    class Meta:
+        # Nombre singular y plural en el admin de Django
+        verbose_name = "Categoría"
+        verbose_name_plural = "Categorías"
+        # Ordenar las categorías por el campo "nombre" al consultarlas
+        ordering = ["nombre"]
+
+    def __str__(self):
+        # Representación en string del objeto (ej: "VIP (20%)")
+        # Muestra el nombre y el descuento en porcentaje sin decimales
+        return f"{self.nombre} ({self.descuento * 100:.0f}%)"
+

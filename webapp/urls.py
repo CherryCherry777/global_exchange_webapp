@@ -21,6 +21,10 @@ urlpatterns = [
     path("update-cliente/<int:cliente_id>/", views.update_cliente, name="update_cliente"),
     path("delete-cliente/<int:cliente_id>/", views.delete_cliente, name="delete_cliente"),
     path("view-cliente/<int:cliente_id>/", views.view_cliente, name="view_cliente"),
+    path('clientes/asignar-usuario/', views.asignar_cliente_usuario, name='asignar_cliente_usuario'),
+    path('clientes/desasignar/<int:asignacion_id>/', views.desasignar_cliente_usuario, name='desasignar_cliente_usuario'),
+    path('inactivar-cliente/<int:pk>/', views.inactivar_cliente, name='inactivar_cliente'),
+    path('activar-cliente/<int:pk>/', views.activar_cliente, name='activar_cliente'),
 
     # Landing pages
     path("landing/", views.landing_page, name="landing"),
@@ -58,19 +62,13 @@ urlpatterns = [
     path('manage-users/<int:user_id>/modify/', views.modify_users, name='modify_users'),
     path('manage-users/delete/<int:user_id>/confirm/', views.confirm_delete_user, name='confirm_delete_user'),
 
-    #Currency Manager
+    # Currency Manager
     path('currency/', views.currency_list, name='currency_list'),
     path('currency/crear/', views.create_currency, name='create_currency'),
     path('currency/editar/<int:currency_id>/', views.edit_currency, name='edit_currency'),
     path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
 
-    # Clientes Management
-    path('clientes/', views.manage_clientes, name="clientes_list"),
-    path('clientes/crear/', views.crear_cliente, name='crear_cliente'),
-    path('clientes/asignar-usuario/', views.asignar_cliente_usuario, name='asignar_cliente_usuario'),
-    path('clientes/desasignar/<int:asignacion_id>/', views.desasignar_cliente_usuario, name='desasignar_cliente_usuario'),
-    path("clientes/modificar/<int:cliente_id>/", views.modificar_cliente, name="modificar_cliente"),
-    path('clientes/inactivar/<int:pk>/', views.inactivar_cliente, name='inactivar_cliente'),
-    path('clientes/activar/<int:pk>/', views.activar_cliente, name='activar_cliente'),
+    # Categories management
+    path('manage-categories/', views.manage_categories, name='manage_categories'),
 ]
 
