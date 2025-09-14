@@ -103,25 +103,36 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
     });
 });
 
-// Validación antes de enviar
-['editar','crear'].forEach(formId=>{
+// Validación JS antes de enviar
+['editar', 'crear'].forEach(formId => {
     document.getElementById(`form-${formId}`).addEventListener('submit', function(e){
-        const input = this.querySelector('input[name="descuento"]');
-        const value = parseFloat(input.value);
+        const inputDescuento = this.querySelector('input[name="descuento"]');
+        const inputNombre = this.querySelector('input[name="nombre"]');
+        const value = parseFloat(inputDescuento.value);
 
+        // Validar nombre no vacío
+        if(!inputNombre.value.trim()){
+            alert("El nombre no puede estar vacío");
+            e.preventDefault();
+            return;
+        }
+
+        // Validar rango de porcentaje
         if(value < 0 || value > 100){
             alert("El porcentaje debe estar entre 0 y 100");
             e.preventDefault();
             return;
         }
 
+        // Validar máximo un decimal
         if(value.toString().includes('.') && value.toString().split('.')[1].length > 1){
             alert("El porcentaje solo puede tener un decimal");
             e.preventDefault();
             return;
         }
 
-        input.value = (value/100).toFixed(3); // Convertir a decimal antes de enviar
+        // Convertir a decimal antes de enviar
+        inputDescuento.value = (value / 100).toFixed(3);
     });
 });
 </script>

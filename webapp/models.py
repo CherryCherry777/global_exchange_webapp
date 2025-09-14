@@ -222,7 +222,7 @@ class Categoria(models.Model):
         verbose_name = "Categoría"
         verbose_name_plural = "Categorías"
         # Ordenar las categorías por el campo "nombre" al consultarlas
-        ordering = ["nombre"]
+        ordering = ["id"]
 
     def __str__(self):
         # Representación en string del objeto (ej: "VIP (20%)")

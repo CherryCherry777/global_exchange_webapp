@@ -823,7 +823,7 @@ def manage_categories(request):
             return redirect("manage_categories")
 
         if not (0 <= descuento <= 1):
-            messages.error(request, "El descuento debe estar entre 0 y 100")
+            messages.error(request, "El descuento debe estar entre 0 y 1(decimal)")
             return redirect("manage_categories")
 
         # Validar que tenga máximo un decimal
