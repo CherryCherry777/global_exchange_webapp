@@ -20,7 +20,7 @@ from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
 from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque
 from django.contrib.auth.decorators import permission_required
-
+from decimal import Decimal, InvalidOperation
 
 User = get_user_model()
 PROTECTED_ROLES = ["Administrador", "Empleado", "Usuario"]
@@ -623,20 +623,28 @@ def edit_currency(request, currency_id):
     currency = get_object_or_404(Currency, id=currency_id)
     
     if request.method == 'POST':
-        currency.code = request.POST.get('code', currency.code).upper()
-        currency.name = request.POST.get('name', currency.name)
-        currency.symbol = request.POST.get('symbol', currency.symbol)
-        currency.base_price = request.POST.get('base_price', currency.base_price)
-        currency.comision_venta = request.POST.get('comision_venta', currency.comision_venta)
-        currency.comision_compra = request.POST.get('comision_compra', currency.comision_compra)
-        currency.decimales_cotizacion = request.POST.get('decimales_cotizacion', currency.decimales_cotizacion)
-        currency.decimales_monto = request.POST.get('decimales_monto', currency.decimales_monto)
-        currency.is_active = request.POST.get('is_active') == "on"
+        currency.name = request.POST.get('name')
+        currency.symbol = request.POST.get('symbol')
 
-        # Bandera (si se sube una nueva, reemplaza la existente)
-        if 'flag_image' in request.FILES:
+        # Validar campos decimales
+        try:
+            currency.base_price = Decimal(request.POST.get('base_price').replace(",", "."))
+            currency.comision_venta = Decimal(request.POST.get('comision_venta').replace(",", "."))
+            currency.comision_compra = Decimal(request.POST.get('comision_compra').replace(",", "."))
+            currency.decimales_cotizacion = int(request.POST.get('decimales_cotizacion'))
+            currency.decimales_monto = int(request.POST.get('decimales_monto'))
+        except (InvalidOperation, ValueError):
+            messages.error(request, "Uno de los valores numéricos ingresados no es válido.")
+            return render(request, 'webapp/edit_currency.html', {'currency': currency})
+
+        # Checkbox activo
+        currency.is_active = bool(request.POST.get('is_active'))
+
+        # Imagen nueva (opcional)
+        if request.FILES.get('flag_image'):
             currency.flag_image = request.FILES['flag_image']
 
+        # Guardar
         currency.save()
         messages.success(request, 'Moneda actualizada exitosamente.')
         return redirect('currency_list')
