@@ -70,5 +70,12 @@ urlpatterns = [
 
     # Categories management
     path('manage-categories/', views.manage_categories, name='manage_categories'),
+    
+    # Payment methods management
+    path('manage-client-payment-methods/', views.manage_client_payment_methods, name='manage_client_payment_methods'),
+    path('manage-client-payment-methods/<int:cliente_id>/', views.manage_client_payment_methods_detail, name='manage_client_payment_methods_detail'),
+    path('manage-client-payment-methods/<int:cliente_id>/add/<str:tipo>/', views.add_payment_method, name='add_payment_method'),
+    path('manage-client-payment-methods/<int:cliente_id>/edit/<int:medio_pago_id>/', views.edit_payment_method, name='edit_payment_method'),
+    path('view-client-payment-methods/<int:cliente_id>/', views.view_client_payment_methods, name='view_client_payment_methods'),
 ]
 

@@ -229,3 +229,218 @@ class Categoria(models.Model):
         # Muestra el nombre y el descuento en porcentaje sin decimales
         return f"{self.nombre} ({self.descuento * 100:.0f}%)"
 
+
+# -------------------------------------
+# Modelo de medios de pago genérico
+# -------------------------------------
+class MedioPago(models.Model):
+    # Opciones predefinidas para los medios de pago
+    TIPO_CHOICES = [
+        ('tarjeta', 'Tarjeta de Débito/Crédito'),
+        ('billetera', 'Billetera Electrónica'),
+        ('cuenta_bancaria', 'Cuenta Bancaria'),
+        ('cheque', 'Cheque'),
+    ]
+    
+    # Relación con el cliente
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.CASCADE,
+        related_name="medios_pago",
+        verbose_name="Cliente"
+    )
+    
+    # Tipo de medio de pago
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        verbose_name="Tipo de Medio de Pago"
+    )
+    
+    # Nombre descriptivo del medio de pago (ej: "Visa Principal", "Mercado Pago")
+    nombre = models.CharField(
+        max_length=100,
+        verbose_name="Nombre del Medio de Pago"
+    )
+    
+    # Estado del medio de pago (activo/inactivo)
+    activo = models.BooleanField(
+        default=True,
+        verbose_name="Activo"
+    )
+    
+    # Fecha de creación
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de Creación"
+    )
+    
+    # Fecha de última actualización
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Fecha de Actualización"
+    )
+    
+    class Meta:
+        db_table = "medios_pago"
+        verbose_name = "Medio de Pago"
+        verbose_name_plural = "Medios de Pago"
+        ordering = ["cliente__nombre", "tipo", "nombre"]
+        unique_together = ("cliente", "tipo", "nombre")
+    
+    def __str__(self):
+        return f"{self.cliente.nombre} - {self.get_tipo_display()} - {self.nombre}"
+
+
+# -------------------------------------
+# Modelos específicos por tipo de medio de pago
+# -------------------------------------
+
+class Tarjeta(models.Model):
+    # Relación con el medio de pago genérico
+    medio_pago = models.OneToOneField(
+        MedioPago,
+        on_delete=models.CASCADE,
+        related_name="tarjeta",
+        verbose_name="Medio de Pago"
+    )
+    
+    # Número de tarjeta tokenizado (por seguridad)
+    numero_tokenizado = models.CharField(
+        max_length=50,
+        verbose_name="Número Tokenizado",
+        help_text="Número de tarjeta encriptado/tokenizado"
+    )
+    
+    # Banco emisor
+    banco = models.CharField(
+        max_length=100,
+        verbose_name="Banco Emisor"
+    )
+    
+    # Fecha de vencimiento
+    fecha_vencimiento = models.DateField(
+        verbose_name="Fecha de Vencimiento"
+    )
+    
+    # Últimos 4 dígitos para identificación (sin tokenizar)
+    ultimos_digitos = models.CharField(
+        max_length=4,
+        verbose_name="Últimos 4 Dígitos"
+    )
+    
+    class Meta:
+        db_table = "tarjetas"
+        verbose_name = "Tarjeta"
+        verbose_name_plural = "Tarjetas"
+    
+    def __str__(self):
+        return f"{self.medio_pago.nombre} - ****{self.ultimos_digitos}"
+
+
+class Billetera(models.Model):
+    # Relación con el medio de pago genérico
+    medio_pago = models.OneToOneField(
+        MedioPago,
+        on_delete=models.CASCADE,
+        related_name="billetera",
+        verbose_name="Medio de Pago"
+    )
+    
+    # Número de celular asociado
+    numero_celular = models.CharField(
+        max_length=20,
+        verbose_name="Número de Celular"
+    )
+    
+    # Proveedor de la billetera (Mercado Pago, PayPal, etc.)
+    proveedor = models.CharField(
+        max_length=100,
+        verbose_name="Proveedor"
+    )
+    
+    class Meta:
+        db_table = "billeteras"
+        verbose_name = "Billetera"
+        verbose_name_plural = "Billeteras"
+    
+    def __str__(self):
+        return f"{self.medio_pago.nombre} - {self.proveedor}"
+
+
+class CuentaBancaria(models.Model):
+    # Relación con el medio de pago genérico
+    medio_pago = models.OneToOneField(
+        MedioPago,
+        on_delete=models.CASCADE,
+        related_name="cuenta_bancaria",
+        verbose_name="Medio de Pago"
+    )
+    
+    # Número de cuenta
+    numero_cuenta = models.CharField(
+        max_length=50,
+        verbose_name="Número de Cuenta"
+    )
+    
+    # Banco
+    banco = models.CharField(
+        max_length=100,
+        verbose_name="Banco"
+    )
+    
+    # Alias o CBU
+    alias_cbu = models.CharField(
+        max_length=50,
+        verbose_name="Alias/CBU"
+    )
+    
+    class Meta:
+        db_table = "cuentas_bancarias"
+        verbose_name = "Cuenta Bancaria"
+        verbose_name_plural = "Cuentas Bancarias"
+    
+    def __str__(self):
+        return f"{self.medio_pago.nombre} - {self.banco}"
+
+
+class Cheque(models.Model):
+    # Relación con el medio de pago genérico
+    medio_pago = models.OneToOneField(
+        MedioPago,
+        on_delete=models.CASCADE,
+        related_name="cheque",
+        verbose_name="Medio de Pago"
+    )
+    
+    # Número de cheque
+    numero_cheque = models.CharField(
+        max_length=50,
+        verbose_name="Número de Cheque"
+    )
+    
+    # Banco emisor
+    banco_emisor = models.CharField(
+        max_length=100,
+        verbose_name="Banco Emisor"
+    )
+    
+    # Fecha de vencimiento
+    fecha_vencimiento = models.DateField(
+        verbose_name="Fecha de Vencimiento"
+    )
+    
+    # Monto del cheque
+    monto = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        verbose_name="Monto"
+    )
+    
+    class Meta:
+        db_table = "cheques"
+        verbose_name = "Cheque"
+        verbose_name_plural = "Cheques"
+    
+    def __str__(self):
+        return f"{self.medio_pago.nombre} - {self.numero_cheque}"

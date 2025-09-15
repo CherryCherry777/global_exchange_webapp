@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import CustomUser, Cliente, ClienteUsuario, Categoria
+from .models import CustomUser, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -286,3 +286,170 @@ class AsignarClienteForm(forms.Form):
                 raise ValidationError("Esta asignación ya existe.")
         
         return cleaned_data
+
+
+# ===========================================
+# FORMULARIOS PARA MEDIOS DE PAGO
+# ===========================================
+
+class TarjetaForm(forms.ModelForm):
+    class Meta:
+        model = Tarjeta
+        fields = ['numero_tokenizado', 'banco', 'fecha_vencimiento', 'ultimos_digitos']
+        widgets = {
+            'numero_tokenizado': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número tokenizado (ej: tok_123456789)',
+                'required': True
+            }),
+            'banco': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Banco emisor (ej: Banco Nacional)',
+                'required': True
+            }),
+            'fecha_vencimiento': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'required': True
+            }),
+            'ultimos_digitos': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Últimos 4 dígitos (ej: 1234)',
+                'maxlength': '4',
+                'pattern': '[0-9]{4}',
+                'required': True
+            })
+        }
+        labels = {
+            'numero_tokenizado': 'Número Tokenizado',
+            'banco': 'Banco Emisor',
+            'fecha_vencimiento': 'Fecha de Vencimiento',
+            'ultimos_digitos': 'Últimos 4 Dígitos'
+        }
+
+    def clean_ultimos_digitos(self):
+        ultimos_digitos = self.cleaned_data.get('ultimos_digitos')
+        if ultimos_digitos and not ultimos_digitos.isdigit():
+            raise ValidationError("Los últimos dígitos deben ser números.")
+        if ultimos_digitos and len(ultimos_digitos) != 4:
+            raise ValidationError("Debe ingresar exactamente 4 dígitos.")
+        return ultimos_digitos
+
+
+class BilleteraForm(forms.ModelForm):
+    class Meta:
+        model = Billetera
+        fields = ['numero_celular', 'proveedor']
+        widgets = {
+            'numero_celular': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número de celular (ej: 0981234567)',
+                'required': True
+            }),
+            'proveedor': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Proveedor (ej: Tigo Money, Zimple)',
+                'required': True
+            })
+        }
+        labels = {
+            'numero_celular': 'Número de Celular',
+            'proveedor': 'Proveedor'
+        }
+
+    def clean_numero_celular(self):
+        numero_celular = self.cleaned_data.get('numero_celular')
+        if numero_celular:
+            # Limpiar el número (remover espacios, guiones, etc.)
+            numero_limpio = re.sub(r'[^\d]', '', numero_celular)
+            if not numero_limpio.isdigit():
+                raise ValidationError("El número de celular debe contener solo dígitos.")
+            if len(numero_limpio) < 8 or len(numero_limpio) > 15:
+                raise ValidationError("El número de celular debe tener entre 8 y 15 dígitos.")
+        return numero_celular
+
+
+class CuentaBancariaForm(forms.ModelForm):
+    class Meta:
+        model = CuentaBancaria
+        fields = ['numero_cuenta', 'banco', 'alias_cbu']
+        widgets = {
+            'numero_cuenta': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número de cuenta',
+                'required': True
+            }),
+            'banco': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Banco (ej: Banco Nacional)',
+                'required': True
+            }),
+            'alias_cbu': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Alias o CBU',
+                'required': True
+            })
+        }
+        labels = {
+            'numero_cuenta': 'Número de Cuenta',
+            'banco': 'Banco',
+            'alias_cbu': 'Alias/CBU'
+        }
+
+
+class ChequeForm(forms.ModelForm):
+    class Meta:
+        model = Cheque
+        fields = ['numero_cheque', 'banco_emisor', 'fecha_vencimiento', 'monto']
+        widgets = {
+            'numero_cheque': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número de cheque',
+                'required': True
+            }),
+            'banco_emisor': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Banco emisor (ej: Banco Nacional)',
+                'required': True
+            }),
+            'fecha_vencimiento': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'required': True
+            }),
+            'monto': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Monto del cheque',
+                'step': '0.01',
+                'min': '0',
+                'required': True
+            })
+        }
+        labels = {
+            'numero_cheque': 'Número de Cheque',
+            'banco_emisor': 'Banco Emisor',
+            'fecha_vencimiento': 'Fecha de Vencimiento',
+            'monto': 'Monto'
+        }
+
+    def clean_monto(self):
+        monto = self.cleaned_data.get('monto')
+        if monto is not None and monto <= 0:
+            raise ValidationError("El monto debe ser mayor a 0.")
+        return monto
+
+
+class MedioPagoForm(forms.ModelForm):
+    class Meta:
+        model = MedioPago
+        fields = ['nombre']
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del medio de pago (ej: Visa Principal)',
+                'required': True
+            })
+        }
+        labels = {
+            'nombre': 'Nombre del Medio de Pago'
+        }

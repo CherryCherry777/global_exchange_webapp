@@ -659,15 +659,21 @@
 
 .categories-table th, .categories-table td,
 .clientes-table th, .clientes-table td {
-    border: 1px solid #ddd;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     padding: 12px;
     text-align: left;
 }
 
 .categories-table th,
 .clientes-table th {
-    background-color: #4CAF50;
-    color: white;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+.categories-table td,
+.clientes-table td {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
 }
 
 /* Estado de cliente */
@@ -736,13 +742,22 @@
 .categories-container {
     display: flex;
     height: 100vh;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%) !important;
+    color: #ffffff !important;
 }
 
 /* Panel izquierdo */
 .categories-left-panel {
     flex: 1;
-    border-right: 2px solid #ddd;
+    border-right: 2px solid rgba(255, 255, 255, 0.1) !important;
     padding: 20px;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.categories-left-panel h2 {
+    color: #ffffff !important;
+    margin-bottom: 20px;
+    font-weight: 600 !important;
 }
 
 /* Panel derecho */
@@ -750,6 +765,7 @@
   flex: 1;
   padding: 20px;
   position: relative;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 .categories-form-tabs {
@@ -761,15 +777,17 @@
 .categories-form-tabs button {
   flex: 1;
   padding: 10px;
-  background: #eee;
-  border: none;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   cursor: pointer;
   font-weight: bold;
-  transition: background 0.3s;
+  transition: all 0.3s ease !important;
+  color: #ffffff !important;
+  border-radius: 4px !important;
 }
 
 .categories-form-tabs button:hover {
-  background: #ddd;
+  background: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Formularios */
@@ -784,30 +802,500 @@
 
 .categories-form-content h2 {
   margin-top: 0;
+  color: #ffffff !important;
 }
 
 .categories-form-content label {
   margin: 10px 0 5px;
+  color: #ffffff !important;
+  font-weight: 500 !important;
 }
 
 .categories-form-content input {
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.categories-form-content input:focus {
+  outline: none !important;
+  border-color: #4facfe !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.categories-form-content input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .categories-form-content button {
   margin-top: 15px;
   padding: 10px;
-  background: #3498db;
-  border: none;
-  color: white;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
   border-radius: 4px;
   cursor: pointer;
+  transition: all 0.3s ease !important;
 }
 
 .categories-form-content button:hover {
-  background: #2980b9;
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Estilos para botón de editar en tabla de categorías */
+.categories-table .edit-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ===========================================
+   FOOTER MODERNO Y REALISTA
+   =========================================== */
+
+.main-footer {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%) !important;
+    color: #ffffff !important;
+    margin-top: 60px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.footer-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 40px 20px 20px 20px !important;
+}
+
+.footer-content {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+    gap: 30px !important;
+    margin-bottom: 30px !important;
+}
+
+.footer-section h4 {
+    color: #ffffff !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    margin-bottom: 15px !important;
+    position: relative !important;
+}
+
+.footer-section h4::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -5px !important;
+    left: 0 !important;
+    width: 30px !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important;
+    border-radius: 1px !important;
+}
+
+.footer-section p {
+    color: #b0b0b0 !important;
+    line-height: 1.6 !important;
+    margin-bottom: 10px !important;
+    font-size: 14px !important;
+}
+
+.footer-section ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.footer-section ul li {
+    margin-bottom: 8px !important;
+}
+
+.footer-section ul li a {
+    color: #b0b0b0 !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
+    display: inline-block !important;
+}
+
+.footer-section ul li a:hover {
+    color: #4facfe !important;
+    transform: translateX(5px) !important;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-top: 20px !important;
+    text-align: center !important;
+}
+
+.footer-bottom p {
+    color: #888888 !important;
+    font-size: 13px !important;
+    margin: 0 !important;
+}
+
+/* Responsive para el footer */
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr !important;
+        gap: 25px !important;
+    }
+    
+    .footer-container {
+        padding: 30px 15px 15px 15px !important;
+    }
+    
+    .footer-section h4 {
+        font-size: 16px !important;
+    }
+    
+    .footer-section p,
+    .footer-section ul li a {
+        font-size: 13px !important;
+    }
+}
+
+/* ===========================================
+   ESTILOS PARA BOTÓN DE ACTUALIZAR COTIZACIONES
+   =========================================== */
+
+.exchange-rates-box button[onclick="location.reload()"]:hover {
+    background: #45a049 !important;
+    transform: rotate(180deg) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.exchange-rates-box button[onclick="location.reload()"]:active {
+    transform: rotate(180deg) scale(0.95) !important;
+}
+
+/* Animación de carga para el botón */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.exchange-rates-box button[onclick="location.reload()"].loading {
+    animation: spin 1s linear infinite !important;
+}
+
+/* ===========================================
+   ESTILOS PARA MEDIOS DE PAGO
+   =========================================== */
+
+/* Estilos para la página de administrar medios de pago */
+.manage-payment-methods .payment-type-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.payment-type-badge.tarjeta {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+}
+
+.payment-type-badge.billetera {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #ffffff;
+}
+
+.payment-type-badge.efectivo {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #ffffff;
+}
+
+.payment-type-badge.cheque {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: #ffffff;
+}
+
+.manage-payment-methods .payment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.manage-payment-methods .payment-name {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.manage-payment-methods .payment-description {
+    color: #a0a0a0;
+    font-size: 11px;
+    font-style: italic;
+}
+
+/* Estilos para la página de medios de pago por cliente */
+.manage-client-payment-methods .payment-methods-table {
+    table-layout: fixed;
+    min-width: 600px;
+}
+
+.manage-client-payment-methods .payment-methods-table th:first-child {
+    width: 200px;
+}
+
+.manage-client-payment-methods .payment-methods-table th:not(:first-child) {
+    width: 80px;
+    text-align: center;
+}
+
+.manage-client-payment-methods .payment-method-cell {
+    text-align: center;
+    padding: 8px 4px;
+}
+
+.payment-toggle-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 12px;
+}
+
+.payment-toggle-btn.enabled {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #ffffff;
+}
+
+.payment-toggle-btn.disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: #666666;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.payment-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.payment-toggle-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Leyenda */
+.legend-container {
+    margin-top: 30px;
+}
+
+.legend-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 400px;
+}
+
+.legend-card h4 {
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.legend-item span {
+    color: #ffffff;
+    font-size: 14px;
+}
+
+/* Estilos para la página de ver medios de pago de cliente */
+.view-client-payment-methods .client-info-container {
+    margin-bottom: 30px;
+}
+
+.client-info-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.client-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.client-details-large h2 {
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    font-size: 24px;
+}
+
+.client-details-large p {
+    color: #a0a0a0;
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.payment-methods-container {
+    margin-bottom: 30px;
+}
+
+.payment-methods-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 25px;
+}
+
+.payment-methods-card h3 {
+    color: #ffffff;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.payment-methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.payment-method-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s ease;
+}
+
+.payment-method-item.enabled {
+    border-color: rgba(79, 172, 254, 0.3);
+    background: rgba(79, 172, 254, 0.05);
+}
+
+.payment-method-item.disabled {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
+    opacity: 0.6;
+}
+
+.payment-method-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4facfe;
+    flex-shrink: 0;
+}
+
+.payment-method-info {
+    flex: 1;
+}
+
+.payment-method-info h4 {
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    font-size: 16px;
+}
+
+.payment-method-info p {
+    color: #a0a0a0;
+    margin: 2px 0;
+    font-size: 13px;
+}
+
+.payment-method-info .description {
+    font-style: italic;
+    margin-top: 8px;
+}
+
+.payment-method-status {
+    flex-shrink: 0;
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.enabled {
+    background: rgba(79, 172, 254, 0.2);
+    color: #4facfe;
+    border: 1px solid rgba(79, 172, 254, 0.3);
+}
+
+.status-badge.disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: #a0a0a0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.actions-container {
+    margin-top: 30px;
+}
+
+.actions-card {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+/* Responsive para medios de pago */
+@media (max-width: 768px) {
+    .payment-methods-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .client-info-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .actions-card {
+        flex-direction: column;
+    }
+    
+    .manage-client-payment-methods .payment-methods-table {
+        min-width: 400px;
+    }
 }
 
 
@@ -4660,5 +5148,2498 @@ body main .admin-panel .card-description {
     
     .no-data-content p {
         font-size: 12px;
+    }
+}
+
+/* ===========================================
+   ESTILOS ESPECÍFICOS PARA ADMINISTRAR CLIENTES
+   =========================================== */
+
+/* Contenedor principal de la página de clientes */
+.manage-clients {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%) !important;
+    min-height: 100vh !important;
+    padding: 20px !important;
+    position: relative !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Sobrescribir estilos de admin-page-container para clientes */
+.manage-clients.admin-page-container {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%) !important;
+    padding: 20px !important;
+}
+
+/* Eliminar pseudo-elementos problemáticos para la página de clientes */
+.manage-clients::before,
+.manage-clients::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Asegurar que no haya elementos de fondo problemáticos */
+.manage-clients *::before,
+.manage-clients *::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Estilos específicos para el header de clientes */
+.manage-clients .admin-header {
+    background: transparent !important;
+    padding: 20px 0 !important;
+    margin-bottom: 30px !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.manage-clients .header-content {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+.manage-clients .header-left {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+.manage-clients .back-to-admin-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #a0a0a0 !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    margin-bottom: 10px !important;
+}
+
+.manage-clients .back-to-admin-btn:hover {
+    color: #ffffff !important;
+    transform: translateX(-5px) !important;
+}
+
+.manage-clients .back-to-admin-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+    transition: transform 0.3s ease !important;
+}
+
+.manage-clients .back-to-admin-btn:hover svg {
+    transform: translateX(-3px) !important;
+}
+
+.manage-clients .header-title h1 {
+    color: #ffffff !important;
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    margin: 0 0 10px 0 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.manage-clients .header-title p {
+    color: #a0a0a0 !important;
+    font-size: 1.1rem !important;
+    margin: 0 !important;
+    opacity: 0.9 !important;
+}
+
+/* Estilos para las estadísticas */
+.manage-clients .stats-container {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 20px !important;
+    margin-bottom: 30px !important;
+    max-width: 1200px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 0 20px !important;
+}
+
+.manage-clients .stat-card {
+    background: rgba(255, 255, 255, 0.1) !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    text-align: center !important;
+    transition: transform 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+.manage-clients .stat-card:hover {
+    transform: translateY(-2px) !important;
+}
+
+.manage-clients .stat-icon {
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+}
+
+.manage-clients .stat-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+    color: #ffffff !important;
+}
+
+.manage-clients .stat-content h3 {
+    color: #ffffff !important;
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+}
+
+.manage-clients .stat-content p {
+    color: #a0a0a0 !important;
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+}
+
+/* Estilos para la búsqueda */
+.manage-clients .search-container {
+    max-width: 1200px !important;
+    margin: 0 auto 30px auto !important;
+    padding: 0 20px !important;
+}
+
+.manage-clients .search-box {
+    position: relative !important;
+    max-width: 400px !important;
+    margin: 0 auto !important;
+}
+
+.manage-clients .search-icon {
+    position: absolute !important;
+    left: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: #a0a0a0 !important;
+    z-index: 1 !important;
+}
+
+.manage-clients .search-input {
+    width: 100% !important;
+    padding: 12px 12px 12px 40px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    backdrop-filter: blur(10px) !important;
+    transition: all 0.3s ease !important;
+}
+
+.manage-clients .search-input::placeholder {
+    color: #a0a0a0 !important;
+}
+
+.manage-clients .search-input:focus {
+    outline: none !important;
+    border-color: #4facfe !important;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1) !important;
+}
+
+/* Estilos para la tabla - Similar a gestión de roles */
+.manage-clients .table-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    overflow: hidden !important;
+}
+
+.manage-clients .table-header {
+    padding: 20px 0 10px 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    margin-bottom: 0 !important;
+}
+
+.manage-clients .table-header h3 {
+    color: #ffffff !important;
+    font-size: 1.3rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    text-align: center !important;
+}
+
+.manage-clients .table-wrapper {
+    overflow-x: auto !important;
+    border-radius: 0 0 12px 12px !important;
+}
+
+.manage-clients .modern-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    background: transparent !important;
+    table-layout: fixed !important;
+    min-width: 1000px !important;
+}
+
+.manage-clients .modern-table th {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    padding: 15px 8px !important;
+    text-align: left !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+}
+
+.manage-clients .th-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 12px !important;
+}
+
+.manage-clients .th-content svg {
+    width: 14px !important;
+    height: 14px !important;
+    color: #a0a0a0 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Distribución de columnas optimizada */
+.manage-clients .modern-table th:nth-child(1), /* ID */
+.manage-clients .modern-table td:nth-child(1) {
+    width: 60px !important;
+    text-align: center !important;
+}
+
+.manage-clients .modern-table th:nth-child(2), /* Cliente */
+.manage-clients .modern-table td:nth-child(2) {
+    width: 200px !important;
+}
+
+.manage-clients .modern-table th:nth-child(3), /* Tipo */
+.manage-clients .modern-table td:nth-child(3) {
+    width: 120px !important;
+}
+
+.manage-clients .modern-table th:nth-child(4), /* Documento */
+.manage-clients .modern-table td:nth-child(4) {
+    width: 140px !important;
+}
+
+.manage-clients .modern-table th:nth-child(5), /* Correo */
+.manage-clients .modern-table td:nth-child(5) {
+    width: 180px !important;
+}
+
+.manage-clients .modern-table th:nth-child(6), /* Estado */
+.manage-clients .modern-table td:nth-child(6) {
+    width: 80px !important;
+    text-align: center !important;
+}
+
+.manage-clients .modern-table th:nth-child(7), /* Acciones */
+.manage-clients .modern-table td:nth-child(7) {
+    width: 100px !important;
+}
+
+.manage-clients .modern-table td {
+    padding: 12px 8px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    vertical-align: middle !important;
+}
+
+.manage-clients .modern-table tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Información del cliente en la tabla - Similar a gestión de roles */
+.manage-clients .client-info {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.manage-clients .client-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3) !important;
+}
+
+.manage-clients .client-avatar span {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    text-transform: uppercase !important;
+}
+
+.manage-clients .client-details {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+}
+
+.manage-clients .client-name {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.manage-clients .client-razon {
+    color: #a0a0a0 !important;
+    font-size: 11px !important;
+    font-style: italic !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Badges de tipo de cliente */
+.manage-clients .type-badge {
+    display: inline-block !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    white-space: nowrap !important;
+}
+
+.manage-clients .type-badge.persona_fisica {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #ffffff !important;
+}
+
+.manage-clients .type-badge.persona_juridica {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+    color: #ffffff !important;
+}
+
+/* Información de documentos */
+.manage-clients .document-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+}
+
+.manage-clients .document-number {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.manage-clients .document-ruc {
+    color: #a0a0a0 !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Correo */
+.manage-clients .email-cell {
+    color: #ffffff !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Estados */
+.manage-clients .status-active {
+    display: inline-block !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.manage-clients .status-inactive {
+    display: inline-block !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%) !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Botones de acción específicos para clientes */
+.manage-clients .action-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+}
+
+.manage-clients .view-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 8px !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+}
+
+.manage-clients .view-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.manage-clients .edit-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 8px !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+}
+
+.manage-clients .edit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+}
+
+.manage-clients .activate-btn {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 8px !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+}
+
+.manage-clients .activate-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+}
+
+.manage-clients .deactivate-btn {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 8px !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+}
+
+.manage-clients .deactivate-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(250, 112, 154, 0.4);
+}
+
+.manage-clients .delete-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 8px !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+}
+
+.manage-clients .delete-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+/* ===========================================
+   ESTILOS ESPECÍFICOS PARA CREAR CLIENTE
+   =========================================== */
+
+/* Contenedor principal de la página de crear cliente */
+.create-client {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%) !important;
+    min-height: 100vh !important;
+    padding: 20px !important;
+    position: relative !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Header específico para crear cliente */
+.create-client .admin-header {
+    background: transparent !important;
+    padding: 20px 0 !important;
+    margin-bottom: 30px !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.create-client .header-content {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+.create-client .header-left {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+.create-client .back-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #a0a0a0 !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    margin-bottom: 10px !important;
+}
+
+.create-client .back-btn:hover {
+    color: #ffffff !important;
+    transform: translateX(-5px) !important;
+}
+
+.create-client .back-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+    transition: transform 0.3s ease !important;
+}
+
+.create-client .back-btn:hover svg {
+    transform: translateX(-3px) !important;
+}
+
+.create-client .page-title {
+    color: #ffffff !important;
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.create-client .page-subtitle {
+    color: #a0a0a0 !important;
+    font-size: 1.1rem !important;
+    margin: 0 !important;
+    opacity: 0.9 !important;
+}
+
+/* Contenedor del formulario */
+.create-client .form-container {
+    max-width: 800px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+.create-client .form-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 40px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Grid del formulario */
+.create-client .form-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+    margin-bottom: 40px !important;
+}
+
+.create-client .form-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+.create-client .form-group.full-width {
+    grid-column: 1 / -1 !important;
+}
+
+/* Labels */
+.create-client .form-label {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.create-client .required {
+    color: #ff6b6b !important;
+    font-weight: 700 !important;
+}
+
+/* Inputs y selects */
+.create-client .form-control,
+.create-client .form-select {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.create-client .form-control::placeholder,
+.create-client .form-select::placeholder {
+    color: #a0a0a0 !important;
+}
+
+.create-client .form-control:focus,
+.create-client .form-select:focus {
+    outline: none !important;
+    border-color: #4facfe !important;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Estilos para las opciones de select - Solución robusta */
+.create-client .form-select {
+    color: #ffffff !important;
+}
+
+.create-client .form-select option {
+    background: #1a1a2e !important;
+    color: #ffffff !important;
+    padding: 8px 12px !important;
+    border: none !important;
+}
+
+.create-client .form-select option:hover,
+.create-client .form-select option:focus,
+.create-client .form-select option:active {
+    background: #2a2a3e !important;
+    color: #ffffff !important;
+}
+
+.create-client .form-select option:checked,
+.create-client .form-select option[selected] {
+    background: #4facfe !important;
+    color: #ffffff !important;
+}
+
+/* Estilos adicionales para compatibilidad con diferentes navegadores */
+.create-client select.form-select {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+.create-client select.form-select:focus {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+/* Para navegadores WebKit (Chrome, Safari, Edge) */
+.create-client .form-select::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.create-client .form-select::-webkit-scrollbar-track {
+    background: #1a1a2e !important;
+}
+
+.create-client .form-select::-webkit-scrollbar-thumb {
+    background: #4facfe !important;
+    border-radius: 4px !important;
+}
+
+.create-client .form-select::-webkit-scrollbar-thumb:hover {
+    background: #00f2fe !important;
+}
+
+/* Estilos globales para todos los selects en páginas administrativas */
+.admin-page-container select,
+.admin-page-container .form-select {
+    color: #ffffff !important;
+}
+
+.admin-page-container select option,
+.admin-page-container .form-select option {
+    background: #1a1a2e !important;
+    color: #ffffff !important;
+    padding: 8px 12px !important;
+}
+
+.admin-page-container select option:hover,
+.admin-page-container .form-select option:hover {
+    background: #2a2a3e !important;
+    color: #ffffff !important;
+}
+
+.admin-page-container select option:checked,
+.admin-page-container .form-select option:checked,
+.admin-page-container select option[selected],
+.admin-page-container .form-select option[selected] {
+    background: #4facfe !important;
+    color: #ffffff !important;
+}
+
+/* Checkbox simple para estado */
+.create-client .form-checkbox {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.create-client .form-check-input {
+    width: 20px !important;
+    height: 20px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+.create-client .form-check-input:hover {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.create-client .form-check-input:checked {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+    border-color: #4facfe !important;
+}
+
+.create-client .form-check-input:checked::after {
+    content: '✓' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+}
+
+/* Mensajes de error */
+.create-client .form-error {
+    color: #ff6b6b !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    margin-top: 4px !important;
+}
+
+/* Texto de ayuda */
+.create-client .form-help {
+    color: #a0a0a0 !important;
+    font-size: 12px !important;
+    margin-top: 4px !important;
+    font-style: italic !important;
+}
+
+/* Botones de acción */
+.create-client .form-actions {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 20px !important;
+    padding-top: 30px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.create-client .modern-btn {
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+    cursor: pointer !important;
+    min-width: 140px !important;
+}
+
+.create-client .secondary-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.create-client .secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.create-client .primary-btn {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+    color: #ffffff !important;
+}
+
+.create-client .primary-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .create-client .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+    
+    .create-client .form-actions {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+    
+    .create-client .modern-btn {
+        width: 100% !important;
+    }
+    
+    .create-client .page-title {
+        font-size: 2rem !important;
+    }
+    
+    .create-client .form-card {
+        padding: 30px 20px !important;
+    }
+}
+
+/* ===========================================
+   ESTILOS ESPECÍFICOS PARA VER CLIENTE
+   =========================================== */
+
+/* Contenedor principal de la página de ver cliente */
+.view-client {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%) !important;
+    min-height: 100vh !important;
+    padding: 20px !important;
+    position: relative !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Header específico para ver cliente */
+.view-client .admin-header {
+    background: transparent !important;
+    padding: 20px 0 !important;
+    margin-bottom: 30px !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.view-client .header-content {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+.view-client .header-left {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+.view-client .back-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #a0a0a0 !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    margin-bottom: 10px !important;
+}
+
+.view-client .back-btn:hover {
+    color: #ffffff !important;
+    transform: translateX(-5px) !important;
+}
+
+.view-client .back-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+    transition: transform 0.3s ease !important;
+}
+
+.view-client .back-btn:hover svg {
+    transform: translateX(-3px) !important;
+}
+
+.view-client .page-title {
+    color: #ffffff !important;
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.view-client .page-subtitle {
+    color: #a0a0a0 !important;
+    font-size: 1.1rem !important;
+    margin: 0 !important;
+    opacity: 0.9 !important;
+}
+
+/* Contenedor principal de detalles */
+.view-client .client-details-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+.view-client .client-details-grid {
+    display: grid !important;
+    grid-template-columns: 2fr 1fr !important;
+    gap: 30px !important;
+}
+
+/* Tarjeta de información del cliente */
+.view-client .client-info-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 30px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Sección del avatar */
+.view-client .client-avatar-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+    margin-bottom: 30px !important;
+    padding-bottom: 20px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.view-client .client-avatar-large {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3) !important;
+}
+
+.view-client .client-avatar-large span {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    font-size: 32px !important;
+    text-transform: uppercase !important;
+}
+
+.view-client .client-basic-info {
+    flex: 1 !important;
+}
+
+.view-client .client-name {
+    color: #ffffff !important;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    margin: 0 0 8px 0 !important;
+}
+
+.view-client .client-razon {
+    color: #a0a0a0 !important;
+    font-size: 1.1rem !important;
+    margin: 0 0 15px 0 !important;
+    font-style: italic !important;
+}
+
+.view-client .client-badges {
+    display: flex !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+}
+
+/* Grid interno de detalles */
+.view-client .client-details-grid-inner {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 30px !important;
+}
+
+.view-client .detail-section {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+}
+
+.view-client .section-title {
+    color: #ffffff !important;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.view-client .detail-item {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.view-client .detail-label {
+    color: #a0a0a0 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.view-client .detail-value {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+.view-client .detail-link {
+    color: #4facfe !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    transition: color 0.3s ease !important;
+}
+
+.view-client .detail-link:hover {
+    color: #00f2fe !important;
+}
+
+/* Badges */
+.view-client .type-badge {
+    display: inline-block !important;
+    padding: 6px 12px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.view-client .type-badge.persona_fisica {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #ffffff !important;
+}
+
+.view-client .type-badge.persona_juridica {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+    color: #ffffff !important;
+}
+
+.view-client .status-active {
+    display: inline-block !important;
+    padding: 6px 12px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.view-client .status-inactive {
+    display: inline-block !important;
+    padding: 6px 12px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%) !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.view-client .category-badge {
+    display: inline-block !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Panel de acciones */
+.view-client .actions-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+.view-client .actions-card,
+.view-client .users-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 25px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+.view-client .actions-title,
+.view-client .users-title {
+    color: #ffffff !important;
+    font-size: 1.3rem !important;
+    font-weight: 600 !important;
+    margin: 0 0 20px 0 !important;
+    text-align: center !important;
+}
+
+.view-client .actions-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+.view-client .action-btn {
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    box-sizing: border-box !important;
+}
+
+.view-client .edit-btn,
+.view-client .activate-btn,
+.view-client .deactivate-btn,
+.view-client .delete-btn,
+.view-client .print-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.view-client .action-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Lista de usuarios */
+.view-client .users-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+}
+
+.view-client .user-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.view-client .user-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+}
+
+.view-client .user-avatar span {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    text-transform: uppercase !important;
+}
+
+.view-client .user-info {
+    flex: 1 !important;
+}
+
+.view-client .user-name {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    margin-bottom: 2px !important;
+}
+
+.view-client .user-fullname {
+    color: #a0a0a0 !important;
+    font-size: 12px !important;
+    margin-bottom: 2px !important;
+}
+
+.view-client .user-date {
+    color: #a0a0a0 !important;
+    font-size: 11px !important;
+    font-style: italic !important;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .view-client .client-details-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+    
+    .view-client .client-details-grid-inner {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .view-client .client-details-grid-inner {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .view-client .client-avatar-section {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+    
+    .view-client .page-title {
+        font-size: 2rem !important;
+    }
+    
+    .view-client .client-info-card,
+    .view-client .actions-card,
+    .view-client .users-card {
+        padding: 20px !important;
+    }
+}
+
+/* ===========================================
+   ESTILOS ESPECÍFICOS PARA ASIGNAR USUARIO
+   =========================================== */
+
+/* Contenedor principal de la página de asignar usuario */
+.assign-user {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%) !important;
+    min-height: 100vh !important;
+    padding: 20px !important;
+    position: relative !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Header específico para asignar usuario */
+.assign-user .admin-header {
+    background: transparent !important;
+    padding: 20px 0 !important;
+    margin-bottom: 30px !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.assign-user .header-content {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+.assign-user .header-left {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+.assign-user .back-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #a0a0a0 !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    margin-bottom: 10px !important;
+}
+
+.assign-user .back-btn:hover {
+    color: #ffffff !important;
+    transform: translateX(-5px) !important;
+}
+
+.assign-user .back-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+    transition: transform 0.3s ease !important;
+}
+
+.assign-user .back-btn:hover svg {
+    transform: translateX(-3px) !important;
+}
+
+.assign-user .page-title {
+    color: #ffffff !important;
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.assign-user .page-subtitle {
+    color: #a0a0a0 !important;
+    font-size: 1.1rem !important;
+    margin: 0 !important;
+    opacity: 0.9 !important;
+}
+
+/* Contenedor del formulario de asignación */
+.assign-user .assign-form-container {
+    max-width: 800px !important;
+    margin: 0 auto 30px auto !important;
+    padding: 0 20px !important;
+}
+
+.assign-user .assign-form-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 30px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+.assign-user .form-section-title {
+    color: #ffffff !important;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    margin: 0 0 25px 0 !important;
+    text-align: center !important;
+}
+
+.assign-user .form-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 20px !important;
+    margin-bottom: 25px !important;
+}
+
+.assign-user .form-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+.assign-user .form-label {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+}
+
+.assign-user .form-control,
+.assign-user .form-select {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.assign-user .form-control::placeholder,
+.assign-user .form-select::placeholder {
+    color: #a0a0a0 !important;
+}
+
+.assign-user .form-control:focus,
+.assign-user .form-select:focus {
+    outline: none !important;
+    border-color: #4facfe !important;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.assign-user .form-error {
+    color: #ff6b6b !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    margin-top: 4px !important;
+}
+
+.assign-user .form-actions {
+    display: flex !important;
+    justify-content: center !important;
+    padding-top: 20px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.assign-user .modern-btn {
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+    cursor: pointer !important;
+    min-width: 160px !important;
+}
+
+.assign-user .primary-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.assign-user .primary-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Contenedor de asignaciones existentes */
+.assign-user .assignments-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+.assign-user .assignments-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 30px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+.assign-user .assignments-table-container {
+    overflow-x: auto !important;
+    border-radius: 8px !important;
+}
+
+.assign-user .assignments-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    background: transparent !important;
+    table-layout: fixed !important;
+    min-width: 600px !important;
+}
+
+.assign-user .assignments-table th {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    padding: 12px 8px !important;
+    text-align: left !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+}
+
+.assign-user .th-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 12px !important;
+}
+
+.assign-user .th-content svg {
+    width: 14px !important;
+    height: 14px !important;
+    color: #a0a0a0 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Distribución de columnas más compacta */
+.assign-user .assignments-table th:nth-child(1), /* Cliente */
+.assign-user .assignments-table td:nth-child(1) {
+    width: 30% !important;
+}
+
+.assign-user .assignments-table th:nth-child(2), /* Usuario */
+.assign-user .assignments-table td:nth-child(2) {
+    width: 30% !important;
+}
+
+.assign-user .assignments-table th:nth-child(3), /* Fecha */
+.assign-user .assignments-table td:nth-child(3) {
+    width: 25% !important;
+}
+
+.assign-user .assignments-table th:nth-child(4), /* Acciones */
+.assign-user .assignments-table td:nth-child(4) {
+    width: 15% !important;
+}
+
+.assign-user .assignments-table td {
+    padding: 10px 8px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+    font-size: 11px !important;
+    vertical-align: middle !important;
+}
+
+.assign-user .assignments-table tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Información del cliente y usuario */
+.assign-user .client-info,
+.assign-user .user-info {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.assign-user .client-avatar,
+.assign-user .user-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.assign-user .client-avatar {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+}
+
+.assign-user .user-avatar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.assign-user .client-avatar span,
+.assign-user .user-avatar span {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+}
+
+.assign-user .user-avatar span {
+    color: #ffffff !important;
+}
+
+.assign-user .client-details,
+.assign-user .user-details {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+}
+
+.assign-user .client-name,
+.assign-user .user-name {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.assign-user .client-type,
+.assign-user .user-email {
+    color: #a0a0a0 !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.assign-user .date-cell {
+    color: #ffffff !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+}
+
+/* Botón de acción */
+.assign-user .action-btn {
+    padding: 6px 8px !important;
+    border-radius: 4px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    box-sizing: border-box !important;
+}
+
+.assign-user .remove-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.assign-user .remove-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Estado vacío */
+.assign-user .empty-state {
+    text-align: center !important;
+    padding: 40px 20px !important;
+}
+
+.assign-user .empty-content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+.assign-user .empty-icon {
+    width: 48px !important;
+    height: 48px !important;
+    color: #a0a0a0 !important;
+}
+
+.assign-user .empty-content h3 {
+    color: #ffffff !important;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+}
+
+.assign-user .empty-content p {
+    color: #a0a0a0 !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .assign-user .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+    
+    .assign-user .page-title {
+        font-size: 2rem !important;
+    }
+    
+    .assign-user .assign-form-card,
+    .assign-user .assignments-card {
+        padding: 20px !important;
+    }
+    
+    .assign-user .assignments-table {
+        min-width: 600px !important;
+    }
+}
+
+/* Responsive para la página de clientes */
+@media (max-width: 768px) {
+    .manage-clients .modern-table {
+        font-size: 12px;
+    }
+    
+    .manage-clients .action-buttons {
+        min-width: 60px;
+    }
+    
+    .client-info strong {
+        font-size: 12px;
+    }
+    
+    .client-info small {
+        font-size: 10px;
+    }
+    
+    .type-badge,
+    .category-badge {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+}
+
+/* ========================================
+   ESTILOS PARA GESTIÓN DE MEDIOS DE PAGO - FASE 2
+   ======================================== */
+
+/* Estilos para la lista de clientes con medios de pago */
+.manage-client-payment-methods .client-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.manage-client-payment-methods .client-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Simplificar estadísticas - eliminar emojis */
+.admin-stats .stat-card .stat-content {
+    text-align: center;
+}
+
+.admin-stats .stat-card .stat-content h3 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 0 4px 0;
+    color: #ffffff;
+}
+
+.admin-stats .stat-card .stat-content p {
+    font-size: 14px;
+    margin: 0;
+    color: #b0b0b0;
+}
+
+.manage-client-payment-methods .client-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.manage-client-payment-methods .client-name {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.manage-client-payment-methods .client-documento {
+    color: #b0b0b0;
+    font-size: 12px;
+}
+
+.manage-client-payment-methods .client-type-badge {
+    background: rgba(102, 126, 234, 0.2);
+    color: #667eea;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.manage-client-payment-methods .category-badge {
+    background: rgba(118, 75, 162, 0.2);
+    color: #764ba2;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(118, 75, 162, 0.3);
+}
+
+.manage-client-payment-methods .payment-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.manage-client-payment-methods .stats-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.manage-client-payment-methods .total-count {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.manage-client-payment-methods .active-count {
+    color: #4CAF50;
+    font-size: 12px;
+}
+
+.manage-client-payment-methods .stats-label {
+    color: #b0b0b0;
+    font-size: 11px;
+}
+
+/* Estilos para la gestión detallada de medios de pago */
+.manage-client-payment-methods-detail .client-info-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.manage-client-payment-methods-detail .client-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 32px;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.manage-client-payment-methods-detail .client-details h2 {
+    color: #ffffff;
+    margin: 0 0 12px 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.manage-client-payment-methods-detail .client-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.manage-client-payment-methods-detail .meta-item {
+    color: #b0b0b0;
+    font-size: 14px;
+}
+
+.manage-client-payment-methods-detail .meta-item strong {
+    color: #ffffff;
+    margin-right: 6px;
+}
+
+.manage-client-payment-methods-detail .payment-method-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.manage-client-payment-methods-detail .payment-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #667eea;
+}
+
+.manage-client-payment-methods-detail .payment-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.manage-client-payment-methods-detail .payment-name {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.manage-client-payment-methods-detail .date-info {
+    color: #b0b0b0;
+    font-size: 13px;
+}
+
+.manage-client-payment-methods-detail .action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.manage-client-payment-methods-detail .btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.manage-client-payment-methods-detail .btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.manage-client-payment-methods-detail .btn-success {
+    background: #4CAF50;
+    color: white;
+}
+
+.manage-client-payment-methods-detail .btn-warning {
+    background: #FF9800;
+    color: white;
+}
+
+.manage-client-payment-methods-detail .btn-danger {
+    background: #f44336;
+    color: white;
+}
+
+.manage-client-payment-methods-detail .table-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.manage-client-payment-methods-detail .btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.manage-client-payment-methods-detail .btn-success {
+    background: #4CAF50;
+    color: white;
+}
+
+.manage-client-payment-methods-detail .btn-success:hover {
+    background: #45a049;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* ========================================
+   ESTILOS PARA TIPOS DE MEDIOS DE PAGO - FASE 3 (SIMPLIFICADO)
+   ======================================== */
+
+.payment-types-container {
+    margin-top: 24px;
+}
+
+.payment-types-container .section-header {
+    margin-bottom: 24px;
+}
+
+.payment-types-container .section-header h3 {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.payment-types-container .section-header p {
+    color: #b0b0b0;
+    font-size: 14px;
+    margin: 0;
+}
+
+.payment-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.payment-type-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.payment-type-card:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.payment-type-header {
+    margin-bottom: 16px;
+}
+
+.payment-type-info h4 {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.payment-type-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.payment-type-content {
+    margin-top: 16px;
+}
+
+.existing-payment-methods {
+    margin-bottom: 16px;
+}
+
+.payment-method-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.payment-method-info {
+    flex: 1;
+}
+
+.payment-method-info .payment-name {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.payment-method-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.payment-date {
+    color: #b0b0b0;
+    font-size: 12px;
+}
+
+.payment-method-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.no-payment-methods {
+    text-align: center;
+    padding: 24px 16px;
+}
+
+.no-payment-methods .empty-state {
+    margin-bottom: 16px;
+}
+
+.no-payment-methods h4 {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.no-payment-methods p {
+    color: #b0b0b0;
+    font-size: 14px;
+    margin: 0;
+}
+
+.payment-type-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.payment-type-actions .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.payment-type-actions .btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.payment-type-actions .btn-primary:hover {
+    background: #5a6fd8;
+}
+
+.payment-type-actions .btn-success {
+    background: #4CAF50;
+    color: white;
+}
+
+.payment-type-actions .btn-success:hover {
+    background: #45a049;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .payment-types-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .payment-type-card {
+        padding: 16px;
+    }
+    
+    .payment-method-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .payment-method-actions {
+        justify-content: center;
+    }
+}
+
+/* ========================================
+   ESTILOS PARA FORMULARIOS DE MEDIOS DE PAGO - FASE 4
+   ======================================== */
+
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.form-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 32px;
+    backdrop-filter: blur(10px);
+}
+
+.form-header {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.form-header h3 {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.form-header p {
+    color: #b0b0b0;
+    font-size: 14px;
+    margin: 0;
+}
+
+.payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-section {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.form-section h4 {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    color: #ffffff;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.form-control::placeholder {
+    color: #b0b0b0;
+}
+
+.form-control[type="date"] {
+    color-scheme: dark;
+}
+
+.form-control[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.form-control[type="number"]::-webkit-outer-spin-button,
+.form-control[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.form-errors {
+    margin-top: 8px;
+}
+
+.form-errors .error {
+    display: block;
+    color: #f44336;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-actions .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.form-actions .btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.form-actions .btn-primary:hover {
+    background: #5a6fd8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.form-actions .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.form-actions .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 16px;
+    }
+    
+    .form-card {
+        padding: 24px;
+    }
+    
+    .form-section {
+        padding: 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
     }
 }
