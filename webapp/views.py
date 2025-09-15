@@ -999,8 +999,7 @@ def view_client_payment_methods(request, cliente_id):
     except Cliente.DoesNotExist:
         messages.error(request, "Cliente no encontrado")
         return redirect("manage_client_payment_methods")
-
-
+ 
 @role_required("Administrador")
 def add_payment_method(request, cliente_id, tipo):
     """Vista para agregar un nuevo medio de pago"""

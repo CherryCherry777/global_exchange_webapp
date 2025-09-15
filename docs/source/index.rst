@@ -22,6 +22,7 @@ Contenido
    introduccion
    instalacion
    uso
+   modulos_documentacion
 
 Referencia de Módulos
 ---------------------
@@ -76,11 +77,11 @@ A continuación se listan los módulos principales de la aplicación web:
    :members:
    :undoc-members:
 
-.. automodule:: webapp.wsgi
+.. automodule:: web_project.wsgi
    :members:
    :undoc-members:
 
-.. automodule:: webapp.asgi
+.. automodule:: web_project.asgi
    :members:
    :undoc-members:
 
