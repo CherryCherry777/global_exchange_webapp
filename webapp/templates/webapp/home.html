@@ -246,19 +246,14 @@ function refreshRates() {
     }, 500);
 }
 (function(){
-    // Tasas de ejemplo
-    // 1 USD = 7300 PYG; 1 EUR = 7800 PYG; 1 EUR = 1.07 USD
-    const PYG_PER_USD = 7300;
-    const PYG_PER_EUR = 7800;
-    const USD_PER_EUR = 1.07;
+    // Tasas de referencia (ejemplo)
+    const PYG_BUY_USD  = 7350; // comprar USD con PYG
+    const PYG_SELL_USD = 7250; // vender USD a cambio de PYG
 
-    // Matriz de conversión completa
-    const rates = {
-        PYG: { PYG: 1, USD: 1/PYG_PER_USD, EUR: 1/PYG_PER_EUR },
-        USD: { PYG: PYG_PER_USD, USD: 1, EUR: 1/USD_PER_EUR },
-        EUR: { PYG: PYG_PER_EUR, USD: USD_PER_EUR, EUR: 1 },
-    };
+    const PYG_BUY_EUR  = 7850;
+    const PYG_SELL_EUR = 7750;
 
+    // Decimales por moneda
     const decimals = { PYG: 0, USD: 2, EUR: 2 };
     const nf = (cc) => new Intl.NumberFormat("es-ES", {
         minimumFractionDigits: decimals[cc], maximumFractionDigits: decimals[cc]
@@ -275,29 +270,67 @@ function refreshRates() {
     const out    = document.getElementById("simu-result-main");
     const detail = document.getElementById("simu-result-detail");
 
+    // Reglas: no misma moneda y siempre PYG presente
+    function enforceRules(changed){
+        if (from.value === to.value){
+            if (changed === "from"){
+                to.value = (to.value === "PYG") ? "USD" : "PYG";
+            } else {
+                from.value = (from.value === "PYG") ? "USD" : "PYG";
+            }
+        }
+        if (from.value !== "PYG" && to.value !== "PYG"){
+            if (changed === "from") to.value = "PYG";
+            else from.value = "PYG";
+        }
+    }
+
+    // Tasas según dirección
+    function getRate(a, b) {
+        if (a === "PYG" && b === "USD") return 1 / PYG_BUY_USD;
+        if (a === "USD" && b === "PYG") return PYG_SELL_USD;
+
+        if (a === "PYG" && b === "EUR") return 1 / PYG_BUY_EUR;
+        if (a === "EUR" && b === "PYG") return PYG_SELL_EUR;
+
+        // Cruzado USD <-> EUR derivado vía PYG
+        if (a === "USD" && b === "EUR") return PYG_SELL_USD / PYG_BUY_EUR;
+        if (a === "EUR" && b === "USD") return PYG_SELL_EUR / PYG_BUY_USD;
+
+        return 1;
+    }
+
+    // Cálculo
     function compute(){
+        enforceRules(null);
+
         const raw = parseFloat((amount.value || "0").replace(",", "."));
         if (isNaN(raw) || raw <= 0){
             out.textContent = "—";
             detail.textContent = "Ingresá un monto para calcular";
             return;
         }
+
         const a = from.value, b = to.value;
-        const rate = rates[a][b];
+        const rate = getRate(a, b);
         const val = raw * rate;
 
         out.textContent = `${nf(b).format(val)} ${b}`;
-
-        const oneAB = rate;
-        detail.innerHTML = `1 ${a} = ${nf(b).format(oneAB)} ${b}`;
-
+        detail.innerHTML = `1 ${a} = ${nf(b).format(rate)} ${b}`;
     }
 
+    // Eventos
     calc.addEventListener("click", compute);
-    [amount, from, to].forEach(el => el.addEventListener("input", compute));
+    amount.addEventListener("input", compute);
+    from.addEventListener("change", ()=>{ enforceRules("from"); compute(); });
+    to.addEventListener("change", ()=>{ enforceRules("to"); compute(); });
 
     swap.addEventListener("click", () => {
-        const t = from.value; from.value = to.value; to.value = t; compute();
+        let t = from.value; 
+        from.value = to.value; 
+        to.value = t; 
+        enforceRules("swap");
+        compute();
     });
 
     copyBt.addEventListener("click", async () => {
@@ -309,7 +342,9 @@ function refreshRates() {
     });
 
     clear.addEventListener("click", () => {
-        amount.value = ""; out.textContent = "—"; detail.textContent = "Ingresá un monto para calcular";
+        amount.value = ""; 
+        out.textContent = "—"; 
+        detail.textContent = "Ingresá un monto para calcular";
     });
 
     compute(); // cálculo inicial
