@@ -27,14 +27,14 @@
                data-id="{{ categoria.id }}"
                data-nombre="{{ categoria.nombre|escapejs }}"
                data-descuento="{{ categoria.descuento|floatformat:3 }}"
-               style="background-color: #f39c12; padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none;">
+               style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
                Editar
             </a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="4">No hay categorías registradas</td>
+          <td colspan="4" style="color: #ffffff; text-align: center; padding: 20px;">No hay categorías registradas</td>
         </tr>
         {% endfor %}
       </tbody>

@@ -1,361 +1,172 @@
 {% extends "webapp/base.html" %}
+{% load static %}
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Header con gradiente -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body text-center text-white py-5">
-                    <div class="mb-3">
-                        <i class="fas fa-user-plus fa-3x"></i>
-                    </div>
-                    <h1 class="display-5 fw-bold mb-2">{{ title }}</h1>
-                    <p class="lead mb-0">Complete la información del cliente para registrarlo en el sistema</p>
-                </div>
+<div class="admin-page-container create-client">
+    <!-- Header moderno -->
+    <div class="admin-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="{% url 'manage_clientes' %}" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Volver a Clientes
+                </a>
+                <h1 class="page-title">{{ title }}</h1>
+                <p class="page-subtitle">Complete la información del cliente para registrarlo en el sistema</p>
             </div>
         </div>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card border-0 shadow-lg">
-                <div class="card-body p-5">
-                    <form method="POST" id="clienteForm">
-                        {% csrf_token %}
-                        
-                        <!-- Información Personal -->
-                        <div class="row mb-5">
-                            <div class="col-12">
-                                <div class="d-flex align-items-center mb-4">
-                                    <div class="bg-primary rounded-circle p-2 me-3">
-                                        <i class="fas fa-user text-white"></i>
-                                    </div>
-                                    <h4 class="mb-0 text-primary">Información Personal</h4>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <label for="{{ form.tipoCliente.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-id-card me-2 text-primary"></i>{{ form.tipoCliente.label }}
-                                </label>
-                                {{ form.tipoCliente }}
-                                {% if form.tipoCliente.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.tipoCliente.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <label for="{{ form.categoria.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-star me-2 text-warning"></i>{{ form.categoria.label }}
-                                </label>
-                                {{ form.categoria }}
-                                {% if form.categoria.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.categoria.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <label for="{{ form.nombre.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-signature me-2 text-success"></i>{{ form.nombre.label }} <span class="text-danger">*</span>
-                                </label>
-                                {{ form.nombre }}
-                                {% if form.nombre.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.nombre.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-4" id="razonSocialField">
-                                <label for="{{ form.razonSocial.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-building me-2 text-info"></i>{{ form.razonSocial.label }}
-                                </label>
-                                {{ form.razonSocial }}
-                                {% if form.razonSocial.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.razonSocial.errors }}
-                                    </div>
-                                {% endif %}
-                                <small class="form-text text-muted">
-                                    <i class="fas fa-info-circle me-1"></i>Solo para personas jurídicas
-                                </small>
-                            </div>
-                        </div>
+    <!-- Formulario -->
+    <div class="form-container">
+        <div class="form-card">
+            <form method="POST" id="clienteForm">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <!-- Tipo de Cliente -->
+                    <div class="form-group">
+                        <label for="{{ form.tipoCliente.id_for_label }}" class="form-label">
+                            {{ form.tipoCliente.label }}
+                        </label>
+                        {{ form.tipoCliente }}
+                        {% if form.tipoCliente.errors %}
+                            <div class="form-error">{{ form.tipoCliente.errors }}</div>
+                        {% endif %}
+                    </div>
 
-                        <!-- Información de Documentos -->
-                        <div class="row mb-5">
-                            <div class="col-12">
-                                <div class="d-flex align-items-center mb-4">
-                                    <div class="bg-success rounded-circle p-2 me-3">
-                                        <i class="fas fa-file-alt text-white"></i>
-                                    </div>
-                                    <h4 class="mb-0 text-success">Documentos</h4>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <label for="{{ form.documento.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-id-badge me-2 text-primary"></i>{{ form.documento.label }} <span class="text-danger">*</span>
-                                </label>
-                                {{ form.documento }}
-                                {% if form.documento.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.documento.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-4" id="rucField">
-                                <label for="{{ form.ruc.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-hashtag me-2 text-warning"></i>{{ form.ruc.label }}
-                                </label>
-                                {{ form.ruc }}
-                                {% if form.ruc.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.ruc.errors }}
-                                    </div>
-                                {% endif %}
-                                <small class="form-text text-muted">
-                                    <i class="fas fa-info-circle me-1"></i>Solo para personas jurídicas
-                                </small>
-                            </div>
-                        </div>
+                    <!-- Categoría -->
+                    <div class="form-group">
+                        <label for="{{ form.categoria.id_for_label }}" class="form-label">
+                            {{ form.categoria.label }}
+                        </label>
+                        {{ form.categoria }}
+                        {% if form.categoria.errors %}
+                            <div class="form-error">{{ form.categoria.errors }}</div>
+                        {% endif %}
+                    </div>
 
-                        <!-- Información de Contacto -->
-                        <div class="row mb-5">
-                            <div class="col-12">
-                                <div class="d-flex align-items-center mb-4">
-                                    <div class="bg-info rounded-circle p-2 me-3">
-                                        <i class="fas fa-address-book text-white"></i>
-                                    </div>
-                                    <h4 class="mb-0 text-info">Información de Contacto</h4>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <label for="{{ form.correo.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-envelope me-2 text-primary"></i>{{ form.correo.label }} <span class="text-danger">*</span>
-                                </label>
-                                {{ form.correo }}
-                                {% if form.correo.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.correo.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <label for="{{ form.telefono.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-phone me-2 text-success"></i>{{ form.telefono.label }} <span class="text-danger">*</span>
-                                </label>
-                                {{ form.telefono }}
-                                {% if form.telefono.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.telefono.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-12 mb-4">
-                                <label for="{{ form.direccion.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-map-marker-alt me-2 text-danger"></i>{{ form.direccion.label }} <span class="text-danger">*</span>
-                                </label>
-                                {{ form.direccion }}
-                                {% if form.direccion.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.direccion.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
+                    <!-- Nombre -->
+                    <div class="form-group">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                            {{ form.nombre.label }} <span class="required">*</span>
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="form-error">{{ form.nombre.errors }}</div>
+                        {% endif %}
+                    </div>
 
-                        <!-- Estado del Cliente -->
-                        <div class="row mb-5">
-                            <div class="col-12">
-                                <div class="d-flex align-items-center mb-4">
-                                    <div class="bg-warning rounded-circle p-2 me-3">
-                                        <i class="fas fa-toggle-on text-white"></i>
-                                    </div>
-                                    <h4 class="mb-0 text-warning">Estado del Cliente</h4>
-                                </div>
-                            </div>
-                            
-                            <div class="col-12">
-                                <div class="form-check form-switch">
-                                    {{ form.estado }}
-                                    <label class="form-check-label fw-bold" for="{{ form.estado.id_for_label }}">
-                                        <i class="fas fa-check-circle me-2 text-success"></i>{{ form.estado.label }}
-                                    </label>
-                                </div>
-                                {% if form.estado.errors %}
-                                    <div class="text-danger mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.estado.errors }}
-                                    </div>
-                                {% endif %}
-                                <small class="form-text text-muted">
-                                    <i class="fas fa-info-circle me-1"></i>Los clientes inactivos no podrán realizar operaciones
-                                </small>
-                            </div>
-                        </div>
+                    <!-- Razón Social -->
+                    <div class="form-group" id="razonSocialField">
+                        <label for="{{ form.razonSocial.id_for_label }}" class="form-label">
+                            {{ form.razonSocial.label }}
+                        </label>
+                        {{ form.razonSocial }}
+                        {% if form.razonSocial.errors %}
+                            <div class="form-error">{{ form.razonSocial.errors }}</div>
+                        {% endif %}
+                        <small class="form-help">Solo para personas jurídicas</small>
+                    </div>
 
-                        <!-- Botones de Acción -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <a href="{% url 'manage_clientes' %}" class="btn btn-outline-secondary btn-lg px-4">
-                                        <i class="fas fa-arrow-left me-2"></i>Volver a la Lista
-                                    </a>
-                                    
-                                    <button type="submit" class="btn btn-success btn-lg px-5" id="submitBtn">
-                                        <i class="fas fa-save me-2"></i>
-                                        {% if action == 'create' %}
-                                            <span class="btn-text">Crear Cliente</span>
-                                        {% else %}
-                                            <span class="btn-text">Actualizar Cliente</span>
-                                        {% endif %}
-                                        <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
-                                    </button>
-                                </div>
-                            </div>
+                    <!-- Documento -->
+                    <div class="form-group">
+                        <label for="{{ form.documento.id_for_label }}" class="form-label">
+                            {{ form.documento.label }} <span class="required">*</span>
+                        </label>
+                        {{ form.documento }}
+                        {% if form.documento.errors %}
+                            <div class="form-error">{{ form.documento.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- RUC -->
+                    <div class="form-group" id="rucField">
+                        <label for="{{ form.ruc.id_for_label }}" class="form-label">
+                            {{ form.ruc.label }}
+                        </label>
+                        {{ form.ruc }}
+                        {% if form.ruc.errors %}
+                            <div class="form-error">{{ form.ruc.errors }}</div>
+                        {% endif %}
+                        <small class="form-help">Solo para personas jurídicas</small>
+                    </div>
+
+                    <!-- Correo -->
+                    <div class="form-group">
+                        <label for="{{ form.correo.id_for_label }}" class="form-label">
+                            {{ form.correo.label }} <span class="required">*</span>
+                        </label>
+                        {{ form.correo }}
+                        {% if form.correo.errors %}
+                            <div class="form-error">{{ form.correo.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Teléfono -->
+                    <div class="form-group">
+                        <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                            {{ form.telefono.label }} <span class="required">*</span>
+                        </label>
+                        {{ form.telefono }}
+                        {% if form.telefono.errors %}
+                            <div class="form-error">{{ form.telefono.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Dirección -->
+                    <div class="form-group full-width">
+                        <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                            {{ form.direccion.label }} <span class="required">*</span>
+                        </label>
+                        {{ form.direccion }}
+                        {% if form.direccion.errors %}
+                            <div class="form-error">{{ form.direccion.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="form-group full-width">
+                        <div class="form-checkbox">
+                            {{ form.estado }}
+                            <label for="{{ form.estado.id_for_label }}" class="form-label">
+                                {{ form.estado.label }}
+                            </label>
                         </div>
-                    </form>
+                        {% if form.estado.errors %}
+                            <div class="form-error">{{ form.estado.errors }}</div>
+                        {% endif %}
+                        <small class="form-help">Los clientes inactivos no podrán realizar operaciones</small>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Botones de Acción -->
+                <div class="form-actions">
+                    <a href="{% url 'manage_clientes' %}" class="modern-btn secondary-btn">
+                        Volver a Clientes
+                    </a>
+                    
+                    <button type="submit" class="modern-btn primary-btn" id="submitBtn">
+                        {% if action == 'create' %}
+                            Crear Cliente
+                        {% else %}
+                            Actualizar Cliente
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
-<style>
-/* Estilos personalizados para el formulario */
-.form-control {
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    padding: 12px 15px;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    transform: translateY(-2px);
-}
-
-.form-select {
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    padding: 12px 15px;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
-
-.form-select:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    transform: translateY(-2px);
-}
-
-.form-check-input {
-    width: 3rem;
-    height: 1.5rem;
-    border-radius: 1rem;
-}
-
-.form-check-input:checked {
-    background-color: #28a745;
-    border-color: #28a745;
-}
-
-.btn {
-    border-radius: 10px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-.btn-success {
-    background: linear-gradient(45deg, #28a745, #20c997);
-    border: none;
-}
-
-.btn-outline-secondary {
-    border: 2px solid #6c757d;
-    color: #6c757d;
-}
-
-.btn-outline-secondary:hover {
-    background-color: #6c757d;
-    border-color: #6c757d;
-}
-
-.card {
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.form-label {
-    font-size: 16px;
-    margin-bottom: 8px;
-}
-
-.text-danger {
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.form-text {
-    font-size: 14px;
-    margin-top: 5px;
-}
-
-/* Animaciones */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.card {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .display-5 {
-        font-size: 2rem;
-    }
-    
-    .btn-lg {
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-    }
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const tipoClienteSelect = document.getElementById('{{ form.tipoCliente.id_for_label }}');
     const razonSocialField = document.getElementById('razonSocialField');
     const rucField = document.getElementById('rucField');
-    const form = document.getElementById('clienteForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const btnText = submitBtn.querySelector('.btn-text');
-    const spinner = submitBtn.querySelector('.spinner-border');
     
     // Función para mostrar/ocultar campos según el tipo de cliente
     function toggleFields() {
@@ -369,41 +180,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Event listener para el cambio de tipo de cliente
-    tipoClienteSelect.addEventListener('change', toggleFields);
-    toggleFields(); // Ejecutar al cargar la página
+    if (tipoClienteSelect) {
+        tipoClienteSelect.addEventListener('change', toggleFields);
+        toggleFields(); // Ejecutar al cargar la página
+    }
     
-    // Animación del botón de envío
-    form.addEventListener('submit', function() {
-        btnText.textContent = 'Procesando...';
-        spinner.classList.remove('d-none');
-        submitBtn.disabled = true;
+    // Solución adicional para la visibilidad de opciones en selects
+    function fixSelectOptions() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            // Forzar estilos en las opciones
+            const options = select.querySelectorAll('option');
+            options.forEach(option => {
+                option.style.backgroundColor = '#1a1a2e';
+                option.style.color = '#ffffff';
+                option.style.padding = '8px 12px';
+            });
+            
+            // Asegurar que el select tenga el color correcto
+            select.style.color = '#ffffff';
+            select.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        });
+    }
+    
+    // Ejecutar la corrección al cargar y cuando se abra un select
+    fixSelectOptions();
+    
+    // Re-ejecutar cuando se abra cualquier select
+    document.addEventListener('click', function(e) {
+        if (e.target.tagName === 'SELECT') {
+            setTimeout(fixSelectOptions, 100);
+        }
     });
     
-    // Validación en tiempo real
-    const inputs = form.querySelectorAll('input, select');
-    inputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            if (this.value.trim() === '' && this.hasAttribute('required')) {
-                this.classList.add('is-invalid');
-            } else {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            }
-        });
-    });
-    
-    // Efecto de hover en los campos
-    inputs.forEach(input => {
-        input.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-        });
-        
-        input.addEventListener('mouseleave', function() {
-            if (document.activeElement !== this) {
-                this.style.transform = 'translateY(0)';
-            }
-        });
-    });
+    // También ejecutar cuando se haga focus en un select
+    document.addEventListener('focus', function(e) {
+        if (e.target.tagName === 'SELECT') {
+            setTimeout(fixSelectOptions, 100);
+        }
+    }, true);
 });
 </script>
 {% endblock %}
