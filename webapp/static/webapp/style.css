@@ -7643,3 +7643,62 @@ body main .admin-panel .card-description {
         width: 100%;
     }
 }
+
+/* Currency table specific styles */
+.currency-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-top: 20px;
+}
+
+.currency-table th,
+.currency-table td {
+    padding: 12px;
+    text-align: center;
+    color: white;   /* font color white */
+    overflow-wrap: break-word; /* wrap long words */
+    word-break: break-word;
+    white-space: normal; /* allow text to wrap */
+    font-size: 0.9rem;
+}
+
+/* Column widths (balanced for readability) */
+.currency-table th:nth-child(1),
+.currency-table td:nth-child(1) {
+    width: 8%;  /* Bandera */
+}
+.currency-table th:nth-child(2),
+.currency-table td:nth-child(2) {
+    width: 15%; /* Moneda */
+}
+.currency-table th:nth-child(3),
+.currency-table td:nth-child(3) {
+    width: 10%; /* Precio Base */
+}
+.currency-table th:nth-child(4),
+.currency-table td:nth-child(4) {
+    width: 12%; /* Comisión Venta */
+}
+.currency-table th:nth-child(5),
+.currency-table td:nth-child(5) {
+    width: 12%; /* Comisión Compra */
+}
+.currency-table th:nth-child(6),
+.currency-table td:nth-child(6) {
+    width: 13%; /* Decimales */
+}
+.currency-table th:nth-child(7),
+.currency-table td:nth-child(7) {
+    width: 10%; /* Estado */
+}
+.currency-table th:nth-child(8),
+.currency-table td:nth-child(8) {
+    width: 20%; /* Acciones */
+}
+
+/* Header style */
+.currency-table th {
+    background-color: #333;
+    font-weight: bold;
+}
