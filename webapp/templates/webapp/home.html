@@ -246,6 +246,7 @@ function refreshRates() {
     }, 500);
 }
 
+
 (function () {
   // UI refs
   const amount = document.getElementById("simu-amount");
@@ -282,6 +283,7 @@ function refreshRates() {
       selectEl.value = preferCode;
     } else if (CODES.length) {
       selectEl.value = CODES[0];
+
     }
   }
 
@@ -325,11 +327,13 @@ function refreshRates() {
 
     // Swap siempre deja distintos
     swap.addEventListener("click", () => {
+
       const temp = from.value;
       from.value = to.value;
       to.value = temp;
       enforceDifferent(from, to);
       compute();
+
     });
 
     calc.addEventListener("click", compute);
@@ -343,20 +347,22 @@ function refreshRates() {
     });
 
     clear.addEventListener("click", () => {
+
       amount.value = "";
       out.textContent = "—";
       detail.textContent = "Ingresá un monto para calcular";
+
     });
   }
 
 async function boot() {
     try {
-        // 👇 acá pedimos al backend
+        // acá se pide al backend
         const res = await fetch("{% url 'api_currencies' %}", { cache: "no-store" });
         const payload = await res.json();
         const items = payload.items || [];
 
-        console.log("Monedas recibidas:", items); // 👈 podés ver en consola lo que trae el backend
+        console.log("Monedas recibidas:", items); // para poder ver en consola lo que trae el backend
 
         // Llenar la estructura META y CODES
         const byCode = {};
