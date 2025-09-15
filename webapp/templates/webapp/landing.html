@@ -1,0 +1,130 @@
+{% extends 'webapp/base.html' %}
+
+{% load static %}
+
+{% load permissions_tags %}
+
+{% block title %}Panel de Administración{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+{% if is_admin %}
+<div class="admin-panel">
+    <!-- Header Section -->
+    <div class="admin-header">
+        <h1 class="admin-title">Panel de administración</h1>
+        <p class="admin-subtitle">Gestión centralizada del sistema Global Exchange</p>
+    </div>
+
+    <!-- Metrics Section -->
+    <div class="admin-metrics">
+        <div class="metric-card">
+            <div class="metric-number">3.450</div>
+            <div class="metric-label">Usuarios Activos</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-number">8</div>
+            <div class="metric-label">Monedas Activas</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-number">1.568</div>
+            <div class="metric-label">Clientes Activos</div>
+        </div>
+    </div>
+
+    <!-- Management Buttons Grid -->
+    <div class="admin-grid">
+        <a href="{% url 'manage_users' %}" class="admin-card">
+            <div class="card-icon">
+                <img src="{% static 'webapp/panel_gestiones/1.AdministrarUsuarios.png' %}" alt="Administrar Usuarios">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Administrar Usuarios</h3>
+                <p class="card-description">Visualizar, editar y activar/desactivar usuarios</p>
+            </div>
+        </a>
+
+        <a href="{% url 'manage_roles' %}" class="admin-card">
+            <div class="card-icon">
+                <img src="{% static 'webapp/panel_gestiones/2.AdministrarRoles.png' %}" alt="Administrar Roles">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Administrar Roles</h3>
+                <p class="card-description">Visualizar, crear, eliminar, activar/desactivar roles y permisos</p>
+            </div>
+        </a>
+
+        <a href="{% url 'manage_user_roles' %}" class="admin-card">
+            <div class="card-icon">
+                <img src="{% static 'webapp/panel_gestiones/3.AdministrarRolesdeUsuario.png' %}" alt="Administrar Roles de Usuario">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Administrar Roles de Usuarios</h3>
+                <p class="card-description">Añadir/eliminar rol asociado a un usuario</p>
+            </div>
+        </a>
+
+        <a href="{% url 'manage_clientes' %}" class="admin-card">
+            <div class="card-icon">
+                <img src="{% static 'webapp/panel_gestiones/4.AdministrarClientes.png' %}" alt="Administrar Clientes">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Administrar Clientes</h3>
+                <p class="card-description">Visualizar, crear, editar y desactivar un cliente</p>
+            </div>
+        </a>
+
+        <a href="{% url 'asignar_cliente_usuario' %}" class="admin-card">
+            <div class="card-icon">
+                <img src="{% static 'webapp/panel_gestiones/5.Asignar clientes a usuario.png' %}" alt="Asignar Clientes a Usuarios">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Asignar Clientes a Usuarios</h3>
+                <p class="card-description">Realizar la asignación cliente a usuario</p>
+            </div>
+        </a>
+
+        <a href="{% url 'manage_categories' %}" class="admin-card">
+            <div class="card-icon">
+                <img src="{% static 'webapp/panel_gestiones/7.AdministrarCategorias.png' %}" alt="Administrar Categorías">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Administrar Categorías</h3>
+                <p class="card-description">Visualizar y crear categorías. Editar porcentaje de descuento.</p>
+            </div>
+        </a>
+
+        <a href="{% url 'currency_list' %}" class="admin-card">
+            <div class="card-icon">
+                <img src="{% static 'webapp/panel_gestiones/6.AdministrarMonedas.png' %}" alt="Administrar Monedas">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Administrar Monedas</h3>
+                <p class="card-description">Visualizar, crear, editar y desactivar monedas</p>
+            </div>
+        </a>
+
+        <a href="{% url 'manage_client_payment_methods' %}" class="admin-card">
+            <div class="card-icon">
+                <img src="{% static 'webapp/panel_gestiones/5.Asignar clientes a usuario.png' %}" alt="Administrar Medios de Pago">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Administrar Medios de Pago</h3>
+                <p class="card-description">Gestionar los métodos de pago de cada cliente</p>
+            </div>
+        </a>
+
+    </div>
+</div>
+{% else %}
+<div class="homepage-container">
+    <h1>Bienvenido a Global Exchange!</h1>
+    <p>Proveemos el mejor servicio de cambio de monedas.</p>
+    <div class="homepage-links">
+        <a href="{% url 'public_home' %}" class="home-btn">Ir al Inicio</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

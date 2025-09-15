@@ -11,6 +11,7 @@ build/
 
 # Virtual environment
 venv/
+.venv/
 
 # Django
 *.sqlite3
@@ -29,3 +30,9 @@ staticfiles/
 
 # MacOS
 .DS_Store
+.migrations/
+
+# Archivos generados por Sphinx
+docs/_build/
+docs/_static/
+docs/_templates/

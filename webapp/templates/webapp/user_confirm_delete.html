@@ -1,0 +1,6 @@
+<h1>Confirmar Eliminacion</h1>
+<p>Seguro que desea eliminar a {{ object.username }}?</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">Eliminar</button>
+</form>

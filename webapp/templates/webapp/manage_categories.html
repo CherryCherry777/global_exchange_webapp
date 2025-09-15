@@ -1,0 +1,150 @@
+{% extends "webapp/base.html" %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="categories-container">
+  <!-- Panel izquierdo: tabla -->
+  <div class="categories-left-panel">
+    <h2>Listado de Categorías</h2>
+    <table class="categories-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Descuento(%)</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for categoria in categorias %}
+        <tr>
+          <td>{{ categoria.id }}</td>
+          <td>{{ categoria.nombre }}</td>
+          <td>{{ categoria.descuento|porcentaje }}</td>
+          <td>
+            <a href="javascript:void(0);"
+               class="edit-btn"
+               data-id="{{ categoria.id }}"
+               data-nombre="{{ categoria.nombre|escapejs }}"
+               data-descuento="{{ categoria.descuento|floatformat:3 }}"
+               style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 5px 8px; border-radius: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
+               Editar
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="color: #ffffff; text-align: center; padding: 20px;">No hay categorías registradas</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Panel derecho: formularios -->
+  <div class="categories-right-panel">
+    <!-- Botones superiores -->
+    <div class="categories-form-tabs">
+      <button type="button" onclick="showForm('crear')">Crear</button>
+      <button type="button" onclick="showForm('editar')">Editar</button>
+    </div>
+
+    <!-- Formulario Editar -->
+    <form id="form-editar" class="categories-form-content" method="POST">
+      {% csrf_token %}
+      <h2>Editar Categoría</h2>
+
+      <label for="editar-id">ID:</label>
+      <input type="text" id="editar-id" name="id" readonly>
+
+      <label for="editar-nombre">Nombre:</label>
+      <input type="text" id="editar-nombre" name="nombre" placeholder="Ingrese nombre">
+
+      <label for="editar-descuento">Descuento (%):</label>
+      <input type="number" id="editar-descuento" name="descuento" step="0.1" min="0" max="100" placeholder="0-100">
+
+      <button type="submit">Guardar Cambios</button>
+    </form>
+
+    <!-- Formulario Crear -->
+    <form id="form-crear" class="categories-form-content active" method="POST">
+      {% csrf_token %}
+      <h2>Crear Nueva Categoría</h2>
+
+      <label for="crear-nombre">Nombre:</label>
+      <input type="text" id="crear-nombre" name="nombre" placeholder="Ingrese nombre">
+
+      <label for="crear-descuento">Descuento (%):</label>
+      <input type="number" id="crear-descuento" name="descuento" step="0.1" min="0" max="100" placeholder="0-100">
+
+      <button type="submit">Crear</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function showForm(formId) {
+    document.querySelectorAll('.categories-form-content').forEach(f => f.classList.remove('active'));
+    document.getElementById(`form-${formId}`).classList.add('active');
+}
+
+// Editar desde la tabla
+document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const nombre = this.dataset.nombre;
+        const descuento = this.dataset.descuento;
+
+        showForm('editar');
+
+        document.getElementById('editar-id').value = id;
+        document.getElementById('editar-nombre').value = nombre;
+        document.getElementById('editar-descuento').value = (descuento*100).toFixed(1);
+    });
+});
+
+// Validación JS antes de enviar
+['editar', 'crear'].forEach(formId => {
+    document.getElementById(`form-${formId}`).addEventListener('submit', function(e){
+        const inputDescuento = this.querySelector('input[name="descuento"]');
+        const inputNombre = this.querySelector('input[name="nombre"]');
+        const value = parseFloat(inputDescuento.value);
+
+        // Validar nombre no vacío
+        if(!inputNombre.value.trim()){
+            alert("El nombre no puede estar vacío");
+            e.preventDefault();
+            return;
+        }
+
+        // Validar rango de porcentaje
+        if(value < 0 || value > 100){
+            alert("El porcentaje debe estar entre 0 y 100");
+            e.preventDefault();
+            return;
+        }
+
+        // Validar máximo un decimal
+        if(value.toString().includes('.') && value.toString().split('.')[1].length > 1){
+            alert("El porcentaje solo puede tener un decimal");
+            e.preventDefault();
+            return;
+        }
+
+        // Convertir a decimal antes de enviar
+        inputDescuento.value = (value / 100).toFixed(3);
+    });
+});
+</script>
+
+<style>
+.add-btn:hover, .edit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+.categories-form-content { display:none; }
+.categories-form-content.active { display:block; }
+</style>
+{% endblock %}
+

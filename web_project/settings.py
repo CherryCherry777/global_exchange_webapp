@@ -1,7 +1,9 @@
 from pathlib import Path
 import environ
 import os
+from django.urls import reverse_lazy
 
+<<<<<<< HEAD
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # === Django-environ ===
@@ -17,11 +19,46 @@ AUTH_USER_MODEL = 'webapp.CustomUser'
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 LOGIN_REDIRECT_URL = "profile"
 LOGOUT_REDIRECT_URL = "login"
+=======
+env = environ.Env()
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+env_file = BASE_DIR / ".env"
+if env_file.exists():
+    environ.Env.read_env(str(env_file))
+else:
+    print("⚠️ WARNING: .env file not found at", env_file)
+
+#environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+
+
+#print("DB_NAME", env("DB_NAME", default="not set"))
+
+# Usuario custom
+AUTH_USER_MODEL = 'webapp.CustomUser'
+
+# Autenticación
+LOGIN_URL = reverse_lazy('login')
+LOGIN_REDIRECT_URL = '/landing/'
+LOGOUT_REDIRECT_URL = "login"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = env("EMAIL_HOST", default="sandbox.smtp.mailtrap.io")
+EMAIL_PORT = env.int("EMAIL_PORT", default=2525)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+DEFAULT_FROM_EMAIL = "Global Exchange <noreply@mailtrap.io>"
+
+>>>>>>> release/1.1
 
 # Seguridad
 SECRET_KEY = 'django-insecure-)p9*n*q!wuaxfx-f4lnm8($i^606cz*#29!6t5rb2wigihdq-t'
 DEBUG = env.bool('DEBUG', default=True)
+<<<<<<< HEAD
 ALLOWED_HOSTS = []
+=======
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+>>>>>>> release/1.1
 
 # Apps
 INSTALLED_APPS = [
@@ -85,16 +122,32 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internacionalización
+<<<<<<< HEAD
 LANGUAGE_CODE = 'en-us'
+=======
+LANGUAGE_CODE = 'es'
+>>>>>>> release/1.1
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
 # Archivos estáticos
 STATIC_URL = '/static/'
+<<<<<<< HEAD
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+=======
+
+#el archivo statics no se encuentra en la raíz del directorio del proyecto. 
+#comento para que pueda configurar los test, ya que esta línea hace que busque en la raíz, pero esta en otra carpeta
+#STATICFILES_DIRS = [BASE_DIR / "static"]
+>>>>>>> release/1.1
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

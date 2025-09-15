@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{% block title %}Global Exchange{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'webapp/style.css' %}" />
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if messages %}
+        <div id="toast-container">
+            {% for message in messages %}
+                <div class="toast-message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <header class="header-nav">
+        <nav class="nav-container">
+            <!-- Logo on the left -->
+            <div class="logo-container">
+                <div class="logo-wrapper">
+                    <img src="{% static 'webapp/logo.png' %}" alt="Global Exchange Logo" class="logo-image">
+                </div>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'landing' %}" class="logo-link"></a>
+                {% else %}
+                    <a href="{% url 'public_home' %}" class="logo-link"></a>
+                {% endif %}
+            </div>
+    
+            <!-- Navigation links in the center -->
+            <div class="nav-menu">
+                <a href="{% url 'public_home' %}" class="nav-link">Inicio</a>
+                <a href="#" class="nav-link">Histórico</a>
+                <a href="#" class="nav-link">Servicios</a>
+                <a href="#" class="nav-link">Contacto</a>
+                <a href="#" class="nav-link">Acerca de</a>
+            </div>
+    
+            <!-- Auth buttons on the right -->
+            <div class="nav-auth">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}" class="nav-link">Perfil</a>
+                    <a href="{% url 'logout' %}" class="nav-link">Salir</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link">Iniciar Sesión</a>
+                    <a href="{% url 'register' %}" class="btn-register">Registrarse</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Global Exchange</h4>
+                    <p>Tu plataforma confiable para el intercambio de divisas y servicios financieros globales.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Servicios</h4>
+                    <ul>
+                        <li><a href="#">Consulta de Tasas</a></li>
+                        <li><a href="#">Compra y Venta</a></li>
+                        <li><a href="#">Historial</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces</h4>
+                    <ul>
+                        <li><a href="#">Acerca de</a></li>
+                        <li><a href="#">Contacto</a></li>
+                        <li><a href="#">Términos</a></li>
+                        <li><a href="#">Privacidad</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p>📧 info@globalexchange.com</p>
+                    <p>📞 +595 21 123-4567</p>
+                    <p>📍 Asunción, Paraguay</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Global Exchange. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll Animation Observer
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all service rows and title when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const serviceRows = document.querySelectorAll('.service-row');
+            const servicesTitle = document.querySelector('.homepage-services h2');
+            
+            serviceRows.forEach(row => {
+                observer.observe(row);
+            });
+            
+            if (servicesTitle) {
+                observer.observe(servicesTitle);
+            }
+        });
+
+        setTimeout(function() {
+            var toasts = document.querySelectorAll('.toast-message');
+            toasts.forEach(function(toast) {
+                toast.style.display = 'none';
+            });
+        }, 4000); // Oculta después de 4 segundos
+    </script>
+</body>
+</html>

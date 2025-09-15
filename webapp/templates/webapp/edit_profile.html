@@ -1,0 +1,11 @@
+{% extends 'webapp/base.html' %}
+
+<body>
+<h2>Editar Perfil</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Guardar</button>
+</form>
+<a href="{% url 'profile' %}">Cancelar</a>
+</body>

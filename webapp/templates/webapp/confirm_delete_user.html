@@ -1,0 +1,14 @@
+{% extends "webapp/base.html" %}
+{% block title %}Confirmar Eliminacion de Usuario{% endblock %}
+
+{% block content %}
+<div class="homepage-container">
+    <h2>Eliminar Usuario: {{ user_obj.username }}</h2>
+    <p>Esta seguro de querer eliminar a este usuario?</p>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="add-btn">Si, Eliminar</button>
+        <a href="{% url 'manage_users' %}" class="header-btn">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
