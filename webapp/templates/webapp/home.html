@@ -40,8 +40,8 @@
                         {% endif %}
                         <span>{{ currency.name }}</span>
                     </td>
-                    <td style="padding: 10px 20px; text-align: right; font-size: 1.1em;">{{ currency.buy_rate|floatformat:currency.decimales_monto }}</td>
-                    <td style="padding: 10px 8px; text-align: right; font-size: 1.1em;">{{ currency.sell_rate|floatformat:currency.decimales_monto }}</td>
+                    <td style="padding: 10px 20px; text-align: right; font-size: 1.1em;">{{ currency.totalCompra|floatformat:currency.decimales_monto }}</td>
+                    <td style="padding: 10px 8px; text-align: right; font-size: 1.1em;">{{ currency.totalVenta|floatformat:currency.decimales_monto }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

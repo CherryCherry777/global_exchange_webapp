@@ -4,12 +4,8 @@
 
 {% block title %}Crear Nueva Moneda{% endblock %}
 
-{% block extra_css %}
-{% endblock %}
-
 {% block content %}
 <div class="admin-page-container">
-    <!-- Admin Page Header -->
     <div class="admin-page-header">
         <div class="header-content">
             <div class="header-left">
@@ -20,12 +16,11 @@
                     Volver a Monedas
                 </a>
                 <h1 class="page-title">Crear Nueva Moneda</h1>
-                <p class="page-subtitle">Agrega una nueva moneda al sistema con sus tasas de cambio</p>
+                <p class="page-subtitle">Agrega una nueva moneda al sistema</p>
             </div>
         </div>
     </div>
 
-    <!-- Messages Container -->
     {% if messages %}
     <div class="messages-container">
         {% for message in messages %}
@@ -56,95 +51,76 @@
     </div>
     {% endif %}
 
-    <!-- Create Currency Form Container -->
     <div class="create-currency-form-container">
         <div class="form-header">
-            <h3>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="16"/>
-                    <line x1="8" y1="12" x2="16" y2="12"/>
-                </svg>
-                Información de la Moneda
-            </h3>
+            <h3>Información de la Moneda</h3>
         </div>
-        
+
         <form method="POST" action="{% url 'create_currency' %}" enctype="multipart/form-data" class="create-currency-form">
             {% csrf_token %}
-            
-            <!-- Basic Info Row -->
+
+            <!-- Información básica -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="id_code" class="form-label">Código *</label>
-                    <input type="text" name="code" id="id_code" class="form-input" placeholder="USD, EUR, etc." maxlength="3" required>
-                    <small class="form-help">Código ISO de 3 letras (ej: USD, EUR, GBP)</small>
+                    <label for="id_code">Código *</label>
+                    <input type="text" name="code" id="id_code" maxlength="3" placeholder="USD, EUR, etc." required>
                 </div>
                 <div class="form-group">
-                    <label for="id_name" class="form-label">Nombre *</label>
-                    <input type="text" name="name" id="id_name" class="form-input" placeholder="Dólar Estadounidense" required>
-                    <small class="form-help">Nombre completo de la moneda</small>
+                    <label for="id_name">Nombre *</label>
+                    <input type="text" name="name" id="id_name" placeholder="Dólar Estadounidense" required>
                 </div>
                 <div class="form-group">
-                    <label for="id_symbol" class="form-label">Símbolo *</label>
-                    <input type="text" name="symbol" id="id_symbol" class="form-input" placeholder="$" required>
-                    <small class="form-help">Símbolo de la moneda (ej: $, €, £)</small>
+                    <label for="id_symbol">Símbolo *</label>
+                    <input type="text" name="symbol" id="id_symbol" placeholder="$" required>
                 </div>
             </div>
 
-            <!-- Rates Row -->
+            <!-- Precios y comisiones -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="id_buy_rate" class="form-label">Tasa de Compra *</label>
-                    <input type="number" name="buy_rate" id="id_buy_rate" class="form-input" step="0.0001" placeholder="1.0000" required>
-                    <small class="form-help">Tasa a la que se compra la moneda</small>
+                    <label for="id_base_price">Precio Base *</label>
+                    <input type="number" name="base_price" id="id_base_price" step="0.00000001" value="1.0" required>
                 </div>
                 <div class="form-group">
-                    <label for="id_sell_rate" class="form-label">Tasa de Venta *</label>
-                    <input type="number" name="sell_rate" id="id_sell_rate" class="form-input" step="0.0001" placeholder="1.0000" required>
-                    <small class="form-help">Tasa a la que se vende la moneda</small>
+                    <label for="id_comision_venta">Comisión Venta *</label>
+                    <input type="number" name="comision_venta" id="id_comision_venta" step="0.00000001" value="1.0" required>
                 </div>
                 <div class="form-group">
-                    <label for="id_flag_image" class="form-label">Bandera</label>
-                    <input type="file" name="flag_image" id="id_flag_image" class="form-input file-input" accept="image/*">
-                    <small class="form-help">Dimensión sugerida: 255x135 px (opcional)</small>
+                    <label for="id_comision_compra">Comisión Compra *</label>
+                    <input type="number" name="comision_compra" id="id_comision_compra" step="0.00000001" value="1.0" required>
                 </div>
             </div>
 
-            <!-- Decimals Row -->
+            <!-- Decimales -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="id_decimales_cotizacion" class="form-label">Decimales para Tasa *</label>
-                    <input type="number" name="decimales_cotizacion" id="id_decimales_cotizacion" class="form-input" min="0" max="8" value="4" required>
-                    <small class="form-help">Número de decimales para las tasas (0-8)</small>
+                    <label for="id_decimales_cotizacion">Decimales Tasa *</label>
+                    <input type="number" name="decimales_cotizacion" id="id_decimales_cotizacion" min="0" max="8" value="4" required>
                 </div>
                 <div class="form-group">
-                    <label for="id_decimales_monto" class="form-label">Decimales para Monto *</label>
-                    <input type="number" name="decimales_monto" id="id_decimales_monto" class="form-input" min="0" max="8" value="2" required>
-                    <small class="form-help">Número de decimales para los montos (0-8)</small>
+                    <label for="id_decimales_monto">Decimales Monto *</label>
+                    <input type="number" name="decimales_monto" id="id_decimales_monto" min="0" max="8" value="2" required>
                 </div>
                 <div class="form-group">
-                    <!-- Empty space for alignment -->
+                    <label for="id_flag_image">Bandera</label>
+                    <input type="file" name="flag_image" id="id_flag_image" accept="image/*">
+                    <small>Dimensión sugerida: 255x135 px</small>
                 </div>
             </div>
 
+            <!-- Estado activo -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="is_active" checked> Activo
+                    </label>
+                </div>
+            </div>
+
+            <!-- Botones -->
             <div class="form-actions">
-                <button type="submit" class="create-currency-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14,2 14,8 20,8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                        <polyline points="10,9 9,9 8,9"/>
-                    </svg>
-                    Crear Moneda
-                </button>
-                <a href="{% url 'currency_list' %}" class="cancel-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                    Cancelar
-                </a>
+                <button type="submit" class="create-currency-btn">Crear Moneda</button>
+                <a href="{% url 'currency_list' %}" class="cancel-btn">Cancelar</a>
             </div>
         </form>
     </div>

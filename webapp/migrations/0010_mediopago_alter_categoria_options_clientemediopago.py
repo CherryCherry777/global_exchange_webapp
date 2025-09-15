@@ -33,22 +33,4 @@ class Migration(migrations.Migration):
             name='categoria',
             options={'ordering': ['id'], 'verbose_name': 'Categoría', 'verbose_name_plural': 'Categorías'},
         ),
-        migrations.CreateModel(
-            name='ClienteMedioPago',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('habilitado', models.BooleanField(default=True, verbose_name='Habilitado')),
-                ('fecha_asignacion', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Asignación')),
-                ('fecha_actualizacion', models.DateTimeField(auto_now=True, verbose_name='Fecha de Actualización')),
-                ('cliente', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='medios_pago', to='webapp.cliente', verbose_name='Cliente')),
-                ('medio_pago', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='clientes', to='webapp.mediopago', verbose_name='Medio de Pago')),
-            ],
-            options={
-                'verbose_name': 'Cliente-Medio de Pago',
-                'verbose_name_plural': 'Clientes-Medios de Pago',
-                'db_table': 'cliente_medio_pago',
-                'ordering': ['cliente__nombre', 'medio_pago__nombre'],
-                'unique_together': {('cliente', 'medio_pago')},
-            },
-        ),
     ]

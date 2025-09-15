@@ -40,8 +40,14 @@ def public_home(request):
         user_groups = [g.name for g in request.user.groups.all()]
         if "Administrador" in user_groups or "Analista" in user_groups:
             can_access_gestiones = True
+
     currencies = Currency.objects.filter(is_active=True)
     
+    # Agregar atributo dinámico "total" a cada moneda
+    for currency in currencies:
+        currency.totalVenta = float(currency.base_price) + float(currency.comision_venta)
+        currency.totalCompra = float(currency.base_price) - float(currency.comision_compra)
+
     # Obtener la fecha de la última actualización de las monedas
     last_update = None
     if currencies.exists():
@@ -580,14 +586,16 @@ def create_currency(request):
         code = request.POST.get('code')
         name = request.POST.get('name')
         symbol = request.POST.get('symbol')
-        buy_rate = request.POST.get('buy_rate')
-        sell_rate = request.POST.get('sell_rate')
-        flag_image = request.FILES.get('flag_image')
+        base_price = request.POST.get('base_price')
+        comision_venta = request.POST.get('comision_venta')
+        comision_compra = request.POST.get('comision_compra')
         decimales_cotizacion = request.POST.get('decimales_cotizacion')
         decimales_monto = request.POST.get('decimales_monto')
+        flag_image = request.FILES.get('flag_image')
+        is_active = request.POST.get('is_active') == "on"
 
         # Validar que el código no exista
-        if Currency.objects.filter(code=code).exists():
+        if Currency.objects.filter(code=code.upper()).exists():
             messages.error(request, 'El código de moneda ya existe.')
             return render(request, 'webapp/create_currency.html')
 
@@ -596,11 +604,13 @@ def create_currency(request):
             code=code.upper(),
             name=name,
             symbol=symbol,
-            buy_rate=buy_rate,
-            sell_rate=sell_rate,
-            flag_image=flag_image,
+            base_price=base_price,
+            comision_venta=comision_venta,
+            comision_compra=comision_compra,
             decimales_cotizacion=decimales_cotizacion,
-            decimales_monto=decimales_monto
+            decimales_monto=decimales_monto,
+            flag_image=flag_image,
+            is_active=is_active,
         )
         messages.success(request, 'Moneda creada exitosamente.')
         return redirect('currency_list')
@@ -613,15 +623,24 @@ def edit_currency(request, currency_id):
     currency = get_object_or_404(Currency, id=currency_id)
     
     if request.method == 'POST':
-        currency.name = request.POST.get('name')
-        currency.symbol = request.POST.get('symbol')
-        currency.buy_rate = request.POST.get('buy_rate')
-        currency.sell_rate = request.POST.get('sell_rate')
-        currency.decimales_cotizacion = request.POST.get('decimales_cotizacion')
-        currency.decimales_monto = request.POST.get('decimales_monto')
+        currency.code = request.POST.get('code', currency.code).upper()
+        currency.name = request.POST.get('name', currency.name)
+        currency.symbol = request.POST.get('symbol', currency.symbol)
+        currency.base_price = request.POST.get('base_price', currency.base_price)
+        currency.comision_venta = request.POST.get('comision_venta', currency.comision_venta)
+        currency.comision_compra = request.POST.get('comision_compra', currency.comision_compra)
+        currency.decimales_cotizacion = request.POST.get('decimales_cotizacion', currency.decimales_cotizacion)
+        currency.decimales_monto = request.POST.get('decimales_monto', currency.decimales_monto)
+        currency.is_active = request.POST.get('is_active') == "on"
+
+        # Bandera (si se sube una nueva, reemplaza la existente)
+        if 'flag_image' in request.FILES:
+            currency.flag_image = request.FILES['flag_image']
+
         currency.save()
         messages.success(request, 'Moneda actualizada exitosamente.')
         return redirect('currency_list')
+
     return render(request, 'webapp/edit_currency.html', {'currency': currency})
 
 @login_required

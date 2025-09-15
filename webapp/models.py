@@ -30,8 +30,9 @@ class Currency(models.Model):
     code = models.CharField(max_length=3, unique=True, verbose_name="Código")
     name = models.CharField(max_length=50, verbose_name="Nombre")
     symbol = models.CharField(max_length=5, verbose_name="Símbolo")
-    buy_rate = models.DecimalField(max_digits=23, decimal_places=8, verbose_name="Tasa de compra", default=1.0)
-    sell_rate = models.DecimalField(max_digits=23, decimal_places=8, verbose_name="Tasa de venta", default=1.0)
+    base_price = models.DecimalField(max_digits=23, decimal_places=8, verbose_name="Precio Base", default=1.0)
+    comision_venta = models.DecimalField(max_digits=23, decimal_places=8, verbose_name="Comisión por venta", default=1.0)
+    comision_compra = models.DecimalField(max_digits=23, decimal_places=8, verbose_name="Comisión por compra", default=1.0)
     decimales_cotizacion = models.PositiveSmallIntegerField(
         verbose_name="Decimales para tasa de cambio",
         default=4,
