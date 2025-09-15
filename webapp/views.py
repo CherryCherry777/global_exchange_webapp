@@ -669,7 +669,7 @@ def manage_clientes(request):
         'search_query': search_query,
         'categoria_filter': categoria_filter,
         'estado_filter': estado_filter,
-        'categoria_choices': Cliente._meta.get_field('categoria').choices,
+        'categorias': Categoria.objects.all(),
     }
     
     return render(request, "webapp/manage_clientes.html", context)
