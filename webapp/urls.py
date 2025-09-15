@@ -67,6 +67,7 @@ urlpatterns = [
     path('currency/crear/', views.create_currency, name='create_currency'),
     path('currency/editar/<int:currency_id>/', views.edit_currency, name='edit_currency'),
     path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
+    path("api/currencies/", views.api_active_currencies, name="api_currencies"),
 
     # Categories management
     path('manage-categories/', views.manage_categories, name='manage_categories'),

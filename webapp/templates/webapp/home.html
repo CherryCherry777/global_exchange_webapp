@@ -245,109 +245,156 @@ function refreshRates() {
         location.reload();
     }, 500);
 }
-(function(){
-    // Tasas de referencia (ejemplo)
-    const PYG_BUY_USD  = 7350; // comprar USD con PYG
-    const PYG_SELL_USD = 7250; // vender USD a cambio de PYG
 
-    const PYG_BUY_EUR  = 7850;
-    const PYG_SELL_EUR = 7750;
 
-    // Decimales por moneda
-    const decimals = { PYG: 0, USD: 2, EUR: 2 };
-    const nf = (cc) => new Intl.NumberFormat("es-ES", {
-        minimumFractionDigits: decimals[cc], maximumFractionDigits: decimals[cc]
+(function () {
+  // UI refs
+  const amount = document.getElementById("simu-amount");
+  const from   = document.getElementById("simu-from");
+  const to     = document.getElementById("simu-to");
+  const swap   = document.getElementById("simu-swap");
+  const calc   = document.getElementById("simu-calc");
+  const copyBt = document.getElementById("simu-copy");
+  const clear  = document.getElementById("simu-clear");
+  const out    = document.getElementById("simu-result-main");
+  const detail = document.getElementById("simu-result-detail");
+
+  // Estado dinámico
+  let CODES = [];                   // ['USD','EUR','PYG',...]
+  const META = Object.create(null); // code -> { name, decimals, pyg_per_unit }
+
+  // Helpers
+  const nf = (code) => new Intl.NumberFormat("es-ES", {
+    minimumFractionDigits: (META[code]?.decimals ?? 2),
+    maximumFractionDigits: (META[code]?.decimals ?? 2),
+  });
+
+  function buildOptions(selectEl, preferCode) {
+    selectEl.innerHTML = "";
+    CODES.forEach(code => {
+      const opt = document.createElement("option");
+      opt.value = code;
+      const name = META[code]?.name || code;
+      opt.textContent = `${code}${code === "PYG" ? " (₲)" : ""} — ${name}`;
+      selectEl.appendChild(opt);
+    });
+    // Selección por defecto si existe ese código
+    if (preferCode && CODES.includes(preferCode)) {
+      selectEl.value = preferCode;
+    } else if (CODES.length) {
+      selectEl.value = CODES[0];
+
+    }
+  }
+
+  function enforceDifferent(changed, other) {
+    if (changed.value === other.value) {
+      // elegí el primer código distinto
+      const target = CODES.find(c => c !== changed.value);
+      if (target) other.value = target;
+    }
+  }
+
+  function compute() {
+    const rawTxt = (amount.value || "").toString().replace(",", ".");
+    const raw = parseFloat(rawTxt);
+    if (isNaN(raw) || raw <= 0) {
+      out.textContent = "—";
+      detail.textContent = "Ingresá un monto para calcular";
+      return;
+    }
+    const a = from.value;
+    const b = to.value;
+    if (!META[a] || !META[b]) return;
+
+    // A->PYG->B :  (pyg_per_unit_A / pyg_per_unit_B)
+    const pygA = META[a].pyg_per_unit;
+    const pygB = META[b].pyg_per_unit;
+    const rateAB = pygA / pygB;
+
+    const val = raw * rateAB;
+    out.textContent = `${nf(b).format(val)} ${b}`;
+    detail.innerHTML = `1 ${a} = ${nf(b).format(rateAB)} ${b}`;
+  }
+
+  function attachListeners() {
+    // Recalcular cuando cambie algo
+    ["input", "change"].forEach(evt => {
+      amount.addEventListener(evt, compute);
+      from.addEventListener(evt, () => { enforceDifferent(from, to); compute(); });
+      to.addEventListener(evt, () => { enforceDifferent(to, from); compute(); });
     });
 
-    // Elementos
-    const amount = document.getElementById("simu-amount");
-    const from   = document.getElementById("simu-from");
-    const to     = document.getElementById("simu-to");
-    const swap   = document.getElementById("simu-swap");
-    const calc   = document.getElementById("simu-calc");
-    const copyBt = document.getElementById("simu-copy");
-    const clear  = document.getElementById("simu-clear");
-    const out    = document.getElementById("simu-result-main");
-    const detail = document.getElementById("simu-result-detail");
-
-    // Reglas: no misma moneda y siempre PYG presente
-    function enforceRules(changed){
-        if (from.value === to.value){
-            if (changed === "from"){
-                to.value = (to.value === "PYG") ? "USD" : "PYG";
-            } else {
-                from.value = (from.value === "PYG") ? "USD" : "PYG";
-            }
-        }
-        if (from.value !== "PYG" && to.value !== "PYG"){
-            if (changed === "from") to.value = "PYG";
-            else from.value = "PYG";
-        }
-    }
-
-    // Tasas según dirección
-    function getRate(a, b) {
-        if (a === "PYG" && b === "USD") return 1 / PYG_BUY_USD;
-        if (a === "USD" && b === "PYG") return PYG_SELL_USD;
-
-        if (a === "PYG" && b === "EUR") return 1 / PYG_BUY_EUR;
-        if (a === "EUR" && b === "PYG") return PYG_SELL_EUR;
-
-        // Cruzado USD <-> EUR derivado vía PYG
-        if (a === "USD" && b === "EUR") return PYG_SELL_USD / PYG_BUY_EUR;
-        if (a === "EUR" && b === "USD") return PYG_SELL_EUR / PYG_BUY_USD;
-
-        return 1;
-    }
-
-    // Cálculo
-    function compute(){
-        enforceRules(null);
-
-        const raw = parseFloat((amount.value || "0").replace(",", "."));
-        if (isNaN(raw) || raw <= 0){
-            out.textContent = "—";
-            detail.textContent = "Ingresá un monto para calcular";
-            return;
-        }
-
-        const a = from.value, b = to.value;
-        const rate = getRate(a, b);
-        const val = raw * rate;
-
-        out.textContent = `${nf(b).format(val)} ${b}`;
-        detail.innerHTML = `1 ${a} = ${nf(b).format(rate)} ${b}`;
-    }
-
-    // Eventos
-    calc.addEventListener("click", compute);
-    amount.addEventListener("input", compute);
-    from.addEventListener("change", ()=>{ enforceRules("from"); compute(); });
-    to.addEventListener("change", ()=>{ enforceRules("to"); compute(); });
-
+    // Swap siempre deja distintos
     swap.addEventListener("click", () => {
-        let t = from.value; 
-        from.value = to.value; 
-        to.value = t; 
-        enforceRules("swap");
-        compute();
+
+      const temp = from.value;
+      from.value = to.value;
+      to.value = temp;
+      enforceDifferent(from, to);
+      compute();
+
     });
+
+    calc.addEventListener("click", compute);
 
     copyBt.addEventListener("click", async () => {
-        try {
-            await navigator.clipboard.writeText(out.textContent);
-            copyBt.textContent = "¡Copiado!";
-            setTimeout(()=> copyBt.textContent = "Copiar", 1200);
-        } catch(e){}
+      try {
+        await navigator.clipboard.writeText(out.textContent);
+        copyBt.textContent = "¡Copiado!";
+        setTimeout(() => (copyBt.textContent = "Copiar"), 1200);
+      } catch (e) {}
     });
 
     clear.addEventListener("click", () => {
-        amount.value = ""; 
-        out.textContent = "—"; 
-        detail.textContent = "Ingresá un monto para calcular";
-    });
 
-    compute(); // cálculo inicial
+      amount.value = "";
+      out.textContent = "—";
+      detail.textContent = "Ingresá un monto para calcular";
+
+    });
+  }
+
+async function boot() {
+    try {
+        // acá se pide al backend
+        const res = await fetch("{% url 'api_currencies' %}", { cache: "no-store" });
+        const payload = await res.json();
+        const items = payload.items || [];
+
+        console.log("Monedas recibidas:", items); // para poder ver en consola lo que trae el backend
+
+        // Llenar la estructura META y CODES
+        const byCode = {};
+        items.forEach(it => { byCode[it.code] = it; });
+
+        // Aseguramos que exista PYG
+        if (!byCode["PYG"]) {
+            byCode["PYG"] = { code: "PYG", name: "Guaraní", decimals: 0, pyg_per_unit: 1.0 };
+        }
+
+        // Ordenamos monedas: PYG primero
+        CODES = Object.keys(byCode).sort((a, b) =>
+            a === "PYG" ? -1 : b === "PYG" ? 1 : a.localeCompare(b)
+        );
+
+        CODES.forEach(code => { META[code] = byCode[code]; });
+
+        // Armar selects
+        buildOptions(from, "USD");
+        buildOptions(to, "PYG");
+        enforceDifferent(from, to);
+
+        attachListeners();
+        compute(); // cálculo inicial
+    } catch (err) {
+        console.error("No se pudieron cargar monedas:", err);
+    }
+}
+
+boot();
+
+
 })();
 </script>
 
