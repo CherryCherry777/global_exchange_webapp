@@ -5,50 +5,126 @@
 {% block content %}
 
 <div class="main-home-row" style="display: flex; gap: 32px; align-items: flex-start; justify-content: flex-start; background: #000; min-height: 480px; padding: 32px 0;">
-<div class="exchange-rates-box" style="flex: 1; min-width: 450px; max-width: 550px; background: #eaeaea; border-radius: 32px; padding: 30px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-left: 32px; margin-right: 32px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
-                <span style="font-size: 1.6em; font-weight: bold; background: #bdbdbd; border-radius: 20px; padding: 10px 24px; display: inline-block;">
-                    {% if last_update %}
-                        Última actualización: {{ last_update|date:"d/m/Y H:i" }}
-                    {% else %}
-                        Última actualización: No disponible
-                    {% endif %}
-                </span>
-                <button id="refresh-btn" onclick="refreshRates()" style="background: #4CAF50; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;" title="Actualizar cotizaciones">
-                    🔄
-                </button>
+    
+    <!-- COLUMNA IZQUIERDA: simulador arriba + caja blanca debajo -->
+    <div style="flex: 1; min-width: 450px; max-width: 550px; margin-left: 32px; margin-right: 32px; display: flex; flex-direction: column; gap: 16px;">
+
+        <!-- === SIMULADOR DE CONVERSIÓN === -->
+        <section id="simu-conversion" style="
+            background:#1a1a1a; color:#fff; border-radius:20px; 
+            padding:16px; border:1px solid rgba(255,255,255,0.06);
+            box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;">
+                <h2 style="margin:0; font-size:18px; font-weight:800;">Simulador de Conversión</h2>
+                <span style="background:#2a2a2a; padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px;">₲ • $ • €</span>
             </div>
-            <div style="font-size: 0.9em; color: #666; font-style: italic;">
-                Cotizaciones sujetas a variaciones
+
+            <div style="margin-bottom:14px;">
+                <label for="simu-amount" style="font-weight:600; display:block; margin-bottom:6px;">Monto</label>
+                <div style="background:#0f0f0f; border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:8px 12px;">
+                    <input id="simu-amount" type="number" step="0.01" min="0" placeholder="0,00" style="
+                    width:100%; border:none; outline:none; background:transparent; color:#fff; font-size:16px;">
+                </div>
             </div>
-        </div>
-        <table style="width: 100%; border-collapse: separate; border-spacing: 0; background: #eaeaea;">
-            <thead>
-                <tr style="background: #bdbdbd;">
-                    <th style="padding: 12px 10px; text-align: left; border-radius: 12px 0 0 0; font-size: 1.2em;">Moneda</th>
-                    <th style="padding: 12px 20px; text-align: right; font-size: 1.2em;">Compra</th>
-                    <th style="padding: 12px 10px; text-align: right; border-radius: 0 12px 0 0; font-size: 1.2em;">Venta</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for currency in currencies %}
-                <tr>
-                    <td style="padding: 10px 8px; display: flex; align-items: center; gap: 12px; font-size: 1.1em;">
-                        {% if currency.flag_image %}
-                            <img src="{{ currency.flag_image.url }}" alt="{{ currency.name }}" style="width: 40px; height: 26px; object-fit: cover; border-radius: 4px;">
+
+
+            <div style="display:grid; grid-template-columns:1fr 56px 1fr; gap:10px;">
+                <div>
+                <label for="simu-from" style="font-weight:600;">Desde</label>
+                <select id="simu-from" style="
+                    width:100%; padding:10px 12px; color:#fff; background:#0f0f0f;
+                    border:1px solid rgba(255,255,255,0.12); border-radius:10px;">
+                    <option value="PYG">PYG (₲)</option>
+                    <option value="USD" selected>USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                </select>
+                </div>
+
+                <button id="simu-swap" type="button" title="Intercambiar" style="
+                align-self:end; height:40px; border-radius:10px; border:none; cursor:pointer;
+                background:#2a2a2a; color:#fff; font-weight:800;">⇄</button>
+
+                <div>
+                <label for="simu-to" style="font-weight:600;">Hacia</label>
+                <select id="simu-to" style="
+                    width:100%; padding:10px 12px; color:#fff; background:#0f0f0f;
+                    border:1px solid rgba(255,255,255,0.12); border-radius:10px;">
+                    <option value="PYG" selected>PYG (₲)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                </select>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin:10px 0 6px;">
+                <button id="simu-calc" type="button" style="
+                padding:10px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:800;
+                background:linear-gradient(90deg,#4b2bb7,#152a73); color:#fff;">Calcular</button>
+                <button id="simu-copy" type="button" style="
+                padding:10px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:800;
+                background:#2a2a2a; color:#fff;">Copiar</button>
+                <button id="simu-clear" type="button" style="
+                padding:10px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:800;
+                background:#2a2a2a; color:#fff;">Limpiar</button>
+            </div>
+
+            <div>
+                <p id="simu-result-main" style="margin:0; font-size:22px; font-weight:900;">—</p>
+                <p id="simu-result-detail" style="margin:6px 0 0; color:#bdbdbd;">Ingresá un monto para calcular</p>
+                <p style="margin:6px 0 0; color:#9c9c9c; font-size:12px;">Cotizaciones de referencia. Solo PYG, USD y EUR.</p>
+            </div>
+        </section>
+        <!-- === /SIMULADOR === -->
+    
+        <div class="exchange-rates-box" style="flex:1; background:#eaeaea; border-radius:32px; padding:30px 20px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
+                    <span style="font-size: 1.6em; font-weight: bold; background: #bdbdbd; border-radius: 20px; padding: 10px 24px; display: inline-block;">
+                        {% if last_update %}
+                            Última actualización: {{ last_update|date:"d/m/Y H:i" }}
+                        {% else %}
+                            Última actualización: No disponible
                         {% endif %}
-                        <span>{{ currency.name }}</span>
-                    </td>
-                    <td style="padding: 10px 20px; text-align: right; font-size: 1.1em;">{{ currency.totalCompra|floatformat:currency.decimales_monto }}</td>
-                    <td style="padding: 10px 8px; text-align: right; font-size: 1.1em;">{{ currency.totalVenta|floatformat:currency.decimales_monto }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    </span>
+                    <button id="refresh-btn" onclick="refreshRates()" style="background: #4CAF50; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;" title="Actualizar cotizaciones">
+                        🔄
+                    </button>
+                </div>
+                <div style="font-size: 0.9em; color: #666; font-style: italic;">
+                    Cotizaciones sujetas a variaciones
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0; background: #eaeaea;">
+                <thead>
+                    <tr style="background: #bdbdbd;">
+                        <th style="padding: 12px 10px; text-align: left; border-radius: 12px 0 0 0; font-size: 1.2em;">Moneda</th>
+                        <th style="padding: 12px 20px; text-align: right; font-size: 1.2em;">Compra</th>
+                        <th style="padding: 12px 10px; text-align: right; border-radius: 0 12px 0 0; font-size: 1.2em;">Venta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for currency in currencies %}
+                    <tr>
+                        <td style="padding: 10px 8px; display: flex; align-items: center; gap: 12px; font-size: 1.1em;">
+                            {% if currency.flag_image %}
+                                <img src="{{ currency.flag_image.url }}" alt="{{ currency.name }}" style="width: 40px; height: 26px; object-fit: cover; border-radius: 4px;">
+                            {% endif %}
+                            <span>{{ currency.name }}</span>
+                        </td>
+                        <td style="padding: 10px 20px; text-align: right; font-size: 1.1em;">{{ currency.totalCompra|floatformat:currency.decimales_monto }}</td>
+                        <td style="padding: 10px 8px; text-align: right; font-size: 1.1em;">{{ currency.totalVenta|floatformat:currency.decimales_monto }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="hero-content" style="flex: 1; min-width: 340px; color: #fff; text-align: left;">
+    <div class="hero-content" style="flex:1; min-width:340px; color:#fff; text-align:left;">        
+
         <h1 style="font-size: 2em;">Bienvenido a Global Exchange</h1>
         <p class="hero-subtitle" style="font-size: 1.1em;">Tu plataforma confiable para el intercambio de divisas y servicios financieros globales</p>
         <div class="hero-features">
@@ -169,6 +245,75 @@ function refreshRates() {
         location.reload();
     }, 500);
 }
+(function(){
+    // Tasas de ejemplo
+    // 1 USD = 7300 PYG; 1 EUR = 7800 PYG; 1 EUR = 1.07 USD
+    const PYG_PER_USD = 7300;
+    const PYG_PER_EUR = 7800;
+    const USD_PER_EUR = 1.07;
+
+    // Matriz de conversión completa
+    const rates = {
+        PYG: { PYG: 1, USD: 1/PYG_PER_USD, EUR: 1/PYG_PER_EUR },
+        USD: { PYG: PYG_PER_USD, USD: 1, EUR: 1/USD_PER_EUR },
+        EUR: { PYG: PYG_PER_EUR, USD: USD_PER_EUR, EUR: 1 },
+    };
+
+    const decimals = { PYG: 0, USD: 2, EUR: 2 };
+    const nf = (cc) => new Intl.NumberFormat("es-ES", {
+        minimumFractionDigits: decimals[cc], maximumFractionDigits: decimals[cc]
+    });
+
+    // Elementos
+    const amount = document.getElementById("simu-amount");
+    const from   = document.getElementById("simu-from");
+    const to     = document.getElementById("simu-to");
+    const swap   = document.getElementById("simu-swap");
+    const calc   = document.getElementById("simu-calc");
+    const copyBt = document.getElementById("simu-copy");
+    const clear  = document.getElementById("simu-clear");
+    const out    = document.getElementById("simu-result-main");
+    const detail = document.getElementById("simu-result-detail");
+
+    function compute(){
+        const raw = parseFloat((amount.value || "0").replace(",", "."));
+        if (isNaN(raw) || raw <= 0){
+            out.textContent = "—";
+            detail.textContent = "Ingresá un monto para calcular";
+            return;
+        }
+        const a = from.value, b = to.value;
+        const rate = rates[a][b];
+        const val = raw * rate;
+
+        out.textContent = `${nf(b).format(val)} ${b}`;
+
+        const oneAB = rate;
+        detail.innerHTML = `1 ${a} = ${nf(b).format(oneAB)} ${b}`;
+
+    }
+
+    calc.addEventListener("click", compute);
+    [amount, from, to].forEach(el => el.addEventListener("input", compute));
+
+    swap.addEventListener("click", () => {
+        const t = from.value; from.value = to.value; to.value = t; compute();
+    });
+
+    copyBt.addEventListener("click", async () => {
+        try {
+            await navigator.clipboard.writeText(out.textContent);
+            copyBt.textContent = "¡Copiado!";
+            setTimeout(()=> copyBt.textContent = "Copiar", 1200);
+        } catch(e){}
+    });
+
+    clear.addEventListener("click", () => {
+        amount.value = ""; out.textContent = "—"; detail.textContent = "Ingresá un monto para calcular";
+    });
+
+    compute(); // cálculo inicial
+})();
 </script>
 
 {% endblock %}
