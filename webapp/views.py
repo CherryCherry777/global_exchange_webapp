@@ -14,6 +14,8 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
 from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm
 from .decorators import role_required, permitir_permisos
@@ -59,6 +61,37 @@ def public_home(request):
         "last_update": last_update
     })
 
+@require_GET
+def api_active_currencies(request):
+        
+    # 1. Buscar todas las monedas activas en tu DB
+    qs = Currency.objects.filter(is_active=True)
+
+    items = []
+    for c in qs:
+        # Calcular precio medio en guaraníes
+        base = Decimal(c.base_price)
+        venta = base + Decimal(c.comision_venta)
+        compra = base - Decimal(c.comision_compra)
+        mid = (venta + compra) / Decimal("2")
+
+        items.append({
+            "code": c.code,                   # USD, EUR, etc.
+            "name": c.name,                   # Dólar, Euro
+            "decimals": int(c.decimales_monto or 2),
+            "pyg_per_unit": float(mid),       # cuánto vale 1 de esa moneda en PYG
+        })
+
+    # Asegurar que PYG siempre exista
+    if not any(x["code"] == "PYG" for x in items):
+        items.append({
+            "code": "PYG",
+            "name": "Guaraní",
+            "decimals": 0,
+            "pyg_per_unit": 1.0,
+        })
+
+    return JsonResponse({"items": items})
 
 def register(request):
     if request.method == "POST":
