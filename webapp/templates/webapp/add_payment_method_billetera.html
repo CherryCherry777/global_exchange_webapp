@@ -1,7 +1,7 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 
-{% block title %}Agregar Billetera - {{ cliente.nombre }}{% endblock %}
+{% block title %}Agregar Billetera{% endblock %}
 
 {% block content %}
 <div class="admin-page-container">
@@ -9,14 +9,13 @@
     <div class="admin-header">
         <div class="header-content">
             <div class="header-left">
-                <a href="{% url 'manage_client_payment_methods_detail' cliente.id %}" class="back-btn">
+                <a href="{% url 'my_payment_methods' %}" class="back-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
                     Volver
                 </a>
                 <h1 class="page-title">Agregar Billetera</h1>
-                <p class="page-subtitle">Cliente: {{ cliente.nombre }}</p>
             </div>
         </div>
     </div>
@@ -75,7 +74,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <a href="{% url 'manage_client_payment_methods_detail' cliente.id %}" class="btn btn-secondary">Cancelar</a>
+                    <a href="{% url 'my_payment_methods' %}" class="btn btn-secondary">Cancelar</a>
                     <button type="submit" class="btn btn-primary">Agregar Billetera</button>
                 </div>
             </form>

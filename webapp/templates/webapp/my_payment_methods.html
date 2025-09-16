@@ -1,0 +1,34 @@
+{% extends "webapp/base.html" %}
+{% block title %}Mis medios de pago{% endblock %}
+
+{% block content %}
+<h2>Mis Medios de Pago</h2>
+<a href="{% url 'add_my_payment_method' 'tarjeta' %}">Agregar Tarjeta</a> |
+<a href="{% url 'add_my_payment_method' 'billetera' %}">Agregar Billetera</a> |
+<a href="{% url 'add_my_payment_method' 'cuenta_bancaria' %}">Agregar Cuenta Bancaria</a> |
+<a href="{% url 'add_my_payment_method' 'cheque' %}">Agregar Cheque</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>Tipo</th>
+            <th>Nombre</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for medio in medios_pago %}
+        <tr>
+            <td>{{ medio.tipo|capfirst }}</td>
+            <td>{{ medio.nombre }}</td>
+            <td>
+                <a href="{% url 'edit_my_payment_method' medio.id %}">Editar</a> |
+                <a href="{% url 'delete_my_payment_method' medio.id %}">Eliminar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No tienes medios de pago registrados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

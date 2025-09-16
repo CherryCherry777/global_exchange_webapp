@@ -970,7 +970,7 @@ def manage_categories(request):
 
 
 # ===========================================
-# VISTAS PARA MEDIOS DE PAGO
+# VISTAS PARA MEDIOS DE PAGO (DEPRECADO)
 # ===========================================
 
 @role_required("Administrador")
@@ -1229,3 +1229,104 @@ def edit_payment_method(request, cliente_id, medio_pago_id):
     except (Cliente.DoesNotExist, MedioPago.DoesNotExist):
         messages.error(request, "Cliente o medio de pago no encontrado")
         return redirect("manage_client_payment_methods")
+
+#METODOS DE PAGO (VISTA DE CADA CLIENTE)
+
+@login_required
+def my_payment_methods(request):
+    cliente = get_object_or_404(Cliente, correo=request.user.email)
+    medios_pago = MedioPago.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+    return render(request, "webapp/my_payment_methods.html", {
+        "medios_pago": medios_pago
+    })
+
+
+@login_required
+def add_my_payment_method(request, tipo):
+    cliente = get_object_or_404(Cliente, correo=request.user.email)
+
+    if request.method == "POST":
+        medio_pago_form = MedioPagoForm(request.POST)
+        form_class = {
+            'tarjeta': TarjetaForm,
+            'billetera': BilleteraForm,
+            'cuenta_bancaria': CuentaBancariaForm,
+            'cheque': ChequeForm
+        }.get(tipo)
+
+        form = form_class(request.POST)
+
+        if medio_pago_form.is_valid() and form.is_valid():
+            medio_pago = medio_pago_form.save(commit=False)
+            medio_pago.cliente = cliente
+            medio_pago.tipo = tipo
+            medio_pago.save()
+
+            medio_especifico = form.save(commit=False)
+            medio_especifico.medio_pago = medio_pago
+            medio_especifico.save()
+
+            messages.success(request, f"Medio de pago '{medio_pago.nombre}' agregado correctamente")
+            return redirect("my_payment_methods")
+    else:
+        medio_pago_form = MedioPagoForm()
+        form = {
+            'tarjeta': TarjetaForm,
+            'billetera': BilleteraForm,
+            'cuenta_bancaria': CuentaBancariaForm,
+            'cheque': ChequeForm
+        }[tipo]()
+
+    return render(request, f"webapp/add_payment_method_{tipo}.html", {
+        "tipo": tipo,
+        "medio_pago_form": medio_pago_form,
+        "form": form
+    })
+
+
+@login_required
+def edit_my_payment_method(request, medio_pago_id):
+    cliente = get_object_or_404(Cliente, correo=request.user.email)
+    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente)
+    tipo = medio_pago.tipo
+
+    # Obtener formulario del medio específico
+    medio_especifico = getattr(medio_pago, tipo)
+    form_class = {
+        'tarjeta': TarjetaForm,
+        'billetera': BilleteraForm,
+        'cuenta_bancaria': CuentaBancariaForm,
+        'cheque': ChequeForm
+    }[tipo]
+
+    if request.method == "POST":
+        medio_pago_form = MedioPagoForm(request.POST, instance=medio_pago)
+        form = form_class(request.POST, instance=medio_especifico)
+
+        if medio_pago_form.is_valid() and form.is_valid():
+            medio_pago_form.save()
+            form.save()
+            messages.success(request, f"Medio de pago '{medio_pago.nombre}' actualizado")
+            return redirect("my_payment_methods")
+    else:
+        medio_pago_form = MedioPagoForm(instance=medio_pago)
+        form = form_class(instance=medio_especifico)
+
+    return render(request, f"webapp/edit_payment_method_{tipo}.html", {
+        "tipo": tipo,
+        "medio_pago_form": medio_pago_form,
+        "form": form
+    })
+
+
+@login_required
+def delete_my_payment_method(request, medio_pago_id):
+    cliente = get_object_or_404(Cliente, correo=request.user.email)
+    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente)
+
+    if request.method == "POST":
+        medio_pago.delete()
+        messages.success(request, f"Medio de pago '{medio_pago.nombre}' eliminado")
+        return redirect("my_payment_methods")
+
+    return render(request, "webapp/delete_payment_method.html", {"medio_pago": medio_pago})

@@ -78,5 +78,11 @@ urlpatterns = [
     path('manage-client-payment-methods/<int:cliente_id>/add/<str:tipo>/', views.add_payment_method, name='add_payment_method'),
     path('manage-client-payment-methods/<int:cliente_id>/edit/<int:medio_pago_id>/', views.edit_payment_method, name='edit_payment_method'),
     path('view-client-payment-methods/<int:cliente_id>/', views.view_client_payment_methods, name='view_client_payment_methods'),
+
+    # Metodos para que el cliente administre sus propios metodos de pago
+    path('mis-medios/', views.my_payment_methods, name='my_payment_methods'),
+    path('mis-medios/agregar/<str:tipo>/', views.add_my_payment_method, name='add_my_payment_method'),
+    path('mis-medios/editar/<int:medio_pago_id>/', views.edit_my_payment_method, name='edit_my_payment_method'),
+    path('mis-medios/eliminar/<int:medio_pago_id>/', views.delete_my_payment_method, name='delete_my_payment_method'),
 ]
 
