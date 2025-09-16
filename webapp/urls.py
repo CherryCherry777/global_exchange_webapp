@@ -95,5 +95,9 @@ urlpatterns = [
     path('mis-medios/cheque/delete/<int:medio_pago_id>/', views.delete_payment_method_cheque, name='delete_payment_method_cheque'),
     path('mis-medios/cuenta-bancaria/delete/<int:medio_pago_id>/', views.delete_payment_method_cuenta_bancaria, name='delete_payment_method_cuenta_bancaria'),
     path('mis-medios/tarjeta/delete/<int:medio_pago_id>/', views.delete_payment_method_tarjeta, name='delete_payment_method_tarjeta'),
+
+    #administracion global de metodos de pago
+    path("payment-types/", views.payment_types_list, name="payment_types_list"),
+    path("payment-types/edit/<int:tipo_id>/", views.edit_payment_type, name="edit_payment_type"),
 ]
 

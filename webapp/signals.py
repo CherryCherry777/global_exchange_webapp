@@ -64,3 +64,18 @@ def assign_all_permissions_to_admin(sender, **kwargs):
         # Asignar todos los permisos disponibles al grupo Administrador
         all_permissions = Permission.objects.all()
         admin_group.permissions.set(all_permissions)
+
+@receiver(post_migrate)
+def create_default_payment_types(sender, **kwargs):
+    # Asegurarse de que solo se ejecute para nuestra app
+    if sender.name != "webapp":
+        return
+
+    TipoPago = apps.get_model("webapp", "TipoPago")
+    defaults = {"activo": True, "comision": 0.0}
+    
+    # Lista de tipos de pago fijos
+    tipos = ["billetera", "cheque", "cuenta_bancaria", "tarjeta"]
+    
+    for nombre in tipos:
+        TipoPago.objects.get_or_create(nombre=nombre, defaults=defaults)
