@@ -73,16 +73,27 @@ urlpatterns = [
     path('manage-categories/', views.manage_categories, name='manage_categories'),
     
     # Payment methods management
-    path('manage-client-payment-methods/', views.manage_client_payment_methods, name='manage_client_payment_methods'),
-    path('manage-client-payment-methods/<int:cliente_id>/', views.manage_client_payment_methods_detail, name='manage_client_payment_methods_detail'),
-    path('manage-client-payment-methods/<int:cliente_id>/add/<str:tipo>/', views.add_payment_method, name='add_payment_method'),
-    path('manage-client-payment-methods/<int:cliente_id>/edit/<int:medio_pago_id>/', views.edit_payment_method, name='edit_payment_method'),
-    path('view-client-payment-methods/<int:cliente_id>/', views.view_client_payment_methods, name='view_client_payment_methods'),
+    #path('manage-client-payment-methods/', views.manage_client_payment_methods, name='manage_client_payment_methods'),
+    #path('manage-client-payment-methods/<int:cliente_id>/', views.manage_client_payment_methods_detail, name='manage_client_payment_methods_detail'),
+    #path('manage-client-payment-methods/<int:cliente_id>/add/<str:tipo>/', views.add_payment_method, name='add_payment_method'),
+    #path('manage-client-payment-methods/<int:cliente_id>/edit/<int:medio_pago_id>/', views.edit_payment_method, name='edit_payment_method'),
+    #path('view-client-payment-methods/<int:cliente_id>/', views.view_client_payment_methods, name='view_client_payment_methods'),
 
     # Metodos para que el cliente administre sus propios metodos de pago
+    path('mis-medios/add-billetera/', views.add_payment_method_billetera, name='add_payment_method_billetera'),
+    path('mis-medios/add-cheque/', views.add_payment_method_cheque, name='add_payment_method_cheque'),
+    path('mis-medios/add-cuenta-bancaria/', views.add_payment_method_cuenta_bancaria, name='add_payment_method_cuenta_bancaria'),
+    path('mis-medios/add-tarjeta/', views.add_payment_method_tarjeta, name='add_payment_method_tarjeta'),
     path('mis-medios/', views.my_payment_methods, name='my_payment_methods'),
-    path('mis-medios/agregar/<str:tipo>/', views.add_my_payment_method, name='add_my_payment_method'),
-    path('mis-medios/editar/<int:medio_pago_id>/', views.edit_my_payment_method, name='edit_my_payment_method'),
-    path('mis-medios/eliminar/<int:medio_pago_id>/', views.delete_my_payment_method, name='delete_my_payment_method'),
+    path('mis-medios/edit/<int:medio_pago_id>/', views.edit_payment_method, name='edit_payment_method'),
+    path('mis-medios/delete/<int:medio_pago_id>/', views.delete_payment_method, name='delete_payment_method'),
+    path('mis-medios/billetera/edit/<int:medio_pago_id>/', views.edit_payment_method_billetera, name='edit_payment_method_billetera'),
+    path('mis-medios/cheque/edit/<int:medio_pago_id>/', views.edit_payment_method_cheque, name='edit_payment_method_cheque'),
+    path('mis-medios/cuenta-bancaria/edit/<int:medio_pago_id>/', views.edit_payment_method_cuenta_bancaria, name='edit_payment_method_cuenta_bancaria'),
+    path('mis-medios/tarjeta/edit/<int:medio_pago_id>/', views.edit_payment_method_tarjeta, name='edit_payment_method_tarjeta'),
+    path('mis-medios/billetera/delete/<int:medio_pago_id>/', views.delete_payment_method_billetera, name='delete_payment_method_billetera'),
+    path('mis-medios/cheque/delete/<int:medio_pago_id>/', views.delete_payment_method_cheque, name='delete_payment_method_cheque'),
+    path('mis-medios/cuenta-bancaria/delete/<int:medio_pago_id>/', views.delete_payment_method_cuenta_bancaria, name='delete_payment_method_cuenta_bancaria'),
+    path('mis-medios/tarjeta/delete/<int:medio_pago_id>/', views.delete_payment_method_tarjeta, name='delete_payment_method_tarjeta'),
 ]
 

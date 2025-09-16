@@ -1,7 +1,7 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 
-{% block title %}Agregar Billetera{% endblock %}
+{% block title %}Agregar Billetera - {{ cliente.nombre }}{% endblock %}
 
 {% block content %}
 <div class="admin-page-container">
@@ -16,6 +16,7 @@
                     Volver
                 </a>
                 <h1 class="page-title">Agregar Billetera</h1>
+                <p class="page-subtitle">Cliente: {{ cliente.nombre }}</p>
             </div>
         </div>
     </div>
@@ -30,19 +31,14 @@
             
             <form method="post" class="payment-form">
                 {% csrf_token %}
-                
                 <div class="form-section">
                     <h4>Información General</h4>
                     <div class="form-group">
                         {{ medio_pago_form.nombre.label_tag }}
                         {{ medio_pago_form.nombre }}
-                        {% if medio_pago_form.nombre.errors %}
-                            <div class="form-errors">
-                                {% for error in medio_pago_form.nombre.errors %}
-                                    <span class="error">{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                        {% for error in medio_pago_form.nombre.errors %}
+                            <span class="error">{{ error }}</span>
+                        {% endfor %}
                     </div>
                 </div>
 
@@ -51,25 +47,16 @@
                     <div class="form-group">
                         {{ form.numero_celular.label_tag }}
                         {{ form.numero_celular }}
-                        {% if form.numero_celular.errors %}
-                            <div class="form-errors">
-                                {% for error in form.numero_celular.errors %}
-                                    <span class="error">{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                        {% for error in form.numero_celular.errors %}
+                            <span class="error">{{ error }}</span>
+                        {% endfor %}
                     </div>
-                    
                     <div class="form-group">
                         {{ form.proveedor.label_tag }}
                         {{ form.proveedor }}
-                        {% if form.proveedor.errors %}
-                            <div class="form-errors">
-                                {% for error in form.proveedor.errors %}
-                                    <span class="error">{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                        {% for error in form.proveedor.errors %}
+                            <span class="error">{{ error }}</span>
+                        {% endfor %}
                     </div>
                 </div>
 

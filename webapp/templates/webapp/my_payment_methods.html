@@ -1,34 +1,77 @@
 {% extends "webapp/base.html" %}
-{% block title %}Mis medios de pago{% endblock %}
+{% load static %}
+
+{% block title %}Mis Métodos de Pago{% endblock %}
 
 {% block content %}
-<h2>Mis Medios de Pago</h2>
-<a href="{% url 'add_my_payment_method' 'tarjeta' %}">Agregar Tarjeta</a> |
-<a href="{% url 'add_my_payment_method' 'billetera' %}">Agregar Billetera</a> |
-<a href="{% url 'add_my_payment_method' 'cuenta_bancaria' %}">Agregar Cuenta Bancaria</a> |
-<a href="{% url 'add_my_payment_method' 'cheque' %}">Agregar Cheque</a>
+<div class="admin-page-container">
 
-<table>
-    <thead>
-        <tr>
-            <th>Tipo</th>
-            <th>Nombre</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for medio in medios_pago %}
-        <tr>
-            <td>{{ medio.tipo|capfirst }}</td>
-            <td>{{ medio.nombre }}</td>
-            <td>
-                <a href="{% url 'edit_my_payment_method' medio.id %}">Editar</a> |
-                <a href="{% url 'delete_my_payment_method' medio.id %}">Eliminar</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="3">No tienes medios de pago registrados.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="header-content">
+            <h1 class="page-title">Mis Métodos de Pago</h1>
+            <p class="page-subtitle">Gestiona tus métodos de pago personales</p>
+        </div>
+    </div>
+
+    <!-- Botones para agregar métodos -->
+    <div class="add-payment-buttons">
+        <a href="{% url 'add_payment_method_billetera' %}" class="btn btn-primary">Agregar Billetera</a>
+        <a href="{% url 'add_payment_method_cheque' %}" class="btn btn-primary">Agregar Cheque</a>
+        <a href="{% url 'add_payment_method_cuenta_bancaria' %}" class="btn btn-primary">Agregar Cuenta Bancaria</a>
+        <a href="{% url 'add_payment_method_tarjeta' %}" class="btn btn-primary">Agregar Tarjeta</a>
+    </div>
+
+    <!-- Tabla de métodos de pago -->
+    <div class="table-container">
+        <table class="roles-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Nombre</th>
+                    <th>Detalles</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for medio in medios_pago %}
+                <tr>
+                    <td>{{ medio.tipo|capfirst }}</td>
+                    <td>{{ medio.nombre }}</td>
+                    <td>
+                        {% if medio.tipo == "billetera" %}
+                            Cel: {{ medio.billetera.numero_celular }}, Proveedor: {{ medio.billetera.proveedor }}
+                        {% elif medio.tipo == "cheque" %}
+                            Nº: {{ medio.cheque.numero_cheque }}, Banco: {{ medio.cheque.banco_emisor }}, Monto: {{ medio.cheque.monto }}
+                        {% elif medio.tipo == "cuenta_bancaria" %}
+                            Nº: {{ medio.cuenta_bancaria.numero_cuenta }}, Banco: {{ medio.cuenta_bancaria.banco }}, Alias: {{ medio.cuenta_bancaria.alias_cbu }}
+                        {% elif medio.tipo == "tarjeta" %}
+                            Nº: {{ medio.tarjeta.numero_tarjeta }}, Titular: {{ medio.tarjeta.titular }}, Vto: {{ medio.tarjeta.fecha_vencimiento }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if medio.tipo == "billetera" %}
+                            <a href="{% url 'edit_payment_method_billetera' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
+                            <a href="{% url 'delete_payment_method_billetera' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                        {% elif medio.tipo == "cheque" %}
+                            <a href="{% url 'edit_payment_method_cheque' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
+                            <a href="{% url 'delete_payment_method_cheque' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                        {% elif medio.tipo == "cuenta_bancaria" %}
+                            <a href="{% url 'edit_payment_method_cuenta_bancaria' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
+                            <a href="{% url 'delete_payment_method_cuenta_bancaria' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                        {% elif medio.tipo == "tarjeta" %}
+                            <a href="{% url 'edit_payment_method_tarjeta' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
+                            <a href="{% url 'delete_payment_method_tarjeta' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No tienes métodos de pago registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
