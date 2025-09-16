@@ -1,0 +1,27 @@
+{% extends "webapp/base.html" %}
+{% block title %}Editar Tipo de Pago{% endblock %}
+
+{% block content %}
+<div class="admin-page-container">
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <h3>Editar Tipo de Pago: {{ tipo.nombre }}</h3>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group form-check">
+                    {{ form.activo }}
+                    {{ form.activo.label_tag }}
+                </div>
+                <div class="form-group">
+                    {{ form.comision.label_tag }}
+                    {{ form.comision }}
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a href="{% url 'payment_types_list' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

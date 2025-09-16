@@ -17,10 +17,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm
+from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque
+from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago
 from django.contrib.auth.decorators import permission_required
 from decimal import Decimal, InvalidOperation
 
@@ -1234,16 +1234,24 @@ def edit_payment_method_deprecado(request, cliente_id, medio_pago_id):
 
 @login_required
 def my_payment_methods(request):
-    # Obtener los clientes asociados al usuario
-    clientes = Cliente.objects.filter(clienteusuario__usuario=request.user)
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
 
-    # Obtener todos los medios de pago de esos clientes
-    medios_pago = MedioPago.objects.filter(cliente__in=clientes).order_by('tipo', 'nombre')
+    cliente = cliente_usuario.cliente
+
+    medios_pago = MedioPago.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+
+    # Obtener todos los tipos de pago con su estado
+    tipos_pago = {tp.nombre.lower(): tp.activo for tp in TipoPago.objects.all()}
+
+    # Adjuntar el estado a cada medio_pago
+    for medio in medios_pago:
+        medio.activo_global = tipos_pago.get(medio.tipo, False)
 
     return render(request, "webapp/my_payment_methods.html", {
         "medios_pago": medios_pago
     })
-
 
 @login_required
 def add_my_payment_method(request, tipo):
@@ -1634,3 +1642,22 @@ def delete_payment_method_tarjeta(request, medio_pago_id):
         return redirect('my_payment_methods')
 
     return render(request, "webapp/delete_payment_method_confirm.html", {"medio_pago": medio_pago})
+
+# ADMINISTRACION GLOBAL DE METODOS DE PAGO
+
+@login_required
+def payment_types_list(request):
+    tipos = TipoPago.objects.all().order_by("nombre")
+    return render(request, "webapp/payment_types_list.html", {"tipos": tipos})
+
+@login_required
+def edit_payment_type(request, tipo_id):
+    tipo = get_object_or_404(TipoPago, id=tipo_id)
+    if request.method == "POST":
+        form = TipoPagoForm(request.POST, instance=tipo)
+        if form.is_valid():
+            form.save()
+            return redirect("payment_types_list")
+    else:
+        form = TipoPagoForm(instance=tipo)
+    return render(request, "webapp/edit_payment_type.html", {"form": form, "tipo": tipo})

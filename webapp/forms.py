@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import CustomUser, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque
+from .models import CustomUser, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -453,3 +453,14 @@ class MedioPagoForm(forms.ModelForm):
         labels = {
             'nombre': 'Nombre del Medio de Pago'
         }
+
+
+class TipoPagoForm(forms.ModelForm):
+    class Meta:
+        model = TipoPago
+        fields = ["activo", "comision"]
+        widgets = {
+            "activo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "comision": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        }
+

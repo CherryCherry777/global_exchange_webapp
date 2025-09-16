@@ -281,6 +281,21 @@ class MedioPago(models.Model):
         verbose_name="Fecha de Actualización"
     )
     
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        verbose_name="Tipo de Medio de Pago"
+    )
+    
+    tipo_pago = models.ForeignKey(
+        "TipoPago",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Tipo de Pago Global",
+        help_text="Configuración global de activación y comisión"
+    )
+
     class Meta:
         db_table = "medios_pago"
         verbose_name = "Medio de Pago"
@@ -328,6 +343,9 @@ class Tarjeta(models.Model):
         max_length=4,
         verbose_name="Últimos 4 Dígitos"
     )
+
+    #activo = models.BooleanField(default=True, verbose_name="Activo")
+    #comision = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Comisión (%)")
     
     class Meta:
         db_table = "tarjetas"
@@ -363,6 +381,9 @@ class Billetera(models.Model):
         db_table = "billeteras"
         verbose_name = "Billetera"
         verbose_name_plural = "Billeteras"
+
+    #activo = models.BooleanField(default=True, verbose_name="Activo")
+    #comision = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Comisión (%)")
     
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.proveedor}"
@@ -394,6 +415,9 @@ class CuentaBancaria(models.Model):
         max_length=50,
         verbose_name="Alias/CBU"
     )
+
+    #activo = models.BooleanField(default=True, verbose_name="Activo")
+    #comision = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Comisión (%)")
     
     class Meta:
         db_table = "cuentas_bancarias"
@@ -436,6 +460,9 @@ class Cheque(models.Model):
         decimal_places=2,
         verbose_name="Monto"
     )
+
+    #activo = models.BooleanField(default=True, verbose_name="Activo")
+    #comision = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Comisión (%)")
     
     class Meta:
         db_table = "cheques"
@@ -444,3 +471,16 @@ class Cheque(models.Model):
     
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.numero_cheque}"
+
+class TipoPago(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+    activo = models.BooleanField(default=True)
+    comision = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
+
+    class Meta:
+        verbose_name = "Tipo de Pago"
+        verbose_name_plural = "Tipos de Pago"
+
+    def __str__(self):
+        return self.nombre
+
