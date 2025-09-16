@@ -6,8 +6,6 @@ from django.conf import settings
 #Las clases van aqui
 #Los usuarios heredan AbstractUser
 class CustomUser(AbstractUser):
-<<<<<<< HEAD
-=======
     """
     CustomUser model extends Django's AbstractUser to enforce unique email addresses.
     Attributes:
@@ -15,14 +13,10 @@ class CustomUser(AbstractUser):
     Methods:
         __str__(): Returns the username as the string representation of the user.
     """
->>>>>>> release/1.1
     email = models.EmailField(unique=True)
 
     def __str__(self):
         return self.username
-<<<<<<< HEAD
-=======
-
 
 class Role(models.Model):
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="role")
@@ -450,4 +444,3 @@ class Cheque(models.Model):
     
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.numero_cheque}"
->>>>>>> release/1.1
