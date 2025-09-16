@@ -1,0 +1,13 @@
+{% extends "webapp/base.html" %}
+{% block title %}Eliminar medio de pago{% endblock %}
+
+{% block content %}
+<h2>Eliminar medio de pago: {{ medio_pago.nombre }}</h2>
+<p>¿Estás seguro que deseas eliminar este medio de pago?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Sí, eliminar</button>
+    <a href="{% url 'my_payment_methods' %}">Cancelar</a>
+</form>
+{% endblock %}

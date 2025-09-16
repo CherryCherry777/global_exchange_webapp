@@ -1,7 +1,7 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 
-{% block title %}Agregar Cuenta Bancaria - {{ cliente.nombre }}{% endblock %}
+{% block title %}Editar Cuenta Bancaria - {{ cliente.nombre }}{% endblock %}
 
 {% block content %}
 <div class="admin-page-container">
@@ -14,8 +14,7 @@
                     </svg>
                     Volver
                 </a>
-                <h1 class="page-title">Agregar Cuenta Bancaria</h1>
-                <p class="page-subtitle">Cliente: {{ cliente.nombre }}</p>
+                <h1 class="page-title">Editar Cuenta Bancaria</h1>
             </div>
         </div>
     </div>
@@ -24,11 +23,12 @@
         <div class="form-card">
             <div class="form-header">
                 <h3>Datos de la Cuenta Bancaria</h3>
-                <p>Complete la información de la cuenta bancaria</p>
+                <p>Modifique la información de la cuenta bancaria</p>
             </div>
 
             <form method="post" class="payment-form">
                 {% csrf_token %}
+
                 <div class="form-section">
                     <h4>Información General</h4>
                     <div class="form-group">
@@ -67,7 +67,7 @@
 
                 <div class="form-actions">
                     <a href="{% url 'my_payment_methods' %}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Agregar Cuenta</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </div>
             </form>
         </div>

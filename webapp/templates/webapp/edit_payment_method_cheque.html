@@ -1,7 +1,7 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 
-{% block title %}Agregar Cuenta Bancaria - {{ cliente.nombre }}{% endblock %}
+{% block title %}Editar Cheque - {{ cliente.nombre }}{% endblock %}
 
 {% block content %}
 <div class="admin-page-container">
@@ -14,8 +14,7 @@
                     </svg>
                     Volver
                 </a>
-                <h1 class="page-title">Agregar Cuenta Bancaria</h1>
-                <p class="page-subtitle">Cliente: {{ cliente.nombre }}</p>
+                <h1 class="page-title">Editar Cheque</h1>
             </div>
         </div>
     </div>
@@ -23,12 +22,13 @@
     <div class="form-container">
         <div class="form-card">
             <div class="form-header">
-                <h3>Datos de la Cuenta Bancaria</h3>
-                <p>Complete la información de la cuenta bancaria</p>
+                <h3>Datos del Cheque</h3>
+                <p>Modifique la información del cheque</p>
             </div>
 
             <form method="post" class="payment-form">
                 {% csrf_token %}
+
                 <div class="form-section">
                     <h4>Información General</h4>
                     <div class="form-group">
@@ -41,25 +41,32 @@
                 </div>
 
                 <div class="form-section">
-                    <h4>Datos de la Cuenta</h4>
+                    <h4>Datos del Cheque</h4>
                     <div class="form-group">
-                        {{ form.numero_cuenta.label_tag }}
-                        {{ form.numero_cuenta }}
-                        {% for error in form.numero_cuenta.errors %}
+                        {{ form.numero_cheque.label_tag }}
+                        {{ form.numero_cheque }}
+                        {% for error in form.numero_cheque.errors %}
                             <span class="error">{{ error }}</span>
                         {% endfor %}
                     </div>
                     <div class="form-group">
-                        {{ form.banco.label_tag }}
-                        {{ form.banco }}
-                        {% for error in form.banco.errors %}
+                        {{ form.banco_emisor.label_tag }}
+                        {{ form.banco_emisor }}
+                        {% for error in form.banco_emisor.errors %}
                             <span class="error">{{ error }}</span>
                         {% endfor %}
                     </div>
                     <div class="form-group">
-                        {{ form.alias_cbu.label_tag }}
-                        {{ form.alias_cbu }}
-                        {% for error in form.alias_cbu.errors %}
+                        {{ form.fecha_vencimiento.label_tag }}
+                        {{ form.fecha_vencimiento }}
+                        {% for error in form.fecha_vencimiento.errors %}
+                            <span class="error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.monto.label_tag }}
+                        {{ form.monto }}
+                        {% for error in form.monto.errors %}
                             <span class="error">{{ error }}</span>
                         {% endfor %}
                     </div>
@@ -67,7 +74,7 @@
 
                 <div class="form-actions">
                     <a href="{% url 'my_payment_methods' %}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Agregar Cuenta</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </div>
             </form>
         </div>
