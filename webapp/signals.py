@@ -4,7 +4,7 @@ from django.db.models.signals import post_migrate, post_save
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
-from .models import Role
+from .models import Role, MedioPago, TipoPago
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
 
@@ -79,3 +79,10 @@ def create_default_payment_types(sender, **kwargs):
     
     for nombre in tipos:
         TipoPago.objects.get_or_create(nombre=nombre, defaults=defaults)
+
+@receiver(post_save, sender=MedioPago)
+def asignar_tipo_pago(sender, instance, created, **kwargs):
+    if created and not instance.tipo_pago:
+        tipo_pago, _ = TipoPago.objects.get_or_create(nombre=instance.tipo.capitalize())
+        instance.tipo_pago = tipo_pago
+        instance.save()

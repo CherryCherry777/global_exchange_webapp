@@ -281,6 +281,21 @@ class MedioPago(models.Model):
         verbose_name="Fecha de Actualización"
     )
     
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        verbose_name="Tipo de Medio de Pago"
+    )
+    
+    tipo_pago = models.ForeignKey(
+        "TipoPago",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Tipo de Pago Global",
+        help_text="Configuración global de activación y comisión"
+    )
+
     class Meta:
         db_table = "medios_pago"
         verbose_name = "Medio de Pago"

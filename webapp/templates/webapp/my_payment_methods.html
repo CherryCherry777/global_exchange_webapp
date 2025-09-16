@@ -30,6 +30,7 @@
                     <th>Tipo</th>
                     <th>Nombre</th>
                     <th>Detalles</th>
+                    <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -46,28 +47,25 @@
                         {% elif medio.tipo == "cuenta_bancaria" %}
                             Nº: {{ medio.cuenta_bancaria.numero_cuenta }}, Banco: {{ medio.cuenta_bancaria.banco }}, Alias: {{ medio.cuenta_bancaria.alias_cbu }}
                         {% elif medio.tipo == "tarjeta" %}
-                            Nº: {{ medio.tarjeta.numero_tarjeta }}, Titular: {{ medio.tarjeta.titular }}, Vto: {{ medio.tarjeta.fecha_vencimiento }}
+                            Nº: ****{{ medio.tarjeta.ultimos_digitos }}, Titular: {{ medio.tarjeta.medio_pago.nombre }}, Vto: {{ medio.tarjeta.fecha_vencimiento }}
                         {% endif %}
                     </td>
                     <td>
-                        {% if medio.tipo == "billetera" %}
-                            <a href="{% url 'edit_payment_method_billetera' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
-                            <a href="{% url 'delete_payment_method_billetera' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
-                        {% elif medio.tipo == "cheque" %}
-                            <a href="{% url 'edit_payment_method_cheque' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
-                            <a href="{% url 'delete_payment_method_cheque' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
-                        {% elif medio.tipo == "cuenta_bancaria" %}
-                            <a href="{% url 'edit_payment_method_cuenta_bancaria' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
-                            <a href="{% url 'delete_payment_method_cuenta_bancaria' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
-                        {% elif medio.tipo == "tarjeta" %}
-                            <a href="{% url 'edit_payment_method_tarjeta' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
-                            <a href="{% url 'delete_payment_method_tarjeta' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                        {% if medio.activo_global %}
+                            <span class="badge badge-success">Activo</span>
+                        {% else %}
+                            <span class="badge badge-danger">Inactivo</span>
                         {% endif %}
+
+                    </td>
+                    <td>
+                        <a href="{% url 'edit_payment_method' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
+                        <a href="{% url 'delete_payment_method' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4">No tienes métodos de pago registrados.</td>
+                    <td colspan="5">No tienes métodos de pago registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>

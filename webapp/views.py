@@ -1234,16 +1234,24 @@ def edit_payment_method_deprecado(request, cliente_id, medio_pago_id):
 
 @login_required
 def my_payment_methods(request):
-    # Obtener los clientes asociados al usuario
-    clientes = Cliente.objects.filter(clienteusuario__usuario=request.user)
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
 
-    # Obtener todos los medios de pago de esos clientes
-    medios_pago = MedioPago.objects.filter(cliente__in=clientes).order_by('tipo', 'nombre')
+    cliente = cliente_usuario.cliente
+
+    medios_pago = MedioPago.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+
+    # Obtener todos los tipos de pago con su estado
+    tipos_pago = {tp.nombre.lower(): tp.activo for tp in TipoPago.objects.all()}
+
+    # Adjuntar el estado a cada medio_pago
+    for medio in medios_pago:
+        medio.activo_global = tipos_pago.get(medio.tipo, False)
 
     return render(request, "webapp/my_payment_methods.html", {
         "medios_pago": medios_pago
     })
-
 
 @login_required
 def add_my_payment_method(request, tipo):
