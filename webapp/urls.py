@@ -99,5 +99,9 @@ urlpatterns = [
     #administracion global de metodos de pago
     path("payment-types/", views.payment_types_list, name="payment_types_list"),
     path("payment-types/edit/<int:tipo_id>/", views.edit_payment_type, name="edit_payment_type"),
+
+    #Administracion de limites de intercambio de monedas por tipo de cliente
+    path("limites/", views.listar_limites, name="listar_limites"),
+    path("limites/<int:categoria_id>/editar/", views.editar_limite, name="editar_limite"),
 ]
 

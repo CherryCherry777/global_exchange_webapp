@@ -229,6 +229,35 @@ class Categoria(models.Model):
         # Muestra el nombre y el descuento en porcentaje sin decimales
         return f"{self.nombre} ({self.descuento * 100:.0f}%)"
 
+# -------------------------------------
+# Modelo para definir maximos y minimos en la categoria de clientes
+# -------------------------------------
+class LimiteCategoria(models.Model):
+    categoria = models.OneToOneField(
+        Categoria,
+        on_delete=models.CASCADE,
+        related_name="limite",
+        verbose_name="Categoría"
+    )
+    minimo_guaranies = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        verbose_name="Monto mínimo (Gs)",
+        null=True
+    )
+    maximo_guaranies = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        verbose_name="Monto máximo (Gs)",
+        null=True
+    )
+
+    class Meta:
+        verbose_name = "Límite por Categoría"
+        verbose_name_plural = "Límites por Categoría"
+
+    def __str__(self):
+        return f"Límites {self.categoria.nombre}: {self.minimo_guaranies} - {self.maximo_guaranies}"
 
 # -------------------------------------
 # Modelo de medios de pago genérico

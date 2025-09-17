@@ -1,0 +1,35 @@
+{% extends "webapp/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Límites por Categoría</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Categoría</th>
+                <th>Descuento</th>
+                <th>Mínimo (Gs)</th>
+                <th>Máximo (Gs)</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for categoria in categorias %}
+            <tr>
+                <td>{{ categoria.nombre }}</td>
+                <td>{{ categoria.descuento|floatformat:2 }}%</td>
+                <td>{{ categoria.limite.minimo_guaranies|default:"-" }}</td>
+                <td>{{ categoria.limite.maximo_guaranies|default:"-" }}</td>
+                <td>
+                    <a href="{% url 'editar_limite' categoria.id %}" class="btn btn-primary btn-sm">Editar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No hay categorías registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

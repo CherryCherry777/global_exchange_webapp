@@ -17,10 +17,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm
+from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteCategoriaForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago
+from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteCategoria
 from django.contrib.auth.decorators import permission_required
 from decimal import Decimal, InvalidOperation
 
@@ -1661,3 +1661,30 @@ def edit_payment_type(request, tipo_id):
     else:
         form = TipoPagoForm(instance=tipo)
     return render(request, "webapp/edit_payment_type.html", {"form": form, "tipo": tipo})
+
+
+# ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR CATEGORIA DE CLIENTE
+@login_required
+def listar_limites(request):
+    categorias = Categoria.objects.all().order_by("id")
+    return render(request, "webapp/listar_limites.html", {
+        "categorias": categorias
+    })
+
+@login_required
+def editar_limite(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    limite, created = LimiteCategoria.objects.get_or_create(categoria=categoria)
+
+    if request.method == "POST":
+        form = LimiteCategoriaForm(request.POST, instance=limite)
+        if form.is_valid():
+            form.save()
+            return redirect("listar_limites")
+    else:
+        form = LimiteCategoriaForm(instance=limite)
+
+    return render(request, "webapp/editar_limite.html", {
+        "categoria": categoria,
+        "form": form
+    })
