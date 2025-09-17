@@ -1,8 +1,8 @@
 {% extends "webapp/base.html" %}
 {% load static %}
-{% load custom_filters %}
+{% load custom_filters %}  {# <-- Necesario para format_decimals #}
 
-{% block title %}Administrar Monedas{% endblock %}
+{% block title %}Administrar Cotizaciones{% endblock %}
 
 {% block content %}
 <div class="admin-page-container">
@@ -15,17 +15,17 @@
                     </svg>
                     Volver al Panel
                 </a>
-                <h1 class="page-title">Administrar Monedas</h1>
-                <p class="page-subtitle">Gestiona las monedas del sistema y sus parámetros</p>
+                <h1 class="page-title">Administrar Cotizaciones</h1>
+                <p class="page-subtitle">Gestiona las cotizaciones del sistema y sus parámetros</p>
             </div>
             <div class="header-right">
                 <div class="user-stats">
                     <div class="stat-item">
-                        <span class="stat-number">{{ currencies|length }}</span>
-                        <span class="stat-label">Monedas Totales</span>
+                        <span class="stat-number">{{ total }}</span>
+                        <span class="stat-label">Cotizaciones Totales</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">{{ currencies|length }}</span>
+                        <span class="stat-number">{{ activas }}</span>
                         <span class="stat-label">Activas</span>
                     </div>
                 </div>
@@ -33,22 +33,10 @@
         </div>
     </div>
 
-    <!-- Botón Crear Nueva Moneda -->
-    <div class="create-currency-section">
-        <a href="{% url 'create_currency' %}" class="create-currency-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="16"/>
-                <line x1="8" y1="12" x2="16" y2="12"/>
-            </svg>
-            Crear Nueva Moneda
-        </a>
-    </div>
-
     <!-- Tabla de Monedas -->
     <div class="table-container currency-list">
         <div class="table-header">
-            <h3>Gestión de Monedas</h3>
+            <h3>Gestión de Cotizaciones</h3>
         </div>
         
         <div class="table-wrapper">
@@ -57,7 +45,9 @@
                     <tr>
                         <th>Bandera</th>
                         <th>Moneda</th>
-                        <th>Decimales</th>
+                        <th>Precio Base</th>
+                        <th>Comisión Venta</th>
+                        <th>Comisión Compra</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -82,14 +72,14 @@
                             </div>
                         </td>
 
-                        <!-- Decimales -->
-                        <td>
-                            <div>
-                                Cotización: {{ currency.decimales_cotizacion }}  
-                                <br>
-                                Monto: {{ currency.decimales_monto }}
-                            </div>
-                        </td>
+                        <!-- Precio Base -->
+                        <td>{{ currency.base_price|format_decimals:currency.decimales_cotizacion }}</td>
+
+                        <!-- Comisión Venta -->
+                        <td>{{ currency.comision_venta|format_decimals:currency.decimales_cotizacion }}</td>
+
+                        <!-- Comisión Compra -->
+                        <td>{{ currency.comision_compra|format_decimals:currency.decimales_cotizacion }}</td>
 
                         <!-- Estado -->
                         <td>
@@ -103,24 +93,14 @@
                         <!-- Acciones -->
                         <td>
                             <div class="action-buttons">
-                                <a href="{% url 'edit_currency' currency.id %}" class="action-btn edit-btn">Editar</a>
-                                <form method="POST" action="{% url 'toggle_currency' %}" class="inline-form">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="currency_id" value="{{ currency.id }}">
-                                    {% if currency.is_active %}
-                                        <button type="submit" class="action-btn deactivate-btn">Desactivar</button>
-                                    {% else %}
-                                        <button type="submit" class="action-btn activate-btn">Activar</button>
-                                    {% endif %}
-                                </form>
+                                <a href="{% url 'edit_prices' currency.id %}" class="action-btn edit-btn">Editar</a>
                             </div>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="8" class="no-data">
-                            <h4>No hay monedas registradas</h4>
-                            <p>Crea tu primera moneda usando el botón de arriba</p>
+                            <h4>No hay cotizaciones registradas</h4>
                         </td>
                     </tr>
                     {% endfor %}

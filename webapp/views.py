@@ -622,9 +622,6 @@ def create_currency(request):
         code = request.POST.get('code')
         name = request.POST.get('name')
         symbol = request.POST.get('symbol')
-        base_price = request.POST.get('base_price')
-        comision_venta = request.POST.get('comision_venta')
-        comision_compra = request.POST.get('comision_compra')
         decimales_cotizacion = request.POST.get('decimales_cotizacion')
         decimales_monto = request.POST.get('decimales_monto')
         flag_image = request.FILES.get('flag_image')
@@ -640,9 +637,6 @@ def create_currency(request):
             code=code.upper(),
             name=name,
             symbol=symbol,
-            base_price=base_price,
-            comision_venta=comision_venta,
-            comision_compra=comision_compra,
             decimales_cotizacion=decimales_cotizacion,
             decimales_monto=decimales_monto,
             flag_image=flag_image,
@@ -664,9 +658,6 @@ def edit_currency(request, currency_id):
 
         # Validar campos decimales
         try:
-            currency.base_price = Decimal(request.POST.get('base_price').replace(",", "."))
-            currency.comision_venta = Decimal(request.POST.get('comision_venta').replace(",", "."))
-            currency.comision_compra = Decimal(request.POST.get('comision_compra').replace(",", "."))
             currency.decimales_cotizacion = int(request.POST.get('decimales_cotizacion'))
             currency.decimales_monto = int(request.POST.get('decimales_monto'))
         except (InvalidOperation, ValueError):
@@ -700,6 +691,41 @@ def toggle_currency(request):
         messages.success(request, f'Moneda {status} exitosamente.')
     
     return redirect('currency_list')
+
+# COTIZACIONES
+
+def prices_list(request):
+    currencies = Currency.objects.all()
+    total = currencies.count()
+    activas = currencies.filter(is_active=True).count()
+    return render(request, "webapp/prices_list.html", {
+        "currencies": currencies,
+        "total": total,
+        "activas": activas,
+    })
+@login_required
+def edit_prices(request, currency_id):
+    currency = get_object_or_404(Currency, id=currency_id)
+    
+    if request.method == 'POST':
+
+        # Validar campos decimales
+        try:
+            currency.base_price = Decimal(request.POST.get('base_price').replace(",", "."))
+            currency.comision_venta = Decimal(request.POST.get('comision_venta').replace(",", "."))
+            currency.comision_compra = Decimal(request.POST.get('comision_compra').replace(",", "."))
+            
+        except (InvalidOperation, ValueError):
+            messages.error(request, "Uno de los valores numéricos ingresados no es válido.")
+            return render(request, 'webapp/edit_prices.html', {'currency': currency})
+
+
+        # Guardar
+        currency.save()
+        messages.success(request, 'Cotización actualizada exitosamente.')
+        return redirect('prices_list')
+
+    return render(request, 'webapp/edit_prices.html', {'currency': currency})
 
 
 # ===========================================

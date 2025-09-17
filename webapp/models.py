@@ -490,6 +490,7 @@ class TipoPago(models.Model):
 # -------------------------------------
 # Modelo para definir maximos y minimos en la categoria de clientes
 # -------------------------------------
+
 class LimiteIntercambio(models.Model):
     moneda = models.ForeignKey(
         'Currency',
@@ -529,13 +530,8 @@ class LimiteIntercambio(models.Model):
         ordering = ['moneda__code', 'categoria__nombre']
 
     def clean(self):
-        """
-        Validaciones:
-        1. No exceder los decimales permitidos por la moneda.
-        2. monto_min <= monto_max
-        """
         if not self.moneda:
-            return  # Evita error si se crea el objeto sin moneda asignada aún
+            return
 
         max_dec = self.moneda.decimales_cotizacion
 
@@ -558,16 +554,13 @@ class LimiteIntercambio(models.Model):
                 raise ValidationError("El monto mínimo no puede ser mayor al monto máximo.")
 
     def save(self, *args, **kwargs):
-        """
-        Redondea los valores según decimales de la moneda antes de guardar.
-        """
         if self.moneda:
-            dec = self.moneda.decimales_cotizacion
-            factor = Decimal('1.' + '0' * dec)
+            dec = int(self.moneda.decimales_cotizacion)
+            factor = Decimal('1').scaleb(-dec)  # Ej: dec=3 -> 0.001
             if self.monto_min is not None:
-                self.monto_min = self.monto_min.quantize(Decimal(10) ** -dec, rounding=ROUND_DOWN)
+                self.monto_min = Decimal(self.monto_min).quantize(factor, rounding=ROUND_DOWN)
             if self.monto_max is not None:
-                self.monto_max = self.monto_max.quantize(Decimal(10) ** -dec, rounding=ROUND_DOWN)
+                self.monto_max = Decimal(self.monto_max).quantize(factor, rounding=ROUND_DOWN)
         super().save(*args, **kwargs)
 
     def __str__(self):
