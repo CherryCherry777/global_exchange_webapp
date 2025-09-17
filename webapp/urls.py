@@ -103,5 +103,10 @@ urlpatterns = [
     #Administracion de limites de intercambio de monedas por tipo de cliente
     path('limites/', views.limites_intercambio_list, name='limites_list'),
     path('limites/<int:moneda_id>/editar/', views.limite_edit, name='limite_edit'),
+
+    #Administracion  de cotizaciones
+    # Currency Manager
+    path('prices/', views.prices_list, name='prices_list'),
+    path('prices/editar/<int:currency_id>/', views.edit_prices, name='edit_prices'),
 ]
 

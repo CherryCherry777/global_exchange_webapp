@@ -1,0 +1,51 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Editar Cotización{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Editar Cotización: {{ currency.code }}</h1>
+
+    <div class="back-container">
+        <a href="{% url 'prices_list' %}" class="btn-back">← Volver al listado</a>
+    </div>
+
+    <div class="cliente-form-container">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-container">
+
+                <!-- Código y nombre -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_code">Código:</label>
+                        <input type="text" value="{{ currency.code }}" disabled>       
+                    </p>
+
+                <!-- Precio base -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_base_price">Precio base:</label>
+                        <input type="text" name="base_price" id="id_base_price" value="{{ currency.base_price|floatformat:currency.decimales_monto }}" required>
+                    </p>
+                </div>
+
+                <!-- Comisiones -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_comision_venta">Comisión de venta:</label>
+                        <input type="text" name="comision_venta" id="id_comision_venta" value="{{ currency.comision_venta|floatformat:currency.decimales_monto }}" required>
+                    </p>
+                    <p>
+                        <label for="id_comision_compra">Comisión de compra:</label>
+                        <input type="text" name="comision_compra" id="id_comision_compra" value="{{ currency.comision_compra|floatformat:currency.decimales_monto }}" required>
+                    </p>
+                </div>
+
+            </div>
+            <button type="submit" class="add-btn">Actualizar Cotización</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -608,6 +608,8 @@ def modify_users(request, user_id):
         "ROLE_TIERS": {"Administrador": 3, "Empleado": 2, "Usuario": 1}
     })
 
+# MONEDAS
+
 @login_required
 @permission_required('webapp.view_currency', raise_exception=True)
 def currency_list(request):
@@ -689,6 +691,37 @@ def toggle_currency(request):
         messages.success(request, f'Moneda {status} exitosamente.')
     
     return redirect('currency_list')
+
+# COTIZACIONES
+
+@login_required
+def prices_list(request):
+    currencies = Currency.objects.all()
+    return render(request, 'webapp/prices_list.html', {'currencies': currencies})
+
+@login_required
+def edit_prices(request, currency_id):
+    currency = get_object_or_404(Currency, id=currency_id)
+    
+    if request.method == 'POST':
+
+        # Validar campos decimales
+        try:
+            currency.base_price = Decimal(request.POST.get('base_price').replace(",", "."))
+            currency.comision_venta = Decimal(request.POST.get('comision_venta').replace(",", "."))
+            currency.comision_compra = Decimal(request.POST.get('comision_compra').replace(",", "."))
+            
+        except (InvalidOperation, ValueError):
+            messages.error(request, "Uno de los valores numéricos ingresados no es válido.")
+            return render(request, 'webapp/edit_prices.html', {'currency': currency})
+
+
+        # Guardar
+        currency.save()
+        messages.success(request, 'Cotización actualizada exitosamente.')
+        return redirect('prices_list')
+
+    return render(request, 'webapp/edit_prices.html', {'currency': currency})
 
 
 # ===========================================

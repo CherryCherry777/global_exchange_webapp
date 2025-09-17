@@ -1,0 +1,112 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Administrar Cotizaciones{% endblock %}
+
+{% block content %}
+<div class="admin-page-container">
+    <div class="admin-page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="{% url 'landing' %}" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Volver al Panel
+                </a>
+                <h1 class="page-title">Administrar Cotizaciones</h1>
+                <p class="page-subtitle">Gestiona las cotizaciones del sistema y sus parámetros</p>
+            </div>
+            <div class="header-right">
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ currencies|length }}</span>
+                        <span class="stat-label">Cotizaciones Totales</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ currencies|length }}</span>
+                        <span class="stat-label">Activas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Monedas -->
+    <div class="table-container currency-list">
+        <div class="table-header">
+            <h3>Gestión de Cotizaciones</h3>
+        </div>
+        
+        <div class="table-wrapper">
+            <table class="currency-table">
+                <thead>
+                    <tr>
+                        <th>Bandera</th>
+                        <th>Moneda</th>
+                        <th>Precio Base</th>
+                        <th>Comisión Venta</th>
+                        <th>Comisión Compra</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for currency in currencies %}
+                    <tr class="{% if not currency.is_active %}inactive-currency{% endif %}">
+                        <!-- Bandera -->
+                        <td>
+                            {% if currency.flag_image %}
+                                <img src="{{ currency.flag_image.url }}" alt="Bandera {{ currency.code }}" class="flag-image">
+                            {% else %}
+                                <span class="no-flag">-</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Info de Moneda -->
+                        <td>
+                            <div class="currency-info">
+                                <strong>{{ currency.code }}</strong> ({{ currency.symbol }})
+                                <div class="currency-name">{{ currency.name }}</div>
+                            </div>
+                        </td>
+
+                        <!-- Precio Base -->
+                        <td>{{ currency.base_price }}</td>
+
+                        <!-- Comisión Venta -->
+                        <td>{{ currency.comision_venta }}</td>
+
+                        <!-- Comisión Compra -->
+                        <td>{{ currency.comision_compra }}</td>
+
+                        <!-- Estado -->
+                        <td>
+                            {% if currency.is_active %}
+                                <span class="status-active">Activo</span>
+                            {% else %}
+                                <span class="status-inactive">Inactivo</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Acciones -->
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'edit_prices' currency.id %}" class="action-btn edit-btn">Editar</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="no-data">
+                            <h4>No hay cotizaciones registradas</h4>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
