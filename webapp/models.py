@@ -555,7 +555,7 @@ class LimiteIntercambio(models.Model):
 
     def save(self, *args, **kwargs):
         if self.moneda:
-            dec = self.moneda.decimales_cotizacion
+            dec = int(self.moneda.decimales_cotizacion)
             factor = Decimal('1').scaleb(-dec)  # Ej: dec=3 -> 0.001
             if self.monto_min is not None:
                 self.monto_min = Decimal(self.monto_min).quantize(factor, rounding=ROUND_DOWN)
