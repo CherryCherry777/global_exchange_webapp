@@ -1,0 +1,53 @@
+{% extends "webapp/base.html" %}
+{% load dict_extras %}
+
+{% block title %}Editar Límites - {{ moneda.code }}{% endblock %}
+
+{% block content %}
+<h1>Editar Límites - {{ moneda.code }} - {{ moneda.name }}</h1>
+
+{% if errores %}
+    <ul style="color:red;">
+    {% for err in errores %}
+        <li>{{ err }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 50%;">
+        <thead style="background-color: #4CAF50; color: white;">
+            <tr>
+                <th>Categoría</th>
+                <th>Min</th>
+                <th>Max</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for categoria in categorias %}
+            <tr>
+                <td>{{ categoria.nombre }}</td>
+                <td>
+                    <input type="number" 
+                           name="{{ categoria.nombre }}_min" 
+                           step="{{ step }}" 
+                           value="{{ limites|dict_get:categoria.nombre|get_item:'min' }}">
+                </td>
+                <td>
+                    <input type="number" 
+                           name="{{ categoria.nombre }}_max" 
+                           step="{{ step }}" 
+                           value="{{ limites|dict_get:categoria.nombre|get_item:'max' }}">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <button type="submit" style="padding: 5px 15px; background-color: #2196F3; color: white; border: none; border-radius: 4px;">
+        Guardar Cambios
+    </button>
+    <a href="{% url 'limites_list' %}" style="margin-left: 10px;">Cancelar</a>
+</form>
+{% endblock %}

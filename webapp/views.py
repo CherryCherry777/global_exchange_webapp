@@ -1,4 +1,5 @@
 from django.db import IntegrityError, models
+from django.forms import modelformset_factory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.core.mail import send_mail
@@ -17,10 +18,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteCategoriaForm
+from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteCategoria
+from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteIntercambio
 from django.contrib.auth.decorators import permission_required
 from decimal import Decimal, InvalidOperation
 
@@ -1664,27 +1665,105 @@ def edit_payment_type(request, tipo_id):
 
 
 # ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR CATEGORIA DE CLIENTE
+
 @login_required
-def listar_limites(request):
-    categorias = Categoria.objects.all().order_by("id")
-    return render(request, "webapp/listar_limites.html", {
-        "categorias": categorias
+def limites_intercambio_list(request):
+    monedas = Currency.objects.all().order_by('code')
+    
+    # Orden deseado de categorías
+    orden_categorias = ['VIP', 'Corporativo', 'Minorista']
+    categorias = list(Categoria.objects.filter(nombre__in=orden_categorias))
+    categorias = sorted(categorias, key=lambda c: orden_categorias.index(c.nombre))
+
+    tabla = []
+    for moneda in monedas:
+        # Diccionario de la fila
+        fila = {'moneda': moneda, 'limites': {}}
+        for categoria in categorias:
+            # Obtener o crear el límite por defecto
+            limite, _ = LimiteIntercambio.objects.get_or_create(
+                moneda=moneda,
+                categoria=categoria,
+                defaults={'monto_min': 0, 'monto_max': 0}
+            )
+            # Guardamos los valores en un diccionario interno
+            fila['limites'][categoria.nombre] = {
+                'min': limite.monto_min,
+                'max': limite.monto_max,
+            }
+        tabla.append(fila)
+
+    return render(request, 'webapp/limites_intercambio.html', {
+        'tabla': tabla,
+        'categorias': categorias,
     })
 
+
 @login_required
-def editar_limite(request, categoria_id):
-    categoria = get_object_or_404(Categoria, id=categoria_id)
-    limite, created = LimiteCategoria.objects.get_or_create(categoria=categoria)
+def limite_edit(request, moneda_id):
+    moneda = get_object_or_404(Currency, id=moneda_id)
 
-    if request.method == "POST":
-        form = LimiteCategoriaForm(request.POST, instance=limite)
-        if form.is_valid():
-            form.save()
-            return redirect("listar_limites")
-    else:
-        form = LimiteCategoriaForm(instance=limite)
+    # Orden deseado de categorías
+    orden_categorias = ['VIP', 'Corporativo', 'Minorista']
+    categorias = list(Categoria.objects.filter(nombre__in=orden_categorias))
+    categorias = sorted(categorias, key=lambda c: orden_categorias.index(c.nombre))
 
-    return render(request, "webapp/editar_limite.html", {
-        "categoria": categoria,
-        "form": form
+    # Preparamos los límites
+    limites = {}
+    for categoria in categorias:
+        limite, _ = LimiteIntercambio.objects.get_or_create(
+            moneda=moneda,
+            categoria=categoria,
+            defaults={'monto_min': 0, 'monto_max': 0}
+        )
+        limites[categoria.nombre] = {
+            'min': limite.monto_min,
+            'max': limite.monto_max,
+            'obj': limite
+        }
+
+    # Calculamos el step para el input HTML según los decimales permitidos
+    
+    step = Decimal('1') / (10 ** moneda.decimales_cotizacion)
+    step_str = f"0.{ '0' * (moneda.decimales_cotizacion - 1) }1" if moneda.decimales_cotizacion > 0 else "1"
+
+    errores = []
+
+    if request.method == 'POST':
+        for categoria in categorias:
+            try:
+                min_val = Decimal(request.POST.get(f"{categoria.nombre}_min", 0))
+                max_val = Decimal(request.POST.get(f"{categoria.nombre}_max", 0))
+            except:
+                errores.append(f"Valores inválidos para {categoria.nombre}.")
+                continue
+
+            limite_obj = limites[categoria.nombre]['obj']
+
+            # Validar cantidad de decimales
+            max_dec = moneda.decimales_cotizacion
+            for val, campo in [(min_val, 'mínimo'), (max_val, 'máximo')]:
+                if '.' in str(val):
+                    dec_count = len(str(val).split('.')[1])
+                    if dec_count > max_dec:
+                        errores.append(f"{categoria.nombre} {campo}: máximo {max_dec} decimales permitidos.")
+
+            # Validar que min <= max
+            if min_val > max_val:
+                errores.append(f"{categoria.nombre}: el valor mínimo no puede ser mayor que el máximo.")
+
+            if not errores:
+                limite_obj.monto_min = min_val
+                limite_obj.monto_max = max_val
+                limite_obj.save()
+
+        if not errores:
+            return redirect('limites_list')
+
+    return render(request, 'webapp/limite_edit.html', {
+        'moneda': moneda,
+        'categorias': categorias,
+        'limites': limites,
+        'step': step_str,
+        'errores': errores,
     })

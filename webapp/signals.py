@@ -86,3 +86,47 @@ def asignar_tipo_pago(sender, instance, created, **kwargs):
         tipo_pago, _ = TipoPago.objects.get_or_create(nombre=instance.tipo.capitalize())
         instance.tipo_pago = tipo_pago
         instance.save()
+
+@receiver(post_migrate)
+def crear_limites_intercambio(sender, **kwargs):
+    # Asegurarnos de que los modelos ya estén cargados
+    Currency = apps.get_model('webapp', 'Currency')
+    Categoria = apps.get_model('webapp', 'Categoria')
+    LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
+
+    # Evitamos ejecutarlo para apps que no sean la tuya
+    if sender.label != 'webapp':
+        return
+
+    # Iterar sobre todas las monedas y categorías
+    for moneda in Currency.objects.all():
+        for categoria in Categoria.objects.all():
+            # Crear el límite si no existe
+            LimiteIntercambio.objects.get_or_create(
+                moneda=moneda,
+                categoria=categoria,
+                defaults={
+                    'monto_min': 0,     # valor por defecto mínimo
+                    'monto_max': 1000   # valor por defecto máximo
+                }
+            )
+
+@receiver(post_save, sender='webapp.Currency')
+def crear_limites_por_moneda(sender, instance, created, **kwargs):
+    """
+    Crea automáticamente registros de LimiteIntercambio para todas las categorías
+    cuando se crea una nueva moneda.
+    """
+    if not created:
+        return  # Solo al crear la moneda
+
+    LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
+    Categoria = apps.get_model('webapp', 'Categoria')
+
+    for categoria in Categoria.objects.all():
+        LimiteIntercambio.objects.create(
+            moneda=instance,
+            categoria=categoria,
+            monto_min=0,
+            monto_max=0
+        )

@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import CustomUser, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteCategoria
+from .models import CustomUser, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteIntercambio
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -464,7 +464,8 @@ class TipoPagoForm(forms.ModelForm):
             "comision": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
         }
 
-class LimiteCategoriaForm(forms.ModelForm):
+
+class LimiteIntercambioForm(forms.ModelForm):
     class Meta:
-        model = LimiteCategoria
-        fields = ["minimo_guaranies", "maximo_guaranies"]
+        model = LimiteIntercambio
+        fields = ['monto_min', 'monto_max']

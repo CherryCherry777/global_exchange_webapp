@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from decimal import Decimal, ROUND_DOWN
 
 #Las clases van aqui
 #Los usuarios heredan AbstractUser
@@ -229,35 +231,6 @@ class Categoria(models.Model):
         # Muestra el nombre y el descuento en porcentaje sin decimales
         return f"{self.nombre} ({self.descuento * 100:.0f}%)"
 
-# -------------------------------------
-# Modelo para definir maximos y minimos en la categoria de clientes
-# -------------------------------------
-class LimiteCategoria(models.Model):
-    categoria = models.OneToOneField(
-        Categoria,
-        on_delete=models.CASCADE,
-        related_name="limite",
-        verbose_name="Categoría"
-    )
-    minimo_guaranies = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-        verbose_name="Monto mínimo (Gs)",
-        null=True
-    )
-    maximo_guaranies = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-        verbose_name="Monto máximo (Gs)",
-        null=True
-    )
-
-    class Meta:
-        verbose_name = "Límite por Categoría"
-        verbose_name_plural = "Límites por Categoría"
-
-    def __str__(self):
-        return f"Límites {self.categoria.nombre}: {self.minimo_guaranies} - {self.maximo_guaranies}"
 
 # -------------------------------------
 # Modelo de medios de pago genérico
@@ -513,3 +486,89 @@ class TipoPago(models.Model):
     def __str__(self):
         return self.nombre
 
+
+# -------------------------------------
+# Modelo para definir maximos y minimos en la categoria de clientes
+# -------------------------------------
+class LimiteIntercambio(models.Model):
+    moneda = models.ForeignKey(
+        'Currency',
+        on_delete=models.CASCADE,
+        verbose_name="Moneda",
+        related_name="limites_intercambio"
+    )
+    categoria = models.ForeignKey(
+        'Categoria',
+        on_delete=models.CASCADE,
+        verbose_name="Categoría de Cliente",
+        related_name="limites_intercambio"
+    )
+    monto_min = models.DecimalField(
+        max_digits=23,
+        decimal_places=8,
+        verbose_name="Monto Mínimo",
+        error_messages={
+            'max_digits': 'El número no puede tener más de 23 dígitos',
+            'max_decimal_places': 'El número no puede tener más de 8 decimales'
+        }
+    )
+    monto_max = models.DecimalField(
+        max_digits=23,
+        decimal_places=8,
+        verbose_name="Monto Máximo",
+        error_messages={
+            'max_digits': 'El número no puede tener más de 23 dígitos',
+            'max_decimal_places': 'El número no puede tener más de 8 decimales'
+        }
+    )
+
+    class Meta:
+        unique_together = ('moneda', 'categoria')
+        verbose_name = "Límite de Intercambio"
+        verbose_name_plural = "Límites de Intercambio"
+        ordering = ['moneda__code', 'categoria__nombre']
+
+    def clean(self):
+        """
+        Validaciones:
+        1. No exceder los decimales permitidos por la moneda.
+        2. monto_min <= monto_max
+        """
+        if not self.moneda:
+            return  # Evita error si se crea el objeto sin moneda asignada aún
+
+        max_dec = self.moneda.decimales_cotizacion
+
+        def check_decimals(value, field_name):
+            if value is None:
+                return
+            str_val = str(value)
+            if '.' in str_val:
+                dec_count = len(str_val.split('.')[1])
+                if dec_count > max_dec:
+                    raise ValidationError(
+                        {field_name: f"El número máximo de decimales permitidos para esta moneda es {max_dec}."}
+                    )
+
+        check_decimals(self.monto_min, 'monto_min')
+        check_decimals(self.monto_max, 'monto_max')
+
+        if self.monto_min is not None and self.monto_max is not None:
+            if self.monto_min > self.monto_max:
+                raise ValidationError("El monto mínimo no puede ser mayor al monto máximo.")
+
+    def save(self, *args, **kwargs):
+        """
+        Redondea los valores según decimales de la moneda antes de guardar.
+        """
+        if self.moneda:
+            dec = self.moneda.decimales_cotizacion
+            factor = Decimal('1.' + '0' * dec)
+            if self.monto_min is not None:
+                self.monto_min = self.monto_min.quantize(Decimal(10) ** -dec, rounding=ROUND_DOWN)
+            if self.monto_max is not None:
+                self.monto_max = self.monto_max.quantize(Decimal(10) ** -dec, rounding=ROUND_DOWN)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.moneda.code} - {self.categoria.nombre}"
