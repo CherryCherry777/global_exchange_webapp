@@ -608,6 +608,8 @@ def modify_users(request, user_id):
         "ROLE_TIERS": {"Administrador": 3, "Empleado": 2, "Usuario": 1}
     })
 
+# MONEDAS
+
 @login_required
 @permission_required('webapp.view_currency', raise_exception=True)
 def currency_list(request):
