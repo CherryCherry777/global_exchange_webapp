@@ -620,9 +620,6 @@ def create_currency(request):
         code = request.POST.get('code')
         name = request.POST.get('name')
         symbol = request.POST.get('symbol')
-        base_price = request.POST.get('base_price')
-        comision_venta = request.POST.get('comision_venta')
-        comision_compra = request.POST.get('comision_compra')
         decimales_cotizacion = request.POST.get('decimales_cotizacion')
         decimales_monto = request.POST.get('decimales_monto')
         flag_image = request.FILES.get('flag_image')
@@ -638,9 +635,6 @@ def create_currency(request):
             code=code.upper(),
             name=name,
             symbol=symbol,
-            base_price=base_price,
-            comision_venta=comision_venta,
-            comision_compra=comision_compra,
             decimales_cotizacion=decimales_cotizacion,
             decimales_monto=decimales_monto,
             flag_image=flag_image,
@@ -662,9 +656,6 @@ def edit_currency(request, currency_id):
 
         # Validar campos decimales
         try:
-            currency.base_price = Decimal(request.POST.get('base_price').replace(",", "."))
-            currency.comision_venta = Decimal(request.POST.get('comision_venta').replace(",", "."))
-            currency.comision_compra = Decimal(request.POST.get('comision_compra').replace(",", "."))
             currency.decimales_cotizacion = int(request.POST.get('decimales_cotizacion'))
             currency.decimales_monto = int(request.POST.get('decimales_monto'))
         except (InvalidOperation, ValueError):
