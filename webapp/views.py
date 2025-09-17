@@ -1,4 +1,5 @@
 from django.db import IntegrityError, models
+from django.forms import modelformset_factory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.core.mail import send_mail
@@ -17,10 +18,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteCategoriaForm
+from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteCategoria
+from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteIntercambio
 from django.contrib.auth.decorators import permission_required
 from decimal import Decimal, InvalidOperation
 
@@ -1664,27 +1665,38 @@ def edit_payment_type(request, tipo_id):
 
 
 # ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR CATEGORIA DE CLIENTE
-@login_required
-def listar_limites(request):
-    categorias = Categoria.objects.all().order_by("id")
-    return render(request, "webapp/listar_limites.html", {
-        "categorias": categorias
-    })
 
 @login_required
-def editar_limite(request, categoria_id):
-    categoria = get_object_or_404(Categoria, id=categoria_id)
-    limite, created = LimiteCategoria.objects.get_or_create(categoria=categoria)
+def limites_intercambio_list(request):
+    monedas = Currency.objects.all().order_by('code')
+    categorias = Categoria.objects.all().order_by('id')
+    
+    # Crear estructura: lista de diccionarios por moneda
+    tabla = []
+    for moneda in monedas:
+        fila = {'moneda': moneda}
+        for categoria in categorias:
+            limite = LimiteIntercambio.objects.get(moneda=moneda, categoria=categoria)
+            fila[f'limite_{categoria.nombre}_min'] = limite.monto_min
+            fila[f'limite_{categoria.nombre}_max'] = limite.monto_max
+            fila[f'limite_obj_{categoria.nombre}'] = limite
+        tabla.append(fila)
+    
+    return render(request, 'limites_intercambio.html', {'tabla': tabla, 'categorias': categorias})
 
-    if request.method == "POST":
-        form = LimiteCategoriaForm(request.POST, instance=limite)
-        if form.is_valid():
-            form.save()
-            return redirect("listar_limites")
+
+def limite_edit(request, moneda_id):
+    moneda = Currency.objects.get(id=moneda_id)
+    categorias = Categoria.objects.all()
+    LimiteFormSet = modelformset_factory(LimiteIntercambio, form=LimiteIntercambioForm, extra=0)
+    queryset = LimiteIntercambio.objects.filter(moneda=moneda)
+    
+    if request.method == 'POST':
+        formset = LimiteFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            formset.save()
+            return redirect('limites_list')
     else:
-        form = LimiteCategoriaForm(instance=limite)
-
-    return render(request, "webapp/editar_limite.html", {
-        "categoria": categoria,
-        "form": form
-    })
+        formset = LimiteFormSet(queryset=queryset)
+    
+    return render(request, 'limite_edit.html', {'formset': formset, 'moneda': moneda})

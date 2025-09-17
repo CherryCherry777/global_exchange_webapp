@@ -1,0 +1,37 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Editar Límites - {{ moneda.code }}{% endblock %}
+
+{% block content %}
+<h1>Editar Límites de Intercambio para {{ moneda.code }} - {{ moneda.name }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 50%;">
+        <thead>
+            <tr style="background-color: #4CAF50; color: white;">
+                <th>Categoría</th>
+                <th>Monto Mínimo</th>
+                <th>Monto Máximo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in formset %}
+            <tr>
+                <td>{{ form.instance.categoria.nombre }}</td>
+                <td>{{ form.monto_min }}</td>
+                <td>{{ form.monto_max }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" style="margin-top: 10px; padding: 5px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">
+        Guardar Cambios
+    </button>
+    <a href="{% url 'limites_list' %}" style="margin-left: 10px; padding: 5px 15px; background-color: #f44336; color: white; text-decoration: none; border-radius: 4px;">
+        Cancelar
+    </a>
+</form>
+{% endblock %}
