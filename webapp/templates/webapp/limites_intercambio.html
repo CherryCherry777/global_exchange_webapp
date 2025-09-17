@@ -23,8 +23,10 @@
         <tr>
             <td>{{ fila.moneda.code }} - {{ fila.moneda.name }}</td>
             {% for categoria in categorias %}
-                <td>{{ fila.limites|dict_get:categoria.nombre|get_item:"min" }}</td>
-                <td>{{ fila.limites|dict_get:categoria.nombre|get_item:"max" }}</td>
+                {% with dec=fila.moneda.decimales_cotizacion %}
+                <td>{{ fila.limites|dict_get:categoria.nombre|get_item:"min"|floatformat:dec }}</td>
+                <td>{{ fila.limites|dict_get:categoria.nombre|get_item:"max"|floatformat:dec }}</td>
+                {% endwith %}
             {% endfor %}
             <td>
                 <a href="{% url 'limite_edit' fila.moneda.id %}" style="text-decoration: none; padding: 5px 10px; background-color: #2196F3; color: white; border-radius: 4px;">

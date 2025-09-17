@@ -1678,7 +1678,14 @@ def limites_intercambio_list(request):
     tabla = []
     for moneda in monedas:
         # Diccionario de la fila
-        fila = {'moneda': moneda, 'limites': {}}
+        fila = {'moneda': moneda, 'limites': {}, 'step': {}}
+
+        # Calculamos el step dinámico para esta moneda
+        if moneda.decimales_cotizacion > 0:
+            step_str = f"0.{ '0' * (moneda.decimales_cotizacion - 1) }1"
+        else:
+            step_str = "1"
+
         for categoria in categorias:
             limite, _ = LimiteIntercambio.objects.get_or_create(
                 moneda=moneda,
@@ -1690,6 +1697,9 @@ def limites_intercambio_list(request):
                 'min': limite.monto_min,
                 'max': limite.monto_max,
             }
+            # Guardamos step por categoría (aunque en este caso es el mismo por moneda)
+            fila['step'][categoria.nombre] = step_str
+
         tabla.append(fila)
 
     return render(request, 'webapp/limites_intercambio.html', {
@@ -1697,10 +1707,9 @@ def limites_intercambio_list(request):
         'categorias': categorias,
     })
 
-
 @login_required
 def limite_edit(request, moneda_id):
-    moneda = Currency.objects.get(id=moneda_id)
+    moneda = get_object_or_404(Currency, id=moneda_id)
 
     # Orden deseado de categorías
     orden_categorias = ['VIP', 'Corporativo', 'Minorista']
@@ -1721,18 +1730,48 @@ def limite_edit(request, moneda_id):
             'obj': limite
         }
 
+    # Calculamos el step para el input HTML según los decimales permitidos
+    
+    step = Decimal('1') / (10 ** moneda.decimales_cotizacion)
+    step_str = f"0.{ '0' * (moneda.decimales_cotizacion - 1) }1" if moneda.decimales_cotizacion > 0 else "1"
+
+    errores = []
+
     if request.method == 'POST':
         for categoria in categorias:
-            min_val = request.POST.get(f"{categoria.nombre}_min", 0)
-            max_val = request.POST.get(f"{categoria.nombre}_max", 0)
+            try:
+                min_val = Decimal(request.POST.get(f"{categoria.nombre}_min", 0))
+                max_val = Decimal(request.POST.get(f"{categoria.nombre}_max", 0))
+            except:
+                errores.append(f"Valores inválidos para {categoria.nombre}.")
+                continue
+
             limite_obj = limites[categoria.nombre]['obj']
-            limite_obj.monto_min = min_val
-            limite_obj.monto_max = max_val
-            limite_obj.save()
-        return redirect('limites_list')
+
+            # Validar cantidad de decimales
+            max_dec = moneda.decimales_cotizacion
+            for val, campo in [(min_val, 'mínimo'), (max_val, 'máximo')]:
+                if '.' in str(val):
+                    dec_count = len(str(val).split('.')[1])
+                    if dec_count > max_dec:
+                        errores.append(f"{categoria.nombre} {campo}: máximo {max_dec} decimales permitidos.")
+
+            # Validar que min <= max
+            if min_val > max_val:
+                errores.append(f"{categoria.nombre}: el valor mínimo no puede ser mayor que el máximo.")
+
+            if not errores:
+                limite_obj.monto_min = min_val
+                limite_obj.monto_max = max_val
+                limite_obj.save()
+
+        if not errores:
+            return redirect('limites_list')
 
     return render(request, 'webapp/limite_edit.html', {
         'moneda': moneda,
         'categorias': categorias,
-        'limites': limites
+        'limites': limites,
+        'step': step_str,
+        'errores': errores,
     })

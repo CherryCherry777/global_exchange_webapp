@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from decimal import Decimal
 
 #Las clases van aqui
 #Los usuarios heredan AbstractUser
@@ -502,12 +504,20 @@ class LimiteIntercambio(models.Model):
         related_name="limites_intercambio"
     )
     monto_min = models.DecimalField(
-        max_digits=23, decimal_places=2,
-        verbose_name="Monto Mínimo"
+        max_digits=23, decimal_places=8,
+        verbose_name="Monto Mínimo",
+        error_messages={
+            'max_digits': 'El número no puede tener más de 23 dígitos',
+            'max_decimal_places': 'El número no puede tener más de 8 decimales'
+        }
     )
     monto_max = models.DecimalField(
-        max_digits=23, decimal_places=2,
-        verbose_name="Monto Máximo"
+        max_digits=23, decimal_places=8,
+        verbose_name="Monto Máximo",
+        error_messages={
+            'max_digits': 'El número no puede tener más de 23 dígitos',
+            'max_decimal_places': 'El número no puede tener más de 8 decimales'
+        }
     )
 
     class Meta:
@@ -515,6 +525,25 @@ class LimiteIntercambio(models.Model):
         verbose_name = "Límite de Intercambio"
         verbose_name_plural = "Límites de Intercambio"
         ordering = ['moneda__code', 'categoria__nombre']
+
+    def clean(self):
+        # Obtener la cantidad de decimales permitida desde la moneda relacionada
+        max_dec = self.moneda.decimales_cotizacion
+        # Validar que monto_min y monto_max tengan <= decimales_cotizacion
+        def check_decimals(value, max_decimals, field_name):
+            str_val = str(value)
+            if '.' in str_val:
+                dec_count = len(str_val.split('.')[1])
+                if dec_count > max_decimals:
+                    raise ValidationError({field_name: f"El número máximo de decimales permitidos para esta moneda es {max_decimals}."})
+
+        max_dec = self.moneda.decimales_cotizacion
+        check_decimals(self.monto_min, max_dec, 'monto_min')
+        check_decimals(self.monto_max, max_dec, 'monto_max')
+
+        # También validar que monto_min <= monto_max
+        if self.monto_min > self.monto_max:
+            raise ValidationError("El monto mínimo no puede ser mayor al monto máximo.")
 
     def __str__(self):
         return f"{self.moneda.code} - {self.categoria.nombre}"
