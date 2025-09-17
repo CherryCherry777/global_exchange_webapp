@@ -1,5 +1,7 @@
 {% extends "webapp/base.html" %}
 {% load static %}
+{% load dict_extras %}
+
 
 {% block title %}Límites de Intercambio{% endblock %}
 
@@ -22,8 +24,8 @@
         <tr>
             <td>{{ fila.moneda.code }} - {{ fila.moneda.name }}</td>
             {% for categoria in categorias %}
-                <td>{{ fila['limite_'|add:categoria.nombre|add:'_min'] }}</td>
-                <td>{{ fila['limite_'|add:categoria.nombre|add:'_max'] }}</td>
+            <td>{{ fila|dict_get:"limite_"|add:categoria.nombre|add:"_min" }}</td>
+            <td>{{ fila|dict_get:"limite_"|add:categoria.nombre|add:"_max" }}</td>
             {% endfor %}
             <td>
                 <a href="{% url 'limite_edit' fila.moneda.id %}" style="text-decoration: none; padding: 5px 10px; background-color: #2196F3; color: white; border-radius: 4px;">

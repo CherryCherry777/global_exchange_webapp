@@ -1666,10 +1666,14 @@ def edit_payment_type(request, tipo_id):
 
 # ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR CATEGORIA DE CLIENTE
 
+# views.py
 @login_required
 def limites_intercambio_list(request):
     monedas = Currency.objects.all().order_by('code')
-    categorias = Categoria.objects.all().order_by('id')
+    
+    # Orden de categorías según la tabla deseada
+    categorias = Categoria.objects.filter(nombre__in=['VIP','Corporativo','Minorista'])
+    categorias = sorted(categorias, key=lambda c: ['VIP','Corporativo','Minorista'].index(c.nombre))
     
     # Crear estructura: lista de diccionarios por moneda
     tabla = []
@@ -1682,7 +1686,7 @@ def limites_intercambio_list(request):
             fila[f'limite_obj_{categoria.nombre}'] = limite
         tabla.append(fila)
     
-    return render(request, 'limites_intercambio.html', {'tabla': tabla, 'categorias': categorias})
+    return render(request, 'webapp/limites_intercambio.html', {'tabla': tabla, 'categorias': categorias})
 
 
 def limite_edit(request, moneda_id):
@@ -1699,4 +1703,4 @@ def limite_edit(request, moneda_id):
     else:
         formset = LimiteFormSet(queryset=queryset)
     
-    return render(request, 'limite_edit.html', {'formset': formset, 'moneda': moneda})
+    return render(request, 'webapp/limite_edit.html', {'formset': formset, 'moneda': moneda})
