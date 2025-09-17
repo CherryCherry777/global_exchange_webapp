@@ -1,6 +1,6 @@
 {% extends "webapp/base.html" %}
 {% load static %}
-{% load custom_filters %}
+{% load custom_filters %}  {# <-- Necesario para format_decimals #}
 
 {% block title %}Administrar Cotizaciones{% endblock %}
 
@@ -21,11 +21,11 @@
             <div class="header-right">
                 <div class="user-stats">
                     <div class="stat-item">
-                        <span class="stat-number">{{ currencies|length }}</span>
+                        <span class="stat-number">{{ total }}</span>
                         <span class="stat-label">Cotizaciones Totales</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">{{ currencies|length }}</span>
+                        <span class="stat-number">{{ activas }}</span>
                         <span class="stat-label">Activas</span>
                     </div>
                 </div>
@@ -73,13 +73,13 @@
                         </td>
 
                         <!-- Precio Base -->
-                        <td>{{ currency.base_price }}</td>
+                        <td>{{ currency.base_price|format_decimals:currency.decimales_cotizacion }}</td>
 
                         <!-- Comisión Venta -->
-                        <td>{{ currency.comision_venta }}</td>
+                        <td>{{ currency.comision_venta|format_decimals:currency.decimales_cotizacion }}</td>
 
                         <!-- Comisión Compra -->
-                        <td>{{ currency.comision_compra }}</td>
+                        <td>{{ currency.comision_compra|format_decimals:currency.decimales_cotizacion }}</td>
 
                         <!-- Estado -->
                         <td>

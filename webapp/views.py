@@ -694,11 +694,15 @@ def toggle_currency(request):
 
 # COTIZACIONES
 
-@login_required
 def prices_list(request):
     currencies = Currency.objects.all()
-    return render(request, 'webapp/prices_list.html', {'currencies': currencies})
-
+    total = currencies.count()
+    activas = currencies.filter(is_active=True).count()
+    return render(request, "webapp/prices_list.html", {
+        "currencies": currencies,
+        "total": total,
+        "activas": activas,
+    })
 @login_required
 def edit_prices(request, currency_id):
     currency = get_object_or_404(Currency, id=currency_id)
