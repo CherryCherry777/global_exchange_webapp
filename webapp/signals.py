@@ -110,3 +110,23 @@ def crear_limites_intercambio(sender, **kwargs):
                     'monto_max': 1000   # valor por defecto máximo
                 }
             )
+
+@receiver(post_save, sender='webapp.Currency')
+def crear_limites_por_moneda(sender, instance, created, **kwargs):
+    """
+    Crea automáticamente registros de LimiteIntercambio para todas las categorías
+    cuando se crea una nueva moneda.
+    """
+    if not created:
+        return  # Solo al crear la moneda
+
+    LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
+    Categoria = apps.get_model('webapp', 'Categoria')
+
+    for categoria in Categoria.objects.all():
+        LimiteIntercambio.objects.create(
+            moneda=instance,
+            categoria=categoria,
+            monto_min=0,
+            monto_max=0
+        )

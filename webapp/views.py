@@ -1666,41 +1666,73 @@ def edit_payment_type(request, tipo_id):
 
 # ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR CATEGORIA DE CLIENTE
 
-# views.py
 @login_required
 def limites_intercambio_list(request):
     monedas = Currency.objects.all().order_by('code')
     
-    # Orden de categorías según la tabla deseada
-    categorias = Categoria.objects.filter(nombre__in=['VIP','Corporativo','Minorista'])
-    categorias = sorted(categorias, key=lambda c: ['VIP','Corporativo','Minorista'].index(c.nombre))
-    
-    # Crear estructura: lista de diccionarios por moneda
+    # Orden deseado de categorías
+    orden_categorias = ['VIP', 'Corporativo', 'Minorista']
+    categorias = list(Categoria.objects.filter(nombre__in=orden_categorias))
+    categorias = sorted(categorias, key=lambda c: orden_categorias.index(c.nombre))
+
     tabla = []
     for moneda in monedas:
-        fila = {'moneda': moneda}
+        # Diccionario de la fila
+        fila = {'moneda': moneda, 'limites': {}}
         for categoria in categorias:
-            limite = LimiteIntercambio.objects.get(moneda=moneda, categoria=categoria)
-            fila[f'limite_{categoria.nombre}_min'] = limite.monto_min
-            fila[f'limite_{categoria.nombre}_max'] = limite.monto_max
-            fila[f'limite_obj_{categoria.nombre}'] = limite
+            limite, _ = LimiteIntercambio.objects.get_or_create(
+                moneda=moneda,
+                categoria=categoria,
+                defaults={'monto_min': 0, 'monto_max': 0}
+            )
+            # Guardamos los valores en un diccionario interno
+            fila['limites'][categoria.nombre] = {
+                'min': limite.monto_min,
+                'max': limite.monto_max,
+            }
         tabla.append(fila)
-    
-    return render(request, 'webapp/limites_intercambio.html', {'tabla': tabla, 'categorias': categorias})
+
+    return render(request, 'webapp/limites_intercambio.html', {
+        'tabla': tabla,
+        'categorias': categorias,
+    })
 
 
+@login_required
 def limite_edit(request, moneda_id):
     moneda = Currency.objects.get(id=moneda_id)
-    categorias = Categoria.objects.all()
-    LimiteFormSet = modelformset_factory(LimiteIntercambio, form=LimiteIntercambioForm, extra=0)
-    queryset = LimiteIntercambio.objects.filter(moneda=moneda)
-    
+
+    # Orden deseado de categorías
+    orden_categorias = ['VIP', 'Corporativo', 'Minorista']
+    categorias = list(Categoria.objects.filter(nombre__in=orden_categorias))
+    categorias = sorted(categorias, key=lambda c: orden_categorias.index(c.nombre))
+
+    # Preparamos los límites
+    limites = {}
+    for categoria in categorias:
+        limite, _ = LimiteIntercambio.objects.get_or_create(
+            moneda=moneda,
+            categoria=categoria,
+            defaults={'monto_min': 0, 'monto_max': 0}
+        )
+        limites[categoria.nombre] = {
+            'min': limite.monto_min,
+            'max': limite.monto_max,
+            'obj': limite
+        }
+
     if request.method == 'POST':
-        formset = LimiteFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
-            formset.save()
-            return redirect('limites_list')
-    else:
-        formset = LimiteFormSet(queryset=queryset)
-    
-    return render(request, 'webapp/limite_edit.html', {'formset': formset, 'moneda': moneda})
+        for categoria in categorias:
+            min_val = request.POST.get(f"{categoria.nombre}_min", 0)
+            max_val = request.POST.get(f"{categoria.nombre}_max", 0)
+            limite_obj = limites[categoria.nombre]['obj']
+            limite_obj.monto_min = min_val
+            limite_obj.monto_max = max_val
+            limite_obj.save()
+        return redirect('limites_list')
+
+    return render(request, 'webapp/limite_edit.html', {
+        'moneda': moneda,
+        'categorias': categorias,
+        'limites': limites
+    })

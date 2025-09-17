@@ -4,4 +4,9 @@ register = template.Library()
 
 @register.filter
 def dict_get(d, key):
-    return d.get(key)
+    return d.get(key, {})
+
+@register.filter
+def get_item(d, key):
+    return d.get(key, '')
+
