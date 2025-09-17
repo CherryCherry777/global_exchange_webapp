@@ -1670,23 +1670,18 @@ def edit_payment_type(request, tipo_id):
 def limites_intercambio_list(request):
     monedas = Currency.objects.all().order_by('code')
     
-    # Orden deseado de categorías
-    orden_categorias = ['VIP', 'Corporativo', 'Minorista']
-    categorias = list(Categoria.objects.filter(nombre__in=orden_categorias))
-    categorias = sorted(categorias, key=lambda c: orden_categorias.index(c.nombre))
+    # Obtener todas las categorías dinámicamente
+    categorias = Categoria.objects.all().order_by('id')
 
     tabla = []
     for moneda in monedas:
-        # Diccionario de la fila
         fila = {'moneda': moneda, 'limites': {}}
         for categoria in categorias:
-            # Obtener o crear el límite por defecto
             limite, _ = LimiteIntercambio.objects.get_or_create(
                 moneda=moneda,
                 categoria=categoria,
                 defaults={'monto_min': 0, 'monto_max': 0}
             )
-            # Guardamos los valores en un diccionario interno
             fila['limites'][categoria.nombre] = {
                 'min': limite.monto_min,
                 'max': limite.monto_max,
