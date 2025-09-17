@@ -23,7 +23,7 @@ from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
 from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteIntercambio
 from django.contrib.auth.decorators import permission_required
-from decimal import Decimal, InvalidOperation
+from decimal import ROUND_DOWN, Decimal, InvalidOperation
 
 User = get_user_model()
 PROTECTED_ROLES = ["Administrador", "Empleado", "Usuario"]
@@ -1680,7 +1680,7 @@ def limites_intercambio_list(request):
             limite, _ = LimiteIntercambio.objects.get_or_create(
                 moneda=moneda,
                 categoria=categoria,
-                defaults={'monto_min': 0, 'monto_max': 0}
+                defaults={'monto_min': Decimal('0'), 'monto_max': Decimal('0')}
             )
             fila['limites'][categoria.nombre] = {
                 'min': limite.monto_min,
@@ -1697,13 +1697,9 @@ def limites_intercambio_list(request):
 @login_required
 def limite_edit(request, moneda_id):
     moneda = get_object_or_404(Currency, id=moneda_id)
+    categorias = Categoria.objects.all().order_by('id')
 
-    # Orden deseado de categorías
-    orden_categorias = ['VIP', 'Corporativo', 'Minorista']
-    categorias = list(Categoria.objects.filter(nombre__in=orden_categorias))
-    categorias = sorted(categorias, key=lambda c: orden_categorias.index(c.nombre))
-
-    # Preparamos los límites
+    # Crear límites por defecto si no existen
     limites = {}
     for categoria in categorias:
         limite, _ = LimiteIntercambio.objects.get_or_create(
@@ -1711,54 +1707,38 @@ def limite_edit(request, moneda_id):
             categoria=categoria,
             defaults={'monto_min': 0, 'monto_max': 0}
         )
-        limites[categoria.nombre] = {
-            'min': limite.monto_min,
-            'max': limite.monto_max,
-            'obj': limite
-        }
+        limites[categoria.nombre] = limite
 
-    # Calculamos el step para el input HTML según los decimales permitidos
-    
-    step = Decimal('1') / (10 ** moneda.decimales_cotizacion)
-    step_str = f"0.{ '0' * (moneda.decimales_cotizacion - 1) }1" if moneda.decimales_cotizacion > 0 else "1"
+    if request.method == "POST":
+        dec = moneda.decimales_cotizacion
+        errores = False
 
-    errores = []
-
-    if request.method == 'POST':
         for categoria in categorias:
+            min_key = f"{categoria.nombre}_min"
+            max_key = f"{categoria.nombre}_max"
             try:
-                min_val = Decimal(request.POST.get(f"{categoria.nombre}_min", 0))
-                max_val = Decimal(request.POST.get(f"{categoria.nombre}_max", 0))
-            except:
-                errores.append(f"Valores inválidos para {categoria.nombre}.")
-                continue
+                monto_min = Decimal(request.POST.get(min_key)).quantize(
+                    Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
+                )
+                monto_max = Decimal(request.POST.get(max_key)).quantize(
+                    Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
+                )
 
-            limite_obj = limites[categoria.nombre]['obj']
+                limite = limites[categoria.nombre]
+                limite.monto_min = monto_min
+                limite.monto_max = monto_max
+                limite.save()
 
-            # Validar cantidad de decimales
-            max_dec = moneda.decimales_cotizacion
-            for val, campo in [(min_val, 'mínimo'), (max_val, 'máximo')]:
-                if '.' in str(val):
-                    dec_count = len(str(val).split('.')[1])
-                    if dec_count > max_dec:
-                        errores.append(f"{categoria.nombre} {campo}: máximo {max_dec} decimales permitidos.")
-
-            # Validar que min <= max
-            if min_val > max_val:
-                errores.append(f"{categoria.nombre}: el valor mínimo no puede ser mayor que el máximo.")
-
-            if not errores:
-                limite_obj.monto_min = min_val
-                limite_obj.monto_max = max_val
-                limite_obj.save()
+            except Exception as e:
+                errores = True
+                messages.error(request, f"Error en categoría {categoria.nombre}: {e}")
 
         if not errores:
-            return redirect('limites_list')
+            messages.success(request, "Límites actualizados correctamente.")
+            return redirect("limites_list")
 
-    return render(request, 'webapp/limite_edit.html', {
-        'moneda': moneda,
-        'categorias': categorias,
-        'limites': limites,
-        'step': step_str,
-        'errores': errores,
+    return render(request, "webapp/limite_edit.html", {
+        "moneda": moneda,
+        "categorias": categorias,
+        "limites": limites,
     })
