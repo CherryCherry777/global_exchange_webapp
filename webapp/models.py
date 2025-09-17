@@ -3,7 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from decimal import Decimal
+from decimal import Decimal, ROUND_DOWN
 
 #Las clases van aqui
 #Los usuarios heredan AbstractUser
@@ -492,19 +492,20 @@ class TipoPago(models.Model):
 # -------------------------------------
 class LimiteIntercambio(models.Model):
     moneda = models.ForeignKey(
-        Currency,
+        'Currency',
         on_delete=models.CASCADE,
         verbose_name="Moneda",
         related_name="limites_intercambio"
     )
     categoria = models.ForeignKey(
-        Categoria,
+        'Categoria',
         on_delete=models.CASCADE,
         verbose_name="Categoría de Cliente",
         related_name="limites_intercambio"
     )
     monto_min = models.DecimalField(
-        max_digits=23, decimal_places=8,
+        max_digits=23,
+        decimal_places=8,
         verbose_name="Monto Mínimo",
         error_messages={
             'max_digits': 'El número no puede tener más de 23 dígitos',
@@ -512,7 +513,8 @@ class LimiteIntercambio(models.Model):
         }
     )
     monto_max = models.DecimalField(
-        max_digits=23, decimal_places=8,
+        max_digits=23,
+        decimal_places=8,
         verbose_name="Monto Máximo",
         error_messages={
             'max_digits': 'El número no puede tener más de 23 dígitos',
@@ -527,23 +529,46 @@ class LimiteIntercambio(models.Model):
         ordering = ['moneda__code', 'categoria__nombre']
 
     def clean(self):
-        # Obtener la cantidad de decimales permitida desde la moneda relacionada
+        """
+        Validaciones:
+        1. No exceder los decimales permitidos por la moneda.
+        2. monto_min <= monto_max
+        """
+        if not self.moneda:
+            return  # Evita error si se crea el objeto sin moneda asignada aún
+
         max_dec = self.moneda.decimales_cotizacion
-        # Validar que monto_min y monto_max tengan <= decimales_cotizacion
-        def check_decimals(value, max_decimals, field_name):
+
+        def check_decimals(value, field_name):
+            if value is None:
+                return
             str_val = str(value)
             if '.' in str_val:
                 dec_count = len(str_val.split('.')[1])
-                if dec_count > max_decimals:
-                    raise ValidationError({field_name: f"El número máximo de decimales permitidos para esta moneda es {max_decimals}."})
+                if dec_count > max_dec:
+                    raise ValidationError(
+                        {field_name: f"El número máximo de decimales permitidos para esta moneda es {max_dec}."}
+                    )
 
-        max_dec = self.moneda.decimales_cotizacion
-        check_decimals(self.monto_min, max_dec, 'monto_min')
-        check_decimals(self.monto_max, max_dec, 'monto_max')
+        check_decimals(self.monto_min, 'monto_min')
+        check_decimals(self.monto_max, 'monto_max')
 
-        # También validar que monto_min <= monto_max
-        if self.monto_min > self.monto_max:
-            raise ValidationError("El monto mínimo no puede ser mayor al monto máximo.")
+        if self.monto_min is not None and self.monto_max is not None:
+            if self.monto_min > self.monto_max:
+                raise ValidationError("El monto mínimo no puede ser mayor al monto máximo.")
+
+    def save(self, *args, **kwargs):
+        """
+        Redondea los valores según decimales de la moneda antes de guardar.
+        """
+        if self.moneda:
+            dec = self.moneda.decimales_cotizacion
+            factor = Decimal('1.' + '0' * dec)
+            if self.monto_min is not None:
+                self.monto_min = self.monto_min.quantize(Decimal(10) ** -dec, rounding=ROUND_DOWN)
+            if self.monto_max is not None:
+                self.monto_max = self.monto_max.quantize(Decimal(10) ** -dec, rounding=ROUND_DOWN)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.moneda.code} - {self.categoria.nombre}"

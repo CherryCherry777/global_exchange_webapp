@@ -1678,15 +1678,9 @@ def limites_intercambio_list(request):
     tabla = []
     for moneda in monedas:
         # Diccionario de la fila
-        fila = {'moneda': moneda, 'limites': {}, 'step': {}}
-
-        # Calculamos el step dinámico para esta moneda
-        if moneda.decimales_cotizacion > 0:
-            step_str = f"0.{ '0' * (moneda.decimales_cotizacion - 1) }1"
-        else:
-            step_str = "1"
-
+        fila = {'moneda': moneda, 'limites': {}}
         for categoria in categorias:
+            # Obtener o crear el límite por defecto
             limite, _ = LimiteIntercambio.objects.get_or_create(
                 moneda=moneda,
                 categoria=categoria,
@@ -1697,15 +1691,13 @@ def limites_intercambio_list(request):
                 'min': limite.monto_min,
                 'max': limite.monto_max,
             }
-            # Guardamos step por categoría (aunque en este caso es el mismo por moneda)
-            fila['step'][categoria.nombre] = step_str
-
         tabla.append(fila)
 
     return render(request, 'webapp/limites_intercambio.html', {
         'tabla': tabla,
         'categorias': categorias,
     })
+
 
 @login_required
 def limite_edit(request, moneda_id):
