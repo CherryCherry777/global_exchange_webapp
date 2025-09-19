@@ -130,3 +130,9 @@ def crear_limites_por_moneda(sender, instance, created, **kwargs):
             monto_min=0,
             monto_max=0
         )
+
+
+@receiver(post_save, sender=TipoPago)
+def sync_medios_pago(sender, instance, **kwargs):
+    # Sincroniza el estado de todos los MedioPago vinculados
+    MedioPago.objects.filter(tipo_pago=instance).update(activo=instance.activo)

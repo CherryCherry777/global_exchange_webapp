@@ -1261,20 +1261,24 @@ def edit_payment_method_deprecado(request, cliente_id, medio_pago_id):
 
 #METODOS DE PAGO (VISTA DE CADA CLIENTE)
 
+FORM_MAP = {
+    'tarjeta': TarjetaForm,
+    'billetera': BilleteraForm,
+    'cuenta_bancaria': CuentaBancariaForm,
+    'cheque': ChequeForm
+}
+
 @login_required
 def my_payment_methods(request):
     cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
     if not cliente_usuario:
         raise Http404("No tienes un cliente asociado.")
-
     cliente = cliente_usuario.cliente
 
     medios_pago = MedioPago.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
 
-    # Obtener todos los tipos de pago con su estado
+    # Adjuntar estado global desde TipoPago
     tipos_pago = {tp.nombre.lower(): tp.activo for tp in TipoPago.objects.all()}
-
-    # Adjuntar el estado a cada medio_pago
     for medio in medios_pago:
         medio.activo_global = tipos_pago.get(medio.tipo, False)
 
@@ -1282,395 +1286,82 @@ def my_payment_methods(request):
         "medios_pago": medios_pago
     })
 
-@login_required
-def add_my_payment_method(request, tipo):
-    cliente = get_object_or_404(Cliente, correo=request.user.email)
-
-    if request.method == "POST":
-        medio_pago_form = MedioPagoForm(request.POST)
-        form_class = {
-            'tarjeta': TarjetaForm,
-            'billetera': BilleteraForm,
-            'cuenta_bancaria': CuentaBancariaForm,
-            'cheque': ChequeForm
-        }.get(tipo)
-
-        form = form_class(request.POST)
-
-        if medio_pago_form.is_valid() and form.is_valid():
-            medio_pago = medio_pago_form.save(commit=False)
-            medio_pago.cliente = cliente
-            medio_pago.tipo = tipo
-            medio_pago.save()
-
-            medio_especifico = form.save(commit=False)
-            medio_especifico.medio_pago = medio_pago
-            medio_especifico.save()
-
-            messages.success(request, f"Medio de pago '{medio_pago.nombre}' agregado correctamente")
-            return redirect("my_payment_methods")
-    else:
-        medio_pago_form = MedioPagoForm()
-        form = {
-            'tarjeta': TarjetaForm,
-            'billetera': BilleteraForm,
-            'cuenta_bancaria': CuentaBancariaForm,
-            'cheque': ChequeForm
-        }[tipo]()
-
-    return render(request, f"webapp/add_payment_method_{tipo}.html", {
-        "tipo": tipo,
-        "medio_pago_form": medio_pago_form,
-        "form": form
-    })
-
 
 @login_required
-def edit_payment_method(request, medio_pago_id):
-    # Solo permite acceder a métodos de pago del cliente del usuario logueado
+def manage_my_payment_method(request, tipo, medio_pago_id=None):
+    """
+    Vista unificada para agregar o editar un medio de pago.
+    Si medio_pago_id es None, se crea uno nuevo.
+    """
     cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
     if not cliente_usuario:
         raise Http404("No tienes un cliente asociado.")
-
     cliente = cliente_usuario.cliente
 
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente)
-
-    # Determinar el formulario según tipo
-    if medio_pago.tipo == "billetera":
-        FormClass = BilleteraForm
-    elif medio_pago.tipo == "cheque":
-        FormClass = ChequeForm
-    elif medio_pago.tipo == "cuenta_bancaria":
-        FormClass = CuentaBancariaForm
-    elif medio_pago.tipo == "tarjeta":
-        FormClass = TarjetaForm
-    else:
+    # Formulario específico del tipo
+    FormClass = FORM_MAP.get(tipo)
+    if not FormClass:
         raise Http404("Tipo de medio de pago desconocido.")
 
-    # Obtener el objeto asociado al medio_pago
-    pago_obj = getattr(medio_pago, medio_pago.tipo, None)
+    medio_pago = None
+    pago_obj = None
 
-    if request.method == "POST":
-        form = FormClass(request.POST, instance=pago_obj)
-        medio_form = MedioPagoForm(request.POST, instance=medio_pago)
-        if form.is_valid() and medio_form.is_valid():
-            medio_form.save()
-            form.save()
-            return redirect('my_payment_methods')
+    if medio_pago_id:
+        # Edición
+        medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo=tipo)
+        pago_obj = getattr(medio_pago, tipo, None)
+        medio_form = MedioPagoForm(request.POST or None, instance=medio_pago)
+        # Hacer moneda readonly al editar
+        medio_form.fields['moneda'].disabled = True
+        form = FormClass(request.POST or None, instance=pago_obj)
     else:
-        form = FormClass(instance=pago_obj)
-        medio_form = MedioPagoForm(instance=medio_pago)
-
-    return render(request, "webapp/edit_payment_method.html", {
-        "form": form,
-        "medio_pago_form": medio_form
-    })
-
-
-@login_required
-def delete_payment_method(request, medio_pago_id):
-    # Obtener el cliente del usuario
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-
-    cliente = cliente_usuario.cliente
-
-    # Obtener el medio de pago solo si pertenece al cliente
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente)
+        # Creación
+        medio_form = MedioPagoForm(request.POST or None)
+        form = FormClass(request.POST or None)
 
     if request.method == "POST":
-        medio_pago.delete()
-        return redirect('my_payment_methods')
+        if medio_form.is_valid() and form.is_valid():
+            medio_pago_instance = medio_form.save(commit=False)
+            medio_pago_instance.cliente = cliente
+            medio_pago_instance.tipo = tipo
+            medio_pago_instance.save()
 
-    return render(request, "webapp/confirm_delete_payment_method.html", {
+            pago_obj_instance = form.save(commit=False)
+            pago_obj_instance.medio_pago = medio_pago_instance
+            pago_obj_instance.save()
+
+            action = "actualizado" if medio_pago_id else "agregado"
+            messages.success(request, f"Medio de pago '{medio_pago_instance.nombre}' {action} correctamente.")
+            return redirect('my_payment_methods')
+
+    template_name = f"webapp/manage_payment_method_{tipo}.html"
+    return render(request, template_name, {
+        "form": form,
+        "medio_pago_form": medio_form,
+        "tipo": tipo,
         "medio_pago": medio_pago
     })
 
-
 @login_required
-def add_payment_method_billetera(request):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-
-    cliente = cliente_usuario.cliente
-
-    if request.method == "POST":
-        form = BilleteraForm(request.POST)
-        medio_form = MedioPagoForm(request.POST)
-        if form.is_valid() and medio_form.is_valid():
-            medio_pago = medio_form.save(commit=False)
-            medio_pago.cliente = cliente
-            medio_pago.tipo = 'billetera'
-            medio_pago.save()
-            billetera = form.save(commit=False)
-            billetera.medio_pago = medio_pago
-            billetera.save()
-            return redirect('my_payment_methods')
-    else:
-        form = BilleteraForm()
-        medio_form = MedioPagoForm()
-
-    return render(request, 'webapp/add_payment_method_billetera.html', {
-        'form': form,
-        'medio_pago_form': medio_form
-    })
-
-
-@login_required
-def add_payment_method_cheque(request):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-
-    cliente = cliente_usuario.cliente
-
-    if request.method == "POST":
-        form = ChequeForm(request.POST)
-        medio_form = MedioPagoForm(request.POST)
-        if form.is_valid() and medio_form.is_valid():
-            medio_pago = medio_form.save(commit=False)
-            medio_pago.cliente = cliente
-            medio_pago.tipo = 'cheque'
-            medio_pago.save()
-            cheque = form.save(commit=False)
-            cheque.medio_pago = medio_pago
-            cheque.save()
-            return redirect('my_payment_methods')
-    else:
-        form = ChequeForm()
-        medio_form = MedioPagoForm()
-
-    return render(request, 'webapp/add_payment_method_cheque.html', {
-        'form': form,
-        'medio_pago_form': medio_form
-    })
-
-
-@login_required
-def add_payment_method_cuenta_bancaria(request):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-
-    cliente = cliente_usuario.cliente
-
-    if request.method == "POST":
-        form = CuentaBancariaForm(request.POST)
-        medio_form = MedioPagoForm(request.POST)
-        if form.is_valid() and medio_form.is_valid():
-            medio_pago = medio_form.save(commit=False)
-            medio_pago.cliente = cliente
-            medio_pago.tipo = 'cuenta_bancaria'
-            medio_pago.save()
-            cuenta = form.save(commit=False)
-            cuenta.medio_pago = medio_pago
-            cuenta.save()
-            return redirect('my_payment_methods')
-    else:
-        form = CuentaBancariaForm()
-        medio_form = MedioPagoForm()
-
-    return render(request, 'webapp/add_payment_method_cuenta_bancaria.html', {
-        'form': form,
-        'medio_pago_form': medio_form
-    })
-
-
-@login_required
-def add_payment_method_tarjeta(request):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-
-    cliente = cliente_usuario.cliente
-
-    if request.method == "POST":
-        form = TarjetaForm(request.POST)
-        medio_form = MedioPagoForm(request.POST)
-        if form.is_valid() and medio_form.is_valid():
-            medio_pago = medio_form.save(commit=False)
-            medio_pago.cliente = cliente
-            medio_pago.tipo = 'tarjeta'
-            medio_pago.save()
-            tarjeta = form.save(commit=False)
-            tarjeta.medio_pago = medio_pago
-            tarjeta.save()
-            return redirect('my_payment_methods')
-    else:
-        form = TarjetaForm()
-        medio_form = MedioPagoForm()
-
-    return render(request, 'webapp/add_payment_method_tarjeta.html', {
-        'form': form,
-        'medio_pago_form': medio_form
-    })
-
-@login_required
-def edit_payment_method_billetera(request, medio_pago_id):
+def delete_payment_method(request, medio_pago_id):
+    """
+    Vista unificada para eliminar cualquier medio de pago.
+    """
     cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
     if not cliente_usuario:
         raise Http404("No tienes un cliente asociado.")
     cliente = cliente_usuario.cliente
 
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo="billetera")
-    pago_obj = medio_pago.billetera
-
-    if request.method == "POST":
-        form = BilleteraForm(request.POST, instance=pago_obj)
-        medio_form = MedioPagoForm(request.POST, instance=medio_pago)
-        if form.is_valid() and medio_form.is_valid():
-            medio_form.save()
-            form.save()
-            return redirect('my_payment_methods')
-    else:
-        form = BilleteraForm(instance=pago_obj)
-        medio_form = MedioPagoForm(instance=medio_pago)
-
-    return render(request, "webapp/edit_payment_method_billetera.html", {
-        "form": form,
-        "medio_pago_form": medio_form
-    })
-
-@login_required
-def edit_payment_method_cheque(request, medio_pago_id):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-    cliente = cliente_usuario.cliente
-
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo="cheque")
-    pago_obj = medio_pago.cheque
-
-    if request.method == "POST":
-        form = ChequeForm(request.POST, instance=pago_obj)
-        medio_form = MedioPagoForm(request.POST, instance=medio_pago)
-        if form.is_valid() and medio_form.is_valid():
-            medio_form.save()
-            form.save()
-            return redirect('my_payment_methods')
-    else:
-        form = ChequeForm(instance=pago_obj)
-        medio_form = MedioPagoForm(instance=medio_pago)
-
-    return render(request, "webapp/edit_payment_method_cheque.html", {
-        "form": form,
-        "medio_pago_form": medio_form
-    })
-
-@login_required
-def edit_payment_method_cuenta_bancaria(request, medio_pago_id):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-    cliente = cliente_usuario.cliente
-
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo="cuenta_bancaria")
-    pago_obj = medio_pago.cuenta_bancaria
-
-    if request.method == "POST":
-        form = CuentaBancariaForm(request.POST, instance=pago_obj)
-        medio_form = MedioPagoForm(request.POST, instance=medio_pago)
-        if form.is_valid() and medio_form.is_valid():
-            medio_form.save()
-            form.save()
-            return redirect('my_payment_methods')
-    else:
-        form = CuentaBancariaForm(instance=pago_obj)
-        medio_form = MedioPagoForm(instance=medio_pago)
-
-    return render(request, "webapp/edit_payment_method_cuenta_bancaria.html", {
-        "form": form,
-        "medio_pago_form": medio_form
-    })
-
-@login_required
-def edit_payment_method_tarjeta(request, medio_pago_id):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-    cliente = cliente_usuario.cliente
-
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo="tarjeta")
-    pago_obj = medio_pago.tarjeta
-
-    if request.method == "POST":
-        form = TarjetaForm(request.POST, instance=pago_obj)
-        medio_form = MedioPagoForm(request.POST, instance=medio_pago)
-        if form.is_valid() and medio_form.is_valid():
-            medio_form.save()
-            form.save()
-            return redirect('my_payment_methods')
-    else:
-        form = TarjetaForm(instance=pago_obj)
-        medio_form = MedioPagoForm(instance=medio_pago)
-
-    return render(request, "webapp/edit_payment_method_tarjeta.html", {
-        "form": form,
-        "medio_pago_form": medio_form
-    })
-
-@login_required
-def delete_payment_method_billetera(request, medio_pago_id):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-
-    cliente = cliente_usuario.cliente
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo="billetera")
+    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente)
 
     if request.method == "POST":
         medio_pago.delete()
+        messages.success(request, f"Medio de pago '{medio_pago.nombre}' eliminado correctamente.")
         return redirect('my_payment_methods')
 
-    return render(request, "webapp/delete_payment_method_confirm.html", {"medio_pago": medio_pago})
-
-@login_required
-def delete_payment_method_cheque(request, medio_pago_id):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-
-    cliente = cliente_usuario.cliente
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo="cheque")
-
-    if request.method == "POST":
-        medio_pago.delete()
-        return redirect('my_payment_methods')
-
-    return render(request, "webapp/delete_payment_method_confirm.html", {"medio_pago": medio_pago})
-
-@login_required
-def delete_payment_method_cuenta_bancaria(request, medio_pago_id):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-
-    cliente = cliente_usuario.cliente
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo="cuenta_bancaria")
-
-    if request.method == "POST":
-        medio_pago.delete()
-        return redirect('my_payment_methods')
-
-    return render(request, "webapp/delete_payment_method_confirm.html", {"medio_pago": medio_pago})
-
-@login_required
-def delete_payment_method_tarjeta(request, medio_pago_id):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
-        raise Http404("No tienes un cliente asociado.")
-
-    cliente = cliente_usuario.cliente
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo="tarjeta")
-
-    if request.method == "POST":
-        medio_pago.delete()
-        return redirect('my_payment_methods')
-
-    return render(request, "webapp/delete_payment_method_confirm.html", {"medio_pago": medio_pago})
+    return render(request, "webapp/delete_payment_method_confirm.html", {
+        "medio_pago": medio_pago
+    })
 
 # ADMINISTRACION GLOBAL DE METODOS DE PAGO
 

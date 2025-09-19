@@ -298,6 +298,13 @@ class MedioPago(models.Model):
         help_text="Configuración global de activación y comisión"
     )
 
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False
+    )
+
     class Meta:
         db_table = "medios_pago"
         verbose_name = "Medio de Pago"
@@ -378,6 +385,7 @@ class Billetera(models.Model):
         max_length=100,
         verbose_name="Proveedor"
     )
+
     
     class Meta:
         db_table = "billeteras"
@@ -473,6 +481,9 @@ class Cheque(models.Model):
     
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.numero_cheque}"
+
+
+# Para admin
 
 class TipoPago(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
