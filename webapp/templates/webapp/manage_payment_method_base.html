@@ -1,0 +1,110 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}
+{% if is_edit %}
+Editar {{ tipo|capfirst }}
+{% else %}
+Agregar {{ tipo|capfirst }}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="admin-page-container">
+
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="header-content">
+            <h1 class="page-title">
+                {% if is_edit %}
+                Editar {{ tipo|capfirst }}
+                {% else %}
+                Agregar {{ tipo|capfirst }}
+                {% endif %}
+            </h1>
+            <p class="page-subtitle">
+                {% if is_edit %}
+                Modifica los datos de tu {{ tipo|capfirst }}
+                {% else %}
+                Completa los datos para agregar un nuevo {{ tipo|capfirst }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="form-container">
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- MedioPago general -->
+            <div class="form-group">
+                {{ medio_pago_form.non_field_errors }}
+                
+                {% if not is_edit %}
+                <!-- Dropdown de moneda solo al crear -->
+                <div class="mb-3">
+                    <label for="id_moneda">Moneda</label>
+                    <select name="moneda" id="id_moneda" class="form-control" required>
+                        <option value="">-- Seleccione una moneda --</option>
+                        {% for m in monedas %}
+                            <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <!-- Otros campos de MedioPago -->
+                {% for field in medio_pago_form.visible_fields %}
+                    {% if field.name != "moneda" %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                
+                <!-- Mostrar moneda como campo deshabilitado al editar -->
+                {% if is_edit and medio_pago and medio_pago.moneda %}
+                <div class="mb-3">
+                    <label>Moneda</label>
+                    <input type="text" class="form-control" value="{{ medio_pago.moneda.code }} - {{ medio_pago.moneda.name }}" disabled>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Formulario específico -->
+            <div class="form-group">
+                {{ form.non_field_errors }}
+                {% for field in form.visible_fields %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Botones -->
+            <div class="form-actions mt-4">
+                <button type="submit" class="btn btn-primary">
+                    {% if is_edit %}Guardar Cambios{% else %}Agregar{% endif %}
+                </button>
+                <a href="{% url 'my_payment_methods' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

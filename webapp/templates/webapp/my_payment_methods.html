@@ -5,24 +5,18 @@
 
 {% block content %}
 <div class="admin-page-container">
-
-    <!-- Header -->
     <div class="admin-header">
-        <div class="header-content">
-            <h1 class="page-title">Mis Métodos de Pago</h1>
-            <p class="page-subtitle">Gestiona tus métodos de pago personales</p>
-        </div>
+        <h1 class="page-title">Mis Métodos de Pago</h1>
+        <p class="page-subtitle">Gestiona tus métodos de pago personales</p>
     </div>
 
-    <!-- Botones para agregar métodos -->
     <div class="add-payment-buttons">
-        <a href="{% url 'add_payment_method_billetera' %}" class="btn btn-primary">Agregar Billetera</a>
-        <a href="{% url 'add_payment_method_cheque' %}" class="btn btn-primary">Agregar Cheque</a>
-        <a href="{% url 'add_payment_method_cuenta_bancaria' %}" class="btn btn-primary">Agregar Cuenta Bancaria</a>
-        <a href="{% url 'add_payment_method_tarjeta' %}" class="btn btn-primary">Agregar Tarjeta</a>
+        <a href="{% url 'add_payment_method' 'billetera' %}" class="btn btn-primary">Agregar Billetera</a>
+        <a href="{% url 'add_payment_method' 'cheque' %}" class="btn btn-primary">Agregar Cheque</a>
+        <a href="{% url 'add_payment_method' 'cuenta_bancaria' %}" class="btn btn-primary">Agregar Cuenta Bancaria</a>
+        <a href="{% url 'add_payment_method' 'tarjeta' %}" class="btn btn-primary">Agregar Tarjeta</a>
     </div>
 
-    <!-- Tabla de métodos de pago -->
     <div class="table-container">
         <table class="roles-table">
             <thead>
@@ -56,11 +50,10 @@
                         {% else %}
                             <span class="badge badge-danger">Inactivo</span>
                         {% endif %}
-
                     </td>
                     <td>
-                        <a href="{% url 'edit_payment_method' medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
-                        <a href="{% url 'delete_payment_method' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                        <a href="{% url 'manage_payment_method' medio.tipo medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
+                        <a href="{% url 'confirm_delete_payment_method' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
                     </td>
                 </tr>
                 {% empty %}

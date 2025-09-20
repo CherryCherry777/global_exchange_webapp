@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import CustomUser, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteIntercambio
+from .models import CustomUser, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteIntercambio, Currency
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -292,6 +292,14 @@ class AsignarClienteForm(forms.Form):
 # FORMULARIOS PARA MEDIOS DE PAGO
 # ===========================================
 
+# Mixin para deshabilitar moneda
+class MonedaDisabledMixin:
+    def disable_moneda(self):
+        if 'moneda' in self.fields:
+            self.fields['moneda'].disabled = True
+            self.fields['moneda'].queryset = Currency.objects.filter(is_active=True)
+            self.fields['moneda'].widget.attrs.update({'class': 'form-control'})
+
 class TarjetaForm(forms.ModelForm):
     class Meta:
         model = Tarjeta
@@ -318,7 +326,8 @@ class TarjetaForm(forms.ModelForm):
                 'maxlength': '4',
                 'pattern': '[0-9]{4}',
                 'required': True
-            })
+            }),
+            
         }
         labels = {
             'numero_tokenizado': 'Número Tokenizado',
@@ -440,19 +449,76 @@ class ChequeForm(forms.ModelForm):
 
 
 class MedioPagoForm(forms.ModelForm):
+    """
+    moneda = forms.ModelChoiceField(
+        queryset=Currency.objects.filter(is_active=True),
+        label="Monedaaa",
+        required=True
+    )
+    """
     class Meta:
         model = MedioPago
-        fields = ['nombre']
+        fields = ['nombre', 'moneda']  # no incluimos 'tipo' porque lo asignamos en la vista
+
+
+
+class TarjetaEditForm(MonedaDisabledMixin, forms.ModelForm):
+    class Meta:
+        model = Tarjeta
+        fields = ['numero_tokenizado', 'banco', 'fecha_vencimiento', 'ultimos_digitos']
         widgets = {
-            'nombre': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Nombre del medio de pago (ej: Visa Principal)',
-                'required': True
-            })
+            'numero_tokenizado': forms.TextInput(attrs={'class': 'form-control'}),
+            'banco': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_vencimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'ultimos_digitos': forms.TextInput(attrs={'class': 'form-control'}),
         }
-        labels = {
-            'nombre': 'Nombre del Medio de Pago'
-        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+
+    def clean_ultimos_digitos(self):
+        ultimos_digitos = self.cleaned_data.get('ultimos_digitos')
+        if ultimos_digitos and (not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4):
+            raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
+        return ultimos_digitos
+
+
+class BilleteraEditForm(MonedaDisabledMixin, forms.ModelForm):
+    class Meta:
+        model = Billetera
+        fields = ['numero_celular', 'proveedor']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+
+
+class CuentaBancariaEditForm(MonedaDisabledMixin, forms.ModelForm):
+    class Meta:
+        model = CuentaBancaria
+        fields = ['numero_cuenta', 'banco', 'alias_cbu']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+
+
+class ChequeEditForm(MonedaDisabledMixin, forms.ModelForm):
+    class Meta:
+        model = Cheque
+        fields = ['numero_cheque', 'banco_emisor', 'fecha_vencimiento', 'monto']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+
+    def clean_monto(self):
+        monto = self.cleaned_data.get('monto')
+        if monto is not None and monto <= 0:
+            raise ValidationError("El monto debe ser mayor a 0.")
+        return monto
+
 
 
 class TipoPagoForm(forms.ModelForm):
