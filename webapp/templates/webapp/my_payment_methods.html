@@ -21,8 +21,8 @@
         <table class="roles-table">
             <thead>
                 <tr>
-                    <th>Tipo</th>
                     <th>Nombre</th>
+                    <th>Tipo</th>
                     <th>Detalles</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -31,8 +31,8 @@
             <tbody>
                 {% for medio in medios_pago %}
                 <tr>
-                    <td>{{ medio.tipo|capfirst }}</td>
                     <td>{{ medio.nombre }}</td>
+                    <td>{{ medio.tipo|capfirst }}</td>
                     <td>
                         {% if medio.tipo == "billetera" %}
                             Cel: {{ medio.billetera.numero_celular }}, Proveedor: {{ medio.billetera.proveedor }}

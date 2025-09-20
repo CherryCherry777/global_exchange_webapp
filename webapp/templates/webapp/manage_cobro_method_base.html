@@ -37,18 +37,18 @@ Agregar {{ tipo|capfirst }}
         <form method="post">
             {% csrf_token %}
 
-            <!-- MedioPago general -->
+            <!-- MedioCobro general -->
             <div class="form-group">
-                {{ medio_pago_form.non_field_errors }}
+                {{ medio_cobro_form.non_field_errors }}
 
                 <!-- Campo Nombre primero -->
                 <div class="mb-3">
-                    <label for="{{ medio_pago_form.nombre.id_for_label }}">{{ medio_pago_form.nombre.label }}</label>
-                    {{ medio_pago_form.nombre }}
-                    {% if medio_pago_form.nombre.help_text %}
-                        <small class="form-text text-muted">{{ medio_pago_form.nombre.help_text }}</small>
+                    <label for="{{ medio_cobro_form.nombre.id_for_label }}">{{ medio_cobro_form.nombre.label }}</label>
+                    {{ medio_cobro_form.nombre }}
+                    {% if medio_cobro_form.nombre.help_text %}
+                        <small class="form-text text-muted">{{ medio_cobro_form.nombre.help_text }}</small>
                     {% endif %}
-                    {% for error in medio_pago_form.nombre.errors %}
+                    {% for error in medio_cobro_form.nombre.errors %}
                         <div class="text-danger">{{ error }}</div>
                     {% endfor %}
                 </div>
@@ -67,7 +67,7 @@ Agregar {{ tipo|capfirst }}
                 {% endif %}
 
                 <!-- Otros campos del formulario general -->
-                {% for field in medio_pago_form.visible_fields %}
+                {% for field in medio_cobro_form.visible_fields %}
                     {% if field.name != "nombre" and field.name != "moneda" %}
                         <div class="mb-3">
                             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -83,10 +83,10 @@ Agregar {{ tipo|capfirst }}
                 {% endfor %}
 
                 <!-- Mostrar moneda como campo deshabilitado al editar -->
-                {% if is_edit and medio_pago and medio_pago.moneda %}
+                {% if is_edit and medio_cobro and medio_cobro.moneda %}
                 <div class="mb-3">
                     <label>Moneda</label>
-                    <input type="text" class="form-control" value="{{ medio_pago.moneda.code }} - {{ medio_pago.moneda.name }}" disabled>
+                    <input type="text" class="form-control" value="{{ medio_cobro.moneda.code }} - {{ medio_cobro.moneda.name }}" disabled>
                 </div>
                 {% endif %}
             </div>
@@ -113,7 +113,7 @@ Agregar {{ tipo|capfirst }}
                 <button type="submit" class="btn btn-primary">
                     {% if is_edit %}Guardar Cambios{% else %}Agregar{% endif %}
                 </button>
-                <a href="{% url 'my_payment_methods' %}" class="btn btn-secondary">Cancelar</a>
+                <a href="{% url 'my_cobro_methods' %}" class="btn btn-secondary">Cancelar</a>
             </div>
 
         </form>

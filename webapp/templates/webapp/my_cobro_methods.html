@@ -1,0 +1,68 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Mis Métodos de Cobro{% endblock %}
+
+{% block content %}
+<div class="admin-page-container">
+    <div class="admin-header">
+        <h1 class="page-title">Mis Métodos de Cobro</h1>
+        <p class="page-subtitle">Gestiona tus métodos de cobro personales</p>
+    </div>
+
+    <div class="add-cobro-buttons">
+        <a href="{% url 'add_cobro_method' 'billetera' %}" class="btn btn-primary">Agregar Billetera</a>
+        <a href="{% url 'add_cobro_method' 'cheque' %}" class="btn btn-primary">Agregar Cheque</a>
+        <a href="{% url 'add_cobro_method' 'cuenta_bancaria' %}" class="btn btn-primary">Agregar Cuenta Bancaria</a>
+        <a href="{% url 'add_cobro_method' 'tarjeta' %}" class="btn btn-primary">Agregar Tarjeta</a>
+    </div>
+
+    <div class="table-container">
+        <table class="roles-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Detalles</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for medio in medios_cobro %}
+                <tr>
+                    <td>{{ medio.nombre }}</td>
+                    <td>{{ medio.tipo|capfirst }}</td>
+                    <td>
+                        {% if medio.tipo == "billetera" %}
+                            Cel: {{ medio.billetera_cobro.numero_celular }}, Proveedor: {{ medio.billetera_cobro.proveedor }}
+                        {% elif medio.tipo == "cheque" %}
+                            Nº: {{ medio.cheque_cobro.numero_cheque }}, Banco: {{ medio.cheque_cobro.banco_emisor }}, Monto: {{ medio.cheque_cobro.monto }}
+                        {% elif medio.tipo == "cuenta_bancaria" %}
+                            Nº: {{ medio.cuenta_bancaria_cobro.numero_cuenta }}, Banco: {{ medio.cuenta_bancaria_cobro.banco }}, Alias: {{ medio.cuenta_bancaria_cobro.alias_cbu }}
+                        {% elif medio.tipo == "tarjeta" %}
+                            Nº: ****{{ medio.tarjeta_cobro.ultimos_digitos }}, Titular: {{ medio.tarjeta_cobro.medio_cobro.nombre }}, Vto: {{ medio.tarjeta_cobro.fecha_vencimiento }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if medio.activo_global %}
+                            <span class="badge badge-success">Activo</span>
+                        {% else %}
+                            <span class="badge badge-danger">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'manage_cobro_method' medio.tipo medio.id %}" class="btn btn-secondary btn-sm">Editar</a>
+                        <a href="{% url 'confirm_delete_cobro_method' medio.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No tienes métodos de cobro registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

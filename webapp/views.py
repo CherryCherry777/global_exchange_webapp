@@ -19,10 +19,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm
+from .forms import BilleteraCobroForm, ChequeCobroForm, CuentaBancariaCobroForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteIntercambio
+from .models import MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteIntercambio
 from django.contrib.auth.decorators import permission_required
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 
@@ -1290,7 +1290,7 @@ def my_payment_methods(request):
 @login_required
 def manage_payment_method(request, tipo, medio_pago_id=None):
     """
-    Maneja creación y edición de medios de pago.
+    Maneja creación y edición de métodos de pago.
     La moneda solo se puede elegir al crear.
     """
     cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
@@ -1298,15 +1298,15 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
         raise Http404("No tienes un cliente asociado.")
     cliente = cliente_usuario.cliente
 
-    form_class = {
+    FORM_MAP = {
         'tarjeta': TarjetaForm,
         'billetera': BilleteraForm,
         'cuenta_bancaria': CuentaBancariaForm,
         'cheque': ChequeForm
-    }.get(tipo)
-
+    }
+    form_class = FORM_MAP.get(tipo)
     if not form_class:
-        raise Http404("Tipo de medio de pago desconocido.")
+        raise Http404("Tipo de método de pago desconocido.")
 
     is_edit = False
     medio_pago = None
@@ -1319,20 +1319,19 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
 
         if request.GET.get('delete') == "1":
             medio_pago.delete()
-            messages.success(request, f"Medio de pago '{medio_pago.nombre}' eliminado correctamente")
+            messages.success(request, f"Método de pago '{medio_pago.nombre}' eliminado correctamente")
             return redirect('my_payment_methods')
 
     if request.method == "POST":
         form = form_class(request.POST, instance=pago_obj)
-        nombre = request.POST.get("nombre", medio_pago.nombre if medio_pago else "")
-        
-        if form.is_valid():
+        medio_pago_form = MedioPagoForm(request.POST, instance=medio_pago)
+
+        if form.is_valid() and medio_pago_form.is_valid():
             if is_edit:
-                # Editar objeto existente
+                medio_pago_form.save()
                 obj = form.save()
-                messages.success(request, f"Medio de pago '{medio_pago.nombre}' modificado correctamente")
+                messages.success(request, f"Método de pago '{medio_pago.nombre}' modificado correctamente")
             else:
-                # Crear MedioPago
                 moneda_id = request.POST.get("moneda")
                 if not moneda_id:
                     messages.error(request, "Debe seleccionar una moneda")
@@ -1340,36 +1339,39 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
                     return render(request, "webapp/manage_payment_method_base.html", {
                         "tipo": tipo,
                         "form": form,
+                        "medio_pago_form": medio_pago_form,
                         "is_edit": is_edit,
-                        "monedas": monedas,
-                        "nombre": nombre
+                        "monedas": monedas
                     })
                 moneda = get_object_or_404(Currency, id=moneda_id)
                 mp = MedioPago.objects.create(
                     cliente=cliente,
                     tipo=tipo,
-                    nombre=nombre,
+                    nombre=medio_pago_form.cleaned_data['nombre'],
                     moneda=moneda
                 )
                 obj = form.save(commit=False)
                 setattr(obj, "medio_pago", mp)
                 obj.save()
-                messages.success(request, f"Medio de pago '{mp.nombre}' agregado correctamente")
+                messages.success(request, f"Método de pago '{mp.nombre}' agregado correctamente")
 
             return redirect('my_payment_methods')
     else:
         form = form_class(instance=pago_obj)
+        medio_pago_form = MedioPagoForm(instance=medio_pago)
 
     monedas = Currency.objects.filter(is_active=True)
 
     return render(request, "webapp/manage_payment_method_base.html", {
         "tipo": tipo,
         "form": form,
+        "medio_pago_form": medio_pago_form,
         "is_edit": is_edit,
         "medio_pago": medio_pago,
         "monedas": monedas
     })
 
+    
 @login_required
 def confirm_delete_payment_method(request, medio_pago_id):
     """
@@ -1492,4 +1494,145 @@ def limite_edit(request, moneda_id):
         "moneda": moneda,
         "categorias": categorias,
         "limites": limites,
+    })
+
+# ===========================================
+# MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
+# ===========================================
+
+FORM_MAP = {
+    'tarjeta': TarjetaCobroForm,
+    'billetera': BilleteraCobroForm,
+    'cuenta_bancaria': CuentaBancariaCobroForm,
+    'cheque': ChequeCobroForm
+}
+
+@login_required
+def my_cobro_methods(request):
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
+    cliente = cliente_usuario.cliente
+
+    medios_cobro = MedioCobro.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+
+    # Adjuntar estado global desde TipoPago
+    tipos_pago = {tp.nombre.lower(): tp.activo for tp in TipoPago.objects.all()}
+    for medio in medios_cobro:
+        medio.activo_global = tipos_pago.get(medio.tipo, False)
+
+    return render(request, "webapp/my_cobro_methods.html", {  # Puedes cambiar el template si quieres
+        "medios_cobro": medios_cobro
+    })
+
+
+@login_required
+def manage_cobro_method(request, tipo, medio_cobro_id=None):
+    """
+    Maneja creación y edición de métodos de cobro.
+    La moneda solo se puede elegir al crear.
+    """
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
+    cliente = cliente_usuario.cliente
+
+    # Selección del formulario específico según tipo
+    FORM_MAP = {
+        'tarjeta': TarjetaCobroForm,
+        'billetera': BilleteraCobroForm,
+        'cuenta_bancaria': CuentaBancariaCobroForm,
+        'cheque': ChequeCobroForm
+    }
+    form_class = FORM_MAP.get(tipo)
+    if not form_class:
+        raise Http404("Tipo de método de cobro desconocido.")
+
+    is_edit = False
+    medio_cobro = None
+    cobro_obj = None
+
+    if medio_cobro_id:
+        medio_cobro = get_object_or_404(MedioCobro, id=medio_cobro_id, cliente=cliente, tipo=tipo)
+        cobro_obj = getattr(medio_cobro, tipo)
+        is_edit = True
+
+        if request.GET.get('delete') == "1":
+            medio_cobro.delete()
+            messages.success(request, f"Método de cobro '{medio_cobro.nombre}' eliminado correctamente")
+            return redirect('my_cobro_methods')
+
+    if request.method == "POST":
+        form = form_class(request.POST, instance=cobro_obj)
+        medio_cobro_form = MedioCobroForm(request.POST, instance=medio_cobro)
+
+        if form.is_valid() and medio_cobro_form.is_valid():
+            if is_edit:
+                medio_cobro_form.save()
+                obj = form.save()
+                messages.success(request, f"Método de cobro '{medio_cobro.nombre}' modificado correctamente")
+            else:
+                # Crear MedioCobro
+                moneda_id = request.POST.get("moneda")
+                if not moneda_id:
+                    messages.error(request, "Debe seleccionar una moneda")
+                    monedas = Currency.objects.filter(is_active=True)
+                    return render(request, "webapp/manage_cobro_method_base.html", {
+                        "tipo": tipo,
+                        "form": form,
+                        "medio_cobro_form": medio_cobro_form,
+                        "is_edit": is_edit,
+                        "monedas": monedas
+                    })
+                moneda = get_object_or_404(Currency, id=moneda_id)
+                mp = MedioCobro.objects.create(
+                    cliente=cliente,
+                    tipo=tipo,
+                    nombre=medio_cobro_form.cleaned_data['nombre'],
+                    moneda=moneda
+                )
+                obj = form.save(commit=False)
+                setattr(obj, "medio_cobro", mp)
+                obj.save()
+                messages.success(request, f"Método de cobro '{mp.nombre}' agregado correctamente")
+
+            return redirect('my_cobro_methods')
+    else:
+        form = form_class(instance=cobro_obj)
+        medio_cobro_form = MedioCobroForm(instance=medio_cobro)
+
+    monedas = Currency.objects.filter(is_active=True)
+
+    return render(request, "webapp/manage_cobro_method_base.html", {
+        "tipo": tipo,
+        "form": form,
+        "medio_cobro_form": medio_cobro_form,
+        "is_edit": is_edit,
+        "medio_cobro": medio_cobro,
+        "monedas": monedas
+    })
+
+
+
+@login_required
+def confirm_delete_cobro_method(request, medio_cobro_id):
+    """
+    Muestra una página de confirmación antes de eliminar un método de cobro.
+    """
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
+    cliente = cliente_usuario.cliente
+
+    medio_cobro = get_object_or_404(MedioCobro, id=medio_cobro_id, cliente=cliente)
+    tipo = medio_cobro.tipo
+
+    if request.method == "POST":
+        medio_cobro.delete()
+        messages.success(request, f"Método de cobro '{medio_cobro.nombre}' eliminado correctamente")
+        return redirect('my_cobro_methods')
+
+    return render(request, "webapp/confirm_delete_cobro_method.html", {  # Puedes renombrar template si quieres
+        "medio_cobro": medio_cobro,
+        "tipo": tipo
     })

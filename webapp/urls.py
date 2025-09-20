@@ -81,4 +81,11 @@ urlpatterns = [
     # Administración de cotizaciones
     path('prices/', views.prices_list, name='prices_list'),
     path('prices/editar/<int:currency_id>/', views.edit_prices, name='edit_prices'),
+
+    # Mis métodos de cobro (cliente)
+    path('mis-cobros/', views.my_cobro_methods, name='my_cobro_methods'),
+    path('mis-cobros/add/<str:tipo>/', views.manage_cobro_method, name='add_cobro_method'),
+    path('mis-cobros/manage/<str:tipo>/<int:medio_cobro_id>/', views.manage_cobro_method, name='manage_cobro_method'),
+    path('mis-cobros/delete/<int:medio_cobro_id>/confirm/', views.confirm_delete_cobro_method, name='confirm_delete_cobro_method'),
+
 ]

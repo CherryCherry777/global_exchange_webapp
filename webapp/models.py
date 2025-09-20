@@ -611,3 +611,250 @@ class LimiteIntercambio(models.Model):
 
     def __str__(self):
         return f"{self.moneda.code} - {self.categoria.nombre}"
+    
+# -------------------------------------
+# Modelo de métodos de cobro genérico
+# -------------------------------------
+class MedioCobro(models.Model):
+    # Opciones predefinidas para los métodos de cobro
+    TIPO_CHOICES = [
+        ('tarjeta', 'Tarjeta de Débito/Crédito'),
+        ('billetera', 'Billetera Electrónica'),
+        ('cuenta_bancaria', 'Cuenta Bancaria'),
+        ('cheque', 'Cheque'),
+    ]
+    
+    # Relación con el cliente
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.CASCADE,
+        related_name="medios_cobro",
+        verbose_name="Cliente"
+    )
+    
+    # Tipo de método de cobro
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        verbose_name="Tipo de Método de Cobro"
+    )
+    
+    # Nombre descriptivo del método de cobro (ej: "Visa Principal", "Mercado Pago")
+    nombre = models.CharField(
+        max_length=100,
+        verbose_name="Nombre del Método de Cobro"
+    )
+    
+    # Estado del método de cobro (activo/inactivo)
+    activo = models.BooleanField(
+        default=True,
+        verbose_name="Activo"
+    )
+    
+    # Fecha de creación
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de Creación"
+    )
+    
+    # Fecha de última actualización
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Fecha de Actualización"
+    )
+    
+    tipo_cobro = models.ForeignKey(
+        "TipoPago",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Tipo de Cobro Global",
+        help_text="Configuración global de activación y comisión"
+    )
+
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        default=1
+    )
+    
+    class Meta:
+        db_table = "medios_cobro"
+        verbose_name = "Método de Cobro"
+        verbose_name_plural = "Métodos de Cobro"
+        ordering = ["cliente__nombre", "tipo", "nombre"]
+        unique_together = ("cliente", "tipo", "nombre")
+    
+    def __str__(self):
+        return f"{self.cliente.nombre} - {self.get_tipo_display()} - {self.nombre}"
+
+
+# -------------------------------------
+# Modelos específicos por tipo de método de cobro
+# -------------------------------------
+
+class TarjetaCobro(models.Model):
+    medio_cobro = models.OneToOneField(
+        MedioCobro,
+        on_delete=models.CASCADE,
+        related_name="tarjeta_cobro",
+        verbose_name="Método de Cobro"
+    )
+    
+    numero_tokenizado = models.CharField(
+        max_length=50,
+        verbose_name="Número Tokenizado",
+        help_text="Número de tarjeta encriptado/tokenizado"
+    )
+    
+    banco = models.CharField(
+        max_length=100,
+        verbose_name="Banco Emisor"
+    )
+    
+    fecha_vencimiento = models.DateField(
+        verbose_name="Fecha de Vencimiento"
+    )
+    
+    ultimos_digitos = models.CharField(
+        max_length=4,
+        verbose_name="Últimos 4 Dígitos"
+    )
+
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1
+    )
+    
+    class Meta:
+        db_table = "tarjetas_cobro"
+        verbose_name = "Tarjeta de Cobro"
+        verbose_name_plural = "Tarjetas de Cobro"
+    
+    def __str__(self):
+        return f"{self.medio_cobro.nombre} - ****{self.ultimos_digitos}"
+
+
+class BilleteraCobro(models.Model):
+    medio_cobro = models.OneToOneField(
+        MedioCobro,
+        on_delete=models.CASCADE,
+        related_name="billetera_cobro",
+        verbose_name="Método de Cobro"
+    )
+    
+    numero_celular = models.CharField(
+        max_length=20,
+        verbose_name="Número de Celular"
+    )
+    
+    proveedor = models.CharField(
+        max_length=100,
+        verbose_name="Proveedor"
+    )
+
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1
+    )
+
+    class Meta:
+        db_table = "billeteras_cobro"
+        verbose_name = "Billetera de Cobro"
+        verbose_name_plural = "Billeteras de Cobro"
+    
+    def __str__(self):
+        return f"{self.medio_cobro.nombre} - {self.proveedor}"
+
+
+class CuentaBancariaCobro(models.Model):
+    medio_cobro = models.OneToOneField(
+        MedioCobro,
+        on_delete=models.CASCADE,
+        related_name="cuenta_bancaria_cobro",
+        verbose_name="Método de Cobro"
+    )
+    
+    numero_cuenta = models.CharField(
+        max_length=50,
+        verbose_name="Número de Cuenta"
+    )
+    
+    banco = models.CharField(
+        max_length=100,
+        verbose_name="Banco"
+    )
+    
+    alias_cbu = models.CharField(
+        max_length=50,
+        verbose_name="Alias/CBU"
+    )
+
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1
+    )
+    
+    class Meta:
+        db_table = "cuentas_bancarias_cobro"
+        verbose_name = "Cuenta Bancaria de Cobro"
+        verbose_name_plural = "Cuentas Bancarias de Cobro"
+    
+    def __str__(self):
+        return f"{self.medio_cobro.nombre} - {self.banco}"
+
+
+class ChequeCobro(models.Model):
+    medio_cobro = models.OneToOneField(
+        MedioCobro,
+        on_delete=models.CASCADE,
+        related_name="cheque_cobro",
+        verbose_name="Método de Cobro"
+    )
+    
+    numero_cheque = models.CharField(
+        max_length=50,
+        verbose_name="Número de Cheque"
+    )
+    
+    banco_emisor = models.CharField(
+        max_length=100,
+        verbose_name="Banco Emisor"
+    )
+    
+    fecha_vencimiento = models.DateField(
+        verbose_name="Fecha de Vencimiento"
+    )
+    
+    monto = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        verbose_name="Monto"
+    )
+
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1
+    )
+    
+    class Meta:
+        db_table = "cheques_cobro"
+        verbose_name = "Cheque de Cobro"
+        verbose_name_plural = "Cheques de Cobro"
+    
+    def __str__(self):
+        return f"{self.medio_cobro.nombre} - {self.numero_cheque}"
+
