@@ -136,3 +136,29 @@ def crear_limites_por_moneda(sender, instance, created, **kwargs):
 def sync_medios_pago(sender, instance, **kwargs):
     # Sincroniza el estado de todos los MedioPago vinculados
     MedioPago.objects.filter(tipo_pago=instance).update(activo=instance.activo)
+
+
+# signals.py
+from django.db.models.signals import post_migrate
+from django.dispatch import receiver
+from .models import Currency
+
+@receiver(post_migrate)
+def create_default_currency(sender, **kwargs):
+    # Evitar que se ejecute para apps que no sean la tuya
+    if sender.name != "webapp":
+        return
+
+    if Currency.objects.count() == 0:
+        Currency.objects.create(
+            code="PYG",
+            name="Guaraní Paraguayo",
+            symbol="G",
+            base_price=1.0,
+            comision_venta=1.0,
+            comision_compra=1.0,
+            decimales_cotizacion=2,
+            decimales_monto=0,
+            is_active=True
+        )
+        print("Se creó la moneda por defecto: Guaraní Paraguayo (PYG)")

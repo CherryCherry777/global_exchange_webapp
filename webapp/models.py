@@ -298,12 +298,15 @@ class MedioPago(models.Model):
         help_text="Configuración global de activación y comisión"
     )
 
+    
     moneda = models.ForeignKey(
         Currency,
         on_delete=models.PROTECT,
         verbose_name="Moneda",
-        editable=False
+        #editable=False,
+        default=1 #ID de la moneda por defecto
     )
+    
 
     class Meta:
         db_table = "medios_pago"
@@ -353,6 +356,14 @@ class Tarjeta(models.Model):
         verbose_name="Últimos 4 Dígitos"
     )
 
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1 #ID de la moneda por defecto
+    )
+
     #activo = models.BooleanField(default=True, verbose_name="Activo")
     #comision = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Comisión (%)")
     
@@ -384,6 +395,14 @@ class Billetera(models.Model):
     proveedor = models.CharField(
         max_length=100,
         verbose_name="Proveedor"
+    )
+
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1 #ID de la moneda por defecto
     )
 
     
@@ -424,6 +443,14 @@ class CuentaBancaria(models.Model):
     alias_cbu = models.CharField(
         max_length=50,
         verbose_name="Alias/CBU"
+    )
+
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1 #ID de la moneda por defecto
     )
 
     #activo = models.BooleanField(default=True, verbose_name="Activo")
@@ -469,6 +496,14 @@ class Cheque(models.Model):
         max_digits=15,
         decimal_places=2,
         verbose_name="Monto"
+    )
+
+    moneda = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1 #ID de la moneda por defecto
     )
 
     #activo = models.BooleanField(default=True, verbose_name="Activo")

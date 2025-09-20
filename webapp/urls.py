@@ -50,14 +50,6 @@ urlpatterns = [
     path("users/delete/<int:pk>/", views.UserDeleteView.as_view(), name="user_delete"),
 
     # managing users
-    #path('manage-users/', views.manage_users, name='manage_users'),
-    #path('manage-users/add-role/<int:user_id>/', views.add_role_to_user, name='add_role_to_user'),
-    #path('manage-users/remove-role/<int:user_id>/<str:role_name>/', views.remove_role_from_user, name='remove_role_from_user'),
-    #path('manage-users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
-    #path('manage-users/delete/<int:user_id>/confirm/', views.confirm_delete_user, name='confirm_delete_user'),
-    #path('manage-users/<int:user_id>/modify/', views.modify_user, name='modify_user'),
-    #path('manage-users/delete/<int:user_id>/confirm/', views.confirm_delete_user, name='confirm_delete_user'),
-    # Users
     path('manage-users/', views.manage_users, name='manage_users'),
     path('manage-users/<int:user_id>/modify/', views.modify_users, name='modify_users'),
     path('manage-users/delete/<int:user_id>/confirm/', views.confirm_delete_user, name='confirm_delete_user'),
@@ -71,42 +63,22 @@ urlpatterns = [
 
     # Categories management
     path('manage-categories/', views.manage_categories, name='manage_categories'),
-    
-    # Payment methods management
-    #path('manage-client-payment-methods/', views.manage_client_payment_methods, name='manage_client_payment_methods'),
-    #path('manage-client-payment-methods/<int:cliente_id>/', views.manage_client_payment_methods_detail, name='manage_client_payment_methods_detail'),
-    #path('manage-client-payment-methods/<int:cliente_id>/add/<str:tipo>/', views.add_payment_method, name='add_payment_method'),
-    #path('manage-client-payment-methods/<int:cliente_id>/edit/<int:medio_pago_id>/', views.edit_payment_method, name='edit_payment_method'),
-    #path('view-client-payment-methods/<int:cliente_id>/', views.view_client_payment_methods, name='view_client_payment_methods'),
 
-    # Metodos para que el cliente administre sus propios metodos de pago
-    path('mis-medios/add-billetera/', views.add_payment_method_billetera, name='add_payment_method_billetera'),
-    path('mis-medios/add-cheque/', views.add_payment_method_cheque, name='add_payment_method_cheque'),
-    path('mis-medios/add-cuenta-bancaria/', views.add_payment_method_cuenta_bancaria, name='add_payment_method_cuenta_bancaria'),
-    path('mis-medios/add-tarjeta/', views.add_payment_method_tarjeta, name='add_payment_method_tarjeta'),
+    # Mis métodos de pago (cliente)
     path('mis-medios/', views.my_payment_methods, name='my_payment_methods'),
-    path('mis-medios/edit/<int:medio_pago_id>/', views.edit_payment_method, name='edit_payment_method'),
-    path('mis-medios/delete/<int:medio_pago_id>/', views.delete_payment_method, name='delete_payment_method'),
-    path('mis-medios/billetera/edit/<int:medio_pago_id>/', views.edit_payment_method_billetera, name='edit_payment_method_billetera'),
-    path('mis-medios/cheque/edit/<int:medio_pago_id>/', views.edit_payment_method_cheque, name='edit_payment_method_cheque'),
-    path('mis-medios/cuenta-bancaria/edit/<int:medio_pago_id>/', views.edit_payment_method_cuenta_bancaria, name='edit_payment_method_cuenta_bancaria'),
-    path('mis-medios/tarjeta/edit/<int:medio_pago_id>/', views.edit_payment_method_tarjeta, name='edit_payment_method_tarjeta'),
-    path('mis-medios/billetera/delete/<int:medio_pago_id>/', views.delete_payment_method_billetera, name='delete_payment_method_billetera'),
-    path('mis-medios/cheque/delete/<int:medio_pago_id>/', views.delete_payment_method_cheque, name='delete_payment_method_cheque'),
-    path('mis-medios/cuenta-bancaria/delete/<int:medio_pago_id>/', views.delete_payment_method_cuenta_bancaria, name='delete_payment_method_cuenta_bancaria'),
-    path('mis-medios/tarjeta/delete/<int:medio_pago_id>/', views.delete_payment_method_tarjeta, name='delete_payment_method_tarjeta'),
+    path('mis-medios/add/<str:tipo>/', views.manage_payment_method, name='add_payment_method'),
+    path('mis-medios/manage/<str:tipo>/<int:medio_pago_id>/', views.manage_payment_method, name='manage_payment_method'),
+    path('mis-medios/delete/<int:medio_pago_id>/confirm/', views.confirm_delete_payment_method, name='confirm_delete_payment_method'),
 
-    #administracion global de metodos de pago
+    # Administración global de métodos de pago
     path("payment-types/", views.payment_types_list, name="payment_types_list"),
     path("payment-types/edit/<int:tipo_id>/", views.edit_payment_type, name="edit_payment_type"),
 
-    #Administracion de limites de intercambio de monedas por tipo de cliente
+    # Administración de límites de intercambio
     path('limites/', views.limites_intercambio_list, name='limites_list'),
     path('limites/<int:moneda_id>/editar/', views.limite_edit, name='limite_edit'),
 
-    #Administracion  de cotizaciones
-    # Currency Manager
+    # Administración de cotizaciones
     path('prices/', views.prices_list, name='prices_list'),
     path('prices/editar/<int:currency_id>/', views.edit_prices, name='edit_prices'),
 ]
-

@@ -1,3 +1,4 @@
+from django import forms
 from django.db import IntegrityError, models
 from django.forms import modelformset_factory
 from django.shortcuts import render, redirect, get_object_or_404
@@ -1286,66 +1287,93 @@ def my_payment_methods(request):
         "medios_pago": medios_pago
     })
 
-
 @login_required
-def manage_my_payment_method(request, tipo, medio_pago_id=None):
+def manage_payment_method(request, tipo, medio_pago_id=None):
     """
-    Vista unificada para agregar o editar un medio de pago.
-    Si medio_pago_id es None, se crea uno nuevo.
+    Maneja creación y edición de medios de pago.
+    La moneda solo se puede elegir al crear.
     """
     cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
     if not cliente_usuario:
         raise Http404("No tienes un cliente asociado.")
     cliente = cliente_usuario.cliente
 
-    # Formulario específico del tipo
-    FormClass = FORM_MAP.get(tipo)
-    if not FormClass:
+    form_class = {
+        'tarjeta': TarjetaForm,
+        'billetera': BilleteraForm,
+        'cuenta_bancaria': CuentaBancariaForm,
+        'cheque': ChequeForm
+    }.get(tipo)
+
+    if not form_class:
         raise Http404("Tipo de medio de pago desconocido.")
 
+    is_edit = False
     medio_pago = None
     pago_obj = None
 
     if medio_pago_id:
-        # Edición
         medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo=tipo)
-        pago_obj = getattr(medio_pago, tipo, None)
-        medio_form = MedioPagoForm(request.POST or None, instance=medio_pago)
-        # Hacer moneda readonly al editar
-        medio_form.fields['moneda'].disabled = True
-        form = FormClass(request.POST or None, instance=pago_obj)
-    else:
-        # Creación
-        medio_form = MedioPagoForm(request.POST or None)
-        form = FormClass(request.POST or None)
+        pago_obj = getattr(medio_pago, tipo)
+        is_edit = True
 
-    if request.method == "POST":
-        if medio_form.is_valid() and form.is_valid():
-            medio_pago_instance = medio_form.save(commit=False)
-            medio_pago_instance.cliente = cliente
-            medio_pago_instance.tipo = tipo
-            medio_pago_instance.save()
-
-            pago_obj_instance = form.save(commit=False)
-            pago_obj_instance.medio_pago = medio_pago_instance
-            pago_obj_instance.save()
-
-            action = "actualizado" if medio_pago_id else "agregado"
-            messages.success(request, f"Medio de pago '{medio_pago_instance.nombre}' {action} correctamente.")
+        if request.GET.get('delete') == "1":
+            medio_pago.delete()
+            messages.success(request, f"Medio de pago '{medio_pago.nombre}' eliminado correctamente")
             return redirect('my_payment_methods')
 
-    template_name = f"webapp/manage_payment_method_{tipo}.html"
-    return render(request, template_name, {
-        "form": form,
-        "medio_pago_form": medio_form,
+    if request.method == "POST":
+        form = form_class(request.POST, instance=pago_obj)
+        nombre = request.POST.get("nombre", medio_pago.nombre if medio_pago else "")
+        
+        if form.is_valid():
+            if is_edit:
+                # Editar objeto existente
+                obj = form.save()
+                messages.success(request, f"Medio de pago '{medio_pago.nombre}' modificado correctamente")
+            else:
+                # Crear MedioPago
+                moneda_id = request.POST.get("moneda")
+                if not moneda_id:
+                    messages.error(request, "Debe seleccionar una moneda")
+                    monedas = Currency.objects.filter(is_active=True)
+                    return render(request, "webapp/manage_payment_method_base.html", {
+                        "tipo": tipo,
+                        "form": form,
+                        "is_edit": is_edit,
+                        "monedas": monedas,
+                        "nombre": nombre
+                    })
+                moneda = get_object_or_404(Currency, id=moneda_id)
+                mp = MedioPago.objects.create(
+                    cliente=cliente,
+                    tipo=tipo,
+                    nombre=nombre,
+                    moneda=moneda
+                )
+                obj = form.save(commit=False)
+                setattr(obj, "medio_pago", mp)
+                obj.save()
+                messages.success(request, f"Medio de pago '{mp.nombre}' agregado correctamente")
+
+            return redirect('my_payment_methods')
+    else:
+        form = form_class(instance=pago_obj)
+
+    monedas = Currency.objects.filter(is_active=True)
+
+    return render(request, "webapp/manage_payment_method_base.html", {
         "tipo": tipo,
-        "medio_pago": medio_pago
+        "form": form,
+        "is_edit": is_edit,
+        "medio_pago": medio_pago,
+        "monedas": monedas
     })
 
 @login_required
-def delete_payment_method(request, medio_pago_id):
+def confirm_delete_payment_method(request, medio_pago_id):
     """
-    Vista unificada para eliminar cualquier medio de pago.
+    Muestra una página de confirmación antes de eliminar un medio de pago.
     """
     cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
     if not cliente_usuario:
@@ -1353,15 +1381,19 @@ def delete_payment_method(request, medio_pago_id):
     cliente = cliente_usuario.cliente
 
     medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente)
+    tipo = medio_pago.tipo
 
     if request.method == "POST":
+        # Eliminar el medio de pago confirmado
         medio_pago.delete()
-        messages.success(request, f"Medio de pago '{medio_pago.nombre}' eliminado correctamente.")
+        messages.success(request, f"Medio de pago '{medio_pago.nombre}' eliminado correctamente")
         return redirect('my_payment_methods')
 
-    return render(request, "webapp/delete_payment_method_confirm.html", {
-        "medio_pago": medio_pago
+    return render(request, "webapp/confirm_delete_payment_method.html", {
+        "medio_pago": medio_pago,
+        "tipo": tipo
     })
+
 
 # ADMINISTRACION GLOBAL DE METODOS DE PAGO
 
