@@ -88,4 +88,8 @@ urlpatterns = [
     path('mis-cobros/manage/<str:tipo>/<int:medio_cobro_id>/', views.manage_cobro_method, name='manage_cobro_method'),
     path('mis-cobros/delete/<int:medio_cobro_id>/confirm/', views.confirm_delete_cobro_method, name='confirm_delete_cobro_method'),
 
+    # Administracion global de metodos de cobro
+    path('cobros/', views.cobro_types_list, name='cobro_types_list'),
+    path('cobros/editar/<int:tipo_id>/', views.edit_cobro_type, name='edit_cobro_type'),
+
 ]

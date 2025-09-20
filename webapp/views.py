@@ -19,10 +19,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import BilleteraCobroForm, ChequeCobroForm, CuentaBancariaCobroForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm
+from .forms import BilleteraCobroForm, ChequeCobroForm, CuentaBancariaCobroForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoPago, LimiteIntercambio
+from .models import MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoCobro, TipoPago, LimiteIntercambio
 from django.contrib.auth.decorators import permission_required
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 
@@ -1371,7 +1371,7 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
         "monedas": monedas
     })
 
-    
+
 @login_required
 def confirm_delete_payment_method(request, medio_pago_id):
     """
@@ -1636,3 +1636,20 @@ def confirm_delete_cobro_method(request, medio_cobro_id):
         "medio_cobro": medio_cobro,
         "tipo": tipo
     })
+
+@login_required
+def cobro_types_list(request):
+    tipos = TipoCobro.objects.all().order_by("nombre")
+    return render(request, "webapp/cobro_types_list.html", {"tipos": tipos})
+
+@login_required
+def edit_cobro_type(request, tipo_id):
+    tipo = get_object_or_404(TipoCobro, id=tipo_id)
+    if request.method == "POST":
+        form = TipoCobroForm(request.POST, instance=tipo)
+        if form.is_valid():
+            form.save()
+            return redirect("cobro_types_list")
+    else:
+        form = TipoCobroForm(instance=tipo)
+    return render(request, "webapp/edit_cobro_type.html", {"form": form, "tipo": tipo})

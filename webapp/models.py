@@ -518,7 +518,7 @@ class Cheque(models.Model):
         return f"{self.medio_pago.nombre} - {self.numero_cheque}"
 
 
-# Para admin
+# Administracion de metodo de pago global (para admin)
 
 class TipoPago(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
@@ -858,3 +858,17 @@ class ChequeCobro(models.Model):
     def __str__(self):
         return f"{self.medio_cobro.nombre} - {self.numero_cheque}"
 
+
+# Administración de método de cobro global (para admin)
+
+class TipoCobro(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+    activo = models.BooleanField(default=True)
+    comision = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
+
+    class Meta:
+        verbose_name = "Tipo de Cobro"
+        verbose_name_plural = "Tipos de Cobro"
+
+    def __str__(self):
+        return self.nombre

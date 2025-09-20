@@ -75,7 +75,7 @@ def create_default_payment_types(sender, **kwargs):
     defaults = {"activo": True, "comision": 0.0}
     
     # Lista de tipos de pago fijos
-    tipos = ["billetera", "cheque", "cuenta_bancaria", "tarjeta"]
+    tipos = ["Billetera", "Cheque", "Cuenta Bancaria", "Tarjeta"]
     
     for nombre in tipos:
         TipoPago.objects.get_or_create(nombre=nombre, defaults=defaults)
@@ -162,3 +162,18 @@ def create_default_currency(sender, **kwargs):
             is_active=True
         )
         print("Se creó la moneda por defecto: Guaraní Paraguayo (PYG)")
+
+@receiver(post_migrate)
+def create_default_cobro_types(sender, **kwargs):
+    # Asegurarse de que solo se ejecute para nuestra app
+    if sender.name != "webapp":
+        return
+
+    TipoCobro = apps.get_model("webapp", "TipoCobro")
+    defaults = {"activo": True, "comision": 0.0}
+    
+    # Lista de tipos de pago fijos
+    tipos = ["Billetera", "Cheque", "Cuenta Bancaria", "Tarjeta"]
+    
+    for nombre in tipos:
+        TipoCobro.objects.get_or_create(nombre=nombre, defaults=defaults)
