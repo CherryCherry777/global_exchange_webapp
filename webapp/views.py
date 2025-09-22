@@ -887,8 +887,26 @@ def edit_profile(request):
 
 @login_required
 def landing_page(request):
+    from django.contrib.auth import get_user_model
+    from .models import Currency, Cliente
+    
+    User = get_user_model()
+    
+    # Obtener métricas reales
+    usuarios_activos = User.objects.filter(is_active=True).count()
+    monedas_activas = Currency.objects.filter(is_active=True).count()
+    clientes_activos = Cliente.objects.filter(estado=True).count()
+    
     role = get_user_primary_role(request.user)
-    return render(request, "webapp/landing.html", {"role": role})
+    
+    context = {
+        "role": role,
+        "usuarios_activos": usuarios_activos,
+        "monedas_activas": monedas_activas,
+        "clientes_activos": clientes_activos,
+    }
+    
+    return render(request, "webapp/landing.html", context)
 
 # --------------------------------------------
 # Vista para inactivar un cliente

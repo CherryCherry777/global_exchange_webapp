@@ -15,6 +15,78 @@ body main .admin-panel,
     box-sizing: border-box !important;
 }
 
+/* Force black background for the entire page */
+body {
+    background: #000000 !important;
+}
+
+html {
+    background: #000000 !important;
+}
+
+/* Ensure header matches home page - Use exact same styles as home.css */
+body:has(.admin-panel) .header-nav,
+body .admin-panel ~ .header-nav,
+.admin-panel .header-nav,
+body .header-nav {
+    background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%) !important;
+    padding: 15px 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    margin-bottom: -1px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.nav-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 20px !important;
+}
+
+.logo-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+.nav-menu {
+    display: flex !important;
+    gap: 30px !important;
+    align-items: center !important;
+}
+
+.nav-link {
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    transition: color 0.3s ease !important;
+    position: relative !important;
+}
+
+.nav-link:hover {
+    color: #FCD34D !important;
+}
+
+.nav-link::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -5px !important;
+    left: 0 !important;
+    width: 0 !important;
+    height: 2px !important;
+    background: #FCD34D !important;
+    transition: width 0.3s ease !important;
+}
+
+.nav-link:hover::after {
+    width: 100% !important;
+}
+
 /* Override any conflicting styles from base template */
 body:has(.admin-panel),
 body:has(.admin-panel) main {
@@ -30,85 +102,75 @@ html body main .admin-panel {
 }
 
 /* Starry Background Effect */
-.admin-panel::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(2px 2px at 20px 30px, #ffffff, transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
-        radial-gradient(1px 1px at 90px 40px, #ffffff, transparent),
-        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
-        radial-gradient(2px 2px at 160px 30px, #ffffff, transparent);
-    background-repeat: repeat;
-    background-size: 200px 100px;
-    opacity: 0.3;
-    animation: twinkle 4s ease-in-out infinite alternate;
-}
-
-@keyframes twinkle {
-    0% { opacity: 0.2; }
-    100% { opacity: 0.4; }
-}
+/* Removed animated background stars for solid black background */
 
 /* Admin Header - High specificity */
 .admin-panel .admin-header,
 body main .admin-panel .admin-header {
     text-align: center !important;
-    margin-bottom: 60px !important;
+    margin-bottom: 40px !important;
     position: relative !important;
     z-index: 10 !important;
 }
 
 .admin-panel .admin-title,
 body main .admin-panel .admin-title {
-    font-size: 3.5rem !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 32px !important;
     font-weight: 700 !important;
     color: #ffffff !important;
-    margin: 0 0 20px 0 !important;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 255, 255, 0.2) !important;
-    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
+    margin: 0 0 10px 0 !important;
+    text-shadow: none !important;
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
 }
 
 .admin-panel .admin-subtitle,
 body main .admin-panel .admin-subtitle {
-    font-size: 1.4rem !important;
-    color: #f1f5f9 !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
     margin: 0 !important;
-    opacity: 0.95 !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
 }
 
 /* Metrics Section - High specificity */
 .admin-panel .admin-metrics,
 body main .admin-panel .admin-metrics {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
-    gap: 30px !important;
-    margin-bottom: 60px !important;
-    max-width: 900px !important;
+    display: flex !important;
+    justify-content: center !important;
+    gap: 50px !important;
+    margin-bottom: 40px !important;
+    margin-top: 20px !important;
+    max-width: 1400px !important;
     margin-left: auto !important;
     margin-right: auto !important;
     position: relative !important;
     z-index: 10 !important;
+    flex-wrap: wrap !important;
 }
 
 .admin-panel .metric-card,
 body main .admin-panel .metric-card {
     background: rgba(255, 255, 255, 0.1) !important;
-    padding: 30px 20px !important;
+    padding: 30px 20px 25px 20px !important;
     border-radius: 15px !important;
     backdrop-filter: blur(15px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
     text-align: center !important;
     transition: transform 0.3s ease, box-shadow 0.3s ease !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+    width: 350px !important;
+    height: 160px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
 .admin-panel .metric-card:hover,
@@ -119,19 +181,23 @@ body main .admin-panel .metric-card:hover {
 
 .admin-panel .metric-number,
 body main .admin-panel .metric-number {
-    font-size: 2.5rem !important;
-    font-weight: 700 !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 72px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
     color: #ffffff !important;
     margin-bottom: 10px !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: none !important;
 }
 
 .admin-panel .metric-label,
 body main .admin-panel .metric-label {
-    font-size: 1rem !important;
-    color: #f1f5f9 !important;
-    opacity: 0.9 !important;
-    font-weight: 500 !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
 }
 
 /* Admin Grid - High specificity */
@@ -149,22 +215,26 @@ body main .admin-panel .admin-grid {
 /* Admin Cards - High specificity */
 .admin-panel .admin-card,
 body main .admin-panel .admin-card {
-    background: #FFD700 !important;
+    background: linear-gradient(135deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
     border-radius: 20px !important;
-    padding: 30px !important;
+    padding: 12px 18px !important;
     text-decoration: none !important;
-    color: #000000 !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3) !important;
-    border: 2px solid transparent !important;
+    color: #ffffff !important;
+    transition: all 0.3s ease !important;
+    box-shadow: none !important;
+    border: none !important;
     position: relative !important;
     overflow: hidden !important;
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
     cursor: pointer !important;
     user-select: none !important;
     -webkit-user-select: none !important;
     -moz-user-select: none !important;
     -ms-user-select: none !important;
+    width: 350px !important;
+    height: 60px !important;
+    margin: 0 auto !important;
 }
 
 /* Ensure all child elements inherit the link behavior */
@@ -189,16 +259,13 @@ body main .admin-panel .admin-card {
 }
 
 .admin-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
-    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
     text-decoration: none;
-    color: #000000;
+    color: #ffffff;
 }
 
 .admin-card:active {
-    transform: translateY(-4px) scale(1.01);
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+    transform: translateY(-1px);
 }
 
 .admin-card:focus {
@@ -209,15 +276,18 @@ body main .admin-panel .admin-card {
 /* Card Icon - High specificity */
 .admin-panel .card-icon,
 body main .admin-panel .card-icon {
-    margin-bottom: 20px !important;
+    margin-right: 15px !important;
+    margin-bottom: 0 !important;
     display: flex !important;
-    justify-content: flex-start !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
 }
 
 .admin-panel .card-icon img,
 body main .admin-panel .card-icon img {
-    width: 111px !important;
-    height: 111px !important;
+    width: 35px !important;
+    height: 35px !important;
     object-fit: contain !important;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) !important;
     transition: transform 0.3s ease !important;
@@ -232,21 +302,27 @@ body main .admin-panel .admin-card:hover .card-icon img {
 .admin-panel .card-content,
 body main .admin-panel .card-content {
     text-align: left !important;
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .admin-panel .card-title,
 body main .admin-panel .card-title {
-    font-size: 1.4rem !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 20px !important;
     font-weight: 700 !important;
-    color: #000000 !important;
-    margin: 0 0 12px 0 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+    margin: 0 !important;
     line-height: 1.3 !important;
 }
 
 .admin-panel .card-description,
 body main .admin-panel .card-description {
+    font-family: 'Roboto', sans-serif !important;
     font-size: 0.95rem !important;
-    color: #333333 !important;
+    color: #ffffff !important;
     margin: 0 !important;
     line-height: 1.5 !important;
     opacity: 0.9 !important;
@@ -259,11 +335,11 @@ body main .admin-panel .card-description {
 }
 
 .admin-card:hover .card-title {
-    color: #000000;
+    color: #ffffff;
 }
 
 .admin-card:hover .card-description {
-    color: #333333;
+    color: #ffffff;
 }
 
 /* Responsive Design for Admin Panel */
@@ -281,17 +357,25 @@ body main .admin-panel .card-description {
     }
     
     .admin-metrics {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        flex-direction: column;
+        gap: 30px;
+        align-items: center;
         margin-bottom: 40px;
     }
     
     .metric-card {
-        padding: 25px 15px;
+        padding: 25px 15px 20px 15px;
+        width: 300px !important;
+        height: 140px !important;
+        border: none !important;
     }
     
     .metric-number {
-        font-size: 2rem;
+        font-size: 50px;
+    }
+    
+    .metric-label {
+        font-size: 16px;
     }
     
     .admin-grid {
@@ -300,16 +384,19 @@ body main .admin-panel .card-description {
     }
     
     .admin-card {
-        padding: 25px 20px;
+        padding: 10px 15px;
+        width: 300px !important;
+        height: 55px !important;
+        border: none !important;
     }
     
     .card-icon img {
-        width: 80px;
-        height: 80px;
+        width: 30px;
+        height: 30px;
     }
     
     .card-title {
-        font-size: 1.2rem;
+        font-size: 18px;
     }
     
     .card-description {
@@ -336,36 +423,44 @@ body main .admin-panel .card-description {
     
     .admin-metrics {
         margin-bottom: 30px;
+        gap: 20px;
     }
     
     .metric-card {
-        padding: 20px 15px;
+        width: 280px !important;
+        height: 120px !important;
+        padding: 25px 10px 15px 10px;
+        border: none !important;
     }
     
     .metric-number {
-        font-size: 1.8rem;
+        font-size: 40px;
     }
     
     .metric-label {
-        font-size: 0.9rem;
+        font-size: 14px;
     }
     
     .admin-card {
-        padding: 20px 15px;
+        padding: 8px 12px;
+        width: 280px !important;
+        height: 45px !important;
+        border: none !important;
     }
     
     .card-icon {
-        margin-bottom: 15px;
+        margin-right: 10px;
+        margin-bottom: 0;
     }
     
     .card-icon img {
-        width: 70px;
-        height: 70px;
+        width: 25px;
+        height: 25px;
     }
     
     .card-title {
-        font-size: 1.1rem;
-        margin-bottom: 10px;
+        font-size: 14px;
+        margin-bottom: 0;
     }
     
     .card-description {
@@ -377,15 +472,24 @@ body main .admin-panel .card-description {
 .admin-card {
     opacity: 0;
     transform: translateY(30px);
-    animation: slideInUp 0.6s ease-out forwards;
+    animation: slideInUp 0.4s ease-out forwards;
 }
 
 .admin-card:nth-child(1) { animation-delay: 0.1s; }
-.admin-card:nth-child(2) { animation-delay: 0.2s; }
-.admin-card:nth-child(3) { animation-delay: 0.3s; }
-.admin-card:nth-child(4) { animation-delay: 0.4s; }
-.admin-card:nth-child(5) { animation-delay: 0.5s; }
-.admin-card:nth-child(6) { animation-delay: 0.6s; }
+.admin-card:nth-child(2) { animation-delay: 0.1s; }
+.admin-card:nth-child(3) { animation-delay: 0.1s; }
+.admin-card:nth-child(4) { animation-delay: 0.1s; }
+.admin-card:nth-child(5) { animation-delay: 0.1s; }
+.admin-card:nth-child(6) { animation-delay: 0.1s; }
+.admin-card:nth-child(7) { animation-delay: 0.1s; }
+.admin-card:nth-child(8) { animation-delay: 0.1s; }
+.admin-card:nth-child(9) { animation-delay: 0.1s; }
+.admin-card:nth-child(10) { animation-delay: 0.1s; }
+.admin-card:nth-child(11) { animation-delay: 0.1s; }
+.admin-card:nth-child(12) { animation-delay: 0.1s; }
+.admin-card:nth-child(13) { animation-delay: 0.1s; }
+.admin-card:nth-child(14) { animation-delay: 0.1s; }
+.admin-card:nth-child(15) { animation-delay: 0.1s; }
 
 @keyframes slideInUp {
     to {
@@ -398,12 +502,12 @@ body main .admin-panel .card-description {
 .metric-card {
     opacity: 0;
     transform: translateY(20px);
-    animation: fadeInUp 0.8s ease-out forwards;
+    animation: fadeInUp 0.4s ease-out forwards;
 }
 
-.metric-card:nth-child(1) { animation-delay: 0.2s; }
-.metric-card:nth-child(2) { animation-delay: 0.4s; }
-.metric-card:nth-child(3) { animation-delay: 0.6s; }
+.metric-card:nth-child(1) { animation-delay: 0.1s; }
+.metric-card:nth-child(2) { animation-delay: 0.1s; }
+.metric-card:nth-child(3) { animation-delay: 0.1s; }
 
 @keyframes fadeInUp {
     to {
