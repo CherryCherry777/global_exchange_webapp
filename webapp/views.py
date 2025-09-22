@@ -466,6 +466,10 @@ def employee_dash(request):
 @role_required("Administrador")
 def manage_users(request):
     users = User.objects.all()
+    
+    # Calcular métricas
+    total_users = User.objects.count()
+    active_users = User.objects.filter(is_active=True).count()
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -499,7 +503,53 @@ def manage_users(request):
         
         return redirect("manage_users")
 
-    return render(request, "webapp/manage_users.html", {"users": users})
+    context = {
+        "users": users,
+        "total_users": total_users,
+        "active_users": active_users,
+    }
+    
+    return render(request, "webapp/manage_users.html", context)
+
+@login_required
+@role_required("Administrador")
+def activate_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    # Evitar activar/desactivar admins o tu propio usuario
+    if user.is_superuser:
+        messages.error(request, "No puede modificar un usuario administrador.")
+        return redirect("manage_users")
+    
+    if user == request.user:
+        messages.error(request, "No puede modificar su propio usuario.")
+        return redirect("manage_users")
+    
+    user.is_active = True
+    user.save()
+    messages.success(request, f"Usuario '{user.username}' activado correctamente.")
+    
+    return redirect("manage_users")
+
+@login_required
+@role_required("Administrador")
+def deactivate_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    # Evitar activar/desactivar admins o tu propio usuario
+    if user.is_superuser:
+        messages.error(request, "No puede modificar un usuario administrador.")
+        return redirect("manage_users")
+    
+    if user == request.user:
+        messages.error(request, "No puede modificar su propio usuario.")
+        return redirect("manage_users")
+    
+    user.is_active = False
+    user.save()
+    messages.success(request, f"Usuario '{user.username}' desactivado correctamente.")
+    
+    return redirect("manage_users")
 
 @login_required
 @role_required("Administrador")
