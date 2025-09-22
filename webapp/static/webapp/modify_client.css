@@ -257,7 +257,7 @@ body .header-nav {
 /* Special alignment for single field rows */
 .form-row:has(.form-field:only-child),
 .single-field-row {
-    justify-content: flex-start;
+    justify-content: center;
 }
 
 /* Form Field */

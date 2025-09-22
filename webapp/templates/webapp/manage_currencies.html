@@ -1,0 +1,190 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Administrar Monedas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/manage_currencies.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="manage-currencies-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="manage-currencies-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-currencies-title">Administrar Monedas</h1>
+                    <p class="manage-currencies-subtitle">Visualizar, editar y activar/desactivar monedas</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Monedas</div>
+                        <div class="metric-number">{{ total_currencies }}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Monedas Activas</div>
+                        <div class="metric-number">{{ active_currencies }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Create New Currency Button -->
+        <div class="create-currency-section">
+            <a href="{% url 'create_currency' %}" class="create-currency-button">Crear Nueva Moneda</a>
+        </div>
+
+        <!-- Currencies List Container -->
+        <div class="currencies-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de Monedas</h2>
+                <div class="search-input-container">
+                    <input type="text" id="currency-search" placeholder="Buscar monedas..." class="search-input">
+                </div>
+            </div>
+
+            <!-- Currencies Table -->
+            <div class="currencies-table-container">
+                <table class="currencies-table">
+                    <thead>
+                        <tr>
+                            <th>Bandera</th>
+                            <th>Nombre</th>
+                            <th>Fecha</th>
+                            <th>Código y Símbolo</th>
+                            <th>Decimales</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for currency in currencies %}
+                        <tr class="currency-row">
+                            <td class="flag-cell">
+                                <div class="flag-container">
+                                    {% if currency.flag_image %}
+                                        <img src="{{ currency.flag_image.url }}" alt="{{ currency.name }} Flag" class="currency-flag">
+                                    {% else %}
+                                        <div class="no-flag">--</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="name-cell">
+                                <span class="currency-name">{{ currency.name }}</span>
+                            </td>
+                            <td class="date-cell">
+                                <span class="currency-date">{{ currency.created_at|date:"d/m/Y" }}</span>
+                            </td>
+                            <td class="code-cell">
+                                <span class="currency-code">{{ currency.code }} {{ currency.symbol }}</span>
+                            </td>
+                            <td class="decimals-cell">
+                                <div class="decimals-info">
+                                    <div class="decimals-line">Cotización: {{ currency.decimales_cotizacion }}</div>
+                                    <div class="decimals-line">Monto: {{ currency.decimales_monto }}</div>
+                                </div>
+                            </td>
+                            <td class="status-cell">
+                                <div class="status-container">
+                                    {% if currency.is_active %}
+                                        <div class="status-dot active"></div>
+                                        <span class="status-text">Activo</span>
+                                    {% else %}
+                                        <div class="status-dot inactive"></div>
+                                        <span class="status-text">Inactivo</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="actions-cell">
+                                <div class="actions-container">
+                                    <a href="{% url 'modify_currency' currency.id %}" class="action-button modify-button">Modificar</a>
+                                    {% if currency.is_active %}
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que quieres desactivar esta moneda?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="deactivate">
+                                            <input type="hidden" name="currency_id" value="{{ currency.id }}">
+                                            <button type="submit" class="action-button deactivate-button">Desactivar</button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que quieres activar esta moneda?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="activate">
+                                            <input type="hidden" name="currency_id" value="{{ currency.id }}">
+                                            <button type="submit" class="action-button activate-button">Activar</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('currency-search').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll('.currencies-table tbody .currency-row');
+
+    rows.forEach(row => {
+        let currencyName = row.querySelector('.currency-name').textContent.toLowerCase();
+        let currencyCode = row.querySelector('.currency-code').textContent.toLowerCase();
+
+        if (currencyName.includes(filter) || currencyCode.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

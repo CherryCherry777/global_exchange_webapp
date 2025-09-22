@@ -20,6 +20,15 @@ urlpatterns = [
     path("create-cliente/", views.create_cliente, name="create_cliente"),
     path("update-cliente/<int:cliente_id>/", views.update_cliente, name="update_cliente"),
     path("modify-client/<int:client_id>/", views.modify_client, name="modify_client"),
+    path("view-client/<int:client_id>/", views.view_client, name="view_client"),
+    path("assign-clients/", views.assign_clients, name="assign_clients"),
+    path("manage-categories/", views.manage_categories, name="manage_categories"),
+    path("modify-category/<int:category_id>/", views.modify_category, name="modify_category"),
+    path("manage-currencies/", views.manage_currencies, name="manage_currencies"),
+    path("create-currency/", views.create_currency, name="create_currency"),
+    path("modify-currency/<int:currency_id>/", views.modify_currency, name="modify_currency"),
+    path("manage-quotes/", views.manage_quotes, name="manage_quotes"),
+    path("modify-quote/<int:currency_id>/", views.modify_quote, name="modify_quote"),
     path("delete-cliente/<int:cliente_id>/", views.delete_cliente, name="delete_cliente"),
     path("view-cliente/<int:cliente_id>/", views.view_cliente, name="view_cliente"),
     path('clientes/asignar-usuario/', views.asignar_cliente_usuario, name='asignar_cliente_usuario'),
@@ -97,5 +106,13 @@ urlpatterns = [
     # Administracion global de metodos de cobro
     path('cobros/', views.cobro_types_list, name='cobro_types_list'),
     path('cobros/editar/<int:tipo_id>/', views.edit_cobro_type, name='edit_cobro_type'),
+    
+    # Administrar métodos de pago globales
+    path('manage-payment-methods/', views.manage_payment_methods, name='manage_payment_methods'),
+    path('modify-payment-method/<int:payment_method_id>/', views.modify_payment_method, name='modify_payment_method'),
+    
+    # Administrar métodos de cobro globales
+    path('manage-cobro-methods/', views.manage_cobro_methods, name='manage_cobro_methods'),
+    path('modify-cobro-method/<int:cobro_method_id>/', views.modify_cobro_method, name='modify_cobro_method'),
 
 ]

@@ -1,0 +1,489 @@
+/* Manage Payment Methods Page Styles */
+
+/* Container */
+.manage-payment-methods-container {
+    min-height: 100vh;
+    background: #000000;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+/* Main Content Wrapper */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Messages */
+.messages-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alert {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    min-width: 250px;
+    text-align: center;
+}
+
+/* Header Section */
+.manage-payment-methods-header {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%);
+    padding: 20px 0;
+    margin-bottom: 30px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* Back Button */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(238, 233, 210, 0.1);
+    color: white;
+    text-decoration: none;
+    width: 347px;
+    height: 64px;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Titles */
+.manage-payment-methods-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    text-align: left;
+}
+
+.manage-payment-methods-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    margin: 0;
+    text-align: left;
+}
+
+/* Header Metrics */
+.header-metrics {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.metric-card {
+    width: 177px;
+    height: 149px;
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.metric-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    font-style: italic;
+    color: white;
+    text-align: center;
+}
+
+.metric-number {
+    font-family: 'Roboto', sans-serif;
+    font-size: 96px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    text-align: center;
+    line-height: 1;
+}
+
+/* Payment Methods List Container */
+.payment-methods-list-container {
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 40px;
+}
+
+/* Search Section */
+.search-section {
+    margin-bottom: 30px;
+}
+
+.search-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 20px 0;
+    text-align: left;
+}
+
+/* Payment Methods Table */
+.payment-methods-table-container {
+    overflow-x: auto;
+}
+
+.payment-methods-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+}
+
+.payment-methods-table thead th {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    text-align: left;
+    padding: 15px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.payment-methods-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.payment-methods-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.payment-methods-table tbody td {
+    padding: 15px 10px;
+    vertical-align: middle;
+}
+
+/* Payment Method Info */
+.payment-method-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.payment-method-icon-circle {
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.payment-method-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.payment-method-name {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+}
+
+/* Status */
+.status-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot.active {
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
+}
+
+.status-dot.inactive {
+    background: linear-gradient(180deg, #909090 0%, #535353 100%);
+}
+
+.status-text {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+}
+
+/* Commission */
+.commission-percentage {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+}
+
+/* Actions */
+.actions-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.action-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 125px;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+.modify-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+}
+
+.modify-button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(91, 21, 194, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    
+    .header-metrics {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 0 15px;
+    }
+    
+    .manage-payment-methods-header {
+        padding: 15px 0;
+    }
+    
+    .back-button {
+        width: 100%;
+        height: 50px;
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+    
+    .manage-payment-methods-title {
+        font-size: 28px;
+    }
+    
+    .manage-payment-methods-subtitle {
+        font-size: 16px;
+    }
+    
+    .header-metrics {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .metric-card {
+        width: 100%;
+        max-width: 177px;
+    }
+    
+    .metric-number {
+        font-size: 72px;
+    }
+    
+    .payment-methods-list-container {
+        padding: 20px;
+        border-radius: 15px;
+    }
+    
+    .search-title {
+        font-size: 24px;
+    }
+    
+    .payment-methods-table thead th {
+        font-size: 14px;
+        padding: 10px 5px;
+    }
+    
+    .payment-methods-table tbody td {
+        padding: 10px 5px;
+    }
+    
+    .payment-method-icon-circle {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .payment-method-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .payment-method-name {
+        font-size: 14px;
+    }
+    
+    .status-text {
+        font-size: 16px;
+    }
+    
+    .commission-percentage {
+        font-size: 14px;
+    }
+    
+    .action-button {
+        font-size: 14px;
+        min-width: 100px;
+        height: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .manage-payment-methods-title {
+        font-size: 24px;
+    }
+    
+    .manage-payment-methods-subtitle {
+        font-size: 14px;
+    }
+    
+    .metric-card {
+        height: 120px;
+    }
+    
+    .metric-label {
+        font-size: 14px;
+    }
+    
+    .metric-number {
+        font-size: 60px;
+    }
+    
+    .search-title {
+        font-size: 20px;
+    }
+    
+    .payment-methods-table {
+        font-size: 12px;
+    }
+    
+    .payment-methods-table thead th {
+        font-size: 12px;
+        padding: 8px 3px;
+    }
+    
+    .payment-methods-table tbody td {
+        padding: 8px 3px;
+    }
+    
+    .payment-method-info {
+        gap: 10px;
+    }
+    
+    .payment-method-icon-circle {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .payment-method-icon {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .payment-method-name {
+        font-size: 12px;
+    }
+    
+    .status-dot {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .status-text {
+        font-size: 14px;
+    }
+    
+    .commission-percentage {
+        font-size: 12px;
+    }
+    
+    .action-button {
+        font-size: 12px;
+        min-width: 80px;
+        height: 28px;
+        padding: 6px 12px;
+    }
+}

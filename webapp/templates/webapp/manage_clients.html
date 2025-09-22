@@ -108,7 +108,7 @@
                                     {% else %}
                                         <a href="#" class="action-button activate-button">Activar</a>
                                     {% endif %}
-                                    <a href="#" class="action-button view-button">Ver Datos</a>
+                                            <a href="{% url 'view_client' client.id %}" class="action-button view-button">Ver Datos</a>
                                 </div>
                             </td>
                         </tr>

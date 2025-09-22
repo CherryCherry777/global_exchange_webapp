@@ -1,0 +1,413 @@
+/* View Client Page Styles */
+
+/* Container */
+.view-client-container {
+    min-height: 100vh;
+    background: #000000;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+/* Main Content */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header Section */
+.view-client-header {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%);
+    padding: 20px 0;
+    margin-bottom: 30px;
+}
+
+.header-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 15px;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* Back Button */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(238, 233, 210, 0.1);
+    color: white;
+    text-decoration: none;
+    width: 347px;
+    height: 64px;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Titles */
+.view-client-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    text-align: left;
+}
+
+.view-client-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    margin: 0;
+    text-align: left;
+}
+
+/* View Section */
+.view-section {
+    background: linear-gradient(90deg, #000000 0%, #090319 25%, #090319 75%, #000000 100%);
+    border-radius: 45px;
+    padding: 40px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.section-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin: 0 0 30px 0;
+}
+
+/* View Content */
+.view-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+/* Client Profile Section */
+.client-profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.client-icon-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(57, 17, 150, 0.3);
+}
+
+.client-profile-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.client-name-display {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+}
+
+/* Data Display Container */
+.data-display-container {
+    display: flex;
+    gap: 40px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+/* Client Data Section (Left) */
+.client-data-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.data-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.data-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.data-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+}
+
+.data-value {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Assigned Users Section (Right) */
+.assigned-users-section {
+    flex: 0 0 437px;
+    display: flex;
+    flex-direction: column;
+}
+
+.assigned-users-container {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%);
+    border-radius: 45px;
+    padding: 30px;
+    min-height: 283px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.assigned-users-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    text-align: center;
+    margin: 0;
+}
+
+.users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+}
+
+.user-item {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 94%);
+    border-radius: 20px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-name {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+}
+
+.no-users {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: center;
+    padding: 20px;
+}
+
+/* Messages */
+.messages-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    max-width: 300px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    color: white;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    color: white;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1);
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .data-display-container {
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    .assigned-users-section {
+        flex: none;
+    }
+    
+    .assigned-users-container {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 0 15px;
+    }
+    
+    .view-section {
+        padding: 30px 20px;
+    }
+    
+    .view-client-title {
+        font-size: 28px;
+    }
+    
+    .view-client-subtitle {
+        font-size: 16px;
+    }
+    
+    .section-title {
+        font-size: 20px;
+    }
+    
+    .client-icon-circle {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .client-profile-icon {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .client-name-display {
+        font-size: 20px;
+    }
+    
+    .assigned-users-container {
+        padding: 20px;
+    }
+    
+    .assigned-users-title {
+        font-size: 18px;
+    }
+    
+    .user-name {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .view-section {
+        padding: 20px 15px;
+    }
+    
+    .view-client-title {
+        font-size: 24px;
+    }
+    
+    .view-client-subtitle {
+        font-size: 14px;
+    }
+    
+    .section-title {
+        font-size: 18px;
+    }
+    
+    .client-icon-circle {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .client-profile-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .client-name-display {
+        font-size: 18px;
+    }
+    
+    .data-label,
+    .data-value {
+        font-size: 14px;
+    }
+    
+    .assigned-users-container {
+        padding: 15px;
+    }
+    
+    .assigned-users-title {
+        font-size: 16px;
+    }
+    
+    .user-name {
+        font-size: 16px;
+    }
+}
