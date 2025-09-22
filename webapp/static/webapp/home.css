@@ -572,6 +572,112 @@ body {
     font-family: 'Roboto', sans-serif !important;
 }
 
+/* Admin Button Section - Maximum Specificity */
+body .admin-button-section,
+html body .admin-button-section {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px 20px 40px 20px !important;
+    background: transparent !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    clear: both !important;
+}
+
+body .admin-button-container,
+html body .admin-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+body .admin-gestiones-btn,
+html body .admin-gestiones-btn,
+a.admin-gestiones-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    padding: 16px 32px !important;
+    background: linear-gradient(135deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    border-radius: 12px !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 8px 25px rgba(91, 21, 194, 0.3) !important;
+    transition: all 0.3s ease !important;
+    border: 2px solid transparent !important;
+    text-align: center !important;
+    min-width: 200px !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+body .admin-gestiones-btn:hover,
+html body .admin-gestiones-btn:hover,
+a.admin-gestiones-btn:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 35px rgba(91, 21, 194, 0.4) !important;
+    background: linear-gradient(135deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+body .admin-gestiones-btn:active,
+html body .admin-gestiones-btn:active,
+a.admin-gestiones-btn:active {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 20px rgba(91, 21, 194, 0.3) !important;
+}
+
+body .btn-text,
+html body .btn-text,
+.admin-gestiones-btn .btn-text {
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+/* Responsive for admin button */
+@media (max-width: 768px) {
+    body .admin-button-section,
+    html body .admin-button-section {
+        padding: 15px 15px 30px 15px !important;
+    }
+    
+    body .admin-gestiones-btn,
+    html body .admin-gestiones-btn,
+    a.admin-gestiones-btn {
+        padding: 14px 28px !important;
+        font-size: 1rem !important;
+        min-width: 180px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    body .admin-button-section,
+    html body .admin-button-section {
+        padding: 10px 10px 25px 10px !important;
+    }
+    
+    body .admin-gestiones-btn,
+    html body .admin-gestiones-btn,
+    a.admin-gestiones-btn {
+        padding: 12px 24px !important;
+        font-size: 0.9rem !important;
+        min-width: 160px !important;
+    }
+}
+
 /* Right Section: Currency Converter */
 .converter-section {
     flex: 1 !important;

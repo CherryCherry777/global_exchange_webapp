@@ -1,0 +1,166 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Administrar Clientes{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/manage_clients.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="manage-clients-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="manage-clients-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-clients-title">Administrar Clientes</h1>
+                    <p class="manage-clients-subtitle">Visualizar, crear, editar y desactivar un cliente</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Clientes</div>
+                        <div class="metric-number">{{ total_clients }}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Clientes Activos</div>
+                        <div class="metric-number">{{ active_clients }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Clients List Container -->
+        <div class="clients-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de Clientes</h2>
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar Cliente" id="searchInput">
+                </div>
+            </div>
+
+            <!-- Clients Table -->
+            <div class="clients-table-container">
+                <table class="clients-table">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Tipo</th>
+                            <th>Documento</th>
+                            <th>Correo</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in clients %}
+                        <tr class="client-row">
+                            <td>
+                                <div class="client-info">
+                                    <div class="client-icon">
+                                        <img src="{% static 'webapp/pantalla_clientes/1.Administar_Clientes.png' %}" alt="Cliente">
+                                    </div>
+                                    <span class="client-name">{{ client.nombre }}</span>
+                                </div>
+                            </td>
+                            <td>{{ client.get_tipoCliente_display }}</td>
+                            <td>
+                                <div class="document-info">
+                                    <div>{{ client.documento }}</div>
+                                    {% if client.ruc %}
+                                    <div>RUC: {{ client.ruc }}</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>{{ client.correo }}</td>
+                            <td>
+                                <div class="status-cell">
+                                    <div class="status-dot {% if client.estado %}active{% else %}inactive{% endif %}"></div>
+                                    <span class="status-text">
+                                        {% if client.estado %}Activo{% else %}Inactivo{% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="actions-cell">
+                                    <a href="{% url 'modify_client' client.id %}" class="action-button modify-button">Modificar</a>
+                                    {% if client.estado %}
+                                        <a href="#" class="action-button deactivate-button">Desactivar</a>
+                                    {% else %}
+                                        <a href="#" class="action-button activate-button">Activar</a>
+                                    {% endif %}
+                                            <a href="{% url 'view_client' client.id %}" class="action-button view-button">Ver Datos</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll('.clients-table tbody .client-row');
+
+    rows.forEach(row => {
+        let clientName = row.querySelector('.client-name').textContent.toLowerCase();
+
+        if (clientName.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

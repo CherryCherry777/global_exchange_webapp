@@ -467,6 +467,10 @@ def employee_dash(request):
 def manage_users(request):
     users = User.objects.all()
 
+    # Calcular métricas
+    total_users = User.objects.count()
+    active_users = User.objects.filter(is_active=True).count()
+
     if request.method == "POST":
         action = request.POST.get("action")
         user_id = request.POST.get("user_id")
@@ -499,7 +503,53 @@ def manage_users(request):
         
         return redirect("manage_users")
 
-    return render(request, "webapp/manage_users.html", {"users": users})
+    context = {
+        "users": users,
+        "total_users": total_users,
+        "active_users": active_users,
+    }
+    
+    return render(request, "webapp/manage_users.html", context)
+
+@login_required
+@role_required("Administrador")
+def activate_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    # Evitar activar/desactivar admins o tu propio usuario
+    if user.is_superuser:
+        messages.error(request, "No puede modificar un usuario administrador.")
+        return redirect("manage_users")
+    
+    if user == request.user:
+        messages.error(request, "No puede modificar su propio usuario.")
+        return redirect("manage_users")
+    
+    user.is_active = True
+    user.save()
+    messages.success(request, f"Usuario '{user.username}' activado correctamente.")
+    
+    return redirect("manage_users")
+
+@login_required
+@role_required("Administrador")
+def deactivate_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    # Evitar activar/desactivar admins o tu propio usuario
+    if user.is_superuser:
+        messages.error(request, "No puede modificar un usuario administrador.")
+        return redirect("manage_users")
+    
+    if user == request.user:
+        messages.error(request, "No puede modificar su propio usuario.")
+        return redirect("manage_users")
+    
+    user.is_active = False
+    user.save()
+    messages.success(request, f"Usuario '{user.username}' desactivado correctamente.")
+    
+    return redirect("manage_users")
 
 @login_required
 @role_required("Administrador")
@@ -767,7 +817,9 @@ def manage_clientes(request):
     total_categorias = Categoria.objects.count()
     
     context = {
-        'clientes': clientes,
+        'clients': clientes,
+        'total_clients': total_clientes,
+        'active_clients': clientes_activos,
         'search_query': search_query,
         'categoria_filter': categoria_filter,
         'estado_filter': estado_filter,
@@ -777,7 +829,61 @@ def manage_clientes(request):
         'total_categorias': total_categorias,
     }
     
-    return render(request, "webapp/manage_clientes.html", context)
+    return render(request, "webapp/manage_clients.html", context)
+
+@login_required
+@role_required("Administrador")
+def modify_client(request, client_id):
+    """Vista para modificar un cliente existente"""
+    client = get_object_or_404(Cliente, id=client_id)
+    
+    if request.method == "POST":
+        # Procesar formulario de modificación
+        nombre = request.POST.get('nombre', '')
+        razon_social = request.POST.get('razon_social', '')
+        direccion = request.POST.get('direccion', '')
+        tipo_cliente = request.POST.get('tipo_cliente', '')
+        documento = request.POST.get('documento', '')
+        ruc = request.POST.get('ruc', '')
+        correo = request.POST.get('correo', '')
+        telefono = request.POST.get('telefono', '')
+        categoria_id = request.POST.get('categoria', '')
+        estado = request.POST.get('estado') == 'on'
+        
+        try:
+            # Actualizar campos del cliente
+            client.nombre = nombre
+            client.razonSocial = razon_social if razon_social else None
+            client.direccion = direccion
+            client.tipoCliente = tipo_cliente
+            client.documento = documento
+            client.ruc = ruc if ruc else None
+            client.correo = correo
+            client.telefono = telefono
+            client.estado = estado
+            
+            # Actualizar categoría
+            if categoria_id:
+                categoria = Categoria.objects.get(id=categoria_id)
+                client.categoria = categoria
+            
+            client.save()
+            messages.success(request, f"Cliente '{client.nombre}' modificado correctamente.")
+            return redirect("manage_clientes")
+            
+        except Exception as e:
+            messages.error(request, f"Error al modificar el cliente: {str(e)}")
+            return redirect("modify_client", client_id=client_id)
+    
+    # GET request - mostrar formulario
+    categorias = Categoria.objects.all()
+    
+    context = {
+        "client": client,
+        "categorias": categorias,
+    }
+    
+    return render(request, "webapp/modify_client.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -887,8 +993,26 @@ def edit_profile(request):
 
 @login_required
 def landing_page(request):
+    from django.contrib.auth import get_user_model
+    from .models import Currency, Cliente
+    
+    User = get_user_model()
+    
+    # Obtener métricas reales
+    usuarios_activos = User.objects.filter(is_active=True).count()
+    monedas_activas = Currency.objects.filter(is_active=True).count()
+    clientes_activos = Cliente.objects.filter(estado=True).count()
+    
     role = get_user_primary_role(request.user)
-    return render(request, "webapp/landing.html", {"role": role})
+    
+    context = {
+        "role": role,
+        "usuarios_activos": usuarios_activos,
+        "monedas_activas": monedas_activas,
+        "clientes_activos": clientes_activos,
+    }
+    
+    return render(request, "webapp/landing.html", context)
 
 # --------------------------------------------
 # Vista para inactivar un cliente
@@ -1653,3 +1777,829 @@ def edit_cobro_type(request, tipo_id):
     else:
         form = TipoCobroForm(instance=tipo)
     return render(request, "webapp/edit_cobro_type.html", {"form": form, "tipo": tipo})
+
+@login_required
+@role_required("Administrador")
+def modify_users(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == "POST":
+        # Verificar si es una solicitud de eliminación de rol
+        if 'role_id' in request.POST:
+            role_id = request.POST.get('role_id')
+            try:
+                role = Group.objects.get(id=role_id)
+                user.groups.remove(role)
+                messages.success(request, f"Rol '{role.name}' eliminado del usuario '{user.username}' correctamente.")
+            except Group.DoesNotExist:
+                messages.error(request, "El rol especificado no existe.")
+            return redirect("modify_users", user_id=user_id)
+        
+        # Procesar formulario de modificación
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        email = request.POST.get('email', '')
+        username = request.POST.get('username', '')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        # Actualizar datos del usuario
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.username = username
+        user.is_active = is_active
+        user.save()
+        
+        messages.success(request, f"Usuario '{user.username}' modificado correctamente.")
+        return redirect("manage_users")
+    
+    # Obtener roles del usuario
+    user_roles = user.groups.all()
+    
+    context = {
+        "user": user,
+        "user_roles": user_roles,
+    }
+    
+    return render(request, "webapp/modify_user.html", context)
+
+@login_required
+@role_required("Administrador")
+def manage_roles(request):
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "remove_permission":
+            role_id = request.POST.get("role_id")
+            permission_id = request.POST.get("permission_id")
+            
+            try:
+                role = Group.objects.get(id=role_id)
+                permission = Permission.objects.get(id=permission_id)
+                role.permissions.remove(permission)
+                messages.success(request, f"Permiso '{permission.name}' eliminado del rol '{role.name}' correctamente.")
+            except (Group.DoesNotExist, Permission.DoesNotExist):
+                messages.error(request, "Error al eliminar el permiso.")
+        
+        elif action == "toggle_role_status":
+            role_id = request.POST.get("role_id")
+            
+            try:
+                role = Group.objects.get(id=role_id)
+                
+                # Verificar si el rol tiene usuarios activos
+                has_active_users = role.user_set.filter(is_active=True).exists()
+                
+                if has_active_users:
+                    # Si tiene usuarios activos, desactivamos el rol
+                    # Removemos el rol del usuario actual para simular la desactivación
+                    if request.user in role.user_set.all():
+                        role.user_set.remove(request.user)
+                        messages.success(request, f"Rol '{role.name}' desactivado correctamente.")
+                    else:
+                        messages.info(request, f"Rol '{role.name}' ya estaba desactivado para tu usuario.")
+                else:
+                    # Si no tiene usuarios activos, lo activamos asignándolo al usuario actual
+                    if request.user.is_authenticated:
+                        role.user_set.add(request.user)
+                        messages.success(request, f"Rol '{role.name}' activado correctamente.")
+                    else:
+                        messages.error(request, "No se pudo activar el rol: usuario no autenticado.")
+                    
+            except Group.DoesNotExist:
+                messages.error(request, "Error al actualizar el estado del rol.")
+        
+        return redirect("manage_roles")
+    
+    roles = Group.objects.all()
+    
+    # Calcular métricas
+    total_roles = Group.objects.count()
+    active_roles = Group.objects.filter(user__is_active=True).distinct().count()
+    
+    # Agregar información de estado a cada rol
+    roles_with_status = []
+    for role in roles:
+        # Un rol se considera activo si tiene al menos un usuario activo asignado
+        # En una implementación real, podrías tener un campo 'is_active' en el modelo Group
+        role.is_active = role.user_set.filter(is_active=True).exists()
+        
+        # Para roles protegidos (como Administrador), siempre los consideramos activos
+        if role.name == 'Administrador':
+            role.is_active = True
+            
+        roles_with_status.append(role)
+    
+    context = {
+        "roles": roles_with_status,
+        "total_roles": total_roles,
+        "active_roles": active_roles,
+    }
+    
+    return render(request, "webapp/manage_roles.html", context)
+
+@login_required
+@role_required("Administrador")
+def modify_role(request, role_id):
+    role = get_object_or_404(Group, id=role_id)
+    
+    if request.method == "POST":
+        # Verificar si es una solicitud de eliminación de permiso
+        if 'permission_id' in request.POST:
+            permission_id = request.POST.get('permission_id')
+            try:
+                permission = Permission.objects.get(id=permission_id)
+                role.permissions.remove(permission)
+                messages.success(request, f"Permiso '{permission.name}' eliminado del rol '{role.name}' correctamente.")
+            except Permission.DoesNotExist:
+                messages.error(request, "El permiso especificado no existe.")
+            return redirect("modify_role", role_id=role_id)
+        
+        # Verificar si es una solicitud de eliminación del rol
+        if request.POST.get('action') == 'delete_role':
+            # Proteger el rol Administrador
+            if role.name == 'Administrador':
+                messages.error(request, "No se puede eliminar el rol 'Administrador'.")
+                return redirect("modify_role", role_id=role_id)
+            
+            role_name = role.name
+            role.delete()
+            messages.success(request, f"Rol '{role_name}' eliminado correctamente.")
+            return redirect("manage_roles")
+        
+        # Procesar formulario de modificación
+        role_name = request.POST.get('role_name', '')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        role.name = role_name
+        role.save()
+        
+        messages.success(request, f"Rol '{role.name}' modificado correctamente.")
+        return redirect("manage_roles")
+    
+    role_permissions = role.permissions.all()
+    all_permissions = Permission.objects.all()
+    
+    # Agregar información de estado al rol
+    role.is_active = role.user_set.filter(is_active=True).exists()
+    
+    context = {
+        "role": role,
+        "role_permissions": role_permissions,
+        "all_permissions": all_permissions,
+    }
+    
+    return render(request, "webapp/modify_role.html", context)
+
+@login_required
+@role_required("Administrador")
+def create_role(request):
+    if request.method == "POST":
+        role_name = request.POST.get('role_name', '').strip()
+        is_protected = request.POST.get('is_protected') == 'on'
+        permissions = request.POST.getlist('permissions')
+        
+        # Validar que el nombre no esté vacío
+        if not role_name:
+            messages.error(request, "El nombre del rol es obligatorio.")
+            return redirect("create_role")
+        
+        # Verificar que el nombre no exista
+        if Group.objects.filter(name=role_name).exists():
+            messages.error(request, f"Ya existe un rol con el nombre '{role_name}'.")
+            return redirect("create_role")
+        
+        try:
+            # Crear el nuevo rol
+            new_role = Group.objects.create(name=role_name)
+            
+            # Asignar permisos si se seleccionaron
+            if permissions:
+                permission_objects = Permission.objects.filter(id__in=permissions)
+                new_role.permissions.set(permission_objects)
+            
+            messages.success(request, f"Rol '{role_name}' creado correctamente.")
+            return redirect("manage_roles")
+            
+        except Exception as e:
+            messages.error(request, f"Error al crear el rol: {str(e)}")
+            return redirect("create_role")
+    
+    # GET request - mostrar formulario
+    all_permissions = Permission.objects.all()
+    
+    context = {
+        "all_permissions": all_permissions,
+    }
+    
+    return render(request, "webapp/create_role.html", context)
+
+@login_required
+@role_required("Administrador")
+def manage_user_roles(request):
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "add_role":
+            user_id = request.POST.get("user_id")
+            role_id = request.POST.get("role_id")
+            
+            try:
+                user = User.objects.get(id=user_id)
+                role = Group.objects.get(id=role_id)
+                
+                # Verificar si el usuario ya tiene este rol
+                if user.groups.filter(id=role_id).exists():
+                    messages.info(request, f"El usuario '{user.username}' ya tiene el rol '{role.name}'.")
+                else:
+                    user.groups.add(role)
+                    messages.success(request, f"Rol '{role.name}' asignado al usuario '{user.username}' correctamente.")
+                    
+            except (User.DoesNotExist, Group.DoesNotExist):
+                messages.error(request, "Error al asignar el rol.")
+        
+        elif action == "remove_role":
+            user_id = request.POST.get("user_id")
+            role_name = request.POST.get("role_name")
+            
+            try:
+                user = User.objects.get(id=user_id)
+                role = Group.objects.get(name=role_name)
+                
+                user.groups.remove(role)
+                messages.success(request, f"Rol '{role_name}' eliminado del usuario '{user.username}' correctamente.")
+                
+            except (User.DoesNotExist, Group.DoesNotExist):
+                messages.error(request, "Error al eliminar el rol.")
+        
+        return redirect("manage_user_roles")
+    
+    # GET request - mostrar la página
+    users = User.objects.all().order_by('username')
+    all_roles = Group.objects.all().order_by('name')
+    
+    # Calcular métricas
+    total_users = User.objects.count()
+    total_roles = Group.objects.count()
+    
+    context = {
+        "users": users,
+        "all_roles": all_roles,
+        "total_users": total_users,
+        "total_roles": total_roles,
+    }
+    
+    return render(request, "webapp/manage_user_roles.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def view_client(request, client_id):
+    """Vista para visualizar los datos de un cliente"""
+    try:
+        client = Cliente.objects.get(id=client_id)
+        # Obtener usuarios asignados a través del modelo intermedio
+        usuarios_asignados = User.objects.filter(clienteusuario__cliente=client)
+    except Cliente.DoesNotExist:
+        messages.error(request, "Cliente no encontrado.")
+        return redirect("manage_clientes")
+    
+    context = {
+        "client": client,
+        "usuarios_asignados": usuarios_asignados,
+    }
+    
+    return render(request, "webapp/view_client.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def assign_clients(request):
+    """Vista para administrar asignaciones de clientes a usuarios"""
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "assign":
+            cliente_id = request.POST.get("cliente_id")
+            usuario_id = request.POST.get("usuario_id")
+            
+            try:
+                cliente = Cliente.objects.get(id=cliente_id)
+                usuario = User.objects.get(id=usuario_id)
+                
+                # Verificar si ya existe la asignación
+                if ClienteUsuario.objects.filter(cliente=cliente, usuario=usuario).exists():
+                    messages.info(request, f"El usuario '{usuario.username}' ya está asignado al cliente '{cliente.nombre}'.")
+                else:
+                    ClienteUsuario.objects.create(cliente=cliente, usuario=usuario)
+                    messages.success(request, f"Cliente '{cliente.nombre}' asignado al usuario '{usuario.username}' correctamente.")
+                    
+            except (Cliente.DoesNotExist, User.DoesNotExist):
+                messages.error(request, "Error al asignar el cliente.")
+        
+        elif action == "unassign":
+            asignacion_id = request.POST.get("asignacion_id")
+            
+            try:
+                asignacion = ClienteUsuario.objects.get(id=asignacion_id)
+                cliente_nombre = asignacion.cliente.nombre
+                usuario_nombre = asignacion.usuario.username
+                asignacion.delete()
+                messages.success(request, f"Cliente '{cliente_nombre}' desasignado del usuario '{usuario_nombre}' correctamente.")
+                
+            except ClienteUsuario.DoesNotExist:
+                messages.error(request, "Error al desasignar el cliente.")
+        
+        return redirect("assign_clients")
+    
+    # GET request - mostrar la página
+    clientes = Cliente.objects.filter(estado=True).order_by('nombre')
+    usuarios = User.objects.filter(is_active=True).order_by('username')
+    asignaciones = ClienteUsuario.objects.select_related('cliente', 'usuario').order_by('-fecha_asignacion')
+    
+    # Calcular métricas
+    total_users = User.objects.filter(is_active=True).count()
+    total_clients = Cliente.objects.filter(estado=True).count()
+    
+    context = {
+        "clientes": clientes,
+        "usuarios": usuarios,
+        "asignaciones": asignaciones,
+        "total_users": total_users,
+        "total_clients": total_clients,
+    }
+    
+    return render(request, "webapp/assign_clients.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_categories(request):
+    """Vista para administrar categorías"""
+    # Obtener todas las categorías
+    categorias = Categoria.objects.all().order_by('nombre')
+    
+    # Calcular métricas
+    total_categories = Categoria.objects.count()
+    
+    context = {
+        "categorias": categorias,
+        "total_categories": total_categories,
+    }
+    
+    return render(request, "webapp/manage_categories.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def modify_category(request, category_id):
+    """Vista para modificar una categoría"""
+    try:
+        categoria = Categoria.objects.get(id=category_id)
+    except Categoria.DoesNotExist:
+        messages.error(request, "Categoría no encontrada.")
+        return redirect("manage_categories")
+    
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        descuento = request.POST.get("descuento")
+        
+        try:
+            # Validar datos
+            if not nombre or not descuento:
+                messages.error(request, "Todos los campos son obligatorios.")
+                return redirect("modify_category", category_id=category_id)
+            
+            descuento = int(descuento)
+            if descuento < 0 or descuento > 100:
+                messages.error(request, "El descuento debe estar entre 0 y 100.")
+                return redirect("modify_category", category_id=category_id)
+            
+            # Actualizar categoría
+            categoria.nombre = nombre
+            categoria.descuento = descuento
+            categoria.save()
+            
+            messages.success(request, f"Categoría '{categoria.nombre}' actualizada correctamente.")
+            return redirect("manage_categories")
+            
+        except ValueError:
+            messages.error(request, "El descuento debe ser un número válido.")
+            return redirect("modify_category", category_id=category_id)
+        except Exception as e:
+            messages.error(request, "Error al actualizar la categoría.")
+            return redirect("modify_category", category_id=category_id)
+    
+    context = {
+        "categoria": categoria,
+    }
+    
+    return render(request, "webapp/modify_category.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_currencies(request):
+    """Vista para administrar monedas"""
+    currencies = Currency.objects.all().order_by('name')
+    total_currencies = currencies.count()
+    active_currencies = currencies.filter(is_active=True).count()
+    
+    if request.method == "POST":
+        action = request.POST.get("action")
+        currency_id = request.POST.get("currency_id")
+        
+        try:
+            currency = Currency.objects.get(id=currency_id)
+            
+            if action == "activate":
+                currency.is_active = True
+                currency.save()
+                messages.success(request, f"Moneda '{currency.name}' activada correctamente.")
+            elif action == "deactivate":
+                currency.is_active = False
+                currency.save()
+                messages.success(request, f"Moneda '{currency.name}' desactivada correctamente.")
+            else:
+                messages.error(request, "Acción no válida.")
+                
+        except Currency.DoesNotExist:
+            messages.error(request, "Moneda no encontrada.")
+        except Exception as e:
+            messages.error(request, "Error al procesar la solicitud.")
+    
+    context = {
+        "currencies": currencies,
+        "total_currencies": total_currencies,
+        "active_currencies": active_currencies,
+    }
+    
+    return render(request, "webapp/manage_currencies.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def create_currency(request):
+    """Vista para crear una nueva moneda"""
+    if request.method == "POST":
+        code = request.POST.get("code")
+        name = request.POST.get("name")
+        symbol = request.POST.get("symbol")
+        decimales_cotizacion = request.POST.get("decimales_cotizacion")
+        decimales_monto = request.POST.get("decimales_monto")
+        is_active = request.POST.get("is_active") == "on"
+        flag_image = request.FILES.get("flag_image")
+        
+        try:
+            # Validar datos
+            if not all([code, name, symbol, decimales_cotizacion, decimales_monto]):
+                messages.error(request, "Todos los campos obligatorios deben ser completados.")
+                return redirect("create_currency")
+            
+            # Validar código único
+            if Currency.objects.filter(code=code.upper()).exists():
+                messages.error(request, f"Ya existe una moneda con el código '{code.upper()}'.")
+                return redirect("create_currency")
+            
+            # Validar decimales
+            decimales_cotizacion = int(decimales_cotizacion)
+            decimales_monto = int(decimales_monto)
+            
+            if not (0 <= decimales_cotizacion <= 8):
+                messages.error(request, "Los decimales de cotización deben estar entre 0 y 8.")
+                return redirect("create_currency")
+            
+            if not (0 <= decimales_monto <= 8):
+                messages.error(request, "Los decimales de monto deben estar entre 0 y 8.")
+                return redirect("create_currency")
+            
+            # Crear moneda
+            currency = Currency.objects.create(
+                code=code.upper(),
+                name=name,
+                symbol=symbol,
+                decimales_cotizacion=decimales_cotizacion,
+                decimales_monto=decimales_monto,
+                is_active=is_active,
+                flag_image=flag_image
+            )
+            
+            messages.success(request, f"Moneda '{currency.name}' creada correctamente.")
+            return redirect("manage_currencies")
+            
+        except ValueError:
+            messages.error(request, "Los valores de decimales deben ser números válidos.")
+            return redirect("create_currency")
+        except Exception as e:
+            messages.error(request, "Error al crear la moneda.")
+            return redirect("create_currency")
+    
+    return render(request, "webapp/create_currency.html")
+
+
+@login_required
+@role_required("Administrador")
+def modify_currency(request, currency_id):
+    """Vista para modificar una moneda"""
+    try:
+        currency = Currency.objects.get(id=currency_id)
+    except Currency.DoesNotExist:
+        messages.error(request, "Moneda no encontrada.")
+        return redirect("manage_currencies")
+    
+    if request.method == "POST":
+        name = request.POST.get("name")
+        symbol = request.POST.get("symbol")
+        decimales_cotizacion = request.POST.get("decimales_cotizacion")
+        decimales_monto = request.POST.get("decimales_monto")
+        is_active = request.POST.get("is_active") == "on"
+        flag_image = request.FILES.get("flag_image")
+        
+        try:
+            # Validar datos
+            if not all([name, symbol, decimales_cotizacion, decimales_monto]):
+                messages.error(request, "Todos los campos obligatorios deben ser completados.")
+                return redirect("modify_currency", currency_id=currency_id)
+            
+            # Validar decimales
+            decimales_cotizacion = int(decimales_cotizacion)
+            decimales_monto = int(decimales_monto)
+            
+            if not (0 <= decimales_cotizacion <= 8):
+                messages.error(request, "Los decimales de cotización deben estar entre 0 y 8.")
+                return redirect("modify_currency", currency_id=currency_id)
+            
+            if not (0 <= decimales_monto <= 8):
+                messages.error(request, "Los decimales de monto deben estar entre 0 y 8.")
+                return redirect("modify_currency", currency_id=currency_id)
+            
+            # Actualizar moneda
+            currency.name = name
+            currency.symbol = symbol
+            currency.decimales_cotizacion = decimales_cotizacion
+            currency.decimales_monto = decimales_monto
+            currency.is_active = is_active
+            
+            # Actualizar bandera solo si se proporciona una nueva
+            if flag_image:
+                currency.flag_image = flag_image
+            
+            currency.save()
+            
+            messages.success(request, f"Moneda '{currency.name}' actualizada correctamente.")
+            return redirect("manage_currencies")
+            
+        except ValueError:
+            messages.error(request, "Los valores de decimales deben ser números válidos.")
+            return redirect("modify_currency", currency_id=currency_id)
+        except Exception as e:
+            messages.error(request, "Error al actualizar la moneda.")
+            return redirect("modify_currency", currency_id=currency_id)
+    
+    context = {
+        "currency": currency,
+    }
+    
+    return render(request, "webapp/modify_currency.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_quotes(request):
+    """Vista para administrar cotizaciones"""
+    currencies = Currency.objects.all().order_by('name')
+    total_quotes = currencies.count()
+    active_quotes = currencies.filter(is_active=True).count()
+    
+    if request.method == "POST":
+        action = request.POST.get("action")
+        currency_id = request.POST.get("currency_id")
+        
+        try:
+            currency = Currency.objects.get(id=currency_id)
+            
+            if action == "activate":
+                currency.is_active = True
+                currency.save()
+                messages.success(request, f"Cotización de '{currency.name}' activada correctamente.")
+            elif action == "deactivate":
+                currency.is_active = False
+                currency.save()
+                messages.success(request, f"Cotización de '{currency.name}' desactivada correctamente.")
+            else:
+                messages.error(request, "Acción no válida.")
+                
+        except Currency.DoesNotExist:
+            messages.error(request, "Moneda no encontrada.")
+        except Exception as e:
+            messages.error(request, "Error al procesar la solicitud.")
+    
+    context = {
+        "currencies": currencies,
+        "total_quotes": total_quotes,
+        "active_quotes": active_quotes,
+    }
+    
+    return render(request, "webapp/manage_quotes.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def modify_quote(request, currency_id):
+    """Vista para modificar una cotización"""
+    try:
+        currency = Currency.objects.get(id=currency_id)
+    except Currency.DoesNotExist:
+        messages.error(request, "Moneda no encontrada.")
+        return redirect("manage_quotes")
+    
+    if request.method == "POST":
+        base_price = request.POST.get("base_price")
+        comision_compra = request.POST.get("comision_compra")
+        comision_venta = request.POST.get("comision_venta")
+        is_active = request.POST.get("is_active") == "on"
+        
+        try:
+            # Validar datos
+            if not all([base_price, comision_compra, comision_venta]):
+                messages.error(request, "Todos los campos obligatorios deben ser completados.")
+                return redirect("modify_quote", currency_id=currency_id)
+            
+            # Validar valores numéricos
+            base_price = float(base_price)
+            comision_compra = float(comision_compra)
+            comision_venta = float(comision_venta)
+            
+            if base_price < 0 or comision_compra < 0 or comision_venta < 0:
+                messages.error(request, "Los valores no pueden ser negativos.")
+                return redirect("modify_quote", currency_id=currency_id)
+            
+            # Actualizar cotización
+            currency.base_price = base_price
+            currency.comision_compra = comision_compra
+            currency.comision_venta = comision_venta
+            currency.is_active = is_active
+            currency.save()
+            
+            messages.success(request, f"Cotización de '{currency.name}' actualizada correctamente.")
+            return redirect("manage_quotes")
+            
+        except ValueError:
+            messages.error(request, "Los valores deben ser números válidos.")
+            return redirect("modify_quote", currency_id=currency_id)
+        except Exception as e:
+            messages.error(request, "Error al actualizar la cotización.")
+            return redirect("modify_quote", currency_id=currency_id)
+    
+    # Asegurar que los valores tengan valores por defecto si están vacíos
+    if not currency.base_price:
+        currency.base_price = 1.0
+    if not currency.comision_compra:
+        currency.comision_compra = 1.0
+    if not currency.comision_venta:
+        currency.comision_venta = 1.0
+    
+    context = {
+        "currency": currency,
+    }
+    
+    return render(request, "webapp/modify_quote.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_payment_methods(request):
+    """
+    Vista para administrar métodos de pago globales
+    """
+    
+    # Obtener todos los métodos de pago (TipoCobro)
+    payment_methods = TipoCobro.objects.all().order_by('nombre')
+    total_payment_methods = payment_methods.count()
+    
+    context = {
+        "payment_methods": payment_methods,
+        "total_payment_methods": total_payment_methods,
+    }
+    
+    return render(request, "webapp/manage_payment_methods.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def modify_payment_method(request, payment_method_id):
+    """
+    Vista para modificar un método de pago global
+    """
+    try:
+        payment_method = TipoCobro.objects.get(id=payment_method_id)
+    except TipoCobro.DoesNotExist:
+        messages.error(request, "El método de pago no existe.")
+        return redirect("manage_payment_methods")
+    
+    if request.method == "POST":
+        try:
+            # Obtener datos del formulario
+            comision = request.POST.get("comision")
+            activo = request.POST.get("activo") == "on"
+            
+            # Validar datos
+            if not comision:
+                messages.error(request, "La comisión es requerida.")
+                return redirect("modify_payment_method", payment_method_id=payment_method_id)
+            
+            try:
+                comision_decimal = float(comision)
+                if comision_decimal < 0 or comision_decimal > 100:
+                    messages.error(request, "La comisión debe estar entre 0 y 100.")
+                    return redirect("modify_payment_method", payment_method_id=payment_method_id)
+            except ValueError:
+                messages.error(request, "La comisión debe ser un número válido.")
+                return redirect("modify_payment_method", payment_method_id=payment_method_id)
+            
+            # Actualizar el método de pago
+            payment_method.comision = comision_decimal
+            payment_method.activo = activo
+            payment_method.save()
+            
+            messages.success(request, f"El método de pago '{payment_method.nombre}' ha sido actualizado exitosamente.")
+            return redirect("manage_payment_methods")
+            
+        except Exception as e:
+            messages.error(request, "Error al actualizar el método de pago.")
+            return redirect("modify_payment_method", payment_method_id=payment_method_id)
+    
+    context = {
+        "payment_method": payment_method,
+    }
+    
+    return render(request, "webapp/modify_payment_method.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_cobro_methods(request):
+    """
+    Vista para administrar métodos de cobro globales
+    """
+    # Obtener todos los métodos de cobro (TipoCobro)
+    cobro_methods = TipoCobro.objects.all().order_by('nombre')
+    total_cobro_methods = cobro_methods.count()
+    
+    context = {
+        "cobro_methods": cobro_methods,
+        "total_cobro_methods": total_cobro_methods,
+    }
+    
+    return render(request, "webapp/manage_cobro_methods.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def modify_cobro_method(request, cobro_method_id):
+    """
+    Vista para modificar un método de cobro global
+    """
+    try:
+        cobro_method = TipoCobro.objects.get(id=cobro_method_id)
+    except TipoCobro.DoesNotExist:
+        messages.error(request, "El método de cobro no existe.")
+        return redirect("manage_cobro_methods")
+    
+    if request.method == "POST":
+        try:
+            # Obtener datos del formulario
+            comision = request.POST.get("comision")
+            activo = request.POST.get("activo") == "on"
+            
+            # Validar datos
+            if not comision:
+                messages.error(request, "La comisión es requerida.")
+                return redirect("modify_cobro_method", cobro_method_id=cobro_method_id)
+            
+            try:
+                comision_decimal = float(comision)
+                if comision_decimal < 0 or comision_decimal > 100:
+                    messages.error(request, "La comisión debe estar entre 0 y 100.")
+                    return redirect("modify_cobro_method", cobro_method_id=cobro_method_id)
+            except ValueError:
+                messages.error(request, "La comisión debe ser un número válido.")
+                return redirect("modify_cobro_method", cobro_method_id=cobro_method_id)
+            
+            # Actualizar el método de cobro
+            cobro_method.comision = comision_decimal
+            cobro_method.activo = activo
+            cobro_method.save()
+            
+            messages.success(request, f"El método de cobro '{cobro_method.nombre}' ha sido actualizado exitosamente.")
+            return redirect("manage_cobro_methods")
+            
+        except Exception as e:
+            messages.error(request, "Error al actualizar el método de cobro.")
+            return redirect("modify_cobro_method", cobro_method_id=cobro_method_id)
+    
+    context = {
+        "cobro_method": cobro_method,
+    }
+    
+    return render(request, "webapp/modify_cobro_method.html", context)

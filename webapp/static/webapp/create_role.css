@@ -1,0 +1,776 @@
+/* ===========================================
+   CREATE ROLE STYLES
+   =========================================== */
+
+/* Base Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    color: #ffffff;
+    background-color: #000000;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Main Container */
+.create-role-container {
+    min-height: 100vh;
+    background: #000000;
+    padding: 40px 20px;
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ensure header matches home page - Override any conflicting styles */
+body:has(.create-role-container) .header-nav,
+.create-role-container ~ .header-nav,
+body .header-nav {
+    background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%) !important;
+    padding: 15px 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    margin-bottom: -1px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.nav-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 20px !important;
+}
+
+.logo-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.logo {
+    height: 40px !important;
+    width: auto !important;
+}
+
+.logo-text {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+.nav-links {
+    display: flex !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 30px !important;
+}
+
+.nav-link {
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+}
+
+.nav-link:hover {
+    color: #F7CE00 !important;
+    text-decoration: none !important;
+}
+
+.nav-link:hover::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -5px !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, #F7CE00 0%, #D2AF00 100%) !important;
+    border-radius: 1px !important;
+}
+
+/* Main Content */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+}
+
+/* Header Section with Gradient Background */
+.create-role-header {
+    background: linear-gradient(0deg, #000000 0%, #100724 50%, #000000 100%);
+    padding: 20px 0;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 10;
+}
+
+/* Back Button */
+.back-button {
+    background: rgba(238, 233, 210, 0.1);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.3s ease, transform 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.2);
+    transform: translateY(-2px);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+/* Titles */
+.create-role-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+}
+
+.create-role-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    margin: 0;
+}
+
+/* Create Section */
+.create-section {
+    background: transparent;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+/* Section Title */
+.section-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+    margin: 0 0 30px 0;
+}
+
+/* Create Content Container */
+.create-content {
+    background: linear-gradient(90deg, #000000 0%, #100724 25%, #100724 75%, #000000 100%);
+    border-radius: 0;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+}
+
+/* Role Profile Section - Inside the gradient container, centered at top */
+.role-profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.role-icon-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #391196 0%, #08052A 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.role-profile-icon {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.role-name-display {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    text-align: center;
+}
+
+/* Form Section */
+.form-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+    align-items: center;
+}
+
+/* Form Field */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.field-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+}
+
+.form-input {
+    background: #646464;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 15px;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    background: #747474;
+    box-shadow: 0 0 0 2px rgba(91, 21, 194, 0.3);
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.full-input {
+    width: 100%;
+    max-width: 300px;
+}
+
+/* Status Checkbox */
+.status-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #5B15C2;
+}
+
+.checkbox-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+/* Permissions Management Section */
+.permissions-management-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.permissions-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    text-align: center;
+    margin: 0;
+}
+
+.permissions-containers {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+/* Permissions Container */
+.permissions-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-radius: 45px;
+    padding: 20px;
+    min-height: 311px;
+}
+
+.assigned-permissions {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%);
+}
+
+.unassigned-permissions {
+    background: #646464;
+}
+
+.container-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    margin: 0 0 15px 0;
+    text-align: center;
+}
+
+.permissions-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+    align-content: flex-start;
+}
+
+.permission-item {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+    border-radius: 20px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    cursor: move;
+    min-height: 26px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.permission-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
+}
+
+.permission-item.draggable {
+    cursor: grab;
+}
+
+.permission-item.draggable:active {
+    cursor: grabbing;
+}
+
+.remove-permission {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+}
+
+.remove-permission:hover {
+    color: #ff4444;
+}
+
+.permission-name {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ffffff;
+    flex: 1;
+}
+
+.no-permissions {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-style: italic;
+    color: #888888;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Container Actions */
+.container-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.action-btn {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.4);
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.save-button,
+.discard-button {
+    width: 125px;
+    height: 36px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.save-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+}
+
+.save-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.4);
+}
+
+.discard-button {
+    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 100%);
+}
+
+.discard-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+/* Messages Container */
+.messages-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+}
+
+.alert {
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: #ffffff;
+    border-left: 4px solid #047857;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+    color: #ffffff;
+    border-left: 4px solid #B91C1C;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    color: #ffffff;
+    border-left: 4px solid #1D4ED8;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .create-role-container {
+        padding: 20px 15px;
+    }
+    
+    .create-role-header {
+        padding: 15px 0;
+        margin-bottom: 15px;
+    }
+    
+    .back-button {
+        font-size: 14px;
+        padding: 6px 12px;
+        margin-bottom: 15px;
+    }
+    
+    .create-role-title {
+        font-size: 20px;
+        margin-bottom: 6px;
+    }
+    
+    .create-role-subtitle {
+        font-size: 14px;
+    }
+    
+    .create-section {
+        padding: 20px;
+    }
+    
+    .section-title {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .create-content {
+        padding: 20px;
+        gap: 20px;
+    }
+    
+    .role-icon-circle {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .role-profile-icon {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .role-name-display {
+        font-size: 16px;
+    }
+    
+    .permissions-containers {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .permissions-container {
+        min-height: 250px;
+        padding: 15px;
+    }
+    
+    .container-title {
+        font-size: 14px;
+    }
+    
+    .permissions-list {
+        gap: 6px;
+        padding: 8px 0;
+    }
+    
+    .permission-item {
+        padding: 5px 10px;
+        min-height: 24px;
+    }
+    
+    .permission-name {
+        font-size: 11px;
+    }
+    
+    .action-btn {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+    
+    .field-label {
+        font-size: 16px;
+    }
+    
+    .form-input {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+    
+    .permissions-subtitle {
+        font-size: 16px;
+    }
+    
+    .permission-item {
+        padding: 6px 12px;
+    }
+    
+    .permission-name {
+        font-size: 14px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .save-button,
+    .discard-button {
+        width: 150px;
+        height: 40px;
+        font-size: 14px;
+    }
+    
+    .messages-container {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .create-role-container {
+        padding: 15px 10px;
+    }
+    
+    .create-role-header {
+        padding: 10px 0;
+        margin-bottom: 10px;
+    }
+    
+    .back-button {
+        font-size: 12px;
+        padding: 5px 10px;
+        margin-bottom: 10px;
+    }
+    
+    .create-role-title {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+    
+    .create-role-subtitle {
+        font-size: 12px;
+    }
+    
+    .create-section {
+        padding: 15px;
+    }
+    
+    .section-title {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .create-content {
+        padding: 15px;
+        gap: 15px;
+    }
+    
+    .role-icon-circle {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .role-profile-icon {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .role-name-display {
+        font-size: 14px;
+    }
+    
+    .permissions-containers {
+        gap: 10px;
+    }
+    
+    .permissions-container {
+        min-height: 200px;
+        padding: 12px;
+    }
+    
+    .container-title {
+        font-size: 12px;
+    }
+    
+    .permissions-list {
+        gap: 4px;
+        padding: 6px 0;
+    }
+    
+    .permission-item {
+        padding: 4px 8px;
+        min-height: 22px;
+    }
+    
+    .permission-name {
+        font-size: 10px;
+    }
+    
+    .action-btn {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+    
+    .field-label {
+        font-size: 14px;
+    }
+    
+    .form-input {
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+    
+    .action-buttons {
+        gap: 10px;
+    }
+    
+    .save-button,
+    .discard-button {
+        width: 120px;
+        height: 35px;
+        font-size: 12px;
+    }
+}

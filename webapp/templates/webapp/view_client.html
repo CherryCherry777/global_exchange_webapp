@@ -1,0 +1,152 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Modificar Cliente{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/view_client.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="view-client-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="view-client-header">
+        <div class="main-content">
+            <a href="{% url 'manage_clientes' %}" class="back-button">← Volver a administrar clientes</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="view-client-title">Modificar Cliente</h1>
+                    <p class="view-client-subtitle">Modifica los datos de un cliente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- View Client Section -->
+        <div class="view-section">
+            <h2 class="section-title">Modificar Cliente</h2>
+            
+            <div class="view-content">
+                <!-- Client Profile Section - Inside the gradient container -->
+                <div class="client-profile-section">
+                    <div class="client-icon-circle">
+                        <img src="{% static 'webapp/pantalla_administar_clientes/1.Administar_Clientes.png' %}" alt="Client Icon" class="client-profile-icon">
+                    </div>
+                    <div class="client-name-display">{{ client.nombre }}</div>
+                </div>
+                
+                <!-- Data Display Container -->
+                <div class="data-display-container">
+                    <!-- Client Data Section (Left) -->
+                    <div class="client-data-section">
+                        <div class="data-list">
+                            <div class="data-item">
+                                <span class="data-label">Nombre:</span>
+                                <span class="data-value">{{ client.nombre }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Razón Social:</span>
+                                <span class="data-value">{{ client.razonSocial|default:"No especificado" }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Tipo:</span>
+                                <span class="data-value">{{ client.get_tipoCliente_display }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Documento:</span>
+                                <span class="data-value">{{ client.documento }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">RUC:</span>
+                                <span class="data-value">{{ client.ruc|default:"No especificado" }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Dirección:</span>
+                                <span class="data-value">{{ client.direccion }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Email:</span>
+                                <span class="data-value">{{ client.correo }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Teléfono:</span>
+                                <span class="data-value">{{ client.telefono }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Categoría:</span>
+                                <span class="data-value">{{ client.get_categoria_display }}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Estado:</span>
+                                <span class="data-value">{% if client.estado %}Activo{% else %}Inactivo{% endif %}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Fecha de registro:</span>
+                                <span class="data-value">{{ client.fechaRegistro|date:"d/m/Y H:i" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Assigned Users Section (Right) -->
+                    <div class="assigned-users-section">
+                        <div class="assigned-users-container">
+                            <h3 class="assigned-users-title">Usuarios Asignados</h3>
+                            <div class="users-list">
+                                {% for usuario in usuarios_asignados %}
+                                <div class="user-item">
+                                    <span class="user-name">Usuario {{ usuario.id }}</span>
+                                </div>
+                                {% empty %}
+                                <div class="no-users">No hay usuarios asignados</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}
