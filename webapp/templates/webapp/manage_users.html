@@ -37,16 +37,18 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Search Section -->
-        <div class="search-section">
-            <h2 class="search-title">Lista de usuarios</h2>
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Buscar usuario" id="searchInput">
+        <!-- Users List Container -->
+        <div class="users-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de usuarios</h2>
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar usuario" id="searchInput">
+                </div>
             </div>
-        </div>
 
-        <!-- Users Table -->
-        <div class="users-table-container">
+            <!-- Users Table -->
+            <div class="users-table-container">
             <table class="users-table">
                 <thead>
                     <tr>
@@ -92,6 +94,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>

@@ -817,7 +817,9 @@ def manage_clientes(request):
     total_categorias = Categoria.objects.count()
     
     context = {
-        'clientes': clientes,
+        'clients': clientes,
+        'total_clients': total_clientes,
+        'active_clients': clientes_activos,
         'search_query': search_query,
         'categoria_filter': categoria_filter,
         'estado_filter': estado_filter,
@@ -827,7 +829,61 @@ def manage_clientes(request):
         'total_categorias': total_categorias,
     }
     
-    return render(request, "webapp/manage_clientes.html", context)
+    return render(request, "webapp/manage_clients.html", context)
+
+@login_required
+@role_required("Administrador")
+def modify_client(request, client_id):
+    """Vista para modificar un cliente existente"""
+    client = get_object_or_404(Cliente, id=client_id)
+    
+    if request.method == "POST":
+        # Procesar formulario de modificación
+        nombre = request.POST.get('nombre', '')
+        razon_social = request.POST.get('razon_social', '')
+        direccion = request.POST.get('direccion', '')
+        tipo_cliente = request.POST.get('tipo_cliente', '')
+        documento = request.POST.get('documento', '')
+        ruc = request.POST.get('ruc', '')
+        correo = request.POST.get('correo', '')
+        telefono = request.POST.get('telefono', '')
+        categoria_id = request.POST.get('categoria', '')
+        estado = request.POST.get('estado') == 'on'
+        
+        try:
+            # Actualizar campos del cliente
+            client.nombre = nombre
+            client.razonSocial = razon_social if razon_social else None
+            client.direccion = direccion
+            client.tipoCliente = tipo_cliente
+            client.documento = documento
+            client.ruc = ruc if ruc else None
+            client.correo = correo
+            client.telefono = telefono
+            client.estado = estado
+            
+            # Actualizar categoría
+            if categoria_id:
+                categoria = Categoria.objects.get(id=categoria_id)
+                client.categoria = categoria
+            
+            client.save()
+            messages.success(request, f"Cliente '{client.nombre}' modificado correctamente.")
+            return redirect("manage_clientes")
+            
+        except Exception as e:
+            messages.error(request, f"Error al modificar el cliente: {str(e)}")
+            return redirect("modify_client", client_id=client_id)
+    
+    # GET request - mostrar formulario
+    categorias = Categoria.objects.all()
+    
+    context = {
+        "client": client,
+        "categorias": categorias,
+    }
+    
+    return render(request, "webapp/modify_client.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -1766,3 +1822,231 @@ def modify_users(request, user_id):
     }
     
     return render(request, "webapp/modify_user.html", context)
+
+@login_required
+@role_required("Administrador")
+def manage_roles(request):
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "remove_permission":
+            role_id = request.POST.get("role_id")
+            permission_id = request.POST.get("permission_id")
+            
+            try:
+                role = Group.objects.get(id=role_id)
+                permission = Permission.objects.get(id=permission_id)
+                role.permissions.remove(permission)
+                messages.success(request, f"Permiso '{permission.name}' eliminado del rol '{role.name}' correctamente.")
+            except (Group.DoesNotExist, Permission.DoesNotExist):
+                messages.error(request, "Error al eliminar el permiso.")
+        
+        elif action == "toggle_role_status":
+            role_id = request.POST.get("role_id")
+            
+            try:
+                role = Group.objects.get(id=role_id)
+                
+                # Verificar si el rol tiene usuarios activos
+                has_active_users = role.user_set.filter(is_active=True).exists()
+                
+                if has_active_users:
+                    # Si tiene usuarios activos, desactivamos el rol
+                    # Removemos el rol del usuario actual para simular la desactivación
+                    if request.user in role.user_set.all():
+                        role.user_set.remove(request.user)
+                        messages.success(request, f"Rol '{role.name}' desactivado correctamente.")
+                    else:
+                        messages.info(request, f"Rol '{role.name}' ya estaba desactivado para tu usuario.")
+                else:
+                    # Si no tiene usuarios activos, lo activamos asignándolo al usuario actual
+                    if request.user.is_authenticated:
+                        role.user_set.add(request.user)
+                        messages.success(request, f"Rol '{role.name}' activado correctamente.")
+                    else:
+                        messages.error(request, "No se pudo activar el rol: usuario no autenticado.")
+                    
+            except Group.DoesNotExist:
+                messages.error(request, "Error al actualizar el estado del rol.")
+        
+        return redirect("manage_roles")
+    
+    roles = Group.objects.all()
+    
+    # Calcular métricas
+    total_roles = Group.objects.count()
+    active_roles = Group.objects.filter(user__is_active=True).distinct().count()
+    
+    # Agregar información de estado a cada rol
+    roles_with_status = []
+    for role in roles:
+        # Un rol se considera activo si tiene al menos un usuario activo asignado
+        # En una implementación real, podrías tener un campo 'is_active' en el modelo Group
+        role.is_active = role.user_set.filter(is_active=True).exists()
+        
+        # Para roles protegidos (como Administrador), siempre los consideramos activos
+        if role.name == 'Administrador':
+            role.is_active = True
+            
+        roles_with_status.append(role)
+    
+    context = {
+        "roles": roles_with_status,
+        "total_roles": total_roles,
+        "active_roles": active_roles,
+    }
+    
+    return render(request, "webapp/manage_roles.html", context)
+
+@login_required
+@role_required("Administrador")
+def modify_role(request, role_id):
+    role = get_object_or_404(Group, id=role_id)
+    
+    if request.method == "POST":
+        # Verificar si es una solicitud de eliminación de permiso
+        if 'permission_id' in request.POST:
+            permission_id = request.POST.get('permission_id')
+            try:
+                permission = Permission.objects.get(id=permission_id)
+                role.permissions.remove(permission)
+                messages.success(request, f"Permiso '{permission.name}' eliminado del rol '{role.name}' correctamente.")
+            except Permission.DoesNotExist:
+                messages.error(request, "El permiso especificado no existe.")
+            return redirect("modify_role", role_id=role_id)
+        
+        # Verificar si es una solicitud de eliminación del rol
+        if request.POST.get('action') == 'delete_role':
+            # Proteger el rol Administrador
+            if role.name == 'Administrador':
+                messages.error(request, "No se puede eliminar el rol 'Administrador'.")
+                return redirect("modify_role", role_id=role_id)
+            
+            role_name = role.name
+            role.delete()
+            messages.success(request, f"Rol '{role_name}' eliminado correctamente.")
+            return redirect("manage_roles")
+        
+        # Procesar formulario de modificación
+        role_name = request.POST.get('role_name', '')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        role.name = role_name
+        role.save()
+        
+        messages.success(request, f"Rol '{role.name}' modificado correctamente.")
+        return redirect("manage_roles")
+    
+    role_permissions = role.permissions.all()
+    all_permissions = Permission.objects.all()
+    
+    # Agregar información de estado al rol
+    role.is_active = role.user_set.filter(is_active=True).exists()
+    
+    context = {
+        "role": role,
+        "role_permissions": role_permissions,
+        "all_permissions": all_permissions,
+    }
+    
+    return render(request, "webapp/modify_role.html", context)
+
+@login_required
+@role_required("Administrador")
+def create_role(request):
+    if request.method == "POST":
+        role_name = request.POST.get('role_name', '').strip()
+        is_protected = request.POST.get('is_protected') == 'on'
+        permissions = request.POST.getlist('permissions')
+        
+        # Validar que el nombre no esté vacío
+        if not role_name:
+            messages.error(request, "El nombre del rol es obligatorio.")
+            return redirect("create_role")
+        
+        # Verificar que el nombre no exista
+        if Group.objects.filter(name=role_name).exists():
+            messages.error(request, f"Ya existe un rol con el nombre '{role_name}'.")
+            return redirect("create_role")
+        
+        try:
+            # Crear el nuevo rol
+            new_role = Group.objects.create(name=role_name)
+            
+            # Asignar permisos si se seleccionaron
+            if permissions:
+                permission_objects = Permission.objects.filter(id__in=permissions)
+                new_role.permissions.set(permission_objects)
+            
+            messages.success(request, f"Rol '{role_name}' creado correctamente.")
+            return redirect("manage_roles")
+            
+        except Exception as e:
+            messages.error(request, f"Error al crear el rol: {str(e)}")
+            return redirect("create_role")
+    
+    # GET request - mostrar formulario
+    all_permissions = Permission.objects.all()
+    
+    context = {
+        "all_permissions": all_permissions,
+    }
+    
+    return render(request, "webapp/create_role.html", context)
+
+@login_required
+@role_required("Administrador")
+def manage_user_roles(request):
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "add_role":
+            user_id = request.POST.get("user_id")
+            role_id = request.POST.get("role_id")
+            
+            try:
+                user = User.objects.get(id=user_id)
+                role = Group.objects.get(id=role_id)
+                
+                # Verificar si el usuario ya tiene este rol
+                if user.groups.filter(id=role_id).exists():
+                    messages.info(request, f"El usuario '{user.username}' ya tiene el rol '{role.name}'.")
+                else:
+                    user.groups.add(role)
+                    messages.success(request, f"Rol '{role.name}' asignado al usuario '{user.username}' correctamente.")
+                    
+            except (User.DoesNotExist, Group.DoesNotExist):
+                messages.error(request, "Error al asignar el rol.")
+        
+        elif action == "remove_role":
+            user_id = request.POST.get("user_id")
+            role_name = request.POST.get("role_name")
+            
+            try:
+                user = User.objects.get(id=user_id)
+                role = Group.objects.get(name=role_name)
+                
+                user.groups.remove(role)
+                messages.success(request, f"Rol '{role_name}' eliminado del usuario '{user.username}' correctamente.")
+                
+            except (User.DoesNotExist, Group.DoesNotExist):
+                messages.error(request, "Error al eliminar el rol.")
+        
+        return redirect("manage_user_roles")
+    
+    # GET request - mostrar la página
+    users = User.objects.all().order_by('username')
+    all_roles = Group.objects.all().order_by('name')
+    
+    # Calcular métricas
+    total_users = User.objects.count()
+    total_roles = Group.objects.count()
+    
+    context = {
+        "users": users,
+        "all_roles": all_roles,
+        "total_users": total_users,
+        "total_roles": total_roles,
+    }
+    
+    return render(request, "webapp/manage_user_roles.html", context)

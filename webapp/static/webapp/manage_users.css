@@ -189,13 +189,12 @@ body .header-nav {
 
 /* Search Section */
 .search-section {
-    background: rgba(238, 233, 210, 0.1);
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .search-title {
@@ -227,10 +226,15 @@ body .header-nav {
 }
 
 /* Users Table */
-.users-table-container {
+/* Users List Container */
+.users-list-container {
     background: rgba(238, 233, 210, 0.1);
     border-radius: 20px;
-    padding: 30px;
+    padding: 20px;
+}
+
+/* Users Table Container */
+.users-table-container {
     overflow-x: auto;
 }
 
@@ -403,6 +407,10 @@ body .header-nav {
         font-size: 60px;
     }
     
+    .users-list-container {
+        padding: 15px;
+    }
+    
     .search-section {
         flex-direction: column;
         gap: 20px;
@@ -447,6 +455,10 @@ body .header-nav {
     
     .manage-users-subtitle {
         font-size: 16px;
+    }
+    
+    .users-list-container {
+        padding: 12px;
     }
     
     .header-metrics {

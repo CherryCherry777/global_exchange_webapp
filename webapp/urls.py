@@ -19,6 +19,7 @@ urlpatterns = [
     path("manage-clientes/", views.manage_clientes, name="manage_clientes"),
     path("create-cliente/", views.create_cliente, name="create_cliente"),
     path("update-cliente/<int:cliente_id>/", views.update_cliente, name="update_cliente"),
+    path("modify-client/<int:client_id>/", views.modify_client, name="modify_client"),
     path("delete-cliente/<int:cliente_id>/", views.delete_cliente, name="delete_cliente"),
     path("view-cliente/<int:cliente_id>/", views.view_cliente, name="view_cliente"),
     path('clientes/asignar-usuario/', views.asignar_cliente_usuario, name='asignar_cliente_usuario'),
@@ -38,7 +39,7 @@ urlpatterns = [
 
     # Roles management
     path("manage-roles/", views.manage_roles, name="manage_roles"),
-    path("roles/create/", views.create_role, name="create_role"),
+    path("manage-roles/create/", views.create_role, name="create_role"),
     path("roles/delete/<int:role_id>/", views.delete_role, name="delete_role"),
     path("roles/update-permissions/<int:role_id>/", views.update_role_permissions, name="update_role_permissions"),
     path('manage-roles/delete/<int:role_id>/confirm/', views.confirm_delete_role, name='confirm_delete_role'),
@@ -55,6 +56,9 @@ urlpatterns = [
     path('manage-users/<int:user_id>/activate/', views.activate_user, name='activate_user'),
     path('manage-users/<int:user_id>/deactivate/', views.deactivate_user, name='deactivate_user'),
     path('manage-users/delete/<int:user_id>/confirm/', views.confirm_delete_user, name='confirm_delete_user'),
+    path('manage-roles/', views.manage_roles, name='manage_roles'),
+    path('manage-roles/<int:role_id>/modify/', views.modify_role, name='modify_role'),
+    path('manage-user-roles/', views.manage_user_roles, name='manage_user_roles'),
 
     # Currency Manager
     path('currency/', views.currency_list, name='currency_list'),
