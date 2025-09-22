@@ -1,0 +1,191 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Modificar Usuario{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/modify_user.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="modify-user-container">
+    <!-- Header Section -->
+    <div class="modify-user-header">
+        <div class="main-content">
+            <a href="{% url 'manage_users' %}" class="back-button">← Volver a administrar usuarios</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="modify-user-title">Modificar Usuario</h1>
+                    <p class="modify-user-subtitle">Modificar datos de un usuario</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Modify User Section -->
+        <div class="modify-section">
+            <h2 class="section-title">Modificar Usuario</h2>
+            
+            <div class="modify-content">
+                <!-- User Profile Section - Inside the gradient container -->
+                <div class="user-profile-section">
+                    <div class="user-icon-circle">
+                        <img src="{% static 'webapp/pantalla_administar_usuarios/1.Administar_Usuarios.png' %}" alt="User Icon" class="user-profile-icon">
+                    </div>
+                    <div class="username-display">{{ user.username }}</div>
+                </div>
+                <!-- Form and Roles Container -->
+                <div class="form-roles-container">
+                    <!-- Form Section -->
+                    <div class="form-section">
+                        <form method="post" class="modify-form" id="modify-form">
+                            {% csrf_token %}
+                            
+                            <!-- Name Fields Row -->
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label class="field-label">Nombre</label>
+                                    <input type="text" name="first_name" value="{{ user.first_name }}" class="form-input name-input">
+                                </div>
+                                <div class="form-field">
+                                    <label class="field-label">Apellido</label>
+                                    <input type="text" name="last_name" value="{{ user.last_name }}" class="form-input name-input">
+                                </div>
+                            </div>
+
+                            <!-- Email Field -->
+                            <div class="form-field">
+                                <label class="field-label">Email</label>
+                                <input type="email" name="email" value="{{ user.email }}" class="form-input full-input">
+                            </div>
+
+                            <!-- Username Field -->
+                            <div class="form-field">
+                                <label class="field-label">Nombre de Usuario</label>
+                                <input type="text" name="username" value="{{ user.username }}" class="form-input full-input">
+                            </div>
+
+                            <!-- Status Field -->
+                            <div class="form-field">
+                                <label class="field-label">Estado</label>
+                                <div class="status-checkbox">
+                                    <input type="checkbox" name="is_active" id="is_active" {% if user.is_active %}checked{% endif %}>
+                                    <label for="is_active" class="checkbox-label">Activo</label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Roles Section -->
+                    <div class="roles-section">
+                        <h3 class="roles-title">Roles asignados</h3>
+                        <div class="roles-list">
+                            {% for role in user_roles %}
+                            <div class="role-item">
+                                <span class="remove-role" onclick="confirmRemoveRole({{ role.id }}, '{{ role.name }}', {{ user.id }}, '{{ user.username }}')">×</span>
+                                <span class="role-name">{{ role.name }}</span>
+                            </div>
+                            {% empty %}
+                            <div class="no-roles">No hay roles asignados</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons - Inside gradient container -->
+                <div class="action-buttons">
+                    <button type="submit" form="modify-form" class="save-button">Guardar</button>
+                    <a href="{% url 'manage_users' %}" class="discard-button">Descartar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirmar Eliminación</h3>
+        </div>
+        <div class="modal-body">
+            <p class="modal-message">¿Estás seguro de que quieres quitar el rol <strong id="roleName"></strong> al usuario <strong id="userName"></strong>?</p>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-button confirm-button" onclick="removeRole()">Sí, Eliminar</button>
+            <button class="modal-button cancel-button" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales para el modal
+let currentRoleId = null;
+let currentUserId = null;
+
+// Form submission handling
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.modify-form');
+    const saveButton = document.querySelector('.save-button');
+    
+    saveButton.addEventListener('click', function() {
+        form.submit();
+    });
+});
+
+// Función para mostrar el modal de confirmación
+function confirmRemoveRole(roleId, roleName, userId, userName) {
+    currentRoleId = roleId;
+    currentUserId = userId;
+    
+    document.getElementById('roleName').textContent = roleName;
+    document.getElementById('userName').textContent = userName;
+    document.getElementById('confirmModal').style.display = 'flex';
+}
+
+// Función para cerrar el modal
+function closeModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+    currentRoleId = null;
+    currentUserId = null;
+}
+
+// Función para eliminar el rol
+function removeRole() {
+    if (currentRoleId && currentUserId) {
+        // Crear un formulario temporal para enviar la solicitud
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "modify_users" user.id %}';
+        
+        // Agregar token CSRF
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Agregar ID del rol
+        const roleInput = document.createElement('input');
+        roleInput.type = 'hidden';
+        roleInput.name = 'role_id';
+        roleInput.value = currentRoleId;
+        form.appendChild(roleInput);
+        
+        // Enviar formulario
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Cerrar modal al hacer clic fuera de él
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}

@@ -1721,3 +1721,48 @@ def edit_cobro_type(request, tipo_id):
     else:
         form = TipoCobroForm(instance=tipo)
     return render(request, "webapp/edit_cobro_type.html", {"form": form, "tipo": tipo})
+
+@login_required
+@role_required("Administrador")
+def modify_users(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == "POST":
+        # Verificar si es una solicitud de eliminación de rol
+        if 'role_id' in request.POST:
+            role_id = request.POST.get('role_id')
+            try:
+                role = Group.objects.get(id=role_id)
+                user.groups.remove(role)
+                messages.success(request, f"Rol '{role.name}' eliminado del usuario '{user.username}' correctamente.")
+            except Group.DoesNotExist:
+                messages.error(request, "El rol especificado no existe.")
+            return redirect("modify_users", user_id=user_id)
+        
+        # Procesar formulario de modificación
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        email = request.POST.get('email', '')
+        username = request.POST.get('username', '')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        # Actualizar datos del usuario
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.username = username
+        user.is_active = is_active
+        user.save()
+        
+        messages.success(request, f"Usuario '{user.username}' modificado correctamente.")
+        return redirect("manage_users")
+    
+    # Obtener roles del usuario
+    user_roles = user.groups.all()
+    
+    context = {
+        "user": user,
+        "user_roles": user_roles,
+    }
+    
+    return render(request, "webapp/modify_user.html", context)

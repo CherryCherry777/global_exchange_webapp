@@ -63,7 +63,7 @@
                         <td>
                             <div class="user-info">
                                 <div class="user-icon">
-                                    <img src="{% static 'webapp/pantalla_principal_servicios/1.Administar_Usuarios.png' %}" alt="Usuario">
+                                    <img src="{% static 'webapp/pantalla_administar_usuarios/1.Administar_Usuarios.png' %}" alt="Usuario">
                                 </div>
                                 <span class="username">{{ user.username }}</span>
                             </div>
@@ -80,7 +80,7 @@
                         </td>
                         <td>
                             <div class="actions-cell">
-                                <a href="#" class="action-button modify-button">Modificar</a>
+                                <a href="{% url 'modify_users' user.id %}" class="action-button modify-button">Modificar</a>
                                 {% if user.is_active %}
                                     <a href="{% url 'deactivate_user' user.id %}" class="action-button deactivate-button">Desactivar</a>
                                 {% else %}
