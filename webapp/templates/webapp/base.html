@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="{% static 'webapp/style.css' %}" /> -->
+    <link rel="stylesheet" href="{% static 'webapp/global.css' %}" />
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -43,6 +43,13 @@
                 <a href="#" class="nav-link">Servicios</a>
                 <a href="#" class="nav-link">Contacto</a>
                 <a href="#" class="nav-link">Acerca de</a>
+                {% if user.is_authenticated %}
+                    {% for group in user.groups.all %}
+                        {% if group.name == 'Administrador' %}
+                        <a href="{% url 'landing' %}" class="nav-link admin-nav-link">Ir a Gestiones</a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
             </div>
     
             <!-- Auth buttons on the right -->

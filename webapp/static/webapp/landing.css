@@ -1,0 +1,418 @@
+/* ========================================
+   LANDING PAGE STYLES (Admin Panel)
+   ======================================== */
+
+/* Landing Links */
+.landing-links {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+@media(min-width: 480px) {
+    .landing-links {
+        gap: 30px;
+    }
+}
+
+/* Admin Panel Main Styles */
+body main .admin-panel,
+.admin-panel {
+    min-height: 100vh !important;
+    background: #000000 !important;
+    padding: 40px 20px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Force admin panel styles - Only affect the admin panel, not the body */
+html body main .admin-panel {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Starry Background Effect */
+.admin-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(2px 2px at 20px 30px, #ffffff, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 90px 40px, #ffffff, transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(2px 2px at 160px 30px, #ffffff, transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    opacity: 0.3;
+    animation: twinkle 4s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.2; }
+    100% { opacity: 0.4; }
+}
+
+/* Admin Header - High specificity */
+.admin-panel .admin-header,
+body main .admin-panel .admin-header {
+    text-align: center !important;
+    margin-bottom: 60px !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.admin-panel .admin-title,
+body main .admin-panel .admin-title {
+    font-size: 3.5rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 0 20px 0 !important;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 255, 255, 0.2) !important;
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+.admin-panel .admin-subtitle,
+body main .admin-panel .admin-subtitle {
+    font-size: 1.4rem !important;
+    color: #f1f5f9 !important;
+    margin: 0 !important;
+    opacity: 0.95 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Metrics Section - High specificity */
+.admin-panel .admin-metrics,
+body main .admin-panel .admin-metrics {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 30px !important;
+    margin-bottom: 60px !important;
+    max-width: 900px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.admin-panel .metric-card,
+body main .admin-panel .metric-card {
+    background: rgba(255, 255, 255, 0.1) !important;
+    padding: 30px 20px !important;
+    border-radius: 15px !important;
+    backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    text-align: center !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+.admin-panel .metric-card:hover,
+body main .admin-panel .metric-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.admin-panel .metric-number,
+body main .admin-panel .metric-number {
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin-bottom: 10px !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+}
+
+.admin-panel .metric-label,
+body main .admin-panel .metric-label {
+    font-size: 1rem !important;
+    color: #f1f5f9 !important;
+    opacity: 0.9 !important;
+    font-weight: 500 !important;
+}
+
+/* Admin Grid - High specificity */
+.admin-panel .admin-grid,
+body main .admin-panel .admin-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+    gap: 30px !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+/* Admin Cards - High specificity */
+.admin-panel .admin-card,
+body main .admin-panel .admin-card {
+    background: #FFD700 !important;
+    border-radius: 20px !important;
+    padding: 30px !important;
+    text-decoration: none !important;
+    color: #000000 !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3) !important;
+    border: 2px solid transparent !important;
+    position: relative !important;
+    overflow: hidden !important;
+    display: block !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+/* Ensure all child elements inherit the link behavior */
+.admin-card * {
+    text-decoration: none !important;
+    color: inherit;
+}
+
+.admin-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.admin-card:hover::before {
+    left: 100%;
+}
+
+.admin-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+    color: #000000;
+}
+
+.admin-card:active {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+}
+
+.admin-card:focus {
+    outline: 3px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+/* Card Icon - High specificity */
+.admin-panel .card-icon,
+body main .admin-panel .card-icon {
+    margin-bottom: 20px !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+}
+
+.admin-panel .card-icon img,
+body main .admin-panel .card-icon img {
+    width: 111px !important;
+    height: 111px !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) !important;
+    transition: transform 0.3s ease !important;
+}
+
+.admin-panel .admin-card:hover .card-icon img,
+body main .admin-panel .admin-card:hover .card-icon img {
+    transform: scale(1.1) rotate(5deg) !important;
+}
+
+/* Card Content - High specificity */
+.admin-panel .card-content,
+body main .admin-panel .card-content {
+    text-align: left !important;
+}
+
+.admin-panel .card-title,
+body main .admin-panel .card-title {
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    margin: 0 0 12px 0 !important;
+    line-height: 1.3 !important;
+}
+
+.admin-panel .card-description,
+body main .admin-panel .card-description {
+    font-size: 0.95rem !important;
+    color: #333333 !important;
+    margin: 0 !important;
+    line-height: 1.5 !important;
+    opacity: 0.9 !important;
+}
+
+/* Ensure text colors are maintained on hover */
+.admin-card:hover .card-title,
+.admin-card:hover .card-description {
+    color: inherit;
+}
+
+.admin-card:hover .card-title {
+    color: #000000;
+}
+
+.admin-card:hover .card-description {
+    color: #333333;
+}
+
+/* Animation delays for cards */
+.admin-card {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: slideInUp 0.6s ease forwards;
+}
+
+.admin-card:nth-child(1) { animation-delay: 0.1s; }
+.admin-card:nth-child(2) { animation-delay: 0.2s; }
+.admin-card:nth-child(3) { animation-delay: 0.3s; }
+.admin-card:nth-child(4) { animation-delay: 0.4s; }
+.admin-card:nth-child(5) { animation-delay: 0.5s; }
+.admin-card:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes slideInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation delays for metric cards */
+.metric-card {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.metric-card:nth-child(1) { animation-delay: 0.2s; }
+.metric-card:nth-child(2) { animation-delay: 0.4s; }
+.metric-card:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design for Admin Panel */
+@media (max-width: 768px) {
+    .admin-panel {
+        padding: 30px 15px !important;
+    }
+    
+    .admin-title {
+        font-size: 2.5rem !important;
+    }
+    
+    .admin-subtitle {
+        font-size: 1.2rem !important;
+    }
+    
+    .admin-metrics {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+        margin-bottom: 40px !important;
+    }
+    
+    .metric-card {
+        padding: 25px 15px !important;
+    }
+    
+    .metric-number {
+        font-size: 2rem !important;
+    }
+    
+    .admin-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+    
+    .admin-card {
+        padding: 25px 20px !important;
+    }
+    
+    .card-icon img {
+        width: 80px !important;
+        height: 80px !important;
+    }
+    
+    .card-title {
+        font-size: 1.2rem !important;
+    }
+    
+    .card-description {
+        font-size: 0.9rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-panel {
+        padding: 20px 10px !important;
+    }
+    
+    .admin-title {
+        font-size: 2rem !important;
+    }
+    
+    .admin-subtitle {
+        font-size: 1.1rem !important;
+    }
+    
+    .admin-header {
+        margin-bottom: 40px !important;
+    }
+    
+    .admin-metrics {
+        margin-bottom: 30px !important;
+    }
+    
+    .metric-card {
+        padding: 20px 15px !important;
+    }
+    
+    .metric-number {
+        font-size: 1.8rem !important;
+    }
+    
+    .metric-label {
+        font-size: 0.9rem !important;
+    }
+    
+    .admin-card {
+        padding: 20px 15px !important;
+    }
+    
+    .card-icon {
+        margin-bottom: 15px !important;
+    }
+    
+    .card-icon img {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    
+    .card-title {
+        font-size: 1.1rem !important;
+    }
+    
+    .card-description {
+        font-size: 0.85rem !important;
+    }
+}
