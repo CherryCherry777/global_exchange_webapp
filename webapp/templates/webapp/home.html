@@ -1,5 +1,6 @@
 {% extends 'webapp/base.html' %}
 {% load static %}
+{% load permissions_tags %}
 {% block title %}Global Exchange - Inicio{% endblock %}
 
 {% block extra_css %}
@@ -59,6 +60,8 @@
         </div>
 
         <!-- Right Section: Currency Converter -->
+        {% is_usuario_asociado request.user as asociado %}
+        {% if not asociado %}
         <div class="converter-section">
             <div class="converter-container">
                 <h2 class="converter-title">
@@ -116,6 +119,9 @@
                 </div>
             </div>
         </div>
+        {% else %}
+
+        {% endif %}
     </div>
 </div>
 

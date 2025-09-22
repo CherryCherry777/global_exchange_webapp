@@ -10,7 +10,8 @@
 {% endblock %}
 
 {% block content %}
-{% if is_admin %}
+{% has_perms request.user 'webapp.access_admin_panel' as can_access_admin_panel %}
+{% if can_access_admin_panel %}
 <div class="admin-panel">
     <!-- Header Section -->
     <div class="admin-header">
@@ -36,6 +37,8 @@
 
     <!-- Management Buttons Grid -->
     <div class="admin-grid">
+        {% has_perms request.user 'webapp.view_customuser' as can_view_customuser %}
+        {% if can_view_customuser %}
         <a href="{% url 'manage_users' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/1.AdministrarUsuarios.png' %}" alt="Administrar Usuarios">
@@ -45,7 +48,9 @@
                 <p class="card-description">Visualizar, editar y activar/desactivar usuarios</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_role' as can_view_role %}
+        {% if can_view_role %}
         <a href="{% url 'manage_roles' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/2.AdministrarRoles.png' %}" alt="Administrar Roles">
@@ -55,7 +60,9 @@
                 <p class="card-description">Visualizar, crear, eliminar, activar/desactivar roles y permisos</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_customuser' 'webapp.view_role' as can_view_customuser_role %}
+        {% if can_view_customuser_role %}
         <a href="{% url 'manage_user_roles' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/3.AdministrarRolesdeUsuario.png' %}" alt="Administrar Roles de Usuario">
@@ -65,7 +72,9 @@
                 <p class="card-description">Añadir/eliminar rol asociado a un usuario</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_cliente' as can_view_cliente %}
+        {% if can_view_cliente %}
         <a href="{% url 'manage_clientes' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/4.AdministrarClientes.png' %}" alt="Administrar Clientes">
@@ -75,7 +84,9 @@
                 <p class="card-description">Visualizar, crear, editar y desactivar un cliente</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_clienteusuario' as can_view_clienteusuario %}
+        {% if can_view_clienteusuario %}
         <a href="{% url 'asignar_cliente_usuario' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/5.Asignar clientes a usuario.png' %}" alt="Asignar Clientes a Usuarios">
@@ -85,7 +96,9 @@
                 <p class="card-description">Realizar la asignación cliente a usuario</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_categoria' as can_view_categoria %}
+        {% if can_view_categoria %}
         <a href="{% url 'manage_categories' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/7.AdministrarCategorias.png' %}" alt="Administrar Categorías">
@@ -95,7 +108,9 @@
                 <p class="card-description">Visualizar y crear categorías. Editar porcentaje de descuento.</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_currency' as can_view_currency %}
+        {% if can_view_currency %}
         <a href="{% url 'currency_list' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/6.AdministrarMonedas.png' %}" alt="Administrar Monedas">
@@ -105,7 +120,9 @@
                 <p class="card-description">Visualizar, crear, editar y desactivar monedas</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_currency' as can_view_currency %}
+        {% if can_view_currency %}
         <a href="{% url 'prices_list' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/6.AdministrarMonedas.png' %}" alt="Administrar Monedas">
@@ -115,7 +132,9 @@
                 <p class="card-description">Visualizar y editar cotizaciones</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_mediopago' as can_view_mediopago %}
+        {% if can_view_mediopago %}
         <a href="{% url 'my_payment_methods' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/5.Asignar clientes a usuario.png' %}" alt="Administrar Medios de Pago">
@@ -125,7 +144,9 @@
                 <p class="card-description">Gestionar sus métodos de Pago</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_mediopago' as can_view_mediopago %}
+        {% if can_view_mediopago %}
         <a href="{% url 'payment_types_list' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/5.Asignar clientes a usuario.png' %}" alt="Administrar Medios de Pago">
@@ -135,7 +156,9 @@
                 <p class="card-description">Activar/Desactivar y controlar la comisión de los métodos de pago</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_mediocobro' as can_view_mediocobro %}
+        {% if can_view_mediocobro %}
         <a href="{% url 'my_cobro_methods' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/5.Asignar clientes a usuario.png' %}" alt="Administrar Medios de Pago">
@@ -145,7 +168,9 @@
                 <p class="card-description">Gestionar sus métodos de Acreditación</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_mediocobro' as can_view_mediocobro %}
+        {% if can_view_mediocobro %}
         <a href="{% url 'cobro_types_list' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/5.Asignar clientes a usuario.png' %}" alt="Administrar Medios de Pago">
@@ -155,7 +180,9 @@
                 <p class="card-description">Activar/Desactivar y controlar la comisión de los métodos de acreditación</p>
             </div>
         </a>
-
+        {% endif %}
+        {% has_perms request.user 'webapp.view_limiteintercambio' as can_view_limiteintercambio %}
+        {% if can_view_limiteintercambio %}
         <a href="{% url 'limites_list' %}" class="admin-card">
             <div class="card-icon">
                 <img src="{% static 'webapp/panel_gestiones/5.Asignar clientes a usuario.png' %}" alt="Administrar Medios de Pago">
@@ -165,7 +192,7 @@
                 <p class="card-description">Administrar Limites de Intercambio por categoría de clientes</p>
             </div>
         </a>
-
+        {% endif %}
 
     </div>
 </div>

@@ -17,6 +17,11 @@ class CustomUser(AbstractUser):
     """
     email = models.EmailField(unique=True)
 
+    class Meta:
+        permissions = [
+            ("access_admin_panel", "Can access admin panel")
+        ]
+
     def __str__(self):
         return self.username
 
