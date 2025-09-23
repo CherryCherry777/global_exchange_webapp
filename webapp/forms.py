@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, ChequeCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency
+from .models import BilleteraCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -365,29 +365,6 @@ class CuentaBancariaForm(forms.ModelForm):
         }
 
 
-class ChequeForm(forms.ModelForm):
-    entidad = forms.ModelChoiceField(
-        queryset=Entidad.objects.filter(tipo="banco", activo=True),
-        label="Banco Emisor",
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-
-    class Meta:
-        model = Cheque
-        fields = ['numero_cheque', 'entidad', 'fecha_vencimiento', 'monto']
-        widgets = {
-            'numero_cheque': forms.TextInput(attrs={'class': 'form-control'}),
-            'fecha_vencimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'monto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
-        }
-
-    def clean_monto(self):
-        monto = self.cleaned_data.get('monto')
-        if monto is not None and monto <= 0:
-            raise ValidationError("El monto debe ser mayor a 0.")
-        return monto
-
-
 class MedioPagoForm(forms.ModelForm):
     class Meta:
         model = MedioPago
@@ -419,11 +396,6 @@ class BilleteraCobroForm(BilleteraForm):
 class CuentaBancariaCobroForm(CuentaBancariaForm):
     class Meta(CuentaBancariaForm.Meta):
         model = CuentaBancariaCobro
-
-
-class ChequeCobroForm(ChequeForm):
-    class Meta(ChequeForm.Meta):
-        model = ChequeCobro
 
 
 class MedioCobroForm(forms.ModelForm):
@@ -508,30 +480,6 @@ class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
         self.fields['numero_cuenta'].widget.attrs.update({'class': 'form-control'})
         self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
 
-
-class ChequeCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
-    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
-                                     label="Banco Emisor",
-                                     widget=forms.Select(attrs={'class': 'form-control'}))
-
-    class Meta:
-        model = ChequeCobro
-        fields = ['numero_cheque', 'entidad', 'fecha_vencimiento', 'monto']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.disable_moneda()
-        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
-        self.fields['numero_cheque'].widget.attrs.update({'class': 'form-control'})
-        self.fields['fecha_vencimiento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
-        self.fields['monto'].widget.attrs.update({'class': 'form-control', 'step': '0.01', 'min': '0'})
-
-    def clean_monto(self):
-        monto = self.cleaned_data.get('monto')
-        if monto is not None and monto <= 0:
-            raise ValidationError("El monto debe ser mayor a 0.")
-        return monto
-    
 
 class MedioCobroForm(forms.ModelForm):
     class Meta:
@@ -618,29 +566,6 @@ class CuentaBancariaEditForm(MonedaDisabledMixin, forms.ModelForm):
         self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
 
 
-class ChequeEditForm(MonedaDisabledMixin, forms.ModelForm):
-    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
-                                     label="Banco Emisor",
-                                     widget=forms.Select(attrs={'class': 'form-control'}))
-
-    class Meta:
-        model = Cheque
-        fields = ['numero_cheque', 'entidad', 'fecha_vencimiento', 'monto']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.disable_moneda()
-        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
-        self.fields['numero_cheque'].widget.attrs.update({'class': 'form-control'})
-        self.fields['fecha_vencimiento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
-        self.fields['monto'].widget.attrs.update({'class': 'form-control', 'step': '0.01', 'min': '0'})
-
-    def clean_monto(self):
-        monto = self.cleaned_data.get('monto')
-        if monto is not None and monto <= 0:
-            raise ValidationError("El monto debe ser mayor a 0.")
-        return monto
-
 
 # -------------------------
 # Edit forms - MÉTODOS DE COBRO
@@ -708,29 +633,6 @@ class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
         self.fields['numero_cuenta'].widget.attrs.update({'class': 'form-control'})
         self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
 
-
-class ChequeCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
-    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
-                                     label="Banco Emisor",
-                                     widget=forms.Select(attrs={'class': 'form-control'}))
-
-    class Meta:
-        model = ChequeCobro
-        fields = ['numero_cheque', 'entidad', 'fecha_vencimiento', 'monto']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.disable_moneda()
-        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
-        self.fields['numero_cheque'].widget.attrs.update({'class': 'form-control'})
-        self.fields['fecha_vencimiento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
-        self.fields['monto'].widget.attrs.update({'class': 'form-control', 'step': '0.01', 'min': '0'})
-
-    def clean_monto(self):
-        monto = self.cleaned_data.get('monto')
-        if monto is not None and monto <= 0:
-            raise ValidationError("El monto debe ser mayor a 0.")
-        return monto
 
 # Form de limites de intercambio
 

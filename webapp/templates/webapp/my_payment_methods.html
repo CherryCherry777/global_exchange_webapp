@@ -12,7 +12,6 @@
 
     <div class="add-payment-buttons">
         <a href="{% url 'add_payment_method' 'billetera' %}" class="btn btn-primary">Agregar Billetera</a>
-        <a href="{% url 'add_payment_method' 'cheque' %}" class="btn btn-primary">Agregar Cheque</a>
         <a href="{% url 'add_payment_method' 'cuenta_bancaria' %}" class="btn btn-primary">Agregar Cuenta Bancaria</a>
         <a href="{% url 'add_payment_method' 'tarjeta' %}" class="btn btn-primary">Agregar Tarjeta</a>
     </div>
@@ -36,8 +35,6 @@
                     <td>
                         {% if medio.tipo == "billetera" %}
                             Cel: {{ medio.billetera.numero_celular }}, Proveedor: {{ medio.billetera.proveedor }}
-                        {% elif medio.tipo == "cheque" %}
-                            Nº: {{ medio.cheque.numero_cheque }}, Banco: {{ medio.cheque.banco_emisor }}, Monto: {{ medio.cheque.monto }}
                         {% elif medio.tipo == "cuenta_bancaria" %}
                             Nº: {{ medio.cuenta_bancaria.numero_cuenta }}, Banco: {{ medio.cuenta_bancaria.banco }}, Alias: {{ medio.cuenta_bancaria.alias_cbu }}
                         {% elif medio.tipo == "tarjeta" %}

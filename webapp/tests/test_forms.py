@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from webapp.forms import (
     RegistrationForm, LoginForm, UserUpdateForm, 
     ClienteForm, ClienteUpdateForm, AsignarClienteForm,
-    TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm
+    TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm
 )
 from webapp.models import Cliente, Categoria, ClienteUsuario
 

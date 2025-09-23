@@ -182,31 +182,27 @@ def create_default_cobro_types(sender, **kwargs):
 @receiver(post_migrate)
 def crear_entidades_genericas(sender, **kwargs):
     """
-    Crea entidades genéricas tras migraciones:
+    Crea entidades genéricas si no existen:
     - Bancos
-    - Compañías de billeteras (telco) de Paraguay
-    Solo se crean si no existen ya.
+    - Compañías de billetera/telefonía
     """
     if sender.name != 'webapp':
-        return  # Solo ejecutar para la app webapp
+        return
 
     bancos = [
-        "Banco Nacional de Fomento",
-        "Banco Itaú Paraguay",
-        "Banco Continental",
-        "Banco Familiar",
-        "Banco GNB Paraguay"
+        "Banco Nacional de Paraguay",
+        "Banco Regional",
+        "Banco Continental"
     ]
 
     billeteras = [
-        "Tigo Money",
-        "Personal Pay",
         "Bancard Wallet",
-        "Claro Wallet"
+        "Tigo Money",
+        "Personal Wallet"
     ]
 
     for nombre in bancos:
-        Entidad.objects.get_or_create(nombre=nombre, tipo='banco')
+        Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "banco", "activo": True})
 
     for nombre in billeteras:
-        Entidad.objects.get_or_create(nombre=nombre, tipo='billetera')
+        Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "billetera", "activo": True})
