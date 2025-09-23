@@ -236,6 +236,28 @@ class Categoria(models.Model):
         # Muestra el nombre y el descuento en porcentaje sin decimales
         return f"{self.nombre} ({self.descuento * 100:.0f}%)"
 
+# ------------------------------
+# Nueva clase Entidad
+# ------------------------------
+class Entidad(models.Model):
+    TIPO_CHOICES = [
+        ("banco", "Banco"),
+        ("telefono", "Entidad Telefónica"),
+    ]
+
+    nombre = models.CharField(max_length=100, unique=True, verbose_name="Nombre")
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, verbose_name="Tipo de Entidad")
+    activo = models.BooleanField(default=True, verbose_name="Activo")  
+
+    class Meta:
+        db_table = "entidades"
+        verbose_name = "Entidad"
+        verbose_name_plural = "Entidades"
+
+    def __str__(self):
+        return f"{self.nombre} ({self.get_tipo_display()})"
+
+
 
 # -------------------------------------
 # Modelo de medios de pago genérico
@@ -327,200 +349,117 @@ class MedioPago(models.Model):
 # -------------------------------------
 # Modelos específicos por tipo de medio de pago
 # -------------------------------------
-
 class Tarjeta(models.Model):
-    # Relación con el medio de pago genérico
     medio_pago = models.OneToOneField(
-        MedioPago,
+        "MedioPago",
         on_delete=models.CASCADE,
         related_name="tarjeta",
         verbose_name="Medio de Pago"
     )
-    
-    # Número de tarjeta tokenizado (por seguridad)
-    numero_tokenizado = models.CharField(
-        max_length=50,
-        verbose_name="Número Tokenizado",
-        help_text="Número de tarjeta encriptado/tokenizado"
-    )
-    
-    # Banco emisor
-    banco = models.CharField(
-        max_length=100,
+    numero_tokenizado = models.CharField(max_length=50, verbose_name="Número Tokenizado")
+    fecha_vencimiento = models.DateField(verbose_name="Fecha de Vencimiento")
+    ultimos_digitos = models.CharField(max_length=4, verbose_name="Últimos 4 Dígitos")
+
+    entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "banco"},
         verbose_name="Banco Emisor"
     )
-    
-    # Fecha de vencimiento
-    fecha_vencimiento = models.DateField(
-        verbose_name="Fecha de Vencimiento"
-    )
-    
-    # Últimos 4 dígitos para identificación (sin tokenizar)
-    ultimos_digitos = models.CharField(
-        max_length=4,
-        verbose_name="Últimos 4 Dígitos"
-    )
 
-    moneda = models.ForeignKey(
-        Currency,
-        on_delete=models.PROTECT,
-        verbose_name="Moneda",
-        editable=False,
-        default=1 #ID de la moneda por defecto
-    )
+    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
 
-    #activo = models.BooleanField(default=True, verbose_name="Activo")
-    #comision = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Comisión (%)")
-    
     class Meta:
         db_table = "tarjetas"
         verbose_name = "Tarjeta"
         verbose_name_plural = "Tarjetas"
-    
+
     def __str__(self):
-        return f"{self.medio_pago.nombre} - ****{self.ultimos_digitos}"
+        return f"{self.medio_pago.nombre} - ****{self.ultimos_digitos} ({self.entidad.nombre})"
 
 
 class Billetera(models.Model):
-    # Relación con el medio de pago genérico
     medio_pago = models.OneToOneField(
-        MedioPago,
+        "MedioPago",
         on_delete=models.CASCADE,
         related_name="billetera",
         verbose_name="Medio de Pago"
     )
-    
-    # Número de celular asociado
-    numero_celular = models.CharField(
-        max_length=20,
-        verbose_name="Número de Celular"
-    )
-    
-    # Proveedor de la billetera (Mercado Pago, PayPal, etc.)
-    proveedor = models.CharField(
-        max_length=100,
+    numero_celular = models.CharField(max_length=20, verbose_name="Número de Celular")
+
+    entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "telefono"},
         verbose_name="Proveedor"
     )
 
-    moneda = models.ForeignKey(
-        Currency,
-        on_delete=models.PROTECT,
-        verbose_name="Moneda",
-        editable=False,
-        default=1 #ID de la moneda por defecto
-    )
+    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
 
-    
     class Meta:
         db_table = "billeteras"
         verbose_name = "Billetera"
         verbose_name_plural = "Billeteras"
 
-    #activo = models.BooleanField(default=True, verbose_name="Activo")
-    #comision = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Comisión (%)")
-    
     def __str__(self):
-        return f"{self.medio_pago.nombre} - {self.proveedor}"
+        return f"{self.medio_pago.nombre} - {self.entidad.nombre}"
 
 
 class CuentaBancaria(models.Model):
-    # Relación con el medio de pago genérico
     medio_pago = models.OneToOneField(
-        MedioPago,
+        "MedioPago",
         on_delete=models.CASCADE,
         related_name="cuenta_bancaria",
         verbose_name="Medio de Pago"
     )
-    
-    # Número de cuenta
-    numero_cuenta = models.CharField(
-        max_length=50,
-        verbose_name="Número de Cuenta"
-    )
-    
-    # Banco
-    banco = models.CharField(
-        max_length=100,
+    numero_cuenta = models.CharField(max_length=50, verbose_name="Número de Cuenta")
+    alias_cbu = models.CharField(max_length=50, verbose_name="Alias/CBU")
+
+    entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "banco"},
         verbose_name="Banco"
     )
-    
-    # Alias o CBU
-    alias_cbu = models.CharField(
-        max_length=50,
-        verbose_name="Alias/CBU"
-    )
 
-    moneda = models.ForeignKey(
-        Currency,
-        on_delete=models.PROTECT,
-        verbose_name="Moneda",
-        editable=False,
-        default=1 #ID de la moneda por defecto
-    )
+    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
 
-    #activo = models.BooleanField(default=True, verbose_name="Activo")
-    #comision = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Comisión (%)")
-    
     class Meta:
         db_table = "cuentas_bancarias"
         verbose_name = "Cuenta Bancaria"
         verbose_name_plural = "Cuentas Bancarias"
-    
+
     def __str__(self):
-        return f"{self.medio_pago.nombre} - {self.banco}"
+        return f"{self.medio_pago.nombre} - {self.entidad.nombre}"
 
 
 class Cheque(models.Model):
-    # Relación con el medio de pago genérico
     medio_pago = models.OneToOneField(
-        MedioPago,
+        "MedioPago",
         on_delete=models.CASCADE,
         related_name="cheque",
         verbose_name="Medio de Pago"
     )
-    
-    # Número de cheque
-    numero_cheque = models.CharField(
-        max_length=50,
-        verbose_name="Número de Cheque"
-    )
-    
-    # Banco emisor
-    banco_emisor = models.CharField(
-        max_length=100,
+    numero_cheque = models.CharField(max_length=50, verbose_name="Número de Cheque")
+    fecha_vencimiento = models.DateField(verbose_name="Fecha de Vencimiento")
+    monto = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="Monto")
+
+    entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "banco"},
         verbose_name="Banco Emisor"
     )
-    
-    # Fecha de vencimiento
-    fecha_vencimiento = models.DateField(
-        verbose_name="Fecha de Vencimiento"
-    )
-    
-    # Monto del cheque
-    monto = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-        verbose_name="Monto"
-    )
 
-    moneda = models.ForeignKey(
-        Currency,
-        on_delete=models.PROTECT,
-        verbose_name="Moneda",
-        editable=False,
-        default=1 #ID de la moneda por defecto
-    )
+    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
 
-    #activo = models.BooleanField(default=True, verbose_name="Activo")
-    #comision = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="Comisión (%)")
-    
     class Meta:
         db_table = "cheques"
         verbose_name = "Cheque"
         verbose_name_plural = "Cheques"
-    
+
     def __str__(self):
-        return f"{self.medio_pago.nombre} - {self.numero_cheque}"
+        return f"{self.medio_pago.nombre} - {self.numero_cheque} ({self.entidad.nombre})"
 
 
 # Administracion de metodo de pago global (para admin)
@@ -696,172 +635,119 @@ class MedioCobro(models.Model):
 
 
 # -------------------------------------
-# Modelos específicos por tipo de método de cobro
+# Administración de métodos de cobro
 # -------------------------------------
-
 class TarjetaCobro(models.Model):
     medio_cobro = models.OneToOneField(
-        MedioCobro,
+        "MedioCobro",
         on_delete=models.CASCADE,
         related_name="tarjeta_cobro",
         verbose_name="Método de Cobro"
     )
-    
-    numero_tokenizado = models.CharField(
-        max_length=50,
-        verbose_name="Número Tokenizado",
-        help_text="Número de tarjeta encriptado/tokenizado"
-    )
-    
-    banco = models.CharField(
-        max_length=100,
+    numero_tokenizado = models.CharField(max_length=50, verbose_name="Número Tokenizado")
+    fecha_vencimiento = models.DateField(verbose_name="Fecha de Vencimiento")
+    ultimos_digitos = models.CharField(max_length=4, verbose_name="Últimos 4 Dígitos")
+
+    entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "banco"},
         verbose_name="Banco Emisor"
     )
-    
-    fecha_vencimiento = models.DateField(
-        verbose_name="Fecha de Vencimiento"
-    )
-    
-    ultimos_digitos = models.CharField(
-        max_length=4,
-        verbose_name="Últimos 4 Dígitos"
-    )
 
-    moneda = models.ForeignKey(
-        Currency,
-        on_delete=models.PROTECT,
-        verbose_name="Moneda",
-        editable=False,
-        default=1
-    )
-    
+    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
+
     class Meta:
         db_table = "tarjetas_cobro"
         verbose_name = "Tarjeta de Cobro"
         verbose_name_plural = "Tarjetas de Cobro"
-    
+
     def __str__(self):
-        return f"{self.medio_cobro.nombre} - ****{self.ultimos_digitos}"
+        return f"{self.medio_cobro.nombre} - ****{self.ultimos_digitos} ({self.entidad.nombre})"
 
 
 class BilleteraCobro(models.Model):
     medio_cobro = models.OneToOneField(
-        MedioCobro,
+        "MedioCobro",
         on_delete=models.CASCADE,
         related_name="billetera_cobro",
         verbose_name="Método de Cobro"
     )
-    
-    numero_celular = models.CharField(
-        max_length=20,
-        verbose_name="Número de Celular"
-    )
-    
-    proveedor = models.CharField(
-        max_length=100,
+    numero_celular = models.CharField(max_length=20, verbose_name="Número de Celular")
+
+    entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "telefono"},
         verbose_name="Proveedor"
     )
 
-    moneda = models.ForeignKey(
-        Currency,
-        on_delete=models.PROTECT,
-        verbose_name="Moneda",
-        editable=False,
-        default=1
-    )
+    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
 
     class Meta:
         db_table = "billeteras_cobro"
         verbose_name = "Billetera de Cobro"
         verbose_name_plural = "Billeteras de Cobro"
-    
+
     def __str__(self):
-        return f"{self.medio_cobro.nombre} - {self.proveedor}"
+        return f"{self.medio_cobro.nombre} - {self.entidad.nombre}"
 
 
 class CuentaBancariaCobro(models.Model):
     medio_cobro = models.OneToOneField(
-        MedioCobro,
+        "MedioCobro",
         on_delete=models.CASCADE,
         related_name="cuenta_bancaria_cobro",
         verbose_name="Método de Cobro"
     )
-    
-    numero_cuenta = models.CharField(
-        max_length=50,
-        verbose_name="Número de Cuenta"
-    )
-    
-    banco = models.CharField(
-        max_length=100,
+    numero_cuenta = models.CharField(max_length=50, verbose_name="Número de Cuenta")
+    alias_cbu = models.CharField(max_length=50, verbose_name="Alias/CBU")
+
+    entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "banco"},
         verbose_name="Banco"
     )
-    
-    alias_cbu = models.CharField(
-        max_length=50,
-        verbose_name="Alias/CBU"
-    )
 
-    moneda = models.ForeignKey(
-        Currency,
-        on_delete=models.PROTECT,
-        verbose_name="Moneda",
-        editable=False,
-        default=1
-    )
-    
+    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
+
     class Meta:
         db_table = "cuentas_bancarias_cobro"
         verbose_name = "Cuenta Bancaria de Cobro"
         verbose_name_plural = "Cuentas Bancarias de Cobro"
-    
+
     def __str__(self):
-        return f"{self.medio_cobro.nombre} - {self.banco}"
+        return f"{self.medio_cobro.nombre} - {self.entidad.nombre}"
 
 
 class ChequeCobro(models.Model):
     medio_cobro = models.OneToOneField(
-        MedioCobro,
+        "MedioCobro",
         on_delete=models.CASCADE,
         related_name="cheque_cobro",
         verbose_name="Método de Cobro"
     )
-    
-    numero_cheque = models.CharField(
-        max_length=50,
-        verbose_name="Número de Cheque"
-    )
-    
-    banco_emisor = models.CharField(
-        max_length=100,
+    numero_cheque = models.CharField(max_length=50, verbose_name="Número de Cheque")
+    fecha_vencimiento = models.DateField(verbose_name="Fecha de Vencimiento")
+    monto = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="Monto")
+
+    entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "banco"},
         verbose_name="Banco Emisor"
     )
-    
-    fecha_vencimiento = models.DateField(
-        verbose_name="Fecha de Vencimiento"
-    )
-    
-    monto = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-        verbose_name="Monto"
-    )
 
-    moneda = models.ForeignKey(
-        Currency,
-        on_delete=models.PROTECT,
-        verbose_name="Moneda",
-        editable=False,
-        default=1
-    )
-    
+    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
+
     class Meta:
         db_table = "cheques_cobro"
         verbose_name = "Cheque de Cobro"
         verbose_name_plural = "Cheques de Cobro"
-    
+
     def __str__(self):
-        return f"{self.medio_cobro.nombre} - {self.numero_cheque}"
+        return f"{self.medio_cobro.nombre} - {self.numero_cheque} ({self.entidad.nombre})"
 
 
 # Administración de método de cobro global (para admin)
@@ -877,3 +763,4 @@ class TipoCobro(models.Model):
 
     def __str__(self):
         return self.nombre
+

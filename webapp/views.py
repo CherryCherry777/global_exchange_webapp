@@ -22,7 +22,7 @@ from webapp.emails import send_activation_email
 from .forms import BilleteraCobroForm, ChequeCobroForm, CuentaBancariaCobroForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoCobro, TipoPago, LimiteIntercambio
+from .models import Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoCobro, TipoPago, LimiteIntercambio
 from django.contrib.auth.decorators import permission_required
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 
@@ -2603,3 +2603,36 @@ def modify_cobro_method(request, cobro_method_id):
     }
     
     return render(request, "webapp/modify_cobro_method.html", context)
+
+# ENTIDADES BANCARIAS Y TELEFONICAS PARA MEDIOS DE PAGO O COBRO
+@login_required
+class EntidadListView(ListView):
+    model = Entidad
+    template_name = "entidades/entidad_list.html"
+    context_object_name = "entidades"
+    ordering = ["nombre"]
+
+@login_required
+class EntidadCreateView(CreateView):
+    model = Entidad
+    fields = ["nombre", "tipo", "activo"]
+    template_name = "entidades/entidad_form.html"
+    success_url = reverse_lazy("entidad_list")
+
+@login_required
+class EntidadUpdateView(UpdateView):
+    model = Entidad
+    fields = ["nombre", "tipo", "activo"]
+    template_name = "entidades/entidad_form.html"
+    success_url = reverse_lazy("entidad_list")
+
+
+@login_required
+class EntidadToggleActivoView(View):
+    """Activa o desactiva una entidad sin eliminarla"""
+
+    def post(self, request, pk):
+        entidad = get_object_or_404(Entidad, pk=pk)
+        entidad.activo = not entidad.activo
+        entidad.save()
+        return redirect("entidad_list")

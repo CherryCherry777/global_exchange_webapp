@@ -1,0 +1,52 @@
+{% extends "webapp/base.html" %}
+{% block title %}Administrar Entidades{% endblock %}
+
+{% block content %}
+<div class="admin-page-container">
+    <div class="admin-header">
+        <h2>Administrar Entidades</h2>
+        <a href="{% url 'entidad_add' %}" class="btn btn-primary">Agregar Entidad</a>
+    </div>
+
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for entidad in entidades %}
+            <tr>
+                <td>{{ entidad.nombre }}</td>
+                <td>{{ entidad.get_tipo_display }}</td>
+                <td>
+                    {% if entidad.activo %}
+                        <span class="badge bg-success">Activo</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inactivo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'entidad_edit' entidad.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                    <form method="post" action="{% url 'entidad_toggle' entidad.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        {% if entidad.activo %}
+                        <button type="submit" class="btn btn-sm btn-secondary">Desactivar</button>
+                        {% else %}
+                        <button type="submit" class="btn btn-sm btn-success">Activar</button>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">No hay entidades registradas.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
