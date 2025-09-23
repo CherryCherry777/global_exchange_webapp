@@ -1,29 +1,29 @@
+from datetime import timezone
 from django import forms
 from django.db import IntegrityError, models
 from django.forms import modelformset_factory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.core.mail import send_mail
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.views import LoginView, LogoutView
+from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import BilleteraCobroForm, ChequeCobroForm, CuentaBancariaCobroForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, TransaccionForm
+from .forms import BilleteraCobroForm, ConversionForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoCobro, TipoPago, LimiteIntercambio, Transaccion
-from django.contrib.auth.decorators import permission_required
+from .models import Conversion, Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 
 User = get_user_model()
@@ -57,31 +57,47 @@ def public_home(request):
     if currencies.exists():
         last_update = currencies.order_by('-updated_at').first().updated_at
     
+    is_guest = not request.user.is_authenticated
+
     return render(request, "webapp/home.html", {
         "can_access_gestiones": can_access_gestiones,
         "currencies": currencies,
-        "last_update": last_update
+        "last_update": last_update,
+        "is_guest": is_guest
     })
 
 @require_GET
 def api_active_currencies(request):
-        
-    # 1. Buscar todas las monedas activas en tu DB
-    qs = Currency.objects.filter(is_active=True)
+    user = request.user
+    descuento = Decimal('0')  # Por defecto para invitados
 
+    if user.is_authenticated:
+        try:
+            # Obtener cliente asociado al usuario
+            cliente_usuario = ClienteUsuario.objects.filter(usuario=user).select_related('cliente__categoria').first()
+            if cliente_usuario and cliente_usuario.cliente.categoria:
+                descuento = cliente_usuario.cliente.categoria.descuento or Decimal('0')
+        except Exception:
+            descuento = Decimal('0')
+
+    qs = Currency.objects.filter(is_active=True)
     items = []
+
     for c in qs:
-        # Calcular precio medio en guaraníes
         base = Decimal(c.base_price)
-        venta = base + Decimal(c.comision_venta)
-        compra = base - Decimal(c.comision_compra)
+        com_venta = Decimal(c.comision_venta)
+        com_compra = Decimal(c.comision_compra)
+
+        # Aplicar fórmulas según descuento del cliente
+        venta = base + (com_venta * (1 - descuento))
+        compra = base - (com_compra * (1 - descuento))
         mid = (venta + compra) / Decimal("2")
 
         items.append({
-            "code": c.code,                   # USD, EUR, etc.
-            "name": c.name,                   # Dólar, Euro
+            "code": c.code,
+            "name": c.name,
             "decimals": int(c.decimales_monto or 2),
-            "pyg_per_unit": float(mid),       # cuánto vale 1 de esa moneda en PYG
+            "pyg_per_unit": float(mid),
         })
 
     # Asegurar que PYG siempre exista
@@ -94,6 +110,7 @@ def api_active_currencies(request):
         })
 
     return JsonResponse({"items": items})
+
 
 def register(request):
     if request.method == "POST":
@@ -993,8 +1010,6 @@ def edit_profile(request):
 
 @login_required
 def landing_page(request):
-    from django.contrib.auth import get_user_model
-    from .models import Currency, Cliente
     
     User = get_user_model()
     
@@ -1237,8 +1252,6 @@ def add_payment_method_deprecado(request, cliente_id, tipo):
                     form = BilleteraForm(request.POST)
                 elif tipo == 'cuenta_bancaria':
                     form = CuentaBancariaForm(request.POST)
-                elif tipo == 'cheque':
-                    form = ChequeForm(request.POST)
                 else:
                     messages.error(request, "Tipo de medio de pago no válido")
                     return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1264,8 +1277,6 @@ def add_payment_method_deprecado(request, cliente_id, tipo):
                 form = BilleteraForm()
             elif tipo == 'cuenta_bancaria':
                 form = CuentaBancariaForm()
-            elif tipo == 'cheque':
-                form = ChequeForm()
             else:
                 messages.error(request, "Tipo de medio de pago no válido")
                 return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1318,13 +1329,6 @@ def edit_payment_method_deprecado(request, cliente_id, medio_pago_id):
                     except CuentaBancaria.DoesNotExist:
                         form = CuentaBancariaForm(request.POST)
                         medio_especifico = None
-                elif medio_pago.tipo == 'cheque':
-                    try:
-                        medio_especifico = medio_pago.cheque
-                        form = ChequeForm(request.POST, instance=medio_especifico)
-                    except Cheque.DoesNotExist:
-                        form = ChequeForm(request.POST)
-                        medio_especifico = None
                 else:
                     messages.error(request, "Tipo de medio de pago no válido")
                     return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1363,12 +1367,6 @@ def edit_payment_method_deprecado(request, cliente_id, medio_pago_id):
                     form = CuentaBancariaForm(instance=medio_especifico)
                 except CuentaBancaria.DoesNotExist:
                     form = CuentaBancariaForm()
-            elif medio_pago.tipo == 'cheque':
-                try:
-                    medio_especifico = medio_pago.cheque
-                    form = ChequeForm(instance=medio_especifico)
-                except Cheque.DoesNotExist:
-                    form = ChequeForm()
             else:
                 messages.error(request, "Tipo de medio de pago no válido")
                 return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1390,7 +1388,6 @@ FORM_MAP = {
     'tarjeta': TarjetaForm,
     'billetera': BilleteraForm,
     'cuenta_bancaria': CuentaBancariaForm,
-    'cheque': ChequeForm
 }
 
 @login_required
@@ -1411,6 +1408,7 @@ def my_payment_methods(request):
         "medios_pago": medios_pago
     })
 
+
 @login_required
 def manage_payment_method(request, tipo, medio_pago_id=None):
     """
@@ -1426,7 +1424,6 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
         'tarjeta': TarjetaForm,
         'billetera': BilleteraForm,
         'cuenta_bancaria': CuentaBancariaForm,
-        'cheque': ChequeForm
     }
     form_class = FORM_MAP.get(tipo)
     if not form_class:
@@ -1453,13 +1450,13 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
         if form.is_valid() and medio_pago_form.is_valid():
             if is_edit:
                 medio_pago_form.save()
-                obj = form.save()
+                form.save()
                 messages.success(request, f"Método de pago '{medio_pago.nombre}' modificado correctamente")
             else:
                 moneda_id = request.POST.get("moneda")
                 if not moneda_id:
                     messages.error(request, "Debe seleccionar una moneda")
-                    monedas = Currency.objects.filter(is_active=True)
+                    monedas = Currency.objects.filter(activo=True)
                     return render(request, "webapp/manage_payment_method_base.html", {
                         "tipo": tipo,
                         "form": form,
@@ -1475,7 +1472,7 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
                     moneda=moneda
                 )
                 obj = form.save(commit=False)
-                setattr(obj, "medio_pago", mp)
+                obj.medio_pago = mp
                 obj.save()
                 messages.success(request, f"Método de pago '{mp.nombre}' agregado correctamente")
 
@@ -1498,9 +1495,6 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
 
 @login_required
 def confirm_delete_payment_method(request, medio_pago_id):
-    """
-    Muestra una página de confirmación antes de eliminar un medio de pago.
-    """
     cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
     if not cliente_usuario:
         raise Http404("No tienes un cliente asociado.")
@@ -1510,7 +1504,6 @@ def confirm_delete_payment_method(request, medio_pago_id):
     tipo = medio_pago.tipo
 
     if request.method == "POST":
-        # Eliminar el medio de pago confirmado
         medio_pago.delete()
         messages.success(request, f"Medio de pago '{medio_pago.nombre}' eliminado correctamente")
         return redirect('my_payment_methods')
@@ -1519,7 +1512,6 @@ def confirm_delete_payment_method(request, medio_pago_id):
         "medio_pago": medio_pago,
         "tipo": tipo
     })
-
 
 # ADMINISTRACION GLOBAL DE METODOS DE PAGO
 
@@ -1541,74 +1533,56 @@ def edit_payment_type(request, tipo_id):
     return render(request, "webapp/edit_payment_type.html", {"form": form, "tipo": tipo})
 
 
-# ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR CATEGORIA DE CLIENTE
+# ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR DIA Y POR MES
 
+# LISTADO DE LÍMITES
 @login_required
 def limites_intercambio_list(request):
     monedas = Currency.objects.all().order_by('code')
-    
-    # Obtener todas las categorías dinámicamente
-    categorias = Categoria.objects.all().order_by('id')
-
     tabla = []
+
     for moneda in monedas:
-        fila = {'moneda': moneda, 'limites': {}}
-        for categoria in categorias:
-            limite, _ = LimiteIntercambio.objects.get_or_create(
-                moneda=moneda,
-                categoria=categoria,
-                defaults={'monto_min': Decimal('0'), 'monto_max': Decimal('0')}
-            )
-            fila['limites'][categoria.nombre] = {
-                'min': limite.monto_min,
-                'max': limite.monto_max,
-            }
-        tabla.append(fila)
+        limite, _ = LimiteIntercambio.objects.get_or_create(
+            moneda=moneda,
+            defaults={'limite_dia': 0, 'limite_mes': 0}
+        )
+        tabla.append({
+            'moneda': moneda,
+            'limite_dia': limite.limite_dia,
+            'limite_mes': limite.limite_mes
+        })
 
     return render(request, 'webapp/limites_intercambio.html', {
-        'tabla': tabla,
-        'categorias': categorias,
+        'tabla': tabla
     })
 
 
+# EDITAR LÍMITES
 @login_required
 def limite_edit(request, moneda_id):
     moneda = get_object_or_404(Currency, id=moneda_id)
-    categorias = Categoria.objects.all().order_by('id')
-
-    # Crear límites por defecto si no existen
-    limites = {}
-    for categoria in categorias:
-        limite, _ = LimiteIntercambio.objects.get_or_create(
-            moneda=moneda,
-            categoria=categoria,
-            defaults={'monto_min': 0, 'monto_max': 0}
-        )
-        limites[categoria.nombre] = limite
+    limite, _ = LimiteIntercambio.objects.get_or_create(
+        moneda=moneda,
+        defaults={'limite_dia': 0, 'limite_mes': 0}
+    )
 
     if request.method == "POST":
         dec = moneda.decimales_cotizacion
         errores = False
+        try:
+            limite_dia = Decimal(request.POST.get('limite_dia', 0)).quantize(
+                Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
+            )
+            limite_mes = Decimal(request.POST.get('limite_mes', 0)).quantize(
+                Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
+            )
 
-        for categoria in categorias:
-            min_key = f"{categoria.nombre}_min"
-            max_key = f"{categoria.nombre}_max"
-            try:
-                monto_min = Decimal(request.POST.get(min_key)).quantize(
-                    Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
-                )
-                monto_max = Decimal(request.POST.get(max_key)).quantize(
-                    Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
-                )
-
-                limite = limites[categoria.nombre]
-                limite.monto_min = monto_min
-                limite.monto_max = monto_max
-                limite.save()
-
-            except Exception as e:
-                errores = True
-                messages.error(request, f"Error en categoría {categoria.nombre}: {e}")
+            limite.limite_dia = limite_dia
+            limite.limite_mes = limite_mes
+            limite.save()
+        except Exception as e:
+            errores = True
+            messages.error(request, f"Error al guardar los límites: {e}")
 
         if not errores:
             messages.success(request, "Límites actualizados correctamente.")
@@ -1616,9 +1590,9 @@ def limite_edit(request, moneda_id):
 
     return render(request, "webapp/limite_edit.html", {
         "moneda": moneda,
-        "categorias": categorias,
-        "limites": limites,
+        "limite": limite
     })
+
 
 # ===========================================
 # MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
@@ -1628,7 +1602,6 @@ FORM_MAP = {
     'tarjeta': TarjetaCobroForm,
     'billetera': BilleteraCobroForm,
     'cuenta_bancaria': CuentaBancariaCobroForm,
-    'cheque': ChequeCobroForm
 }
 
 @login_required
@@ -1640,33 +1613,26 @@ def my_cobro_methods(request):
 
     medios_cobro = MedioCobro.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
 
-    # Adjuntar estado global desde TipoPago
     tipos_pago = {tp.nombre.lower(): tp.activo for tp in TipoPago.objects.all()}
     for medio in medios_cobro:
         medio.activo_global = tipos_pago.get(medio.tipo, False)
 
-    return render(request, "webapp/my_cobro_methods.html", {  # Puedes cambiar el template si quieres
+    return render(request, "webapp/my_cobro_methods.html", {
         "medios_cobro": medios_cobro
     })
 
 
 @login_required
 def manage_cobro_method(request, tipo, medio_cobro_id=None):
-    """
-    Maneja creación y edición de métodos de cobro.
-    La moneda solo se puede elegir al crear.
-    """
     cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
     if not cliente_usuario:
         raise Http404("No tienes un cliente asociado.")
     cliente = cliente_usuario.cliente
 
-    # Selección del formulario específico según tipo
     FORM_MAP = {
         'tarjeta': TarjetaCobroForm,
         'billetera': BilleteraCobroForm,
         'cuenta_bancaria': CuentaBancariaCobroForm,
-        'cheque': ChequeCobroForm
     }
     form_class = FORM_MAP.get(tipo)
     if not form_class:
@@ -1693,14 +1659,13 @@ def manage_cobro_method(request, tipo, medio_cobro_id=None):
         if form.is_valid() and medio_cobro_form.is_valid():
             if is_edit:
                 medio_cobro_form.save()
-                obj = form.save()
+                form.save()
                 messages.success(request, f"Método de cobro '{medio_cobro.nombre}' modificado correctamente")
             else:
-                # Crear MedioCobro
                 moneda_id = request.POST.get("moneda")
                 if not moneda_id:
                     messages.error(request, "Debe seleccionar una moneda")
-                    monedas = Currency.objects.filter(is_active=True)
+                    monedas = Currency.objects.filter(activo=True)
                     return render(request, "webapp/manage_cobro_method_base.html", {
                         "tipo": tipo,
                         "form": form,
@@ -1709,23 +1674,23 @@ def manage_cobro_method(request, tipo, medio_cobro_id=None):
                         "monedas": monedas
                     })
                 moneda = get_object_or_404(Currency, id=moneda_id)
-                mp = MedioCobro.objects.create(
+                mc = MedioCobro.objects.create(
                     cliente=cliente,
                     tipo=tipo,
                     nombre=medio_cobro_form.cleaned_data['nombre'],
                     moneda=moneda
                 )
                 obj = form.save(commit=False)
-                setattr(obj, "medio_cobro", mp)
+                obj.medio_cobro = mc
                 obj.save()
-                messages.success(request, f"Método de cobro '{mp.nombre}' agregado correctamente")
+                messages.success(request, f"Método de cobro '{mc.nombre}' agregado correctamente")
 
             return redirect('my_cobro_methods')
     else:
         form = form_class(instance=cobro_obj)
         medio_cobro_form = MedioCobroForm(instance=medio_cobro)
 
-    monedas = Currency.objects.filter(is_active=True)
+    monedas = Currency.objects.filter(activo=True)
 
     return render(request, "webapp/manage_cobro_method_base.html", {
         "tipo": tipo,
@@ -1737,12 +1702,8 @@ def manage_cobro_method(request, tipo, medio_cobro_id=None):
     })
 
 
-
 @login_required
 def confirm_delete_cobro_method(request, medio_cobro_id):
-    """
-    Muestra una página de confirmación antes de eliminar un método de cobro.
-    """
     cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
     if not cliente_usuario:
         raise Http404("No tienes un cliente asociado.")
@@ -1756,10 +1717,12 @@ def confirm_delete_cobro_method(request, medio_cobro_id):
         messages.success(request, f"Método de cobro '{medio_cobro.nombre}' eliminado correctamente")
         return redirect('my_cobro_methods')
 
-    return render(request, "webapp/confirm_delete_cobro_method.html", {  # Puedes renombrar template si quieres
+    return render(request, "webapp/confirm_delete_cobro_method.html", {
         "medio_cobro": medio_cobro,
         "tipo": tipo
     })
+
+# Administracion de metodos de cobro (Vista de admin)
 
 @login_required
 def cobro_types_list(request):
@@ -1777,6 +1740,8 @@ def edit_cobro_type(request, tipo_id):
     else:
         form = TipoCobroForm(instance=tipo)
     return render(request, "webapp/edit_cobro_type.html", {"form": form, "tipo": tipo})
+
+# Administracion de roles
 
 @login_required
 @role_required("Administrador")
@@ -2170,14 +2135,19 @@ def modify_category(request, category_id):
                 messages.error(request, "Todos los campos son obligatorios.")
                 return redirect("modify_category", category_id=category_id)
             
-            descuento = int(descuento)
+            descuento = Decimal(descuento)
             if descuento < 0 or descuento > 100:
                 messages.error(request, "El descuento debe estar entre 0 y 100.")
                 return redirect("modify_category", category_id=category_id)
             
+            # Validar máximo 1 decimal
+            if descuento.as_tuple().exponent < -1:  # ej: -2 sería 2 decimales
+                messages.error(request, "El descuento solo puede tener como máximo 1 decimal (ej: 10.5, no 10.55).")
+                return redirect("modify_category", category_id=category_id)
+            
             # Actualizar categoría
             categoria.nombre = nombre
-            categoria.descuento = descuento
+            categoria.descuento = descuento / 100
             categoria.save()
             
             messages.success(request, f"Categoría '{categoria.nombre}' actualizada correctamente.")
@@ -2631,3 +2601,49 @@ def compraventa_view(request):
         form = TransaccionForm()
 
     return render(request, "webapp/compraventa.html", {"form": form})
+# ENTIDADES BANCARIAS Y TELEFONICAS PARA MEDIOS DE PAGO O COBRO
+@login_required
+def entidad_list(request):
+    entidades = Entidad.objects.all().order_by("nombre")
+    return render(request, "webapp/entidad_list.html", {"entidades": entidades})
+
+
+@login_required
+def entidad_create(request):
+    if request.method == "POST":
+        form = EntidadForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Entidad creada correctamente")
+            return redirect("entidad_list")
+    else:
+        form = EntidadForm()
+
+    return render(request, "webapp/entidad_form.html", {"form": form})
+
+
+@login_required
+def entidad_update(request, pk):
+    entidad = get_object_or_404(Entidad, pk=pk)
+
+    if request.method == "POST":
+        form = EntidadEditForm(request.POST, instance=entidad)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Entidad actualizada correctamente")
+            return redirect("entidad_list")
+    else:
+        form = EntidadEditForm(instance=entidad)
+
+    return render(request, "webapp/entidad_form.html", {"form": form, "entidad": entidad})
+
+
+@login_required
+def entidad_toggle(request, pk):
+    entidad = get_object_or_404(Entidad, pk=pk)
+    entidad.activo = not entidad.activo
+    entidad.save()
+    messages.success(request, f"Entidad '{entidad.nombre}' actualizada correctamente")
+    return redirect("entidad_list")
+
+

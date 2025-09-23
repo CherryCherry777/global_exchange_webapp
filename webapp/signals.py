@@ -4,7 +4,7 @@ from django.db.models.signals import post_migrate, post_save
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
-from .models import Role, MedioPago, TipoPago
+from .models import Billetera, Entidad, Role, MedioPago, TipoPago
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
 
@@ -75,7 +75,7 @@ def create_default_payment_types(sender, **kwargs):
     defaults = {"activo": True, "comision": 0.0}
     
     # Lista de tipos de pago fijos
-    tipos = ["Billetera", "Cheque", "Cuenta Bancaria", "Tarjeta"]
+    tipos = ["Billetera", "Cuenta Bancaria", "Tarjeta"]
     
     for nombre in tipos:
         TipoPago.objects.get_or_create(nombre=nombre, defaults=defaults)
@@ -91,7 +91,6 @@ def asignar_tipo_pago(sender, instance, created, **kwargs):
 def crear_limites_intercambio(sender, **kwargs):
     # Asegurarnos de que los modelos ya estén cargados
     Currency = apps.get_model('webapp', 'Currency')
-    Categoria = apps.get_model('webapp', 'Categoria')
     LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
 
     # Evitamos ejecutarlo para apps que no sean la tuya
@@ -100,16 +99,15 @@ def crear_limites_intercambio(sender, **kwargs):
 
     # Iterar sobre todas las monedas y categorías
     for moneda in Currency.objects.all():
-        for categoria in Categoria.objects.all():
-            # Crear el límite si no existe
-            LimiteIntercambio.objects.get_or_create(
-                moneda=moneda,
-                categoria=categoria,
-                defaults={
-                    'monto_min': 0,     # valor por defecto mínimo
-                    'monto_max': 1000   # valor por defecto máximo
-                }
-            )
+        
+        # Crear el límite si no existe
+        LimiteIntercambio.objects.get_or_create(
+            moneda=moneda,
+            defaults={
+                'limite_dia': 1000,     # valor por defecto mínimo
+                'limite_mes': 1000   # valor por defecto máximo
+            }
+        )
 
 @receiver(post_save, sender='webapp.Currency')
 def crear_limites_por_moneda(sender, instance, created, **kwargs):
@@ -121,15 +119,11 @@ def crear_limites_por_moneda(sender, instance, created, **kwargs):
         return  # Solo al crear la moneda
 
     LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
-    Categoria = apps.get_model('webapp', 'Categoria')
-
-    for categoria in Categoria.objects.all():
-        LimiteIntercambio.objects.create(
-            moneda=instance,
-            categoria=categoria,
-            monto_min=0,
-            monto_max=0
-        )
+    LimiteIntercambio.objects.create(
+        moneda=instance,
+        limite_dia=0,
+        limite_mes=0
+    )
 
 
 @receiver(post_save, sender=TipoPago)
@@ -173,7 +167,36 @@ def create_default_cobro_types(sender, **kwargs):
     defaults = {"activo": True, "comision": 0.0}
     
     # Lista de tipos de pago fijos
-    tipos = ["Billetera", "Cheque", "Cuenta Bancaria", "Tarjeta"]
+    tipos = ["Billetera", "Cuenta Bancaria", "Tarjeta"]
     
     for nombre in tipos:
         TipoCobro.objects.get_or_create(nombre=nombre, defaults=defaults)
+
+
+@receiver(post_migrate)
+def crear_entidades_genericas(sender, **kwargs):
+    """
+    Crea entidades genéricas si no existen:
+    - Bancos
+    - Compañías de billetera/telefonía
+    """
+    if sender.name != 'webapp':
+        return
+
+    bancos = [
+        "Banco Nacional de Paraguay",
+        "Banco Regional",
+        "Banco Continental"
+    ]
+
+    billeteras = [
+        "Bancard Wallet",
+        "Tigo Money",
+        "Personal Wallet"
+    ]
+
+    for nombre in bancos:
+        Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "banco", "activo": True})
+
+    for nombre in billeteras:
+        Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "billetera", "activo": True})

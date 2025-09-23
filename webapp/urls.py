@@ -118,4 +118,9 @@ urlpatterns = [
     # Compraventa de divisas
     path("compraventa/", views.compraventa_view, name="compraventa"),
 
+    # Administrar entidades de medios de pago y cobro de cliente
+    path("entidades/", views.entidad_list, name="entidad_list"),
+    path("entidades/add/", views.entidad_create, name="entidad_add"),
+    path("entidades/<int:pk>/edit/", views.entidad_update, name="entidad_edit"),
+    path("entidades/<int:pk>/toggle/", views.entidad_toggle, name="entidad_toggle"),
 ]
