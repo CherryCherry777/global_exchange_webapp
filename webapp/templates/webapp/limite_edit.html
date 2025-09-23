@@ -1,5 +1,6 @@
 {% extends "webapp/base.html" %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}Editar Límites - {{ moneda.code }}{% endblock %}
 
@@ -21,20 +22,20 @@
                 <td>Límite Diario</td>
                 <td>
                     <input type="number"
-                           step="{{ '0.'|ljust:dec|add:'1' }}"
-                           name="limite_dia"
-                           value="{{ limite.limite_dia }}"
-                           required>
+                            step="{{ moneda.decimales_cotizacion|decimal_step }}"
+                            name="limite_dia"
+                            value="{{ limite.limite_dia }}"
+                            required>
                 </td>
             </tr>
             <tr>
                 <td>Límite Mensual</td>
                 <td>
                     <input type="number"
-                           step="{{ '0.'|ljust:dec|add:'1' }}"
-                           name="limite_mes"
-                           value="{{ limite.limite_mes }}"
-                           required>
+                            step="{{ moneda.decimales_cotizacion|decimal_step }}"
+                            name="limite_mes"
+                            value="{{ limite.limite_mes }}"
+                            required>
                 </td>
             </tr>
             {% endwith %}
