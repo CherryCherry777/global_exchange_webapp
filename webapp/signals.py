@@ -75,7 +75,7 @@ def create_default_payment_types(sender, **kwargs):
     defaults = {"activo": True, "comision": 0.0}
     
     # Lista de tipos de pago fijos
-    tipos = ["Billetera", "Cheque", "Cuenta Bancaria", "Tarjeta"]
+    tipos = ["Billetera", "Cuenta Bancaria", "Tarjeta"]
     
     for nombre in tipos:
         TipoPago.objects.get_or_create(nombre=nombre, defaults=defaults)
@@ -173,7 +173,7 @@ def create_default_cobro_types(sender, **kwargs):
     defaults = {"activo": True, "comision": 0.0}
     
     # Lista de tipos de pago fijos
-    tipos = ["Billetera", "Cheque", "Cuenta Bancaria", "Tarjeta"]
+    tipos = ["Billetera", "Cuenta Bancaria", "Tarjeta"]
     
     for nombre in tipos:
         TipoCobro.objects.get_or_create(nombre=nombre, defaults=defaults)
