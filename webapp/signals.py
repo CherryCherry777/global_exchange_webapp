@@ -91,7 +91,6 @@ def asignar_tipo_pago(sender, instance, created, **kwargs):
 def crear_limites_intercambio(sender, **kwargs):
     # Asegurarnos de que los modelos ya estén cargados
     Currency = apps.get_model('webapp', 'Currency')
-    Categoria = apps.get_model('webapp', 'Categoria')
     LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
 
     # Evitamos ejecutarlo para apps que no sean la tuya
@@ -100,16 +99,15 @@ def crear_limites_intercambio(sender, **kwargs):
 
     # Iterar sobre todas las monedas y categorías
     for moneda in Currency.objects.all():
-        for categoria in Categoria.objects.all():
-            # Crear el límite si no existe
-            LimiteIntercambio.objects.get_or_create(
-                moneda=moneda,
-                categoria=categoria,
-                defaults={
-                    'monto_min': 0,     # valor por defecto mínimo
-                    'monto_max': 1000   # valor por defecto máximo
-                }
-            )
+        
+        # Crear el límite si no existe
+        LimiteIntercambio.objects.get_or_create(
+            moneda=moneda,
+            defaults={
+                'limite_dia': 1000,     # valor por defecto mínimo
+                'limite_mes': 1000   # valor por defecto máximo
+            }
+        )
 
 @receiver(post_save, sender='webapp.Currency')
 def crear_limites_por_moneda(sender, instance, created, **kwargs):
@@ -121,15 +119,11 @@ def crear_limites_por_moneda(sender, instance, created, **kwargs):
         return  # Solo al crear la moneda
 
     LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
-    Categoria = apps.get_model('webapp', 'Categoria')
-
-    for categoria in Categoria.objects.all():
-        LimiteIntercambio.objects.create(
-            moneda=instance,
-            categoria=categoria,
-            monto_min=0,
-            monto_max=0
-        )
+    LimiteIntercambio.objects.create(
+        moneda=instance,
+        limite_dia=0,
+        limite_mes=0
+    )
 
 
 @receiver(post_save, sender=TipoPago)

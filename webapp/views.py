@@ -1519,74 +1519,56 @@ def edit_payment_type(request, tipo_id):
     return render(request, "webapp/edit_payment_type.html", {"form": form, "tipo": tipo})
 
 
-# ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR CATEGORIA DE CLIENTE
+# ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR DIA Y POR MES
 
+# LISTADO DE LÍMITES
 @login_required
 def limites_intercambio_list(request):
     monedas = Currency.objects.all().order_by('code')
-    
-    # Obtener todas las categorías dinámicamente
-    categorias = Categoria.objects.all().order_by('id')
-
     tabla = []
+
     for moneda in monedas:
-        fila = {'moneda': moneda, 'limites': {}}
-        for categoria in categorias:
-            limite, _ = LimiteIntercambio.objects.get_or_create(
-                moneda=moneda,
-                categoria=categoria,
-                defaults={'monto_min': Decimal('0'), 'monto_max': Decimal('0')}
-            )
-            fila['limites'][categoria.nombre] = {
-                'min': limite.monto_min,
-                'max': limite.monto_max,
-            }
-        tabla.append(fila)
+        limite, _ = LimiteIntercambio.objects.get_or_create(
+            moneda=moneda,
+            defaults={'limite_dia': 0, 'limite_mes': 0}
+        )
+        tabla.append({
+            'moneda': moneda,
+            'limite_dia': limite.limite_dia,
+            'limite_mes': limite.limite_mes
+        })
 
     return render(request, 'webapp/limites_intercambio.html', {
-        'tabla': tabla,
-        'categorias': categorias,
+        'tabla': tabla
     })
 
 
+# EDITAR LÍMITES
 @login_required
 def limite_edit(request, moneda_id):
     moneda = get_object_or_404(Currency, id=moneda_id)
-    categorias = Categoria.objects.all().order_by('id')
-
-    # Crear límites por defecto si no existen
-    limites = {}
-    for categoria in categorias:
-        limite, _ = LimiteIntercambio.objects.get_or_create(
-            moneda=moneda,
-            categoria=categoria,
-            defaults={'monto_min': 0, 'monto_max': 0}
-        )
-        limites[categoria.nombre] = limite
+    limite, _ = LimiteIntercambio.objects.get_or_create(
+        moneda=moneda,
+        defaults={'limite_dia': 0, 'limite_mes': 0}
+    )
 
     if request.method == "POST":
         dec = moneda.decimales_cotizacion
         errores = False
+        try:
+            limite_dia = Decimal(request.POST.get('limite_dia', 0)).quantize(
+                Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
+            )
+            limite_mes = Decimal(request.POST.get('limite_mes', 0)).quantize(
+                Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
+            )
 
-        for categoria in categorias:
-            min_key = f"{categoria.nombre}_min"
-            max_key = f"{categoria.nombre}_max"
-            try:
-                monto_min = Decimal(request.POST.get(min_key)).quantize(
-                    Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
-                )
-                monto_max = Decimal(request.POST.get(max_key)).quantize(
-                    Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
-                )
-
-                limite = limites[categoria.nombre]
-                limite.monto_min = monto_min
-                limite.monto_max = monto_max
-                limite.save()
-
-            except Exception as e:
-                errores = True
-                messages.error(request, f"Error en categoría {categoria.nombre}: {e}")
+            limite.limite_dia = limite_dia
+            limite.limite_mes = limite_mes
+            limite.save()
+        except Exception as e:
+            errores = True
+            messages.error(request, f"Error al guardar los límites: {e}")
 
         if not errores:
             messages.success(request, "Límites actualizados correctamente.")
@@ -1594,9 +1576,9 @@ def limite_edit(request, moneda_id):
 
     return render(request, "webapp/limite_edit.html", {
         "moneda": moneda,
-        "categorias": categorias,
-        "limites": limites,
+        "limite": limite
     })
+
 
 # ===========================================
 # MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
