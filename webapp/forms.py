@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, ChequeCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency
+from .models import BilleteraCobro, ChequeCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -780,4 +780,26 @@ class TipoCobroForm(forms.ModelForm):
         widgets = {
             "activo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "comision": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        }
+
+class TransaccionForm(forms.ModelForm):
+    class Meta:
+        model = Transaccion
+        fields = [
+            "cliente",
+            "usuario",
+            "tipo",
+            "estado",
+            "fecha_pago",
+            "moneda_origen",
+            "moneda_destino",
+            "tasa_cambio",
+            "monto_origen",
+            "monto_destino",
+            "medio_pago_type",  # necesario para GenericForeignKey
+            "medio_pago_id",    # necesario para GenericForeignKey
+            "factura_asociada",
+        ]
+        widgets = {
+            "fecha_pago": forms.DateInput(attrs={"type": "date"}),
         }

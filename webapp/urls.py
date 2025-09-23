@@ -115,4 +115,7 @@ urlpatterns = [
     path('manage-cobro-methods/', views.manage_cobro_methods, name='manage_cobro_methods'),
     path('modify-cobro-method/<int:cobro_method_id>/', views.modify_cobro_method, name='modify_cobro_method'),
 
+    # Compraventa de divisas
+    path("compraventa/", views.compraventa_view, name="compraventa"),
+
 ]

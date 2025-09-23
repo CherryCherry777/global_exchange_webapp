@@ -19,10 +19,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import BilleteraCobroForm, ChequeCobroForm, CuentaBancariaCobroForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm
+from .forms import BilleteraCobroForm, ChequeCobroForm, CuentaBancariaCobroForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoCobro, TipoPago, LimiteIntercambio
+from .models import MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoCobro, TipoPago, LimiteIntercambio, Transaccion
 from django.contrib.auth.decorators import permission_required
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 
@@ -2603,3 +2603,31 @@ def modify_cobro_method(request, cobro_method_id):
     }
     
     return render(request, "webapp/modify_cobro_method.html", context)
+
+# ===========================================
+# MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
+# ===========================================
+
+def compraventa_view(request):
+    if request.method == "POST":
+        # Paso 1: Si ya estamos confirmando
+        if "confirmar" in request.POST:
+            form = TransaccionForm(request.session.get("form_data"))
+            if form.is_valid():
+                transaccion = form.save(commit=False)
+                transaccion.fechaCreacion = timezone.now()
+                transaccion.save()
+                # limpiar la sesión
+                request.session.pop("form_data", None)
+                return redirect("transaccion_list")
+
+        # Paso 2: usuario llena el formulario y pide confirmar
+        form = TransaccionForm(request.POST)
+        if form.is_valid():
+            request.session["form_data"] = request.POST
+            return render(request, "webapp/confirmation_compraventa.html", {"form": form})
+
+    else:
+        form = TransaccionForm()
+
+    return render(request, "webapp/compraventa.html", {"form": form})

@@ -1,8 +1,11 @@
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from decimal import Decimal, ROUND_DOWN
 
 #Las clases van aqui
@@ -877,3 +880,104 @@ class TipoCobro(models.Model):
 
     def __str__(self):
         return self.nombre
+
+# ------------------------------------------------------
+# Modelo Transaccion para el registro de la compraventa
+# ------------------------------------------------------
+class Transaccion(models.Model):
+    class Tipo(models.TextChoices):
+        COMPRA = "COMPRA", "Compra"
+        VENTA = "VENTA", "Venta"
+
+    class Estado(models.TextChoices):
+        PENDIENTE = "PENDIENTE", "Pendiente"
+        PAGADA = "PAGADA", "Pagada"
+        CANCELADA = "CANCELADA", "Cancelada"
+        ANULADA = "ANULADA", "Anulada"
+
+    cliente = models.ForeignKey(
+        "Cliente",
+        on_delete=models.CASCADE,
+        related_name="transacciones"
+    )
+    usuario = models.ForeignKey(
+        "webapp.CustomUser",  # ajusta al nombre real de tu User
+        on_delete=models.CASCADE,
+        related_name="transacciones"
+    )
+    tipo = models.CharField(max_length=10, choices=Tipo.choices)
+    estado = models.CharField(
+        max_length=10,
+        choices=Estado.choices,
+        default=Estado.PENDIENTE
+    )
+    fecha_creacion = models.DateField(auto_now_add=True)
+    fecha_pago = models.DateField(null=True, blank=True)
+    fecha_actualizacion = models.DateField(auto_now=True)
+
+    moneda_origen = models.ForeignKey(
+        "Currency",
+        on_delete=models.PROTECT,
+        related_name="transacciones_origen"
+    )
+    moneda_destino = models.ForeignKey(
+        "Currency",
+        on_delete=models.PROTECT,
+        related_name="transacciones_destino"
+    )
+    
+    tasa_cambio = models.DecimalField(max_digits=12, decimal_places=4)
+    monto_origen = models.DecimalField(max_digits=15, decimal_places=2)
+    monto_destino = models.DecimalField(max_digits=15, decimal_places=2)
+
+    # Generic Foreign Key para medio de pago
+    medio_pago_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    medio_pago_id = models.PositiveIntegerField()
+    medio_pago = GenericForeignKey("medio_pago_type", "medio_pago_id")
+
+    factura_asociada = models.ForeignKey(
+        "Factura",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="transacciones"
+    )
+
+    def __str__(self):
+        return f"{self.tipo} {self.monto_origen} {self.moneda_origen} → {self.moneda_destino} ({self.estado})"
+    
+# --------------------------------------------
+# Modelos para facturación y notas de crédito
+# --------------------------------------------
+
+class Factura(models.Model):
+    ESTADOS = [
+        ("emitida", "Emitida"),
+        ("aprobada", "Aprobada"),
+        ("rechazada", "Rechazada"),
+    ]
+
+    timbrado = models.IntegerField()
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    cliente = models.ForeignKey("Cliente", on_delete=models.CASCADE)
+    fechaEmision = models.DateField(default=timezone.now)
+    detalleFactura = models.ForeignKey("DetalleFactura", on_delete=models.CASCADE)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default="emitida")
+    xml_file = models.FileField(upload_to="facturas/xml/", blank=True, null=True)
+    pdf_file = models.FileField(upload_to="facturas/pdf/", blank=True, null=True)
+
+    def __str__(self):
+        return f"Factura {self.id} - Cliente {self.cliente} ({self.estado})"
+
+class DetalleFactura(models.Model):
+    transaccion = models.ForeignKey("Transaccion", on_delete=models.CASCADE)
+    
+    # Campos para GenericForeignKey
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    medioPago = GenericForeignKey("content_type", "object_id")
+
+    descripcion = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"Detalle {self.id} - {self.descripcion}"
