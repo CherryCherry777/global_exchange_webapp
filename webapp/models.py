@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
@@ -706,3 +707,96 @@ class TipoCobro(models.Model):
     def __str__(self):
         return self.nombre
 
+
+# CONVERSION DE MONEDAS
+
+class Conversion(models.Model):
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.CASCADE,
+        related_name="conversiones",
+        verbose_name="Cliente"
+    )
+    moneda_origen = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        related_name="conversiones_origen",
+        verbose_name="Moneda Origen"
+    )
+    moneda_destino = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        related_name="conversiones_destino",
+        verbose_name="Moneda Destino"
+    )
+    monto_origen = models.DecimalField(
+        max_digits=23,
+        decimal_places=8,
+        verbose_name="Monto Origen"
+    )
+    monto_destino = models.DecimalField(
+        max_digits=23,
+        decimal_places=8,
+        verbose_name="Monto Destino",
+        blank=True,
+        null=True
+    )
+    tasa_cambio = models.DecimalField(
+        max_digits=23,
+        decimal_places=8,
+        verbose_name="Tasa de Cambio",
+        help_text="Incluye comisiones aplicadas"
+    )
+    fecha = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "Conversión"
+        verbose_name_plural = "Conversiones"
+        ordering = ["-fecha"]
+
+    def clean(self):
+        # No puede convertir entre la misma moneda
+        if self.moneda_origen == self.moneda_destino:
+            raise ValidationError("La moneda de origen y destino no pueden ser iguales.")
+        
+        # Validar límites diarios y mensuales
+        hoy = timezone.now().date()
+        inicio_mes = hoy.replace(day=1)
+
+        total_dia = Conversion.objects.filter(
+            cliente=self.cliente,
+            moneda_origen=self.moneda_origen,
+            fecha__date=hoy
+        ).aggregate(models.Sum("monto_origen"))["monto_origen__sum"] or Decimal("0")
+
+        total_mes = Conversion.objects.filter(
+            cliente=self.cliente,
+            moneda_origen=self.moneda_origen,
+            fecha__date__gte=inicio_mes
+        ).aggregate(models.Sum("monto_origen"))["monto_origen__sum"] or Decimal("0")
+
+        limite = LimiteIntercambio.objects.filter(moneda=self.moneda_origen).first()
+        if limite:
+            if total_dia + self.monto_origen > limite.limite_dia:
+                raise ValidationError("Se superó el límite diario para esta moneda.")
+            if total_mes + self.monto_origen > limite.limite_mes:
+                raise ValidationError("Se superó el límite mensual para esta moneda.")
+
+    def calcular_monto_destino(self):
+        """Calcula el monto en moneda destino aplicando comisiones"""
+        # Ejemplo simple: precio base + comisión de la moneda destino
+        tasa_base = self.moneda_destino.base_price / self.moneda_origen.base_price
+        # Ajustar con comisión compra/venta
+        tasa_final = tasa_base * (1 - self.moneda_origen.comision_venta/Decimal("100")) \
+                               * (1 - self.moneda_destino.comision_compra/Decimal("100"))
+        self.tasa_cambio = tasa_final
+        self.monto_destino = self.monto_origen * tasa_final
+        return self.monto_destino
+
+    def save(self, *args, **kwargs):
+        if not self.monto_destino:
+            self.calcular_monto_destino()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.cliente.nombre} | {self.monto_origen} {self.moneda_origen.code} → {self.monto_destino} {self.moneda_destino.code}"

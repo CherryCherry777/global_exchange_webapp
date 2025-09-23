@@ -20,10 +20,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm
+from .forms import BilleteraCobroForm, ConversionForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio
+from .models import Conversion, Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio
 from django.contrib.auth.decorators import permission_required
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 
@@ -58,31 +58,56 @@ def public_home(request):
     if currencies.exists():
         last_update = currencies.order_by('-updated_at').first().updated_at
     
+    is_guest = not request.user.is_authenticated
+
     return render(request, "webapp/home.html", {
         "can_access_gestiones": can_access_gestiones,
         "currencies": currencies,
-        "last_update": last_update
+        "last_update": last_update,
+        "is_guest": is_guest
     })
+
+from django.views.decorators.http import require_GET
+from django.http import JsonResponse
+from decimal import Decimal
+
+from django.views.decorators.http import require_GET
+from django.http import JsonResponse
+from decimal import Decimal
+from .models import Currency, ClienteUsuario
 
 @require_GET
 def api_active_currencies(request):
-        
-    # 1. Buscar todas las monedas activas en tu DB
-    qs = Currency.objects.filter(is_active=True)
+    user = request.user
+    descuento = Decimal('0')  # Por defecto para invitados
 
+    if user.is_authenticated:
+        try:
+            # Obtener cliente asociado al usuario
+            cliente_usuario = ClienteUsuario.objects.filter(usuario=user).select_related('cliente__categoria').first()
+            if cliente_usuario and cliente_usuario.cliente.categoria:
+                descuento = cliente_usuario.cliente.categoria.descuento or Decimal('0')
+        except Exception:
+            descuento = Decimal('0')
+
+    qs = Currency.objects.filter(is_active=True)
     items = []
+
     for c in qs:
-        # Calcular precio medio en guaraníes
         base = Decimal(c.base_price)
-        venta = base + Decimal(c.comision_venta)
-        compra = base - Decimal(c.comision_compra)
+        com_venta = Decimal(c.comision_venta)
+        com_compra = Decimal(c.comision_compra)
+
+        # Aplicar fórmulas según descuento del cliente
+        venta = base + (com_venta * (1 - descuento))
+        compra = base - (com_compra * (1 - descuento))
         mid = (venta + compra) / Decimal("2")
 
         items.append({
-            "code": c.code,                   # USD, EUR, etc.
-            "name": c.name,                   # Dólar, Euro
+            "code": c.code,
+            "name": c.name,
             "decimals": int(c.decimales_monto or 2),
-            "pyg_per_unit": float(mid),       # cuánto vale 1 de esa moneda en PYG
+            "pyg_per_unit": float(mid),
         })
 
     # Asegurar que PYG siempre exista
@@ -95,6 +120,7 @@ def api_active_currencies(request):
         })
 
     return JsonResponse({"items": items})
+
 
 def register(request):
     if request.method == "POST":
@@ -2599,3 +2625,31 @@ def entidad_toggle(request, pk):
     entidad.save()
     messages.success(request, f"Entidad '{entidad.nombre}' actualizada correctamente")
     return redirect("entidad_list")
+
+
+# CONVERSION
+
+def realizar_conversion(request):
+    if request.method == "POST":
+        form = ConversionForm(request.POST)
+        if form.is_valid():
+            conversion = form.save(commit=False)
+            try:
+                conversion.clean()
+                conversion.calcular_monto_destino()
+                conversion.save()
+                messages.success(
+                    request,
+                    f"Conversión realizada: {conversion.monto_origen} {conversion.moneda_origen.code} → {conversion.monto_destino:.2f} {conversion.moneda_destino.code}"
+                )
+                return redirect("conversion_detalle", pk=conversion.pk)
+            except Exception as e:
+                messages.error(request, str(e))
+    else:
+        form = ConversionForm()
+    return render(request, "webapp/realizar_conversion.html", {"form": form})
+
+
+def conversion_detalle(request, pk):
+    conversion = get_object_or_404(Conversion, pk=pk)
+    return render(request, "webapp/conversion_detalle.html", {"conversion": conversion})

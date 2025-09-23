@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency
+from .models import BilleteraCobro, Conversion, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -660,3 +660,17 @@ class EntidadEditForm(forms.ModelForm):
         # widgets = {
         #     "tipo": forms.Select(attrs={"disabled": True}),
         # }
+
+
+# CONVERSION
+
+class ConversionForm(forms.ModelForm):
+    class Meta:
+        model = Conversion
+        fields = ["cliente", "moneda_origen", "moneda_destino", "monto_origen"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("moneda_origen") == cleaned_data.get("moneda_destino"):
+            raise forms.ValidationError("La moneda de origen y destino no pueden ser iguales.")
+        return cleaned_data

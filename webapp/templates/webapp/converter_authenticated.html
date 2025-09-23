@@ -1,0 +1,123 @@
+<div class="converter-section">
+  <div class="converter-container">
+      <h2 class="converter-title">
+          <span class="yellow-text">Conversor de</span>
+          <span class="white-text">moneda</span>
+      </h2>
+      <p class="converter-subtitle">Conversión con tasas y comisiones aplicadas</p>
+
+      <div class="converter-form">
+          <!-- From Currency -->
+          <div class="converter-field">
+              <label class="field-label">Tengo esta moneda</label>
+              <div class="field-row">
+                  <div class="select-wrapper">
+                      <select id="auth-from" class="currency-select"></select>
+                      <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                  </div>
+                  <input id="auth-amount" type="number" step="0.01" min="0" class="amount-input">
+              </div>
+          </div>
+
+          <!-- To Currency -->
+          <div class="converter-field">
+              <label class="field-label">Quiero esta moneda</label>
+              <div class="field-row">
+                  <div class="select-wrapper">
+                      <select id="auth-to" class="currency-select"></select>
+                      <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                  </div>
+                  <input type="text" readonly class="result-input" id="auth-result">
+              </div>
+          </div>
+
+          <!-- Results -->
+          <div class="converter-result">
+              <p id="auth-result-detail" class="result-detail">Ingresá un monto para calcular</p>
+              <p id="auth-commission-detail" class="result-commission"></p>
+          </div>
+      </div>
+  </div>
+</div>
+
+<script>
+(function () {
+const amount = document.getElementById("auth-amount");
+const from   = document.getElementById("auth-from");
+const to     = document.getElementById("auth-to");
+const out    = document.getElementById("auth-result");
+const detail = document.getElementById("auth-result-detail");
+const comm   = document.getElementById("auth-commission-detail");
+
+let CODES = [];
+const META = Object.create(null);
+
+const nf = (code) => new Intl.NumberFormat("es-ES", {
+  minimumFractionDigits: (META[code]?.decimals ?? 2),
+  maximumFractionDigits: (META[code]?.decimals ?? 2),
+});
+
+async function boot() {
+  try {
+    const res = await fetch("{% url 'api_currencies' %}", { cache: "no-store" });
+    const payload = await res.json();
+    const items = payload.items || [];
+
+    items.forEach(it => { META[it.code] = it; });
+    CODES = Object.keys(META);
+
+    // llenar selects
+    CODES.forEach(code => {
+      const opt1 = new Option(META[code].name.toUpperCase(), code);
+      const opt2 = new Option(META[code].name.toUpperCase(), code);
+      from.appendChild(opt1);
+      to.appendChild(opt2);
+    });
+
+    from.value = "USD";
+    to.value = "PYG";
+
+    amount.addEventListener("input", compute);
+    from.addEventListener("change", compute);
+    to.addEventListener("change", compute);
+
+    compute();
+  } catch (err) {
+    console.error("Error cargando monedas:", err);
+  }
+}
+
+function compute() {
+  const raw = parseFloat(amount.value);
+  if (isNaN(raw) || raw <= 0) {
+    out.value = "—";
+    detail.textContent = "Ingresá un monto para calcular";
+    comm.textContent = "";
+    return;
+  }
+
+  const a = from.value;
+  const b = to.value;
+  if (!META[a] || !META[b]) return;
+
+  // tasas de referencia
+  const rate = META[a].pyg_per_unit / META[b].pyg_per_unit;
+  const bruto = raw * rate;
+
+  // comisiones específicas
+  const comVenta = META[a].commission_venta ?? 0;
+  const comCompra = META[b].commission_compra ?? 0;
+
+  const descVenta = bruto * (comVenta / 100);
+  const descCompra = bruto * (comCompra / 100);
+  const neto = bruto - descVenta - descCompra;
+
+  // render
+  out.value = `${nf(b).format(neto)} ${b}`;
+  detail.textContent = `1 ${a} = ${nf(b).format(rate)} ${b}`;
+  comm.textContent = `Comisión venta ${a}: ${comVenta}% (-${nf(b).format(descVenta)} ${b}) | Comisión compra ${b}: ${comCompra}% (-${nf(b).format(descCompra)} ${b})`;
+}
+
+boot();
+})();
+</script>
