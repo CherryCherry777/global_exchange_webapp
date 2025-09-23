@@ -639,8 +639,10 @@ class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
 class LimiteIntercambioForm(forms.ModelForm):
     class Meta:
         model = LimiteIntercambio
-        fields = ['monto_min', 'monto_max']
+        fields = ['moneda', 'limite_dia', 'limite_mes']
 
+
+# Entidades bancarias y telefonicas
 
 class EntidadForm(forms.ModelForm):
     """Formulario para crear una entidad"""

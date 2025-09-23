@@ -452,7 +452,7 @@ class TipoPago(models.Model):
 
 
 # -------------------------------------
-# Modelo para definir maximos y minimos en la categoria de clientes
+# Modelo para definir limites de intercambio por dia y mes
 # -------------------------------------
 
 class LimiteIntercambio(models.Model):
@@ -462,25 +462,21 @@ class LimiteIntercambio(models.Model):
         verbose_name="Moneda",
         related_name="limites_intercambio"
     )
-    categoria = models.ForeignKey(
-        'Categoria',
-        on_delete=models.CASCADE,
-        verbose_name="Categoría de Cliente",
-        related_name="limites_intercambio"
-    )
-    monto_min = models.DecimalField(
+    limite_dia = models.DecimalField(
         max_digits=23,
         decimal_places=8,
-        verbose_name="Monto Mínimo",
+        verbose_name="Límite Diario",
+        default=Decimal('0'),
         error_messages={
             'max_digits': 'El número no puede tener más de 23 dígitos',
             'max_decimal_places': 'El número no puede tener más de 8 decimales'
         }
     )
-    monto_max = models.DecimalField(
+    limite_mes = models.DecimalField(
         max_digits=23,
         decimal_places=8,
-        verbose_name="Monto Máximo",
+        verbose_name="Límite Mensual",
+        default=Decimal('0'),
         error_messages={
             'max_digits': 'El número no puede tener más de 23 dígitos',
             'max_decimal_places': 'El número no puede tener más de 8 decimales'
@@ -488,10 +484,9 @@ class LimiteIntercambio(models.Model):
     )
 
     class Meta:
-        unique_together = ('moneda', 'categoria')
         verbose_name = "Límite de Intercambio"
         verbose_name_plural = "Límites de Intercambio"
-        ordering = ['moneda__code', 'categoria__nombre']
+        ordering = ['moneda__code']
 
     def clean(self):
         if not self.moneda:
@@ -510,26 +505,22 @@ class LimiteIntercambio(models.Model):
                         {field_name: f"El número máximo de decimales permitidos para esta moneda es {max_dec}."}
                     )
 
-        check_decimals(self.monto_min, 'monto_min')
-        check_decimals(self.monto_max, 'monto_max')
-
-        if self.monto_min is not None and self.monto_max is not None:
-            if self.monto_min > self.monto_max:
-                raise ValidationError("El monto mínimo no puede ser mayor al monto máximo.")
+        check_decimals(self.limite_dia, 'limite_dia')
+        check_decimals(self.limite_mes, 'limite_mes')
 
     def save(self, *args, **kwargs):
         if self.moneda:
             dec = int(self.moneda.decimales_cotizacion)
             factor = Decimal('1').scaleb(-dec)  # Ej: dec=3 -> 0.001
-            if self.monto_min is not None:
-                self.monto_min = Decimal(self.monto_min).quantize(factor, rounding=ROUND_DOWN)
-            if self.monto_max is not None:
-                self.monto_max = Decimal(self.monto_max).quantize(factor, rounding=ROUND_DOWN)
+            if self.limite_dia is not None:
+                self.limite_dia = Decimal(self.limite_dia).quantize(factor, rounding=ROUND_DOWN)
+            if self.limite_mes is not None:
+                self.limite_mes = Decimal(self.limite_mes).quantize(factor, rounding=ROUND_DOWN)
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.moneda.code} - {self.categoria.nombre}"
-    
+        return f"{self.moneda.code}"
+
 # -------------------------------------
 # Modelo de métodos de cobro genérico
 # -------------------------------------

@@ -1,6 +1,6 @@
 {% extends "webapp/base.html" %}
 {% load static %}
-{% load dict_extras %}
+{% load custom_filters %}
 
 {% block title %}Editar Límites - {{ moneda.code }}{% endblock %}
 
@@ -12,33 +12,33 @@
     <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
             <tr style="background-color: #4CAF50; color: white;">
-                <th>Categoría</th>
-                <th>Monto Mínimo</th>
-                <th>Monto Máximo</th>
+                <th>Periodo</th>
+                <th>Monto</th>
             </tr>
         </thead>
         <tbody>
-            {% for categoria in categorias %}
-            {% with limite=limites|get_item:categoria.nombre %}
+            {% with dec=moneda.decimales_cotizacion %}
             <tr>
-                <td>{{ categoria.nombre }}</td>
+                <td>Límite Diario</td>
                 <td>
                     <input type="number"
-                           step="{{ "0."|add:"0"|ljust:moneda.decimales_cotizacion|add:"1" }}"
-                           name="{{ categoria.nombre }}_min"
-                           value="{{ limite.monto_min }}"
-                           required>
+                            step="{{ moneda.decimales_cotizacion|decimal_step }}"
+                            name="limite_dia"
+                            value="{{ limite.limite_dia }}"
+                            required>
                 </td>
+            </tr>
+            <tr>
+                <td>Límite Mensual</td>
                 <td>
                     <input type="number"
-                           step="{{ "0."|add:"0"|ljust:moneda.decimales_cotizacion|add:"1" }}"
-                           name="{{ categoria.nombre }}_max"
-                           value="{{ limite.monto_max }}"
-                           required>
+                            step="{{ moneda.decimales_cotizacion|decimal_step }}"
+                            name="limite_mes"
+                            value="{{ limite.limite_mes }}"
+                            required>
                 </td>
             </tr>
             {% endwith %}
-            {% endfor %}
         </tbody>
     </table>
 
@@ -56,24 +56,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("limites-form");
 
     form.addEventListener("submit", function (e) {
-        let valido = true;
-        let mensajes = [];
+        const minDia = parseFloat(form["limite_dia"].value);
+        const minMes = parseFloat(form["limite_mes"].value);
 
-        {% for categoria in categorias %}
-            let min{{ forloop.counter }} = parseFloat(form["{{ categoria.nombre }}_min"].value);
-            let max{{ forloop.counter }} = parseFloat(form["{{ categoria.nombre }}_max"].value);
-
-            if (!isNaN(min{{ forloop.counter }}) && !isNaN(max{{ forloop.counter }})) {
-                if (min{{ forloop.counter }} > max{{ forloop.counter }}) {
-                    valido = false;
-                    mensajes.push("En la categoría '{{ categoria.nombre }}', el mínimo no puede ser mayor que el máximo.");
-                }
+        if (!isNaN(minDia) && !isNaN(minMes)) {
+            if (minDia > minMes) {
+                e.preventDefault();
+                alert("El límite diario no puede ser mayor que el límite mensual.");
             }
-        {% endfor %}
-
-        if (!valido) {
-            e.preventDefault();
-            alert(mensajes.join("\n"));
         }
     });
 });
