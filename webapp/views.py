@@ -2147,14 +2147,19 @@ def modify_category(request, category_id):
                 messages.error(request, "Todos los campos son obligatorios.")
                 return redirect("modify_category", category_id=category_id)
             
-            descuento = int(descuento)
+            descuento = Decimal(descuento)
             if descuento < 0 or descuento > 100:
                 messages.error(request, "El descuento debe estar entre 0 y 100.")
                 return redirect("modify_category", category_id=category_id)
             
+            # Validar máximo 1 decimal
+            if descuento.as_tuple().exponent < -1:  # ej: -2 sería 2 decimales
+                messages.error(request, "El descuento solo puede tener como máximo 1 decimal (ej: 10.5, no 10.55).")
+                return redirect("modify_category", category_id=category_id)
+            
             # Actualizar categoría
             categoria.nombre = nombre
-            categoria.descuento = descuento
+            categoria.descuento = descuento / 100
             categoria.save()
             
             messages.success(request, f"Categoría '{categoria.nombre}' actualizada correctamente.")

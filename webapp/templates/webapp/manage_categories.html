@@ -1,5 +1,6 @@
 {% extends 'webapp/base.html' %}
 {% load static %}
+{% load custom_filters %}
 {% block title %}Administrar Categorías{% endblock %}
 
 {% block extra_css %}
@@ -77,7 +78,7 @@
                                 <span class="creation-date">{{ categoria.fecha_creacion|date:"d/m/Y H:i" }}</span>
                             </td>
                             <td class="discount-cell">
-                                <span class="discount-value">{{ categoria.descuento }}%</span>
+                                <span class="discount-value">{{ categoria.descuento|porcentaje }}%</span>
                             </td>
                             <td class="actions-cell">
                                 <div class="actions-container">
