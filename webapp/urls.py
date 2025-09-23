@@ -116,8 +116,8 @@ urlpatterns = [
     path('modify-cobro-method/<int:cobro_method_id>/', views.modify_cobro_method, name='modify_cobro_method'),
 
     # Administrar entidades de medios de pago y cobro de cliente
-    path("entidades/", views.EntidadListView.as_view(), name="entidad_list"),
-    path("entidades/add/", views.EntidadCreateView.as_view(), name="entidad_add"),
-    path("entidades/<int:pk>/edit/", views.EntidadUpdateView.as_view(), name="entidad_edit"),
-    path("entidades/<int:pk>/toggle/", views.EntidadToggleActivoView.as_view(), name="entidad_toggle"),
+    path("entidades/", views.entidad_list, name="entidad_list"),
+    path("entidades/add/", views.entidad_create, name="entidad_add"),
+    path("entidades/<int:pk>/edit/", views.entidad_update, name="entidad_edit"),
+    path("entidades/<int:pk>/toggle/", views.entidad_toggle, name="entidad_toggle"),
 ]

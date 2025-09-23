@@ -360,11 +360,13 @@ class Tarjeta(models.Model):
     fecha_vencimiento = models.DateField(verbose_name="Fecha de Vencimiento")
     ultimos_digitos = models.CharField(max_length=4, verbose_name="Últimos 4 Dígitos")
 
+    
     entidad = models.ForeignKey(
         Entidad,
         on_delete=models.PROTECT,
         limit_choices_to={"tipo": "banco"},
-        verbose_name="Banco Emisor"
+        verbose_name="Banco Emisor",
+        null=True
     )
 
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
@@ -391,7 +393,8 @@ class Billetera(models.Model):
         Entidad,
         on_delete=models.PROTECT,
         limit_choices_to={"tipo": "telefono"},
-        verbose_name="Proveedor"
+        verbose_name="Proveedor",
+        null=False
     )
 
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
@@ -419,7 +422,8 @@ class CuentaBancaria(models.Model):
         Entidad,
         on_delete=models.PROTECT,
         limit_choices_to={"tipo": "banco"},
-        verbose_name="Banco"
+        verbose_name="Banco",
+        null=False
     )
 
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
@@ -448,7 +452,8 @@ class Cheque(models.Model):
         Entidad,
         on_delete=models.PROTECT,
         limit_choices_to={"tipo": "banco"},
-        verbose_name="Banco Emisor"
+        verbose_name="Banco Emisor",
+        null=False
     )
 
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
@@ -637,6 +642,9 @@ class MedioCobro(models.Model):
 # -------------------------------------
 # Administración de métodos de cobro
 # -------------------------------------
+# -------------------------------------
+# Administración de métodos de cobro
+# -------------------------------------
 class TarjetaCobro(models.Model):
     medio_cobro = models.OneToOneField(
         "MedioCobro",
@@ -652,7 +660,8 @@ class TarjetaCobro(models.Model):
         Entidad,
         on_delete=models.PROTECT,
         limit_choices_to={"tipo": "banco"},
-        verbose_name="Banco Emisor"
+        verbose_name="Banco Emisor",
+        null=False
     )
 
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
@@ -679,7 +688,8 @@ class BilleteraCobro(models.Model):
         Entidad,
         on_delete=models.PROTECT,
         limit_choices_to={"tipo": "telefono"},
-        verbose_name="Proveedor"
+        verbose_name="Proveedor",
+        null=False
     )
 
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
@@ -707,7 +717,8 @@ class CuentaBancariaCobro(models.Model):
         Entidad,
         on_delete=models.PROTECT,
         limit_choices_to={"tipo": "banco"},
-        verbose_name="Banco"
+        verbose_name="Banco",
+        null=False
     )
 
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
@@ -736,7 +747,8 @@ class ChequeCobro(models.Model):
         Entidad,
         on_delete=models.PROTECT,
         limit_choices_to={"tipo": "banco"},
-        verbose_name="Banco Emisor"
+        verbose_name="Banco Emisor",
+        null=False
     )
 
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
@@ -748,7 +760,6 @@ class ChequeCobro(models.Model):
 
     def __str__(self):
         return f"{self.medio_cobro.nombre} - {self.numero_cheque} ({self.entidad.nombre})"
-
 
 # Administración de método de cobro global (para admin)
 

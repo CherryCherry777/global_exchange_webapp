@@ -269,7 +269,7 @@ class AsignarClienteForm(forms.Form):
     )
     
     usuario = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(activo=True).order_by('username'),
+        queryset=CustomUser.objects.filter(is_active=True).order_by('username'),
         empty_label="Seleccione un usuario",
         widget=forms.Select(attrs={'class': 'form-control'}),
         label="Usuario"
@@ -304,7 +304,7 @@ class MonedaDisabledMixin:
 # ===========================================
 class TarjetaForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
-        queryset=Entidad.objects.filter(tipo="banco", is_active=True),
+        queryset=Entidad.objects.filter(tipo="banco", activo=True),
         label="Banco Emisor",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -327,7 +327,7 @@ class TarjetaForm(forms.ModelForm):
 
 class BilleteraForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
-        queryset=Entidad.objects.filter(tipo="telefono", is_active=True),
+        queryset=Entidad.objects.filter(tipo="telefono", activo=True),
         label="Proveedor",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -351,7 +351,7 @@ class BilleteraForm(forms.ModelForm):
 
 class CuentaBancariaForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
-        queryset=Entidad.objects.filter(tipo="banco", is_active=True),
+        queryset=Entidad.objects.filter(tipo="banco", activo=True),
         label="Banco",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -367,7 +367,7 @@ class CuentaBancariaForm(forms.ModelForm):
 
 class ChequeForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
-        queryset=Entidad.objects.filter(tipo="banco", is_active=True),
+        queryset=Entidad.objects.filter(tipo="banco", activo=True),
         label="Banco Emisor",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -442,66 +442,96 @@ class TipoCobroForm(forms.ModelForm):
         }
 
 
-# ===============================
-# Formularios de edición con moneda deshabilitada
-# ===============================
-
+# -------------------------
+# Edit forms - MÉTODOS DE COBRO
+# -------------------------
 class TarjetaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Banco Emisor",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
     class Meta:
         model = TarjetaCobro
-        fields = ['numero_tokenizado', 'banco', 'fecha_vencimiento', 'ultimos_digitos']
-        widgets = {
-            'numero_tokenizado': forms.TextInput(attrs={'class': 'form-control'}),
-            'banco': forms.TextInput(attrs={'class': 'form-control'}),
-            'fecha_vencimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'ultimos_digitos': forms.TextInput(attrs={'class': 'form-control'}),
-        }
+        fields = ['numero_tokenizado', 'entidad', 'fecha_vencimiento', 'ultimos_digitos']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
+        self.fields['numero_tokenizado'].widget.attrs.update({'class': 'form-control'})
+        self.fields['fecha_vencimiento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
+        self.fields['ultimos_digitos'].widget.attrs.update({'class': 'form-control'})
 
     def clean_ultimos_digitos(self):
-        ultimos_digitos = self.cleaned_data.get('ultimos_digitos')
-        if ultimos_digitos and (not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4):
+        ultimos_digitos = self.cleaned_data.get('ultimos_digitos') or ""
+        if not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4:
             raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
         return ultimos_digitos
 
 
 class BilleteraCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Proveedor",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
     class Meta:
         model = BilleteraCobro
-        fields = ['numero_celular', 'proveedor']
+        fields = ['numero_celular', 'entidad']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='telefono', activo=True)
+        self.fields['numero_celular'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_numero_celular(self):
+        numero_celular = self.cleaned_data.get('numero_celular') or ""
+        numero_limpio = re.sub(r'[^\d]', '', numero_celular)
+        if not numero_limpio.isdigit() or not (8 <= len(numero_limpio) <= 15):
+            raise ValidationError("El número de celular debe contener entre 8 y 15 dígitos numéricos.")
+        return numero_celular
 
 
 class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Banco",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
     class Meta:
         model = CuentaBancariaCobro
-        fields = ['numero_cuenta', 'banco', 'alias_cbu']
+        fields = ['numero_cuenta', 'entidad', 'alias_cbu']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
+        self.fields['numero_cuenta'].widget.attrs.update({'class': 'form-control'})
+        self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
 
 
 class ChequeCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Banco Emisor",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
     class Meta:
         model = ChequeCobro
-        fields = ['numero_cheque', 'banco_emisor', 'fecha_vencimiento', 'monto']
+        fields = ['numero_cheque', 'entidad', 'fecha_vencimiento', 'monto']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
+        self.fields['numero_cheque'].widget.attrs.update({'class': 'form-control'})
+        self.fields['fecha_vencimiento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
+        self.fields['monto'].widget.attrs.update({'class': 'form-control', 'step': '0.01', 'min': '0'})
 
     def clean_monto(self):
         monto = self.cleaned_data.get('monto')
         if monto is not None and monto <= 0:
             raise ValidationError("El monto debe ser mayor a 0.")
         return monto
+    
 
 class MedioCobroForm(forms.ModelForm):
     class Meta:
@@ -708,3 +738,21 @@ class LimiteIntercambioForm(forms.ModelForm):
     class Meta:
         model = LimiteIntercambio
         fields = ['monto_min', 'monto_max']
+
+
+class EntidadForm(forms.ModelForm):
+    """Formulario para crear una entidad"""
+    class Meta:
+        model = Entidad
+        fields = ["nombre", "tipo", "activo"]
+
+
+class EntidadEditForm(forms.ModelForm):
+    """Formulario para editar una entidad (puede deshabilitar campos si se desea)"""
+    class Meta:
+        model = Entidad
+        fields = ["nombre", "tipo", "activo"]
+        # Si querés deshabilitar el tipo al editar:
+        # widgets = {
+        #     "tipo": forms.Select(attrs={"disabled": True}),
+        # }

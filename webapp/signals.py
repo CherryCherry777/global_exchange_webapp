@@ -4,7 +4,7 @@ from django.db.models.signals import post_migrate, post_save
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
-from .models import Role, MedioPago, TipoPago
+from .models import Billetera, Entidad, Role, MedioPago, TipoPago
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
 
@@ -177,3 +177,36 @@ def create_default_cobro_types(sender, **kwargs):
     
     for nombre in tipos:
         TipoCobro.objects.get_or_create(nombre=nombre, defaults=defaults)
+
+
+@receiver(post_migrate)
+def crear_entidades_genericas(sender, **kwargs):
+    """
+    Crea entidades genéricas tras migraciones:
+    - Bancos
+    - Compañías de billeteras (telco) de Paraguay
+    Solo se crean si no existen ya.
+    """
+    if sender.name != 'webapp':
+        return  # Solo ejecutar para la app webapp
+
+    bancos = [
+        "Banco Nacional de Fomento",
+        "Banco Itaú Paraguay",
+        "Banco Continental",
+        "Banco Familiar",
+        "Banco GNB Paraguay"
+    ]
+
+    billeteras = [
+        "Tigo Money",
+        "Personal Pay",
+        "Bancard Wallet",
+        "Claro Wallet"
+    ]
+
+    for nombre in bancos:
+        Entidad.objects.get_or_create(nombre=nombre, tipo='banco')
+
+    for nombre in billeteras:
+        Entidad.objects.get_or_create(nombre=nombre, tipo='billetera')
