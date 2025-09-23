@@ -20,10 +20,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import BilleteraCobroForm, ChequeCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm
+from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TipoCobro, TipoPago, LimiteIntercambio
+from .models import Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio
 from django.contrib.auth.decorators import permission_required
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 
@@ -1238,8 +1238,6 @@ def add_payment_method_deprecado(request, cliente_id, tipo):
                     form = BilleteraForm(request.POST)
                 elif tipo == 'cuenta_bancaria':
                     form = CuentaBancariaForm(request.POST)
-                elif tipo == 'cheque':
-                    form = ChequeForm(request.POST)
                 else:
                     messages.error(request, "Tipo de medio de pago no válido")
                     return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1265,8 +1263,6 @@ def add_payment_method_deprecado(request, cliente_id, tipo):
                 form = BilleteraForm()
             elif tipo == 'cuenta_bancaria':
                 form = CuentaBancariaForm()
-            elif tipo == 'cheque':
-                form = ChequeForm()
             else:
                 messages.error(request, "Tipo de medio de pago no válido")
                 return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1319,13 +1315,6 @@ def edit_payment_method_deprecado(request, cliente_id, medio_pago_id):
                     except CuentaBancaria.DoesNotExist:
                         form = CuentaBancariaForm(request.POST)
                         medio_especifico = None
-                elif medio_pago.tipo == 'cheque':
-                    try:
-                        medio_especifico = medio_pago.cheque
-                        form = ChequeForm(request.POST, instance=medio_especifico)
-                    except Cheque.DoesNotExist:
-                        form = ChequeForm(request.POST)
-                        medio_especifico = None
                 else:
                     messages.error(request, "Tipo de medio de pago no válido")
                     return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1364,12 +1353,6 @@ def edit_payment_method_deprecado(request, cliente_id, medio_pago_id):
                     form = CuentaBancariaForm(instance=medio_especifico)
                 except CuentaBancaria.DoesNotExist:
                     form = CuentaBancariaForm()
-            elif medio_pago.tipo == 'cheque':
-                try:
-                    medio_especifico = medio_pago.cheque
-                    form = ChequeForm(instance=medio_especifico)
-                except Cheque.DoesNotExist:
-                    form = ChequeForm()
             else:
                 messages.error(request, "Tipo de medio de pago no válido")
                 return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1391,7 +1374,6 @@ FORM_MAP = {
     'tarjeta': TarjetaForm,
     'billetera': BilleteraForm,
     'cuenta_bancaria': CuentaBancariaForm,
-    'cheque': ChequeForm
 }
 
 @login_required
@@ -1428,7 +1410,6 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
         'tarjeta': TarjetaForm,
         'billetera': BilleteraForm,
         'cuenta_bancaria': CuentaBancariaForm,
-        'cheque': ChequeForm
     }
     form_class = FORM_MAP.get(tipo)
     if not form_class:
@@ -1625,7 +1606,6 @@ FORM_MAP = {
     'tarjeta': TarjetaCobroForm,
     'billetera': BilleteraCobroForm,
     'cuenta_bancaria': CuentaBancariaCobroForm,
-    'cheque': ChequeCobroForm
 }
 
 @login_required
@@ -1657,7 +1637,6 @@ def manage_cobro_method(request, tipo, medio_cobro_id=None):
         'tarjeta': TarjetaCobroForm,
         'billetera': BilleteraCobroForm,
         'cuenta_bancaria': CuentaBancariaCobroForm,
-        'cheque': ChequeCobroForm
     }
     form_class = FORM_MAP.get(tipo)
     if not form_class:

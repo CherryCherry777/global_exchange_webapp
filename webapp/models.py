@@ -268,7 +268,6 @@ class MedioPago(models.Model):
         ('tarjeta', 'Tarjeta de Débito/Crédito'),
         ('billetera', 'Billetera Electrónica'),
         ('cuenta_bancaria', 'Cuenta Bancaria'),
-        ('cheque', 'Cheque'),
     ]
     
     # Relación con el cliente
@@ -437,36 +436,6 @@ class CuentaBancaria(models.Model):
         return f"{self.medio_pago.nombre} - {self.entidad.nombre}"
 
 
-class Cheque(models.Model):
-    medio_pago = models.OneToOneField(
-        "MedioPago",
-        on_delete=models.CASCADE,
-        related_name="cheque",
-        verbose_name="Medio de Pago"
-    )
-    numero_cheque = models.CharField(max_length=50, verbose_name="Número de Cheque")
-    fecha_vencimiento = models.DateField(verbose_name="Fecha de Vencimiento")
-    monto = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="Monto")
-
-    entidad = models.ForeignKey(
-        Entidad,
-        on_delete=models.PROTECT,
-        limit_choices_to={"tipo": "banco"},
-        verbose_name="Banco Emisor",
-        null=False
-    )
-
-    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
-
-    class Meta:
-        db_table = "cheques"
-        verbose_name = "Cheque"
-        verbose_name_plural = "Cheques"
-
-    def __str__(self):
-        return f"{self.medio_pago.nombre} - {self.numero_cheque} ({self.entidad.nombre})"
-
-
 # Administracion de metodo de pago global (para admin)
 
 class TipoPago(models.Model):
@@ -570,7 +539,6 @@ class MedioCobro(models.Model):
         ('tarjeta', 'Tarjeta de Débito/Crédito'),
         ('billetera', 'Billetera Electrónica'),
         ('cuenta_bancaria', 'Cuenta Bancaria'),
-        ('cheque', 'Cheque'),
     ]
     
     # Relación con el cliente
@@ -732,34 +700,6 @@ class CuentaBancariaCobro(models.Model):
         return f"{self.medio_cobro.nombre} - {self.entidad.nombre}"
 
 
-class ChequeCobro(models.Model):
-    medio_cobro = models.OneToOneField(
-        "MedioCobro",
-        on_delete=models.CASCADE,
-        related_name="cheque_cobro",
-        verbose_name="Método de Cobro"
-    )
-    numero_cheque = models.CharField(max_length=50, verbose_name="Número de Cheque")
-    fecha_vencimiento = models.DateField(verbose_name="Fecha de Vencimiento")
-    monto = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="Monto")
-
-    entidad = models.ForeignKey(
-        Entidad,
-        on_delete=models.PROTECT,
-        limit_choices_to={"tipo": "banco"},
-        verbose_name="Banco Emisor",
-        null=False
-    )
-
-    moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
-
-    class Meta:
-        db_table = "cheques_cobro"
-        verbose_name = "Cheque de Cobro"
-        verbose_name_plural = "Cheques de Cobro"
-
-    def __str__(self):
-        return f"{self.medio_cobro.nombre} - {self.numero_cheque} ({self.entidad.nombre})"
 
 # Administración de método de cobro global (para admin)
 
