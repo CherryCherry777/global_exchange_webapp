@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, ChequeCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency
+from .models import BilleteraCobro, ChequeCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -269,7 +269,7 @@ class AsignarClienteForm(forms.Form):
     )
     
     usuario = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(is_active=True).order_by('username'),
+        queryset=CustomUser.objects.filter(activo=True).order_by('username'),
         empty_label="Seleccione un usuario",
         widget=forms.Select(attrs={'class': 'form-control'}),
         label="Usuario"
@@ -295,7 +295,7 @@ class MonedaDisabledMixin:
     def disable_moneda(self):
         if 'moneda' in self.fields:
             self.fields['moneda'].disabled = True
-            self.fields['moneda'].queryset = Currency.objects.filter(is_active=True)
+            self.fields['moneda'].queryset = Currency.objects.filter(activo=True)
             self.fields['moneda'].widget.attrs.update({'class': 'form-control'})
 
 
