@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
-        ('webapp', '0027_alter_customuser_options'),
+        ('webapp', '0033_alter_limiteintercambio_options_and_more'),
     ]
 
     operations = [

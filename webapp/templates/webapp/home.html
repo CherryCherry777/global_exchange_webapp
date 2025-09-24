@@ -133,10 +133,14 @@ function refreshRates() {
     let CODES = [];
     const META = Object.create(null);
 
-    const nf = (code) => new Intl.NumberFormat("es-ES", {
-        minimumFractionDigits: META[code]?.decimals ?? 2,
-        maximumFractionDigits: META[code]?.decimals ?? 2,
-    });
+    // Función para formatear números según los decimales de una moneda específica
+    function nf(value, currencyCode) {
+        const decimals = currencyCode === "PYG" ? 0 : (META[currencyCode]?.decimals ?? 2);
+        return new Intl.NumberFormat("es-ES", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }).format(value);
+    }
 
     function buildOptions(selectEl, preferCode) {
         selectEl.innerHTML = "";
@@ -171,10 +175,28 @@ function refreshRates() {
         const a = from.value, b = to.value;
         if (!META[a] || !META[b]) return;
 
-        const rateAB = META[a].pyg_per_unit / META[b].pyg_per_unit;
-        const val = raw * rateAB;
-        out.value = `${nf(b).format(val)} ${b}`;
-        detail.innerHTML = `1 ${a} = ${nf(b).format(rateAB)} ${b}`;
+        let val, rateAB;
+
+        if (a === "PYG" && b !== "PYG") {
+            // PYG → moneda extranjera
+            val = raw / META[b].venta;
+            rateAB = 1 / META[b].venta;
+            detail.innerHTML = `1 ${a} = ${nf(rateAB, b)} ${b}`;
+        } 
+        else if (a !== "PYG" && b === "PYG") {
+            // Moneda extranjera → PYG
+            val = raw * META[a].compra;
+            rateAB = META[a].compra;
+            detail.innerHTML = `1 ${a} = ${nf(rateAB, "PYG")} ${b}`;
+        } 
+        else {
+            // 🚫 Caso no permitido (moneda → moneda sin pasar por PYG)
+            out.value = "—";
+            detail.textContent = "Sólo se permiten conversiones con Guaraníes";
+            return;
+        }
+
+        out.value = `${nf(val, b)} ${b}`;
     }
 
     function attachListeners() {
@@ -197,7 +219,8 @@ function refreshRates() {
             const byCode = {};
             items.forEach(it => { byCode[it.code] = it; });
 
-            if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, pyg_per_unit:1.0 };
+            if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
+
 
             CODES = Object.keys(byCode).sort((a,b)=> a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));
             CODES.forEach(code=>META[code]=byCode[code]);

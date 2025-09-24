@@ -20,10 +20,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 from webapp.emails import send_activation_email
-from .forms import BilleteraCobroForm, ConversionForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
+from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Conversion, Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio
+from .models import Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 
 User = get_user_model()
@@ -91,13 +91,13 @@ def api_active_currencies(request):
         # Aplicar fórmulas según descuento del cliente
         venta = base + (com_venta * (1 - descuento))
         compra = base - (com_compra * (1 - descuento))
-        mid = (venta + compra) / Decimal("2")
 
         items.append({
             "code": c.code,
             "name": c.name,
             "decimals": int(c.decimales_monto or 2),
-            "pyg_per_unit": float(mid),
+            "venta": float(venta),
+            "compra": float(compra),
         })
 
     # Asegurar que PYG siempre exista
@@ -106,7 +106,8 @@ def api_active_currencies(request):
             "code": "PYG",
             "name": "Guaraní",
             "decimals": 0,
-            "pyg_per_unit": 1.0,
+            "venta": 1.0,
+            "compra": 1.0,
         })
 
     return JsonResponse({"items": items})
