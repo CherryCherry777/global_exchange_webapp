@@ -58,33 +58,45 @@
             </div>
         </div>
 
-        <!-- Selector de medio de pago -->
-        <div class="mb-3">
-            <label for="medio_pago" class="form-label">Medio de pago</label>
-            <select name="medio_pago" id="medio_pago" class="form-select" required>
-                <option value="">Seleccione</option>
-                {% for medio in medios_pago %}
-                    <option value="{{ medio.id }}" {% if medio.id == medio_pago %}selected{% endif %}>
-                        {{ medio.nombre }}
-                    </option>
+        <!--Selectores de método de cobro y método de pago-->
+        <h3>Métodos de Pago</h3>
+        <select name="medio_pago">
+            <optgroup label="Tarjetas">
+                {% for t in tarjetas_pago %}
+                <option value="TarjetaPago-{{ t.id }}">Tarjeta {{ t.ultimos_digitos }} ({{ t.entidad }})</option>
                 {% endfor %}
-            </select>
-        </div>
-
-        <!-- Selector de cuentas asociadas al medio de pago -->
-        <div class="mb-3">
-            <label for="cuenta" class="form-label">Cuenta asociada</label>
-            <select name="cuenta" id="cuenta" class="form-select" required>
-                <option value="">Seleccione</option>
-                {% for cuenta in cuentas %}
-                    <option value="{{ cuenta.id }}" {% if cuenta.id == cuenta_seleccionada %}selected{% endif %}>
-                        {{ cuenta.nombre }} - {{ cuenta.numero }}
-                    </option>
+            </optgroup>
+            <optgroup label="Transferencias">
+                {% for tr in transferencias_pago %}
+                <option value="TransferenciaPago-{{ tr.id }}">Transferencia {{ tr.entidad }}</option>
                 {% endfor %}
-            </select>
-        </div>
+            </optgroup>
+            <optgroup label="Billeteras">
+                {% for tr in billeteras_pago %}
+                <option value="BilleteraPago-{{ b.id }}">Billetera {{ b.entidad }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
 
-        <button type="submit" class="btn btn-primary">Procesar</button>
+        <h3>Métodos de Cobro</h3>
+        <select name="medio_cobro">
+            <optgroup label="Tarjetas">
+                {% for t in tarjetas_cobro %}
+                <option value="TarjetaCobro-{{ t.id }}">Tarjeta {{ t.ultimos_digitos }} ({{ t.entidad }})</option>
+                {% endfor %}
+            </optgroup>
+            <optgroup label="Transferencias">
+                {% for tr in transferencias_cobro %}
+                <option value="TransferenciaCobro-{{ tr.id }}">Transferencia {{ tr.entidad }}</option>
+                {% endfor %}
+            </optgroup>
+            <optgroup label="Billeteras">
+                {% for tr in billeteras_cobro %}
+                <option value="BilleteraCobro-{{ tr.id }}">Billetera {{ tr.entidad }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
+
     </form>
 
     {% if resultado %}

@@ -43,6 +43,7 @@
                 <a href="#" class="nav-link">Servicios</a>
                 <a href="#" class="nav-link">Contacto</a>
                 <a href="#" class="nav-link">Acerca de</a>
+                <a href="{% url 'compraventa' %}" class="nav-link">Comprar/Vender</a>
                 {% if user.is_authenticated %}
                     {% for group in user.groups.all %}
                         {% if group.name == 'Administrador' %}
@@ -55,6 +56,13 @@
             <!-- Auth buttons on the right -->
             <div class="nav-auth">
                 {% if user.is_authenticated %}
+                    <select id="cliente-selector" name="cliente">
+                        {% for cliente in clientes_disponibles %}
+                            <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+                        {% empty %}
+                            <option disabled>No tienes clientes asociados</option>
+                        {% endfor %}
+                    </select>
                     <a href="{% url 'profile' %}" class="nav-link">Perfil</a>
                     <a href="{% url 'logout' %}" class="nav-link">Salir</a>
                 {% else %}
@@ -141,6 +149,19 @@
                 toast.style.display = 'none';
             });
         }, 4000); // Oculta después de 4 segundos
+
+        // Guarda el cliente seleccionado
+        document.getElementById("cliente-selector").addEventListener("change", async (e) => {
+            await fetch("{% url 'set_cliente_seleccionado' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ cliente_id: e.target.value })
+            });
+            location.reload(); // refrescar para que se aplique
+        });
     </script>
 </body>
 </html>

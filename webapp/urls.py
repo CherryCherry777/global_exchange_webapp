@@ -74,7 +74,6 @@ urlpatterns = [
     path('currency/crear/', views.create_currency, name='create_currency'),
     path('currency/editar/<int:currency_id>/', views.edit_currency, name='edit_currency'),
     path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
-    path("api/currencies/", views.api_active_currencies, name="api_currencies"),
 
     # Categories management
     path('manage-categories/', views.manage_categories, name='manage_categories'),
@@ -123,4 +122,8 @@ urlpatterns = [
     path("entidades/add/", views.entidad_create, name="entidad_add"),
     path("entidades/<int:pk>/edit/", views.entidad_update, name="entidad_edit"),
     path("entidades/<int:pk>/toggle/", views.entidad_toggle, name="entidad_toggle"),
+
+    # Conversión
+    path("api/currencies/", views.api_active_currencies, name="api_currencies"),
+    path("cliente-seleccionado/", views.set_cliente_seleccionado, name="set_cliente_seleccionado"),
 ]

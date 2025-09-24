@@ -18,13 +18,14 @@ from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from webapp.emails import send_activation_email
 from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio
+from .models import Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
+import json
 
 User = get_user_model()
 PROTECTED_ROLES = ["Administrador", "Empleado", "Usuario"]
@@ -74,7 +75,15 @@ def api_active_currencies(request):
     if user.is_authenticated:
         try:
             # Obtener cliente asociado al usuario
-            cliente_usuario = ClienteUsuario.objects.filter(usuario=user).select_related('cliente__categoria').first()
+            cliente_id = request.session.get("cliente_id")
+            if cliente_id:
+                cliente_usuario = ClienteUsuario.objects.filter(
+                    usuario=user,
+                    cliente_id=cliente_id
+                ).select_related("cliente__categoria").first()
+            else:
+                cliente_usuario = ClienteUsuario.objects.filter(usuario=user).select_related("cliente__categoria").first()
+
             if cliente_usuario and cliente_usuario.cliente.categoria:
                 descuento = cliente_usuario.cliente.categoria.descuento or Decimal('0')
         except Exception:
@@ -112,6 +121,13 @@ def api_active_currencies(request):
 
     return JsonResponse({"items": items})
 
+@require_POST
+def set_cliente_seleccionado(request):
+    data = json.loads(request.body)
+    cliente_id = data.get("cliente_id")
+    if cliente_id:
+        request.session["cliente_id"] = cliente_id
+    return JsonResponse({"ok": True})
 
 def register(request):
     if request.method == "POST":
@@ -2580,6 +2596,16 @@ def modify_cobro_method(request, cobro_method_id):
 # ===========================================
 
 def compraventa_view(request):
+    # Traer todos los específicos de pago
+    tarjetas_pago = Tarjeta.objects.select_related("medio_pago").all()
+    transferencias_pago = CuentaBancaria.objects.select_related("medio_pago", "entidad", "moneda").all()
+    billeteras_pago = Billetera.objects.select_related("medio_pago").all()
+
+    # Traer todos los específicos de cobro
+    tarjetas_cobro = TarjetaCobro.objects.select_related("medio_cobro").all()
+    transferencias_cobro = CuentaBancariaCobro.objects.select_related("medio_cobro", "entidad", "moneda").all()
+    billeteras_cobro = BilleteraCobro.objects.select_related("medio_cobro").all()
+
     if request.method == "POST":
         # Paso 1: Si ya estamos confirmando
         if "confirmar" in request.POST:
@@ -2601,7 +2627,16 @@ def compraventa_view(request):
     else:
         form = TransaccionForm()
 
-    return render(request, "webapp/compraventa.html", {"form": form})
+    return render(request, "webapp/compraventa.html", {
+        "form": form,
+        "tarjetas_pago": tarjetas_pago,
+        "transferencias_pago": transferencias_pago,
+        "billeteras_pago": billeteras_pago,
+        "tarjetas_cobro": tarjetas_cobro,
+        "transferencias_cobro": transferencias_cobro,
+        "billeteras_cobro": billeteras_cobro,
+    })
+
 # ENTIDADES BANCARIAS Y TELEFONICAS PARA MEDIOS DE PAGO O COBRO
 @login_required
 def entidad_list(request):
