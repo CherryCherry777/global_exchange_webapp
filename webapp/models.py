@@ -754,14 +754,26 @@ class Transaccion(models.Model):
         related_name="transacciones_destino"
     )
     
-    tasa_cambio = models.DecimalField(max_digits=12, decimal_places=4)
-    monto_origen = models.DecimalField(max_digits=15, decimal_places=2)
-    monto_destino = models.DecimalField(max_digits=15, decimal_places=2)
+    tasa_cambio = models.DecimalField(max_digits=12, decimal_places=8)
+    monto_origen = models.DecimalField(max_digits=15, decimal_places=8)
+    monto_destino = models.DecimalField(max_digits=15, decimal_places=8)
 
     # Generic Foreign Key para medio de pago
-    medio_pago_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    medio_pago_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="transacciones_pago"
+    )
     medio_pago_id = models.PositiveIntegerField()
     medio_pago = GenericForeignKey("medio_pago_type", "medio_pago_id")
+
+    medio_cobro_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="transacciones_cobro"
+    )
+    medio_cobro_id = models.PositiveIntegerField()
+    medio_cobro = GenericForeignKey("medio_cobro_type", "medio_cobro_id")
 
     factura_asociada = models.ForeignKey(
         "Factura",

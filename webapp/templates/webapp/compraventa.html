@@ -1,37 +1,61 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/home.css' %}">
+{% endblock %}
+
 {% block title %}Compra y Venta de Divisas{% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <h1 class="mb-4">Compra y Venta de Divisas</h1>
 
     <form method="post">
         {% csrf_token %}
 
         <!-- Select Compra/Venta -->
-        <div class="mb-3">
-            <label for="tipo" class="form-label">Tipo de operación</label>
-            <select name="tipo" id="tipo" class="form-select" required>
-                <option value="">Seleccione</option>
-                <option value="compra" {% if tipo == 'compra' %}selected{% endif %}>Compra</option>
-                <option value="venta" {% if tipo == 'venta' %}selected{% endif %}>Venta</option>
-            </select>
-        </div>
+        <div class="converter-section">
+            <div class="converter-container">
+                <h2 class="converter-title">
+                    <span class="yellow-text">Compra</span> <span class="white-text">venta</span>
+                </h2>
+                <p class="converter-subtitle">Selecciona la moneda e ingresa el monto de cotización</p>
+                
+                <div class="converter-form">
+                    <!-- From Currency -->
+                    <div class="converter-field">
+                        <label class="field-label">Tengo esta moneda</label>
+                        <div class="field-row">
+                            <div class="select-wrapper">
+                                <select id="simu-from" class="currency-select"></select>
+                                <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                            </div>
+                            <input id="simu-amount" type="number" step="0.01" min="0" class="amount-input">
+                        </div>
+                    </div>
 
-        <!-- Campo moneda extranjera -->
-        <div class="mb-3">
-            <label for="monto_extranjera" class="form-label">Monto en moneda extranjera</label>
-            <input type="number" step="0.01" name="monto_extranjera" id="monto_extranjera"
-                   class="form-control" value="{{ monto_extranjera }}" required>
-        </div>
+                    <!-- To Currency -->
+                    <div class="converter-field">
+                        <label class="field-label">Quiero esta moneda</label>
+                        <div class="field-row">
+                            <div class="select-wrapper">
+                                <select id="simu-to" class="currency-select"></select>
+                                <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                            </div>
+                            <input type="text" readonly class="result-input" id="simu-result-main">
+                        </div>
+                    </div>
 
-        <!-- Campo equivalente en moneda local -->
-        <div class="mb-3">
-            <label for="monto_local" class="form-label">Monto equivalente en moneda local</label>
-            <input type="number" step="0.01" name="monto_local" id="monto_local"
-                   class="form-control" value="{{ monto_local }}" readonly>
+                    <div class="converter-actions">
+                        <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>
+                    </div>
+
+                    <div class="converter-result">
+                        <p id="simu-result-detail" class="result-detail">Ingresá un monto para calcular</p>
+                    </div>
+
+                </div>
+            </div>
         </div>
 
         <!-- Selector de medio de pago -->
@@ -69,6 +93,125 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+(async function() {
+    const amount = document.getElementById("simu-amount");
+    const from = document.getElementById("simu-from");
+    const to = document.getElementById("simu-to");
+    const intercambiar = document.getElementById("simu-intercambiar");
+    const out = document.getElementById("simu-result-main");
+    const detail = document.getElementById("simu-result-detail");
+
+    let CODES = [];
+    const META = Object.create(null);
+
+    // Función para formatear números según los decimales de una moneda específica
+    function nf(value, currencyCode) {
+        const decimals = currencyCode === "PYG" ? 0 : (META[currencyCode]?.decimals ?? 2);
+        return new Intl.NumberFormat("es-ES", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }).format(value);
+    }
+
+    function buildOptions(selectEl, preferCode) {
+        selectEl.innerHTML = "";
+        CODES.forEach(code => {
+            const opt = document.createElement("option");
+            opt.value = code;
+            const name = META[code]?.name || code;
+            if (code === "USD") opt.textContent = "DÓLAR";
+            else if (code === "PYG") opt.textContent = "GUARANÍ";
+            else if (code === "EUR") opt.textContent = "EURO";
+            else opt.textContent = name.toUpperCase();
+            selectEl.appendChild(opt);
+        });
+        if (preferCode && CODES.includes(preferCode)) selectEl.value = preferCode;
+        else if (CODES.length) selectEl.value = CODES[0];
+    }
+
+    function enforceDifferent(changed, other) {
+        if (changed.value === other.value) {
+            const target = CODES.find(c => c !== changed.value);
+            if (target) other.value = target;
+        }
+    }
+
+    function compute() {
+        const raw = parseFloat((amount.value || "").toString().replace(",", "."));
+        if (isNaN(raw) || raw <= 0) {
+            out.value = "—";
+            detail.textContent = "Ingresá un monto para calcular";
+            return;
+        }
+        const a = from.value, b = to.value;
+        if (!META[a] || !META[b]) return;
+
+        let val, rateAB;
+
+        if (a === "PYG" && b !== "PYG") {
+            // PYG → moneda extranjera
+            val = raw / META[b].venta;
+            rateAB = 1 / META[b].venta;
+            detail.innerHTML = `1 ${a} = ${nf(rateAB, b)} ${b}`;
+        } 
+        else if (a !== "PYG" && b === "PYG") {
+            // Moneda extranjera → PYG
+            val = raw * META[a].compra;
+            rateAB = META[a].compra;
+            detail.innerHTML = `1 ${a} = ${nf(rateAB, "PYG")} ${b}`;
+        } 
+        else {
+            // 🚫 Caso no permitido (moneda → moneda sin pasar por PYG)
+            out.value = "—";
+            detail.textContent = "Sólo se permiten conversiones con Guaraníes";
+            return;
+        }
+
+        out.value = `${nf(val, b)} ${b}`;
+    }
+
+    function attachListeners() {
+        ["input","change"].forEach(evt => {
+            amount.addEventListener(evt, compute);
+            from.addEventListener(evt, () => { enforceDifferent(from,to); compute(); });
+            to.addEventListener(evt, () => { enforceDifferent(to,from); compute(); });
+        });
+        intercambiar.addEventListener("click", () => {
+            const tmp = from.value; from.value = to.value; to.value = tmp;
+            enforceDifferent(from,to); compute();
+        });
+    }
+
+    async function boot() {
+        try {
+            const res = await fetch("{% url 'api_currencies' %}", { cache:"no-store" });
+            const payload = await res.json();
+            const items = payload.items || [];
+            const byCode = {};
+            items.forEach(it => { byCode[it.code] = it; });
+
+            if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
+
+
+            CODES = Object.keys(byCode).sort((a,b)=> a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));
+            CODES.forEach(code=>META[code]=byCode[code]);
+
+            buildOptions(from,"USD");
+            buildOptions(to,"PYG");
+            enforceDifferent(from,to);
+
+            attachListeners();
+            compute();
+        } catch(e) {
+            console.error("No se pudieron cargar monedas:", e);
+        }
+    }
+
+    boot();
+})();
+</script>
 {% endblock %}
 
 
