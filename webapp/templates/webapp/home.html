@@ -87,35 +87,6 @@
                             <input type="text" readonly class="result-input" id="simu-result-main">
                         </div>
                     </div>
-
-                    {% is_usuario_asociado request.user as usuario_asociado %}
-                    {% if usuario_asociado %}
-
-                        <!-- Método de Pago perspectiva de la casa de cambios -->
-                        <div class="converter-field">
-                            <label class="field-label">Método de pago</label>
-                            <div class="field-row">
-                                <div class="select-wrapper">
-                                    <select id="simu-metodo-pago" class="currency-select">
-                                    </select>
-                                    <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Método de Cobro perspectiva de la casa de cambios -->
-                        <div class="converter-field">
-                            <label class="field-label">Método de cobro</label>
-                            <div class="field-row">
-                                <div class="select-wrapper">
-                                    <select id="simu-metodo-cobro" class="currency-select">
-                                    </select>
-                                    <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
-                                </div>
-                            </div>
-                        </div>
-
-                    {% endif %}
                     
                     <div class="converter-actions">
                         <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>

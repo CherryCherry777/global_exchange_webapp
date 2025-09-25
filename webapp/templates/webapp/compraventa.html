@@ -100,7 +100,7 @@
                 {% endfor %}
             </optgroup>
             <optgroup label="Billeteras">
-                {% for tr in billeteras_pago %}
+                {% for b in billeteras_pago %}
                 <option value="BilleteraPago-{{ b.id }}">Billetera {{ b.entidad }}</option>
                 {% endfor %}
             </optgroup>
@@ -119,7 +119,7 @@
                 {% endfor %}
             </optgroup>
             <optgroup label="Billeteras">
-                {% for tr in billeteras_cobro %}
+                {% for b in billeteras_cobro %}
                 <option value="BilleteraCobro-{{ tr.id }}">Billetera {{ tr.entidad }}</option>
                 {% endfor %}
             </optgroup>

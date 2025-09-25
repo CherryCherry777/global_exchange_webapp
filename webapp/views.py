@@ -76,13 +76,14 @@ def api_active_currencies(request):
         try:
             # Obtener cliente asociado al usuario
             cliente_id = request.session.get("cliente_id")
+            cliente_usuario = None
             if cliente_id:
                 cliente_usuario = ClienteUsuario.objects.filter(
                     usuario=user,
                     cliente_id=cliente_id
                 ).select_related("cliente__categoria").first()
             else:
-                cliente_usuario = ClienteUsuario.objects.filter(usuario=user).select_related("cliente__categoria").first()
+                descuento = Decimal('0')
 
             if cliente_usuario and cliente_usuario.cliente.categoria:
                 descuento = cliente_usuario.cliente.categoria.descuento or Decimal('0')
