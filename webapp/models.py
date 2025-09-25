@@ -242,6 +242,7 @@ class Categoria(models.Model):
 # ------------------------------
 # Nueva clase Entidad
 # ------------------------------
+"""
 class Entidad(models.Model):
     TIPO_CHOICES = [
         ("banco", "Banco"),
@@ -259,7 +260,31 @@ class Entidad(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.get_tipo_display()})"
+"""
+class Entidad(models.Model):
+    TIPO_CHOICES = [
+        ("banco", "Banco"),
+        ("telefono", "Entidad Telefónica"),
+    ]
 
+    nombre = models.CharField(max_length=100, unique=True)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["nombre"]
+
+    def __str__(self):
+        return f"{self.nombre} ({self.get_tipo_display()})"
+
+    # 🔹 Managers dinámicos según tipo
+    @classmethod
+    def telefonicas(cls):
+        return cls.objects.filter(tipo="telefono", activo=True)
+
+    @classmethod
+    def bancarias(cls):
+        return cls.objects.filter(tipo="banco", activo=True)
 
 
 # -------------------------------------
