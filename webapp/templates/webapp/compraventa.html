@@ -1,6 +1,6 @@
 {% extends "webapp/base.html" %}
 {% load static %}
-
+{% load permissions_tags %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'webapp/home.css' %}">
 {% endblock %}
@@ -45,6 +45,34 @@
                             <input type="text" readonly class="result-input" id="simu-result-main">
                         </div>
                     </div>
+
+                    {% is_usuario_asociado request.user as usuario_asociado %}
+                    {% if usuario_asociado %}
+                        <!-- Método de Pago perspectiva de la casa de cambios -->
+                        <div class="converter-field">
+                            <label class="field-label">Método de pago</label>
+                            <div class="field-row">
+                                <div class="select-wrapper">
+                                    <select id="simu-metodo-pago" class="currency-select">
+                                    </select>
+                                    <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Método de Cobro perspectiva de la casa de cambios -->
+                        <div class="converter-field">
+                            <label class="field-label">Método de cobro</label>
+                            <div class="field-row">
+                                <div class="select-wrapper">
+                                    <select id="simu-metodo-cobro" class="currency-select">
+                                    </select>
+                                    <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                </div>
+                            </div>
+                        </div>
+
+                    {% endif %}
 
                     <div class="converter-actions">
                         <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>
@@ -114,11 +142,12 @@
     const intercambiar = document.getElementById("simu-intercambiar");
     const out = document.getElementById("simu-result-main");
     const detail = document.getElementById("simu-result-detail");
+    const metodoPago = document.getElementById("simu-metodo-pago");
+    const metodoCobro = document.getElementById("simu-metodo-cobro");
 
     let CODES = [];
     const META = Object.create(null);
 
-    // Función para formatear números según los decimales de una moneda específica
     function nf(value, currencyCode) {
         const decimals = currencyCode === "PYG" ? 0 : (META[currencyCode]?.decimals ?? 2);
         return new Intl.NumberFormat("es-ES", {
@@ -163,19 +192,16 @@
         let val, rateAB;
 
         if (a === "PYG" && b !== "PYG") {
-            // PYG → moneda extranjera
             val = raw / META[b].venta;
             rateAB = 1 / META[b].venta;
             detail.innerHTML = `1 ${a} = ${nf(rateAB, b)} ${b}`;
         } 
         else if (a !== "PYG" && b === "PYG") {
-            // Moneda extranjera → PYG
             val = raw * META[a].compra;
             rateAB = META[a].compra;
             detail.innerHTML = `1 ${a} = ${nf(rateAB, "PYG")} ${b}`;
         } 
         else {
-            // 🚫 Caso no permitido (moneda → moneda sin pasar por PYG)
             out.value = "—";
             detail.textContent = "Sólo se permiten conversiones con Guaraníes";
             return;
@@ -190,15 +216,56 @@
             from.addEventListener(evt, () => { enforceDifferent(from,to); compute(); });
             to.addEventListener(evt, () => { enforceDifferent(to,from); compute(); });
         });
+
         intercambiar.addEventListener("click", () => {
             const tmp = from.value; from.value = to.value; to.value = tmp;
             enforceDifferent(from,to); compute();
         });
+
+        if (metodoPago && metodoCobro) {
+            [metodoPago, metodoCobro].forEach(el => el.addEventListener("change", boot));
+        }
+    }
+
+    async function recargarMetodos() {
+        if (!metodoPago || !metodoCobro) return; // no existen selects
+
+        try {
+            const res = await fetch("{% url 'get_metodos_pago_cobro' %}");
+            const data = await res.json();
+
+            if (metodoPago.options.length === 0) {
+                data.tipos_pago.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.id;
+                    opt.textContent = item.nombre;
+                    if (item.nombre.toLowerCase() === "tauser") opt.selected = true;
+                    metodoPago.appendChild(opt);
+                });
+            }
+
+            if (metodoCobro.options.length === 0) {
+                data.tipos_cobro.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.id;
+                    opt.textContent = item.nombre;
+                    if (item.nombre.toLowerCase() === "tauser") opt.selected = true;
+                    metodoCobro.appendChild(opt);
+                });
+            }
+        } catch(error) {
+            console.error("Error al cargar métodos de pago/cobro:", error);
+        }
     }
 
     async function boot() {
         try {
-            const res = await fetch("{% url 'api_currencies' %}", { cache:"no-store" });
+            let url = "{% url 'api_currencies' %}";
+            if (metodoPago && metodoCobro) {
+                url += `?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;
+            }
+
+            const res = await fetch(url, { cache:"no-store" });
             const payload = await res.json();
             const items = payload.items || [];
             const byCode = {};
@@ -206,22 +273,24 @@
 
             if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
 
-
             CODES = Object.keys(byCode).sort((a,b)=> a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));
             CODES.forEach(code=>META[code]=byCode[code]);
 
             buildOptions(from,"USD");
             buildOptions(to,"PYG");
             enforceDifferent(from,to);
-
-            attachListeners();
             compute();
         } catch(e) {
             console.error("No se pudieron cargar monedas:", e);
         }
     }
 
-    boot();
+    document.addEventListener("DOMContentLoaded", async () => {
+        await recargarMetodos();
+        attachListeners();
+        boot();
+    });
+
 })();
 </script>
 {% endblock %}

@@ -604,9 +604,7 @@ class MedioCobro(models.Model):
 # -------------------------------------
 # Administración de métodos de cobro
 # -------------------------------------
-# -------------------------------------
-# Administración de métodos de cobro
-# -------------------------------------
+
 class TarjetaCobro(models.Model):
     medio_cobro = models.OneToOneField(
         "MedioCobro",

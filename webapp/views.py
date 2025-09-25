@@ -89,6 +89,23 @@ def api_active_currencies(request):
         except Exception:
             descuento = Decimal('0')
 
+    # Intentar obtener IDs de método de pago/cobro
+    metodo_pago_id = request.GET.get("metodo_pago_id")
+    metodo_cobro_id = request.GET.get("metodo_cobro_id")
+
+    metodo_pago = None
+    metodo_cobro = None
+    if metodo_pago_id:
+        try:
+            metodo_pago = TipoPago.objects.get(id=metodo_pago_id, activo=True)
+        except TipoPago.DoesNotExist:
+            metodo_pago = None
+    if metodo_cobro_id:
+        try:
+            metodo_cobro = TipoCobro.objects.get(id=metodo_cobro_id, activo=True)
+        except TipoCobro.DoesNotExist:
+            metodo_cobro = None
+
     qs = Currency.objects.filter(is_active=True)
     items = []
 
@@ -100,6 +117,12 @@ def api_active_currencies(request):
         # Aplicar fórmulas según descuento del cliente
         venta = base + (com_venta * (1 - descuento))
         compra = base - (com_compra * (1 - descuento))
+
+        # Aplicar comisiones del método seleccionado si existen
+        if metodo_pago:
+            venta = venta * (1 + Decimal(metodo_pago.comision)/100 + Decimal(metodo_cobro.comision)/100)
+        if metodo_cobro:
+            compra = compra * (1 - Decimal(metodo_cobro.comision)/100 - Decimal(metodo_pago.comision)/100)
 
         items.append({
             "code": c.code,
@@ -121,13 +144,39 @@ def api_active_currencies(request):
 
     return JsonResponse({"items": items})
 
+def get_metodos_pago_cobro(request):
+    """
+    Devuelve los métodos de pago y cobro activos en formato JSON.
+    Se consultan las tablas TipoPago y TipoCobro filtrando por activo=True,
+    y se ordenan por nombre.
+    """
+    tipos_pago = TipoPago.objects.filter(activo=True).order_by("nombre")
+    tipos_cobro = TipoCobro.objects.filter(activo=True).order_by("nombre")
+
+    data = {
+        # Convierte los QuerySets en listas de diccionarios con id y nombre
+        "tipos_pago": [{"id": t.id, "nombre": t.nombre} for t in tipos_pago],
+        "tipos_cobro": [{"id": t.id, "nombre": t.nombre} for t in tipos_cobro],
+    }
+    # Devuelve la respuesta JSON con los métodos
+    return JsonResponse(data)
+
+@login_required
 @require_POST
 def set_cliente_seleccionado(request):
-    data = json.loads(request.body)
-    cliente_id = data.get("cliente_id")
+    """
+    Actualiza la variable de sesión 'cliente_id' según la selección del usuario.
+    - Si se recibe un cliente_id válido, se guarda en la sesión.
+    - Si no se recibe, se elimina de la sesión (pop).
+    Redirige a la página anterior.
+    """
+    cliente_id = request.POST.get("cliente_id")
+    print(cliente_id)  # Para depuración, imprime el ID seleccionado
     if cliente_id:
-        request.session["cliente_id"] = cliente_id
-    return JsonResponse({"ok": True})
+        request.session["cliente_id"] = int(cliente_id)
+    else:
+        request.session.pop('cliente_id', None)  # Borra la sesión si no hay cliente
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 def register(request):
     if request.method == "POST":
@@ -151,9 +200,6 @@ def register(request):
         form = RegistrationForm()
 
     return render(request, "webapp/register.html", {"form": form})
-
-
-
 
 def verify_email(request, uidb64, token):
     try:
@@ -1682,7 +1728,7 @@ def manage_cobro_method(request, tipo, medio_cobro_id=None):
                 moneda_id = request.POST.get("moneda")
                 if not moneda_id:
                     messages.error(request, "Debe seleccionar una moneda")
-                    monedas = Currency.objects.filter(activo=True)
+                    monedas = Currency.objects.filter(is_active=True)
                     return render(request, "webapp/manage_cobro_method_base.html", {
                         "tipo": tipo,
                         "form": form,
@@ -1707,7 +1753,7 @@ def manage_cobro_method(request, tipo, medio_cobro_id=None):
         form = form_class(instance=cobro_obj)
         medio_cobro_form = MedioCobroForm(instance=medio_cobro)
 
-    monedas = Currency.objects.filter(activo=True)
+    monedas = Currency.objects.filter(is_active=True)
 
     return render(request, "webapp/manage_cobro_method_base.html", {
         "tipo": tipo,
@@ -2596,15 +2642,22 @@ def modify_cobro_method(request, cobro_method_id):
 # ===========================================
 
 def compraventa_view(request):
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
+        # Si no hay cliente seleccionado, podés manejarlo como error o redirigir
+        raise Http404("No hay cliente seleccionado")
+
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    
     # Traer todos los específicos de pago
-    tarjetas_pago = Tarjeta.objects.select_related("medio_pago").all()
-    transferencias_pago = CuentaBancaria.objects.select_related("medio_pago", "entidad", "moneda").all()
-    billeteras_pago = Billetera.objects.select_related("medio_pago").all()
+    tarjetas_pago = Tarjeta.objects.select_related("medio_pago").filter(medio_pago__cliente=cliente)
+    transferencias_pago = CuentaBancaria.objects.select_related("medio_pago", "entidad", "moneda").filter(medio_pago__cliente=cliente)
+    billeteras_pago = Billetera.objects.select_related("medio_pago").filter(medio_pago__cliente=cliente)
 
     # Traer todos los específicos de cobro
-    tarjetas_cobro = TarjetaCobro.objects.select_related("medio_cobro").all()
-    transferencias_cobro = CuentaBancariaCobro.objects.select_related("medio_cobro", "entidad", "moneda").all()
-    billeteras_cobro = BilleteraCobro.objects.select_related("medio_cobro").all()
+    tarjetas_cobro = TarjetaCobro.objects.select_related("medio_cobro").filter(medio_cobro__cliente=cliente)
+    transferencias_cobro = CuentaBancariaCobro.objects.select_related("medio_cobro", "entidad", "moneda").filter(medio_cobro__cliente=cliente)
+    billeteras_cobro = BilleteraCobro.objects.select_related("medio_cobro").filter(medio_cobro__cliente=cliente)
 
     if request.method == "POST":
         # Paso 1: Si ya estamos confirmando

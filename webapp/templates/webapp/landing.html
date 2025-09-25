@@ -128,17 +128,6 @@
             </div>
         </a>
         {% endif %}
-        {% has_perms request.user 'webapp.view_mediocobro' as can_view_mediocobro %}
-        {% if can_view_mediocobro %}
-        <a href="{% url 'my_cobro_methods' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/11.Administrar_Metodos_de_Cobro.png' %}" alt="Administrar Métodos de Cobro">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Métodos de Cobro</h3>
-            </div>
-        </a>
-        {% endif %}
         <!-- Tercera Columna -->
         {% has_perms request.user 'webapp.view_customuser' 'webapp.view_role' as can_view_customuser_role %}
         {% if can_view_customuser_role %}
@@ -192,19 +181,26 @@
         <a href="{% url 'public_home' %}" class="home-btn">Ir al Inicio</a>
     </div>
     <div class="admin-grid">
-    {% is_usuario_asociado request.user as usuario_asociado %}
-    {% if usuario_asociado %}
-        <a href="{% url 'my_payment_methods' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/9.Administrar_Metodos_de_Pago.png' %}" alt="Administrar Métodos de Pago">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Métodos de Pago</h3>
-            </div>
-        </a>
-    {% endif %}
-    </div>    
-    
+        {% is_usuario_asociado request.user as usuario_asociado %}
+        {% if usuario_asociado %}
+            <a href="{% url 'my_payment_methods' %}" class="admin-card">
+                <div class="card-icon">
+                    <img src="{% static 'webapp/panel_gestiones/9.Administrar_Metodos_de_Pago.png' %}" alt="Administrar Métodos de Pago">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Administrar Métodos de Pago</h3>
+                </div>
+            </a>
+            <a href="{% url 'my_cobro_methods' %}" class="admin-card">
+                <div class="card-icon">
+                    <img src="{% static 'webapp/panel_gestiones/11.Administrar_Metodos_de_Cobro.png' %}" alt="Administrar Métodos de Cobro">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Administrar Métodos de Cobro</h3>
+                </div>
+            </a>   
+        {% endif %}
+    </div> 
 </div>
 {% endif %}
 {% endblock %}
