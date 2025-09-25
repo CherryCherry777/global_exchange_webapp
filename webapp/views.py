@@ -23,7 +23,7 @@ from webapp.emails import send_activation_email
 from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
+from .models import Tauser, Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 import json
 
@@ -144,23 +144,6 @@ def api_active_currencies(request):
         })
 
     return JsonResponse({"items": items})
-
-def get_metodos_pago_cobro(request):
-    """
-    Devuelve los métodos de pago y cobro activos en formato JSON.
-    Se consultan las tablas TipoPago y TipoCobro filtrando por activo=True,
-    y se ordenan por nombre.
-    """
-    tipos_pago = TipoPago.objects.filter(activo=True).order_by("nombre")
-    tipos_cobro = TipoCobro.objects.filter(activo=True).order_by("nombre")
-
-    data = {
-        # Convierte los QuerySets en listas de diccionarios con id y nombre
-        "tipos_pago": [{"id": t.id, "nombre": t.nombre} for t in tipos_pago],
-        "tipos_cobro": [{"id": t.id, "nombre": t.nombre} for t in tipos_cobro],
-    }
-    # Devuelve la respuesta JSON con los métodos
-    return JsonResponse(data)
 
 @login_required
 @require_POST
@@ -2785,16 +2768,6 @@ def compraventa_view(request):
         raise Http404("No hay cliente seleccionado")
 
     cliente = get_object_or_404(Cliente, id=cliente_id)
-    
-    # Traer todos los específicos de pago
-    tarjetas_pago = Tarjeta.objects.select_related("medio_pago").filter(medio_pago__cliente=cliente)
-    transferencias_pago = CuentaBancaria.objects.select_related("medio_pago", "entidad", "moneda").filter(medio_pago__cliente=cliente)
-    billeteras_pago = Billetera.objects.select_related("medio_pago").filter(medio_pago__cliente=cliente)
-
-    # Traer todos los específicos de cobro
-    tarjetas_cobro = TarjetaCobro.objects.select_related("medio_cobro").filter(medio_cobro__cliente=cliente)
-    transferencias_cobro = CuentaBancariaCobro.objects.select_related("medio_cobro", "entidad", "moneda").filter(medio_cobro__cliente=cliente)
-    billeteras_cobro = BilleteraCobro.objects.select_related("medio_cobro").filter(medio_cobro__cliente=cliente)
 
     if request.method == "POST":
         # Paso 1: Si ya estamos confirmando
@@ -2819,13 +2792,110 @@ def compraventa_view(request):
 
     return render(request, "webapp/compraventa.html", {
         "form": form,
-        "tarjetas_pago": tarjetas_pago,
-        "transferencias_pago": transferencias_pago,
-        "billeteras_pago": billeteras_pago,
-        "tarjetas_cobro": tarjetas_cobro,
-        "transferencias_cobro": transferencias_cobro,
-        "billeteras_cobro": billeteras_cobro,
     })
+
+from django.http import JsonResponse
+
+def get_metodos_pago_cobro(request):
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
+        return JsonResponse({"metodo_pago": [], "metodo_cobro": []})
+
+    # ---------------- Métodos de Pago ----------------
+    metodo_pago = []
+
+    # Tarjetas
+    tarjetas = Tarjeta.objects.filter(medio_pago__cliente_id=cliente_id, medio_pago__activo=True).select_related("medio_pago__tipo_pago", "entidad")
+    for t in tarjetas:
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": "tarjeta",
+            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
+            "tipo_general_id": t.medio_pago.tipo_pago_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None
+        })
+
+    # Transferencias
+    transferencias = CuentaBancaria.objects.filter(medio_pago__cliente_id=cliente_id, medio_pago__activo=True).select_related("medio_pago__tipo_pago", "entidad")
+    for t in transferencias:
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": "transferencia",
+            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
+            "tipo_general_id": t.medio_pago.tipo_pago_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None
+        })
+
+    # Billeteras
+    billeteras = Billetera.objects.filter(medio_pago__cliente_id=cliente_id, medio_pago__activo=True).select_related("medio_pago__tipo_pago", "entidad")
+    for t in billeteras:
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": "billetera",
+            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "tipo_general_id": t.medio_pago.tipo_pago_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None
+        })
+
+    # Tausers
+    tausers = Tauser.objects.filter(activo=True)
+    for t in tausers:
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": t.tipo,
+            "nombre": t.nombre,
+            "ubicacion": t.ubicacion,
+            "tipo_general_id": t.tipo_pago_id
+        })
+
+    # ---------------- Métodos de Cobro ----------------
+    metodo_cobro = []
+
+    # Tarjetas
+    tarjetas = TarjetaCobro.objects.filter(medio_cobro__cliente_id=cliente_id, medio_cobro__activo=True).select_related("medio_cobro__tipo_cobro", "entidad")
+    for t in tarjetas:
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": "tarjeta",
+            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
+            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None
+        })
+
+    # Transferencias
+    transferencias = CuentaBancariaCobro.objects.filter(medio_cobro__cliente_id=cliente_id, medio_cobro__activo=True).select_related("medio_cobro__tipo_cobro", "entidad")
+    for t in transferencias:
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": "transferencia",
+            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
+            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None
+        })
+
+    # Billeteras
+    billeteras = BilleteraCobro.objects.filter(medio_cobro__cliente_id=cliente_id, medio_cobro__activo=True).select_related("medio_cobro__tipo_cobro", "entidad")
+    for t in billeteras:
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": "billetera",
+            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None
+        })
+
+    # Tausers
+    tausers = Tauser.objects.filter(activo=True)
+    for t in tausers:
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": t.tipo,
+            "nombre": t.nombre,
+            "ubicacion": t.ubicacion,
+            "tipo_general_id": t.tipo_cobro_id
+        })
+
+    return JsonResponse({"metodo_pago": metodo_pago, "metodo_cobro": metodo_cobro})
 
 # ENTIDADES BANCARIAS Y TELEFONICAS PARA MEDIOS DE PAGO O COBRO
 @login_required

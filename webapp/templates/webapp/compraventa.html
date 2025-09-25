@@ -86,45 +86,6 @@
             </div>
         </div>
 
-        <!--Selectores de método de cobro y método de pago-->
-        <h3>Métodos de Pago</h3>
-        <select name="medio_pago">
-            <optgroup label="Tarjetas">
-                {% for t in tarjetas_pago %}
-                <option value="TarjetaPago-{{ t.id }}">Tarjeta {{ t.ultimos_digitos }} ({{ t.entidad }})</option>
-                {% endfor %}
-            </optgroup>
-            <optgroup label="Transferencias">
-                {% for tr in transferencias_pago %}
-                <option value="TransferenciaPago-{{ tr.id }}">Transferencia {{ tr.entidad }}</option>
-                {% endfor %}
-            </optgroup>
-            <optgroup label="Billeteras">
-                {% for b in billeteras_pago %}
-                <option value="BilleteraPago-{{ b.id }}">Billetera {{ b.entidad }}</option>
-                {% endfor %}
-            </optgroup>
-        </select>
-
-        <h3>Métodos de Cobro</h3>
-        <select name="medio_cobro">
-            <optgroup label="Tarjetas">
-                {% for t in tarjetas_cobro %}
-                <option value="TarjetaCobro-{{ t.id }}">Tarjeta {{ t.ultimos_digitos }} ({{ t.entidad }})</option>
-                {% endfor %}
-            </optgroup>
-            <optgroup label="Transferencias">
-                {% for tr in transferencias_cobro %}
-                <option value="TransferenciaCobro-{{ tr.id }}">Transferencia {{ tr.entidad }}</option>
-                {% endfor %}
-            </optgroup>
-            <optgroup label="Billeteras">
-                {% for b in billeteras_cobro %}
-                <option value="BilleteraCobro-{{ tr.id }}">Billetera {{ tr.entidad }}</option>
-                {% endfor %}
-            </optgroup>
-        </select>
-
     </form>
 
     {% if resultado %}
@@ -210,16 +171,50 @@
         out.value = `${nf(val, b)} ${b}`;
     }
 
+    function filtrarMetodosPorMoneda() {
+        if (!metodoPago || !metodoCobro) return;
+
+        const pagosTodos = ["USD", "EUR", "PYG"].includes(from.value);
+        const cobrosTodos = ["USD", "EUR", "PYG"].includes(to.value);
+
+        Array.from(metodoPago.options).forEach(opt => {
+            if (pagosTodos) opt.hidden = false;
+            else opt.hidden = !opt.textContent.toLowerCase().includes("tauser");
+        });
+        if (metodoPago.selectedOptions[0]?.hidden) {
+            const tauserOpt = Array.from(metodoPago.options).find(opt =>
+                opt.textContent.toLowerCase().includes("tauser")
+            );
+            if (tauserOpt) metodoPago.value = tauserOpt.value;
+        }
+
+        Array.from(metodoCobro.options).forEach(opt => {
+            if (cobrosTodos) opt.hidden = false;
+            else opt.hidden = !opt.textContent.toLowerCase().includes("tauser");
+        });
+        if (metodoCobro.selectedOptions[0]?.hidden) {
+            const tauserOpt = Array.from(metodoCobro.options).find(opt =>
+                opt.textContent.toLowerCase().includes("tauser")
+            );
+            if (tauserOpt) metodoCobro.value = tauserOpt.value;
+        }
+    }
+
     function attachListeners() {
         ["input","change"].forEach(evt => {
             amount.addEventListener(evt, compute);
-            from.addEventListener(evt, () => { enforceDifferent(from,to); compute(); });
+            from.addEventListener(evt, () => { 
+                enforceDifferent(from,to); 
+                compute(); 
+                filtrarMetodosPorMoneda();  
+            });
             to.addEventListener(evt, () => { enforceDifferent(to,from); compute(); });
         });
 
         intercambiar.addEventListener("click", () => {
             const tmp = from.value; from.value = to.value; to.value = tmp;
             enforceDifferent(from,to); compute();
+            filtrarMetodosPorMoneda();     
         });
 
         if (metodoPago && metodoCobro) {
@@ -230,7 +225,19 @@
     async function updateRatesForMetodo() {
         try {
             if (!metodoPago || !metodoCobro) return;
-            const url = `{% url 'api_currencies' %}?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;
+
+            // Función que obtiene el tipo general desde dataset
+            const getTipoGeneral = (select) => {
+                const val = select.value;
+                if (!val) return "";
+                const option = Array.from(select.options).find(opt => opt.value === val);
+                return option?.dataset.tipogeneral || val;  // Si dataset no existe, devuelve el id normal
+            };
+
+            const pagoId = getTipoGeneral(metodoPago);
+            const cobroId = getTipoGeneral(metodoCobro);
+
+            const url = `{% url 'api_currencies' %}?metodo_pago_id=${pagoId}&metodo_cobro_id=${cobroId}`;
             const res = await fetch(url, { cache:"no-store" });
             const payload = await res.json();
             const items = payload.items || [];
@@ -239,7 +246,7 @@
             if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
             CODES = Object.keys(byCode).sort((a,b)=> a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));
             CODES.forEach(code=>META[code]=byCode[code]);
-            // Solo recalcula, no reconstruye select de monedas
+
             compute();
         } catch(e) {
             console.error("Error al actualizar tasas:", e);
@@ -247,42 +254,60 @@
     }
 
     async function recargarMetodos() {
-        if (!metodoPago || !metodoCobro) return; // no existen selects
+        if (!metodoPago || !metodoCobro) return;
 
         try {
             const res = await fetch("{% url 'get_metodos_pago_cobro' %}");
             const data = await res.json();
 
-            if (metodoPago.options.length === 0) {
-                data.tipos_pago.forEach(item => {
-                    const opt = document.createElement("option");
-                    opt.value = item.id;
-                    opt.textContent = item.nombre;
-                    if (item.nombre.toLowerCase() === "tauser") opt.selected = true;
-                    metodoPago.appendChild(opt);
-                });
-            }
+            metodoPago.innerHTML = "";
+            metodoCobro.innerHTML = "";
 
-            if (metodoCobro.options.length === 0) {
-                data.tipos_cobro.forEach(item => {
-                    const opt = document.createElement("option");
-                    opt.value = item.id;
+            const crearOption = (item) => {
+                const opt = document.createElement("option");
+                opt.value = item.id;
+                opt.dataset.tipoGeneral = item.tipo_general_id || "";
+
+                if (item.tipo.toLowerCase() === "tauser") {
+                    opt.textContent = `${item.nombre} (${item.ubicacion || "Sin ubicación"})`;
+                } else if (item.tipo.toLowerCase() === "billetera") {
+                    opt.textContent = `${item.nombre} - ${item.numero || ""} - ${item.entidad?.nombre || ""}`;
+                } else if (item.tipo.toLowerCase() === "tarjeta") {
+                    opt.textContent = `${item.nombre} ****${item.ultimos_digitos || ""} - ${item.entidad?.nombre || ""}`;
+                } else if (item.tipo.toLowerCase() === "transferencia") {
+                    opt.textContent = `${item.entidad?.nombre || ""} - ${item.numero || ""}`;
+                } else {
                     opt.textContent = item.nombre;
-                    if (item.nombre.toLowerCase() === "tauser") opt.selected = true;
-                    metodoCobro.appendChild(opt);
-                });
-            }
-        } catch(error) {
+                }
+
+                return opt;
+            };
+
+            data.metodo_pago.forEach(item => metodoPago.appendChild(crearOption(item)));
+            data.metodo_cobro.forEach(item => metodoCobro.appendChild(crearOption(item)));
+
+            filtrarMetodosPorMoneda();
+
+        } catch (error) {
             console.error("Error al cargar métodos de pago/cobro:", error);
         }
     }
 
     async function boot() {
         try {
-            let url = "{% url 'api_currencies' %}";
-            if (metodoPago && metodoCobro) {
-                url += `?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;
+            let pagoId = "";
+            let cobroId = "";
+
+            if (metodoPago) {
+                const opt = metodoPago.selectedOptions[0];
+                pagoId = opt?.dataset.tipogeneral || metodoPago.value;
             }
+            if (metodoCobro) {
+                const opt = metodoCobro.selectedOptions[0];
+                cobroId = opt?.dataset.tipogeneral || metodoCobro.value;
+            }
+
+            let url = `{% url 'api_currencies' %}?metodo_pago_id=${pagoId}&metodo_cobro_id=${cobroId}`;
 
             const res = await fetch(url, { cache:"no-store" });
             const payload = await res.json();
@@ -299,6 +324,7 @@
             buildOptions(to,"PYG");
             enforceDifferent(from,to);
             compute();
+            filtrarMetodosPorMoneda();
         } catch(e) {
             console.error("No se pudieron cargar monedas:", e);
         }
@@ -311,8 +337,9 @@
     });
 
 })();
-
 </script>
+
+
 {% endblock %}
 
 
