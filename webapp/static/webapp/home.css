@@ -12,12 +12,13 @@ body {
 
 /* ===== HEADER NAVIGATION ===== */
 .header-nav {
-    background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%);
-    padding: 15px 0;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%) !important;
+    padding: 15px 0 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    margin-bottom: 0 !important;
 }
 
 .nav-container {
@@ -96,10 +97,49 @@ body {
 }
 
 .nav-auth {
-    display: flex;
-    gap: 20px;
-    align-items: center;
+    display: flex !important;
+    gap: 20px !important;
+    align-items: center !important;
 }
+
+
+/* Override global.css responsive styles */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: row !important;
+        gap: 30px !important;
+    }
+    
+    .nav-menu {
+        gap: 30px !important;
+        flex-wrap: nowrap !important;
+        justify-content: center !important;
+    }
+    
+    .nav-auth {
+        gap: 20px !important;
+    }
+}
+
+
+@media (max-width: 480px) {
+    .header-nav {
+        padding: 15px 0 !important;
+    }
+    
+    .nav-menu {
+        gap: 30px !important;
+    }
+    
+    .nav-link {
+        font-size: 16px !important;
+    }
+    
+    .nav-auth {
+        gap: 20px !important;
+    }
+}
+
 
 .btn-register {
     background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);

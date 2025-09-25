@@ -127,4 +127,5 @@ urlpatterns = [
     path("api/currencies/", views.api_active_currencies, name="api_currencies"),
     path("cliente-seleccionado/", views.set_cliente_seleccionado, name="set_cliente_seleccionado"),
     path("metodos-pago-cobro/", views.get_metodos_pago_cobro, name="get_metodos_pago_cobro"),
+    path("change-client/", views.change_client, name="change_client"),
 ]

@@ -178,6 +178,33 @@ def set_cliente_seleccionado(request):
         request.session.pop('cliente_id', None)  # Borra la sesión si no hay cliente
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
+
+@login_required
+def change_client(request):
+    """
+    Vista para cambiar el cliente seleccionado por el usuario
+    """
+    if request.method == "POST":
+        cliente_id = request.POST.get("cliente_id")
+        if cliente_id:
+            request.session["cliente_id"] = int(cliente_id)
+            messages.success(request, "Cliente seleccionado correctamente.")
+        else:
+            request.session.pop('cliente_id', None)
+            messages.success(request, "Cliente deseleccionado correctamente.")
+        
+        # Redirigir a la página anterior o al home
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+    
+    # GET request - mostrar la página de selección
+    # Obtener clientes disponibles del context processor
+    from .context_processors import clientes_disponibles
+    clientes_context = clientes_disponibles(request)
+    
+    return render(request, "webapp/change_client.html", {
+        "clientes_disponibles": clientes_context["clientes_disponibles"]
+    })
+
 def register(request):
     if request.method == "POST":
         form = RegistrationForm(request.POST)
