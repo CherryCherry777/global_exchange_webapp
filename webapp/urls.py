@@ -21,6 +21,7 @@ urlpatterns = [
     path("update-cliente/<int:cliente_id>/", views.update_cliente, name="update_cliente"),
     path("modify-client/<int:client_id>/", views.modify_client, name="modify_client"),
     path("view-client/<int:client_id>/", views.view_client, name="view_client"),
+    path("create-client/", views.create_client, name="create_client"),
     path("assign-clients/", views.assign_clients, name="assign_clients"),
     path("manage-categories/", views.manage_categories, name="manage_categories"),
     path("modify-category/<int:category_id>/", views.modify_category, name="modify_category"),

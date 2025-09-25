@@ -1,0 +1,167 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Crear Cliente{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/create_client.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="create-client-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="create-client-header">
+        <div class="main-content">
+            <a href="{% url 'manage_clientes' %}" class="back-button">← Volver a Administrar Clientes</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="create-client-title">Crear un Cliente</h1>
+                    <p class="create-client-subtitle">Crea un nuevo cliente para asignarlo a un usuario</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Create Client Section -->
+        <div class="create-section">
+            <div class="create-content">
+                <!-- Client Profile Section - Inside the gradient container -->
+                <div class="client-profile-section">
+                    <div class="client-icon-circle">
+                        <img src="{% static 'webapp/pantalla_administar_clientes/1.Administar_Clientes.png' %}" alt="Client Icon" class="client-profile-icon">
+                    </div>
+                    <div class="client-name-display">Nuevo Cliente</div>
+                </div>
+                
+                <!-- Form Container -->
+                <div class="form-container">
+                    <form method="post" class="create-form" id="create-form">
+                        {% csrf_token %}
+                        
+                        <!-- First Row: Nombre, Razón Social, Dirección -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Nombre</label>
+                                <input type="text" name="nombre" class="form-input" placeholder="Ingrese el nombre" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Razón Social</label>
+                                <input type="text" name="razon_social" class="form-input" placeholder="Ingrese la razón social" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Dirección</label>
+                                <input type="text" name="direccion" class="form-input" placeholder="Ingrese la dirección" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Second Row: Tipo, Documento, RUC -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Tipo</label>
+                                <div class="select-container">
+                                    <select name="tipo" class="form-select" required>
+                                        <option value="">Tipo de cliente</option>
+                                        {% for tipo_choice in tipo_choices %}
+                                            <option value="{{ tipo_choice.0 }}">{{ tipo_choice.1 }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <img src="{% static 'webapp/pantalla_administar_clientes/tick.png' %}" alt="Dropdown" class="select-icon">
+                                </div>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Documento</label>
+                                <input type="text" name="documento" class="form-input" placeholder="Ingrese el documento" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">RUC</label>
+                                <input type="text" name="ruc" class="form-input" placeholder="Ingrese el RUC" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Third Row: Email, Teléfono -->
+                        <div class="form-row">
+                            <div class="form-field email-field">
+                                <label class="field-label">Email</label>
+                                <input type="email" name="correo" class="form-input email-input" placeholder="Ingrese el email" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Teléfono</label>
+                                <input type="text" name="telefono" class="form-input" placeholder="Ingrese el teléfono" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Fourth Row: Categoría, Activo -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Categoría</label>
+                                <div class="select-container">
+                                    <select name="categoria" class="form-select" required>
+                                        <option value="">Categoría</option>
+                                        {% for categoria in categorias %}
+                                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <img src="{% static 'webapp/pantalla_administar_clientes/tick.png' %}" alt="Dropdown" class="select-icon">
+                                </div>
+                            </div>
+                            <div class="form-field checkbox-field">
+                                <label class="field-label">Activo</label>
+                                <input type="checkbox" name="activo" id="activo" class="form-checkbox" checked>
+                                <label for="activo" class="checkbox-label">Activo</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button type="submit" class="action-button save-button">Guardar</button>
+                            <a href="{% url 'manage_clientes' %}" class="action-button discard-button">Descartar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

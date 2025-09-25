@@ -106,6 +106,39 @@ body .header-nav {
     z-index: 10;
 }
 
+/* Create Client Button */
+.create-client-button-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.create-client-button {
+    width: 287px !important;
+    height: 36px !important;
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
+    color: white !important;
+    text-decoration: none !important;
+    border-radius: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+.create-client-button:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(91, 21, 194, 0.4) !important;
+}
+
 /* Header Section with Gradient Background */
 .manage-clients-header {
     background: linear-gradient(0deg, #000000 0%, #100724 50%, #000000 100%);
