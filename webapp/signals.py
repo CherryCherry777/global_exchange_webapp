@@ -199,4 +199,4 @@ def crear_entidades_genericas(sender, **kwargs):
         Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "banco", "activo": True})
 
     for nombre in billeteras:
-        Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "billetera", "activo": True})
+        Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "telefono", "activo": True})
