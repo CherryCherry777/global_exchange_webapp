@@ -2539,8 +2539,8 @@ def manage_payment_methods(request):
     Vista para administrar métodos de pago globales
     """
     
-    # Obtener todos los métodos de pago (TipoCobro)
-    payment_methods = TipoCobro.objects.all().order_by('nombre')
+    # Obtener todos los métodos de pago (TipoPago)
+    payment_methods = TipoPago.objects.all().order_by('nombre')
     total_payment_methods = payment_methods.count()
     
     context = {
@@ -2558,8 +2558,8 @@ def modify_payment_method(request, payment_method_id):
     Vista para modificar un método de pago global
     """
     try:
-        payment_method = TipoCobro.objects.get(id=payment_method_id)
-    except TipoCobro.DoesNotExist:
+        payment_method = TipoPago.objects.get(id=payment_method_id)
+    except TipoPago.DoesNotExist:
         messages.error(request, "El método de pago no existe.")
         return redirect("manage_payment_methods")
     
