@@ -43,8 +43,8 @@
                 <a href="#" class="nav-link">Servicios</a>
                 <a href="#" class="nav-link">Contacto</a>
                 <a href="#" class="nav-link">Acerca de</a>
-                <a href="{% url 'compraventa' %}" class="nav-link">Comprar/Vender</a>
                 {% if user.is_authenticated %}
+                    <a href="{% url 'compraventa' %}" class="nav-link">Comprar/Vender</a>
                     {% for group in user.groups.all %}
                         {% if group.name == 'Administrador' %}
                         <a href="{% url 'landing' %}" class="nav-link admin-nav-link">Ir a Gestiones</a>
