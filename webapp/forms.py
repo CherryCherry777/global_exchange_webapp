@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 import re
 from .models import BilleteraCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -324,7 +325,7 @@ class TarjetaForm(forms.ModelForm):
             raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
         return ultimos_digitos
 
-
+"""
 class BilleteraForm(forms.ModelForm):
     
     entidad = forms.ModelChoiceField(
@@ -348,7 +349,31 @@ class BilleteraForm(forms.ModelForm):
         if len(numero_limpio) < 8 or len(numero_limpio) > 15:
             raise ValidationError("El número de celular debe tener entre 8 y 15 dígitos.")
         return numero_celular
+"""
 
+class BilleteraForm(forms.ModelForm):
+    class Meta:
+        model = Billetera
+        fields = ["numero_celular", "entidad"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        qs = Entidad.telefonicas()
+
+        if self.instance and self.instance.entidad_id:
+            qs = Entidad.objects.filter(
+                Q(id=self.instance.entidad_id) | Q(tipo="telefono", activo=True)
+            )
+
+        self.fields["entidad"].queryset = qs
+
+    def clean_numero_celular(self):
+        numero_celular = self.cleaned_data.get("numero_celular") or ""
+        numero_limpio = re.sub(r"[^\d]", "", numero_celular)
+        if not numero_limpio.isdigit() or not (8 <= len(numero_limpio) <= 15):
+            raise ValidationError("El número de celular debe contener entre 8 y 15 dígitos.")
+        return numero_celular
 
 class CuentaBancariaForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
