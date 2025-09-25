@@ -326,6 +326,7 @@ class TarjetaForm(forms.ModelForm):
 
 
 class BilleteraForm(forms.ModelForm):
+    
     entidad = forms.ModelChoiceField(
         queryset=Entidad.objects.filter(tipo="telefono", activo=True),
         label="Proveedor",
