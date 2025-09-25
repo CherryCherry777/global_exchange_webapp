@@ -223,7 +223,26 @@
         });
 
         if (metodoPago && metodoCobro) {
-            [metodoPago, metodoCobro].forEach(el => el.addEventListener("change", boot));
+            [metodoPago, metodoCobro].forEach(el => el.addEventListener("change", updateRatesForMetodo));
+        }
+    }
+
+    async function updateRatesForMetodo() {
+        try {
+            if (!metodoPago || !metodoCobro) return;
+            const url = `{% url 'api_currencies' %}?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;
+            const res = await fetch(url, { cache:"no-store" });
+            const payload = await res.json();
+            const items = payload.items || [];
+            const byCode = {};
+            items.forEach(it => byCode[it.code] = it);
+            if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
+            CODES = Object.keys(byCode).sort((a,b)=> a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));
+            CODES.forEach(code=>META[code]=byCode[code]);
+            // Solo recalcula, no reconstruye select de monedas
+            compute();
+        } catch(e) {
+            console.error("Error al actualizar tasas:", e);
         }
     }
 
@@ -292,6 +311,7 @@
     });
 
 })();
+
 </script>
 {% endblock %}
 
