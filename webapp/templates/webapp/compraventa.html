@@ -1,67 +1,25 @@
-{% extends 'webapp/base.html' %}
+{% extends "webapp/base.html" %}
 {% load static %}
 {% load permissions_tags %}
-{% block title %}Global Exchange - Inicio{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'webapp/home.css' %}">
 {% endblock %}
 
+{% block title %}Compra y Venta de Divisas{% endblock %}
+
 {% block content %}
+<div class="container py-4">
 
-<div class="main-home-container">
-    <div class="main-content-row">
+    <form method="post">
+        {% csrf_token %}
 
-        <!-- Left: Rates Table -->
-        <div class="rates-section">
-            <div class="rates-container">
-                <div class="rates-header">
-                    <div class="date-display">
-                        {% if last_update %}
-                            Fecha: {{ last_update|date:"d/m/Y H:i" }}
-                        {% else %}
-                            Fecha: No disponible
-                        {% endif %}
-                    </div>
-                    <button id="refresh-btn" onclick="refreshRates()" class="refresh-button" title="Actualizar cotizaciones">
-                        <img src="{% static 'webapp/home/actualizar.png' %}" alt="Actualizar" class="refresh-icon">
-                    </button>
-                </div>
-                <div class="rates-table-container">
-                    <table class="rates-table">
-                        <thead>
-                            <tr>
-                                <th>Moneda</th>
-                                <th>Compra</th>
-                                <th>Venta</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for currency in currencies %}
-                            <tr>
-                                <td class="currency-cell">
-                                    {% if currency.flag_image %}
-                                        <img src="{{ currency.flag_image.url }}" alt="{{ currency.name }}" class="currency-flag">
-                                    {% endif %}
-                                    <span class="currency-name">{{ currency.name }}</span>
-                                </td>
-                                <td class="rate-cell">{{ currency.totalCompra|floatformat:currency.decimales_monto }}</td>
-                                <td class="rate-cell">{{ currency.totalVenta|floatformat:currency.decimales_monto }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right: Currency Converter -->
+        <!-- Select Compra/Venta -->
         <div class="converter-section">
             <div class="converter-container">
                 <h2 class="converter-title">
-                    <span class="yellow-text">Conversor de</span> <span class="white-text">moneda</span>
+                    <span class="yellow-text">Compra</span> <span class="white-text">venta</span>
                 </h2>
-                <p class="converter-subtitle">Selecciona la moneda y el monto de cotización</p>
+                <p class="converter-subtitle">Selecciona la moneda e ingresa el monto de cotización</p>
                 
                 <div class="converter-form">
                     <!-- From Currency -->
@@ -90,7 +48,6 @@
 
                     {% is_usuario_asociado request.user as usuario_asociado %}
                     {% if usuario_asociado %}
-
                         <!-- Método de Pago perspectiva de la casa de cambios -->
                         <div class="converter-field">
                             <label class="field-label">Método de pago</label>
@@ -116,7 +73,7 @@
                         </div>
 
                     {% endif %}
-                    
+
                     <div class="converter-actions">
                         <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>
                     </div>
@@ -125,32 +82,59 @@
                         <p id="simu-result-detail" class="result-detail">Ingresá un monto para calcular</p>
                     </div>
 
-                    <div class="reference-text">
-                        <p>*Última actualización: 12/09/2025 - 01:49 - Cotizaciones meramente de referencia.</p>
-                    </div>
                 </div>
             </div>
         </div>
 
-    </div>
-</div>
+        <!--Selectores de método de cobro y método de pago-->
+        <h3>Métodos de Pago</h3>
+        <select name="medio_pago">
+            <optgroup label="Tarjetas">
+                {% for t in tarjetas_pago %}
+                <option value="TarjetaPago-{{ t.id }}">Tarjeta {{ t.ultimos_digitos }} ({{ t.entidad }})</option>
+                {% endfor %}
+            </optgroup>
+            <optgroup label="Transferencias">
+                {% for tr in transferencias_pago %}
+                <option value="TransferenciaPago-{{ tr.id }}">Transferencia {{ tr.entidad }}</option>
+                {% endfor %}
+            </optgroup>
+            <optgroup label="Billeteras">
+                {% for tr in billeteras_pago %}
+                <option value="BilleteraPago-{{ b.id }}">Billetera {{ b.entidad }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
 
-<div class="homepage-services">
-    <div class="container">
-        <h2>Nuestros Servicios</h2>
-        <!-- Aquí van los servicios, manteniendo tu estructura actual -->
-    </div>
+        <h3>Métodos de Cobro</h3>
+        <select name="medio_cobro">
+            <optgroup label="Tarjetas">
+                {% for t in tarjetas_cobro %}
+                <option value="TarjetaCobro-{{ t.id }}">Tarjeta {{ t.ultimos_digitos }} ({{ t.entidad }})</option>
+                {% endfor %}
+            </optgroup>
+            <optgroup label="Transferencias">
+                {% for tr in transferencias_cobro %}
+                <option value="TransferenciaCobro-{{ tr.id }}">Transferencia {{ tr.entidad }}</option>
+                {% endfor %}
+            </optgroup>
+            <optgroup label="Billeteras">
+                {% for tr in billeteras_cobro %}
+                <option value="BilleteraCobro-{{ tr.id }}">Billetera {{ tr.entidad }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
+
+    </form>
+
+    {% if resultado %}
+        <div class="alert alert-success mt-4">
+            <strong>Resultado:</strong> {{ resultado }}
+        </div>
+    {% endif %}
 </div>
 
 <script>
-function refreshRates() {
-    const btn = document.getElementById('refresh-btn');
-    btn.classList.add('loading');
-    btn.innerHTML = '⏳';
-    btn.disabled = true;
-    setTimeout(() => location.reload(), 500);
-}
-
 (async function() {
     const amount = document.getElementById("simu-amount");
     const from = document.getElementById("simu-from");
@@ -329,5 +313,6 @@ function refreshRates() {
 })();
 
 </script>
-
 {% endblock %}
+
+

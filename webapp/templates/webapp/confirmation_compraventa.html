@@ -1,0 +1,21 @@
+{% extends "webapp/base.html" %}
+{% block content %}
+<h2>Confirmar transacción</h2>
+
+<p><strong>Cliente:</strong> {{ form.cleaned_data.cliente }}</p>
+<p><strong>Usuario:</strong> {{ form.cleaned_data.usuario }}</p>
+<p><strong>Tipo:</strong> {{ form.cleaned_data.tipo }}</p>
+<p><strong>Estado:</strong> {{ form.cleaned_data.estado }}</p>
+<p><strong>Moneda Origen:</strong> {{ form.cleaned_data.monedaOrigen }}</p>
+<p><strong>Moneda Destino:</strong> {{ form.cleaned_data.monedaDestino }}</p>
+<p><strong>Monto Origen:</strong> {{ form.cleaned_data.montoOrigen }}</p>
+<p><strong>Monto Destino:</strong> {{ form.cleaned_data.montoDestino }}</p>
+<p><strong>Medio de Pago:</strong> {{ form.cleaned_data.medioPago }}</p>
+<p><strong>Factura Asociada:</strong> {{ form.cleaned_data.facturaAsociada }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" name="confirmar">Confirmar y Guardar</button>
+    <a href="{% url 'compraventa' %}">Cancelar</a>
+</form>
+{% endblock %}

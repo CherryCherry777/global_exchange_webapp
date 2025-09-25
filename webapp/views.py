@@ -1,31 +1,31 @@
+from datetime import timezone
 from django import forms
 from django.db import IntegrityError, models
 from django.forms import modelformset_factory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.core.mail import send_mail
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from webapp.emails import send_activation_email
-from .forms import BilleteraCobroForm, ConversionForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm
+from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Conversion, Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio
-from django.contrib.auth.decorators import permission_required
+from .models import Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
+import json
 
 User = get_user_model()
 PROTECTED_ROLES = ["Administrador", "Empleado", "Usuario"]
@@ -67,15 +67,6 @@ def public_home(request):
         "is_guest": is_guest
     })
 
-from django.views.decorators.http import require_GET
-from django.http import JsonResponse
-from decimal import Decimal
-
-from django.views.decorators.http import require_GET
-from django.http import JsonResponse
-from decimal import Decimal
-from .models import Currency, ClienteUsuario
-
 @require_GET
 def api_active_currencies(request):
     user = request.user
@@ -84,11 +75,36 @@ def api_active_currencies(request):
     if user.is_authenticated:
         try:
             # Obtener cliente asociado al usuario
-            cliente_usuario = ClienteUsuario.objects.filter(usuario=user).select_related('cliente__categoria').first()
+            cliente_id = request.session.get("cliente_id")
+            if cliente_id:
+                cliente_usuario = ClienteUsuario.objects.filter(
+                    usuario=user,
+                    cliente_id=cliente_id
+                ).select_related("cliente__categoria").first()
+            else:
+                cliente_usuario = ClienteUsuario.objects.filter(usuario=user).select_related("cliente__categoria").first()
+
             if cliente_usuario and cliente_usuario.cliente.categoria:
                 descuento = cliente_usuario.cliente.categoria.descuento or Decimal('0')
         except Exception:
             descuento = Decimal('0')
+
+    # Intentar obtener IDs de método de pago/cobro
+    metodo_pago_id = request.GET.get("metodo_pago_id")
+    metodo_cobro_id = request.GET.get("metodo_cobro_id")
+
+    metodo_pago = None
+    metodo_cobro = None
+    if metodo_pago_id:
+        try:
+            metodo_pago = TipoPago.objects.get(id=metodo_pago_id, activo=True)
+        except TipoPago.DoesNotExist:
+            metodo_pago = None
+    if metodo_cobro_id:
+        try:
+            metodo_cobro = TipoCobro.objects.get(id=metodo_cobro_id, activo=True)
+        except TipoCobro.DoesNotExist:
+            metodo_cobro = None
 
     qs = Currency.objects.filter(is_active=True)
     items = []
@@ -101,13 +117,19 @@ def api_active_currencies(request):
         # Aplicar fórmulas según descuento del cliente
         venta = base + (com_venta * (1 - descuento))
         compra = base - (com_compra * (1 - descuento))
-        mid = (venta + compra) / Decimal("2")
+
+        # Aplicar comisiones del método seleccionado si existen
+        if metodo_pago:
+            venta = venta * (1 + Decimal(metodo_pago.comision)/100 + Decimal(metodo_cobro.comision)/100)
+        if metodo_cobro:
+            compra = compra * (1 - Decimal(metodo_cobro.comision)/100 - Decimal(metodo_pago.comision)/100)
 
         items.append({
             "code": c.code,
             "name": c.name,
             "decimals": int(c.decimales_monto or 2),
-            "pyg_per_unit": float(mid),
+            "venta": float(venta),
+            "compra": float(compra),
         })
 
     # Asegurar que PYG siempre exista
@@ -116,11 +138,45 @@ def api_active_currencies(request):
             "code": "PYG",
             "name": "Guaraní",
             "decimals": 0,
-            "pyg_per_unit": 1.0,
+            "venta": 1.0,
+            "compra": 1.0,
         })
 
     return JsonResponse({"items": items})
 
+def get_metodos_pago_cobro(request):
+    """
+    Devuelve los métodos de pago y cobro activos en formato JSON.
+    Se consultan las tablas TipoPago y TipoCobro filtrando por activo=True,
+    y se ordenan por nombre.
+    """
+    tipos_pago = TipoPago.objects.filter(activo=True).order_by("nombre")
+    tipos_cobro = TipoCobro.objects.filter(activo=True).order_by("nombre")
+
+    data = {
+        # Convierte los QuerySets en listas de diccionarios con id y nombre
+        "tipos_pago": [{"id": t.id, "nombre": t.nombre} for t in tipos_pago],
+        "tipos_cobro": [{"id": t.id, "nombre": t.nombre} for t in tipos_cobro],
+    }
+    # Devuelve la respuesta JSON con los métodos
+    return JsonResponse(data)
+
+@login_required
+@require_POST
+def set_cliente_seleccionado(request):
+    """
+    Actualiza la variable de sesión 'cliente_id' según la selección del usuario.
+    - Si se recibe un cliente_id válido, se guarda en la sesión.
+    - Si no se recibe, se elimina de la sesión (pop).
+    Redirige a la página anterior.
+    """
+    cliente_id = request.POST.get("cliente_id")
+    print(cliente_id)  # Para depuración, imprime el ID seleccionado
+    if cliente_id:
+        request.session["cliente_id"] = int(cliente_id)
+    else:
+        request.session.pop('cliente_id', None)  # Borra la sesión si no hay cliente
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 def register(request):
     if request.method == "POST":
@@ -144,9 +200,6 @@ def register(request):
         form = RegistrationForm()
 
     return render(request, "webapp/register.html", {"form": form})
-
-
-
 
 def verify_email(request, uidb64, token):
     try:
@@ -1020,8 +1073,6 @@ def edit_profile(request):
 
 @login_required
 def landing_page(request):
-    from django.contrib.auth import get_user_model
-    from .models import Currency, Cliente
     
     User = get_user_model()
     
@@ -1677,7 +1728,7 @@ def manage_cobro_method(request, tipo, medio_cobro_id=None):
                 moneda_id = request.POST.get("moneda")
                 if not moneda_id:
                     messages.error(request, "Debe seleccionar una moneda")
-                    monedas = Currency.objects.filter(activo=True)
+                    monedas = Currency.objects.filter(is_active=True)
                     return render(request, "webapp/manage_cobro_method_base.html", {
                         "tipo": tipo,
                         "form": form,
@@ -1702,7 +1753,7 @@ def manage_cobro_method(request, tipo, medio_cobro_id=None):
         form = form_class(instance=cobro_obj)
         medio_cobro_form = MedioCobroForm(instance=medio_cobro)
 
-    monedas = Currency.objects.filter(activo=True)
+    monedas = Currency.objects.filter(is_active=True)
 
     return render(request, "webapp/manage_cobro_method_base.html", {
         "tipo": tipo,
@@ -2586,6 +2637,59 @@ def modify_cobro_method(request, cobro_method_id):
     
     return render(request, "webapp/modify_cobro_method.html", context)
 
+# ===========================================
+# MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
+# ===========================================
+
+def compraventa_view(request):
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
+        # Si no hay cliente seleccionado, podés manejarlo como error o redirigir
+        raise Http404("No hay cliente seleccionado")
+
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+    
+    # Traer todos los específicos de pago
+    tarjetas_pago = Tarjeta.objects.select_related("medio_pago").filter(medio_pago__cliente=cliente)
+    transferencias_pago = CuentaBancaria.objects.select_related("medio_pago", "entidad", "moneda").filter(medio_pago__cliente=cliente)
+    billeteras_pago = Billetera.objects.select_related("medio_pago").filter(medio_pago__cliente=cliente)
+
+    # Traer todos los específicos de cobro
+    tarjetas_cobro = TarjetaCobro.objects.select_related("medio_cobro").filter(medio_cobro__cliente=cliente)
+    transferencias_cobro = CuentaBancariaCobro.objects.select_related("medio_cobro", "entidad", "moneda").filter(medio_cobro__cliente=cliente)
+    billeteras_cobro = BilleteraCobro.objects.select_related("medio_cobro").filter(medio_cobro__cliente=cliente)
+
+    if request.method == "POST":
+        # Paso 1: Si ya estamos confirmando
+        if "confirmar" in request.POST:
+            form = TransaccionForm(request.session.get("form_data"))
+            if form.is_valid():
+                transaccion = form.save(commit=False)
+                transaccion.fechaCreacion = timezone.now()
+                transaccion.save()
+                # limpiar la sesión
+                request.session.pop("form_data", None)
+                return redirect("transaccion_list")
+
+        # Paso 2: usuario llena el formulario y pide confirmar
+        form = TransaccionForm(request.POST)
+        if form.is_valid():
+            request.session["form_data"] = request.POST
+            return render(request, "webapp/confirmation_compraventa.html", {"form": form})
+
+    else:
+        form = TransaccionForm()
+
+    return render(request, "webapp/compraventa.html", {
+        "form": form,
+        "tarjetas_pago": tarjetas_pago,
+        "transferencias_pago": transferencias_pago,
+        "billeteras_pago": billeteras_pago,
+        "tarjetas_cobro": tarjetas_cobro,
+        "transferencias_cobro": transferencias_cobro,
+        "billeteras_cobro": billeteras_cobro,
+    })
+
 # ENTIDADES BANCARIAS Y TELEFONICAS PARA MEDIOS DE PAGO O COBRO
 @login_required
 def entidad_list(request):
@@ -2632,29 +2736,3 @@ def entidad_toggle(request, pk):
     return redirect("entidad_list")
 
 
-# CONVERSION
-
-def realizar_conversion(request):
-    if request.method == "POST":
-        form = ConversionForm(request.POST)
-        if form.is_valid():
-            conversion = form.save(commit=False)
-            try:
-                conversion.clean()
-                conversion.calcular_monto_destino()
-                conversion.save()
-                messages.success(
-                    request,
-                    f"Conversión realizada: {conversion.monto_origen} {conversion.moneda_origen.code} → {conversion.monto_destino:.2f} {conversion.moneda_destino.code}"
-                )
-                return redirect("conversion_detalle", pk=conversion.pk)
-            except Exception as e:
-                messages.error(request, str(e))
-    else:
-        form = ConversionForm()
-    return render(request, "webapp/realizar_conversion.html", {"form": form})
-
-
-def conversion_detalle(request, pk):
-    conversion = get_object_or_404(Conversion, pk=pk)
-    return render(request, "webapp/conversion_detalle.html", {"conversion": conversion})

@@ -74,7 +74,6 @@ urlpatterns = [
     path('currency/crear/', views.create_currency, name='create_currency'),
     path('currency/editar/<int:currency_id>/', views.edit_currency, name='edit_currency'),
     path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
-    path("api/currencies/", views.api_active_currencies, name="api_currencies"),
 
     # Categories management
     path('manage-categories/', views.manage_categories, name='manage_categories'),
@@ -115,9 +114,17 @@ urlpatterns = [
     path('manage-cobro-methods/', views.manage_cobro_methods, name='manage_cobro_methods'),
     path('modify-cobro-method/<int:cobro_method_id>/', views.modify_cobro_method, name='modify_cobro_method'),
 
+    # Compraventa de divisas
+    path("compraventa/", views.compraventa_view, name="compraventa"),
+
     # Administrar entidades de medios de pago y cobro de cliente
     path("entidades/", views.entidad_list, name="entidad_list"),
     path("entidades/add/", views.entidad_create, name="entidad_add"),
     path("entidades/<int:pk>/edit/", views.entidad_update, name="entidad_edit"),
     path("entidades/<int:pk>/toggle/", views.entidad_toggle, name="entidad_toggle"),
+
+    # Conversión
+    path("api/currencies/", views.api_active_currencies, name="api_currencies"),
+    path("cliente-seleccionado/", views.set_cliente_seleccionado, name="set_cliente_seleccionado"),
+    path("metodos-pago-cobro/", views.get_metodos_pago_cobro, name="get_metodos_pago_cobro"),
 ]

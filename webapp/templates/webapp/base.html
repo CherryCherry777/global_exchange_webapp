@@ -43,6 +43,7 @@
                 <a href="#" class="nav-link">Servicios</a>
                 <a href="#" class="nav-link">Contacto</a>
                 <a href="#" class="nav-link">Acerca de</a>
+                <a href="{% url 'compraventa' %}" class="nav-link">Comprar/Vender</a>
                 {% if user.is_authenticated %}
                     {% for group in user.groups.all %}
                         {% if group.name == 'Administrador' %}
@@ -55,6 +56,22 @@
             <!-- Auth buttons on the right -->
             <div class="nav-auth">
                 {% if user.is_authenticated %}
+                    <form method="POST" action="{% url 'set_cliente_seleccionado' %}">
+                        {% csrf_token %}
+                        <select id="cliente-selector" name="cliente_id" onchange="this.form.submit()">
+                            <option value="" 
+                                {% if not request.session.cliente_id %}selected{% else %}disabled{% endif %}>
+                                Seleccionar cliente
+                            </option>
+                            {% for cliente in clientes_disponibles %}
+                                <option value="{{ cliente.id }}"
+                                    {% if request.session.cliente_id|stringformat:"s" == cliente.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cliente.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    <a href="{% url 'landing' %}" class="nav-link">⚙️</a>
                     <a href="{% url 'profile' %}" class="nav-link">Perfil</a>
                     <a href="{% url 'logout' %}" class="nav-link">Salir</a>
                 {% else %}
@@ -141,6 +158,7 @@
                 toast.style.display = 'none';
             });
         }, 4000); // Oculta después de 4 segundos
+
     </script>
 </body>
 </html>

@@ -4,6 +4,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from decimal import Decimal, ROUND_DOWN
 
 #Las clases van aqui
@@ -602,9 +604,7 @@ class MedioCobro(models.Model):
 # -------------------------------------
 # Administración de métodos de cobro
 # -------------------------------------
-# -------------------------------------
-# Administración de métodos de cobro
-# -------------------------------------
+
 class TarjetaCobro(models.Model):
     medio_cobro = models.OneToOneField(
         "MedioCobro",
@@ -707,96 +707,115 @@ class TipoCobro(models.Model):
     def __str__(self):
         return self.nombre
 
+# ------------------------------------------------------
+# Modelo Transaccion para el registro de la compraventa
+# ------------------------------------------------------
+class Transaccion(models.Model):
+    class Tipo(models.TextChoices):
+        COMPRA = "COMPRA", "Compra"
+        VENTA = "VENTA", "Venta"
 
-# CONVERSION DE MONEDAS
+    class Estado(models.TextChoices):
+        PENDIENTE = "PENDIENTE", "Pendiente"
+        PAGADA = "PAGADA", "Pagada"
+        CANCELADA = "CANCELADA", "Cancelada"
+        ANULADA = "ANULADA", "Anulada"
 
-class Conversion(models.Model):
     cliente = models.ForeignKey(
-        Cliente,
+        "Cliente",
         on_delete=models.CASCADE,
-        related_name="conversiones",
-        verbose_name="Cliente"
+        related_name="transacciones"
     )
+    usuario = models.ForeignKey(
+        "webapp.CustomUser",  # ajusta al nombre real de tu User
+        on_delete=models.CASCADE,
+        related_name="transacciones"
+    )
+    tipo = models.CharField(max_length=10, choices=Tipo.choices)
+    estado = models.CharField(
+        max_length=10,
+        choices=Estado.choices,
+        default=Estado.PENDIENTE
+    )
+    fecha_creacion = models.DateField(auto_now_add=True)
+    fecha_pago = models.DateField(null=True, blank=True)
+    fecha_actualizacion = models.DateField(auto_now=True)
+
     moneda_origen = models.ForeignKey(
-        Currency,
+        "Currency",
         on_delete=models.PROTECT,
-        related_name="conversiones_origen",
-        verbose_name="Moneda Origen"
+        related_name="transacciones_origen"
     )
     moneda_destino = models.ForeignKey(
-        Currency,
+        "Currency",
         on_delete=models.PROTECT,
-        related_name="conversiones_destino",
-        verbose_name="Moneda Destino"
+        related_name="transacciones_destino"
     )
-    monto_origen = models.DecimalField(
-        max_digits=23,
-        decimal_places=8,
-        verbose_name="Monto Origen"
+    
+    tasa_cambio = models.DecimalField(max_digits=12, decimal_places=8)
+    monto_origen = models.DecimalField(max_digits=15, decimal_places=8)
+    monto_destino = models.DecimalField(max_digits=15, decimal_places=8)
+
+    # Generic Foreign Key para medio de pago
+    medio_pago_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="transacciones_pago"
     )
-    monto_destino = models.DecimalField(
-        max_digits=23,
-        decimal_places=8,
-        verbose_name="Monto Destino",
+    medio_pago_id = models.PositiveIntegerField()
+    medio_pago = GenericForeignKey("medio_pago_type", "medio_pago_id")
+
+    medio_cobro_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="transacciones_cobro"
+    )
+    medio_cobro_id = models.PositiveIntegerField()
+    medio_cobro = GenericForeignKey("medio_cobro_type", "medio_cobro_id")
+
+    factura_asociada = models.ForeignKey(
+        "Factura",
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        null=True
+        related_name="transacciones"
     )
-    tasa_cambio = models.DecimalField(
-        max_digits=23,
-        decimal_places=8,
-        verbose_name="Tasa de Cambio",
-        help_text="Incluye comisiones aplicadas"
-    )
-    fecha = models.DateTimeField(default=timezone.now)
-
-    class Meta:
-        verbose_name = "Conversión"
-        verbose_name_plural = "Conversiones"
-        ordering = ["-fecha"]
-
-    def clean(self):
-        # No puede convertir entre la misma moneda
-        if self.moneda_origen == self.moneda_destino:
-            raise ValidationError("La moneda de origen y destino no pueden ser iguales.")
-        
-        # Validar límites diarios y mensuales
-        hoy = timezone.now().date()
-        inicio_mes = hoy.replace(day=1)
-
-        total_dia = Conversion.objects.filter(
-            cliente=self.cliente,
-            moneda_origen=self.moneda_origen,
-            fecha__date=hoy
-        ).aggregate(models.Sum("monto_origen"))["monto_origen__sum"] or Decimal("0")
-
-        total_mes = Conversion.objects.filter(
-            cliente=self.cliente,
-            moneda_origen=self.moneda_origen,
-            fecha__date__gte=inicio_mes
-        ).aggregate(models.Sum("monto_origen"))["monto_origen__sum"] or Decimal("0")
-
-        limite = LimiteIntercambio.objects.filter(moneda=self.moneda_origen).first()
-        if limite:
-            if total_dia + self.monto_origen > limite.limite_dia:
-                raise ValidationError("Se superó el límite diario para esta moneda.")
-            if total_mes + self.monto_origen > limite.limite_mes:
-                raise ValidationError("Se superó el límite mensual para esta moneda.")
-
-    def calcular_monto_destino(self):
-        """Calcula el monto en moneda destino aplicando comisiones"""
-        # Ejemplo simple: precio base + comisión de la moneda destino
-        tasa_base = self.moneda_destino.base_price / self.moneda_origen.base_price
-        # Ajustar con comisión compra/venta
-        tasa_final = tasa_base * (1 - self.moneda_origen.comision_venta/Decimal("100")) \
-                               * (1 - self.moneda_destino.comision_compra/Decimal("100"))
-        self.tasa_cambio = tasa_final
-        self.monto_destino = self.monto_origen * tasa_final
-        return self.monto_destino
-
-    def save(self, *args, **kwargs):
-        if not self.monto_destino:
-            self.calcular_monto_destino()
-        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.cliente.nombre} | {self.monto_origen} {self.moneda_origen.code} → {self.monto_destino} {self.moneda_destino.code}"
+        return f"{self.tipo} {self.monto_origen} {self.moneda_origen} → {self.moneda_destino} ({self.estado})"
+    
+# --------------------------------------------
+# Modelos para facturación y notas de crédito
+# --------------------------------------------
+
+class Factura(models.Model):
+    ESTADOS = [
+        ("emitida", "Emitida"),
+        ("aprobada", "Aprobada"),
+        ("rechazada", "Rechazada"),
+    ]
+
+    timbrado = models.IntegerField()
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    cliente = models.ForeignKey("Cliente", on_delete=models.CASCADE)
+    fechaEmision = models.DateField(default=timezone.now)
+    detalleFactura = models.ForeignKey("DetalleFactura", on_delete=models.CASCADE)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default="emitida")
+    xml_file = models.FileField(upload_to="facturas/xml/", blank=True, null=True)
+    pdf_file = models.FileField(upload_to="facturas/pdf/", blank=True, null=True)
+
+    def __str__(self):
+        return f"Factura {self.id} - Cliente {self.cliente} ({self.estado})"
+
+class DetalleFactura(models.Model):
+    transaccion = models.ForeignKey("Transaccion", on_delete=models.CASCADE)
+    
+    # Campos para GenericForeignKey
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    medioPago = GenericForeignKey("content_type", "object_id")
+
+    descripcion = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"Detalle {self.id} - {self.descripcion}"

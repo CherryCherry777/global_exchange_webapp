@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, Conversion, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency
+from .models import BilleteraCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -413,6 +413,27 @@ class TipoCobroForm(forms.ModelForm):
             "comision": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
         }
 
+class TransaccionForm(forms.ModelForm):
+    class Meta:
+        model = Transaccion
+        fields = [
+            "cliente",
+            "usuario",
+            "tipo",
+            "estado",
+            "fecha_pago",
+            "moneda_origen",
+            "moneda_destino",
+            "tasa_cambio",
+            "monto_origen",
+            "monto_destino",
+            "medio_pago_type",  # necesario para GenericForeignKey
+            "medio_pago_id",    # necesario para GenericForeignKey
+            "factura_asociada",
+        ]
+        widgets = {
+            "fecha_pago": forms.DateInput(attrs={"type": "date"}),
+        }
 
 # -------------------------
 # Edit forms - MÉTODOS DE COBRO
@@ -661,16 +682,3 @@ class EntidadEditForm(forms.ModelForm):
         #     "tipo": forms.Select(attrs={"disabled": True}),
         # }
 
-
-# CONVERSION
-
-class ConversionForm(forms.ModelForm):
-    class Meta:
-        model = Conversion
-        fields = ["cliente", "moneda_origen", "moneda_destino", "monto_origen"]
-
-    def clean(self):
-        cleaned_data = super().clean()
-        if cleaned_data.get("moneda_origen") == cleaned_data.get("moneda_destino"):
-            raise forms.ValidationError("La moneda de origen y destino no pueden ser iguales.")
-        return cleaned_data
