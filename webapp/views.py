@@ -179,6 +179,33 @@ def set_cliente_seleccionado(request):
         request.session.pop('cliente_id', None)  # Borra la sesión si no hay cliente
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
+
+@login_required
+def change_client(request):
+    """
+    Vista para cambiar el cliente seleccionado por el usuario
+    """
+    if request.method == "POST":
+        cliente_id = request.POST.get("cliente_id")
+        if cliente_id:
+            request.session["cliente_id"] = int(cliente_id)
+            messages.success(request, "Cliente seleccionado correctamente.")
+        else:
+            request.session.pop('cliente_id', None)
+            messages.success(request, "Cliente deseleccionado correctamente.")
+        
+        # Redirigir a la página anterior o al home
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+    
+    # GET request - mostrar la página de selección
+    # Obtener clientes disponibles del context processor
+    from .context_processors import clientes_disponibles
+    clientes_context = clientes_disponibles(request)
+    
+    return render(request, "webapp/change_client.html", {
+        "clientes_disponibles": clientes_context["clientes_disponibles"]
+    })
+
 def register(request):
     if request.method == "POST":
         form = RegistrationForm(request.POST)
@@ -965,6 +992,82 @@ def modify_client(request, client_id):
     }
     
     return render(request, "webapp/modify_client.html", context)
+
+@login_required
+@role_required("Administrador")
+def create_client(request):
+    """Vista para crear un nuevo cliente"""
+    if request.method == "POST":
+        # Procesar formulario de creación
+        nombre = request.POST.get('nombre', '')
+        razon_social = request.POST.get('razon_social', '')
+        direccion = request.POST.get('direccion', '')
+        tipo = request.POST.get('tipo', '')
+        documento = request.POST.get('documento', '')
+        ruc = request.POST.get('ruc', '')
+        correo = request.POST.get('correo', '')
+        telefono = request.POST.get('telefono', '')
+        categoria_id = request.POST.get('categoria', '')
+        activo = request.POST.get('activo') == 'on'
+        
+        try:
+            # Validar datos requeridos
+            if not nombre or not direccion or not tipo or not documento or not correo or not telefono or not categoria_id:
+                messages.error(request, "Todos los campos son requeridos.")
+                return redirect("create_client")
+            
+            # Verificar si ya existe un cliente con el mismo documento
+            if Cliente.objects.filter(documento=documento).exists():
+                messages.error(request, "Ya existe un cliente con este documento.")
+                return redirect("create_client")
+            
+            # Verificar si ya existe un cliente con el mismo correo
+            if Cliente.objects.filter(correo=correo).exists():
+                messages.error(request, "Ya existe un cliente con este correo.")
+                return redirect("create_client")
+            
+            # Obtener categoría
+            categoria = Categoria.objects.get(id=categoria_id)
+            
+            # Crear nuevo cliente
+            client = Cliente.objects.create(
+                nombre=nombre,
+                razonSocial=razon_social if razon_social else None,
+                direccion=direccion,
+                tipoCliente=tipo,
+                documento=documento,
+                ruc=ruc if ruc else None,
+                correo=correo,
+                telefono=telefono,
+                categoria=categoria,
+                estado=activo
+            )
+            
+            messages.success(request, f"Cliente '{client.nombre}' creado exitosamente.")
+            return redirect("manage_clientes")
+            
+        except Categoria.DoesNotExist:
+            messages.error(request, "La categoría seleccionada no existe.")
+            return redirect("create_client")
+        except Exception as e:
+            messages.error(request, f"Error al crear el cliente: {str(e)}")
+            return redirect("create_client")
+    
+    # GET request - mostrar formulario
+    categorias = Categoria.objects.all()
+    
+    # Opciones de tipo de cliente
+    tipo_choices = [
+        ('Persona Natural', 'Persona Natural'),
+        ('Persona Jurídica', 'Persona Jurídica'),
+    ]
+    
+    context = {
+        "categorias": categorias,
+        "tipo_choices": tipo_choices,
+    }
+    
+    return render(request, "webapp/create_client.html", context)
 
 @login_required
 @role_required("Administrador")
