@@ -2828,6 +2828,8 @@ def get_metodos_pago_cobro(request):
     moneda_pago = request.GET.get("from")
     moneda_cobro = request.GET.get("to")
 
+    print(moneda_pago)
+    print(moneda_cobro)
     # ---------------- ContentTypes ----------------
     ct_tarjeta = ContentType.objects.get_for_model(Tarjeta)
     ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
@@ -2845,8 +2847,7 @@ def get_metodos_pago_cobro(request):
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
     for t in tarjetas:
-        print(t.medio_pago.tipo_pago_id)
-        if moneda_pago and t.moneda.code != moneda_pago:
+        if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
             continue
         metodo_pago.append({
             "id": t.id,
@@ -2862,8 +2863,7 @@ def get_metodos_pago_cobro(request):
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
     for t in transferencias:
-        print(t.medio_pago.tipo_pago_id)
-        if moneda_pago and t.moneda.code != moneda_pago:
+        if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
             continue
         metodo_pago.append({
             "id": t.id,
@@ -2880,8 +2880,7 @@ def get_metodos_pago_cobro(request):
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
     for t in billeteras:
-        print(t.medio_pago.tipo_pago_id)
-        if moneda_pago and t.moneda.code != moneda_pago:
+        if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
             continue
         metodo_pago.append({
             "id": t.id,
@@ -2912,7 +2911,7 @@ def get_metodos_pago_cobro(request):
         medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
     ).select_related("medio_cobro__tipo_cobro", "entidad")
     for t in tarjetas:
-        if moneda_cobro and t.moneda.code != moneda_cobro:
+        if moneda_cobro and t.medio_cobro.moneda.code != moneda_cobro:
             continue
         metodo_cobro.append({
             "id": t.id,
@@ -2928,7 +2927,7 @@ def get_metodos_pago_cobro(request):
         medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
     ).select_related("medio_cobro__tipo_cobro", "entidad")
     for t in transferencias:
-        if moneda_cobro and t.moneda.code != moneda_cobro:
+        if moneda_cobro and t.medio_cobro.moneda.code != moneda_cobro:
             continue
         metodo_cobro.append({
             "id": t.id,
@@ -2945,7 +2944,7 @@ def get_metodos_pago_cobro(request):
         medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
     ).select_related("medio_cobro__tipo_cobro", "entidad")
     for t in billeteras:
-        if moneda_cobro and t.moneda.code != moneda_cobro:
+        if moneda_cobro and t.medio_cobro.moneda.code != moneda_cobro:
             continue
         metodo_cobro.append({
             "id": t.id,
