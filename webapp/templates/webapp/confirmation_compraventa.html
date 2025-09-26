@@ -1,21 +1,25 @@
 {% extends "webapp/base.html" %}
+{% block title %}Confirmar operación{% endblock %}
+
 {% block content %}
-<h2>Confirmar transacción</h2>
+<div class="container py-4">
+    <h2>Confirmación de operación</h2>
+    <p>Revisá los datos antes de confirmar:</p>
 
-<p><strong>Cliente:</strong> {{ form.cleaned_data.cliente }}</p>
-<p><strong>Usuario:</strong> {{ form.cleaned_data.usuario }}</p>
-<p><strong>Tipo:</strong> {{ form.cleaned_data.tipo }}</p>
-<p><strong>Estado:</strong> {{ form.cleaned_data.estado }}</p>
-<p><strong>Moneda Origen:</strong> {{ form.cleaned_data.monedaOrigen }}</p>
-<p><strong>Moneda Destino:</strong> {{ form.cleaned_data.monedaDestino }}</p>
-<p><strong>Monto Origen:</strong> {{ form.cleaned_data.montoOrigen }}</p>
-<p><strong>Monto Destino:</strong> {{ form.cleaned_data.montoDestino }}</p>
-<p><strong>Medio de Pago:</strong> {{ form.cleaned_data.medioPago }}</p>
-<p><strong>Factura Asociada:</strong> {{ form.cleaned_data.facturaAsociada }}</p>
+    <ul>
+    <li><strong>Tipo:</strong> {{ data.tipo }}</li>
+    <li><strong>Moneda origen:</strong> {{ data.moneda_origen }}</li>
+    <li><strong>Monto origen:</strong> {{ data.monto_origen }}</li>
+    <li><strong>Moneda destino:</strong> {{ data.moneda_destino }}</li>
+    <li><strong>Monto destino:</strong> {{ data.monto_destino }}</li>
+    <li><strong>Tasa de cambio:</strong> {{ data.tasa_cambio }}</li>
+    <li><strong>Medio de pago:</strong> {{ data.medio_pago_type }} (id {{ data.medio_pago_id }})</li>
+    <li><strong>Medio de cobro:</strong> {{ data.medio_cobro_type }} (id {{ data.medio_cobro_id }})</li>
+    </ul>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="confirmar" class="btn btn-success">Confirmar operación</button>
+    </form>
 
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" name="confirmar">Confirmar y Guardar</button>
-    <a href="{% url 'compraventa' %}">Cancelar</a>
-</form>
+</div>
 {% endblock %}

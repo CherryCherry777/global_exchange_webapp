@@ -160,9 +160,26 @@ function refreshRates() {
     }
 
     function enforceDifferent(changed, other) {
-        if (changed.value === other.value) {
-            const target = CODES.find(c => c !== changed.value);
-            if (target) other.value = target;
+        // Caso 1: si el usuario pone PYG en ambos
+        if (from.value === "PYG" && to.value === "PYG") {
+            // fijamos que el "otro" se quede en USD (si existe) en vez de tomar el primero al azar
+            const fallback = CODES.includes("USD") ? "USD" : CODES.find(c => c !== "PYG");
+            if (changed === from) to.value = fallback;
+            else from.value = fallback;
+        }
+
+        // Caso 2: si el usuario pone la misma moneda en ambos (pero no es PYG)
+        else if (from.value === to.value) {
+            // el otro se fuerza a PYG
+            if (changed === from) to.value = "PYG";
+            else from.value = "PYG";
+        }
+
+        // Caso 3: si ninguno es PYG
+        if (from.value !== "PYG" && to.value !== "PYG") {
+            // el que no cambió se fuerza a PYG
+            if (changed === from) to.value = "PYG";
+            else from.value = "PYG";
         }
     }
 
