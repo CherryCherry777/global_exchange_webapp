@@ -65,20 +65,20 @@ def assign_all_permissions_to_admin(sender, **kwargs):
         all_permissions = Permission.objects.all()
         admin_group.permissions.set(all_permissions)
 
-@receiver(post_migrate)
-def create_default_payment_types(sender, **kwargs):
-    # Asegurarse de que solo se ejecute para nuestra app
-    if sender.name != "webapp":
-        return
+# @receiver(post_migrate)
+# def create_default_payment_types(sender, **kwargs):
+#     # Asegurarse de que solo se ejecute para nuestra app
+#     if sender.name != "webapp":
+#         return
 
-    TipoPago = apps.get_model("webapp", "TipoPago")
-    defaults = {"activo": True, "comision": 0.0}
+#     TipoPago = apps.get_model("webapp", "TipoPago")
+#     defaults = {"activo": True, "comision": 0.0}
     
-    # Lista de tipos de pago fijos
-    tipos = ["Billetera", "Cuenta Bancaria", "Tauser"]
+#     # Lista de tipos de pago fijos
+#     tipos = ["Billetera", "Cuenta Bancaria", "Tauser"]
     
-    for nombre in tipos:
-        TipoPago.objects.get_or_create(nombre=nombre, defaults=defaults)
+#     for nombre in tipos:
+#         TipoPago.objects.get_or_create(nombre=nombre, defaults=defaults)
 
 @receiver(post_save, sender=MedioPago)
 def asignar_tipo_pago(sender, instance, created, **kwargs):
@@ -87,27 +87,27 @@ def asignar_tipo_pago(sender, instance, created, **kwargs):
         instance.tipo_pago = tipo_pago
         instance.save()
 
-@receiver(post_migrate)
-def crear_limites_intercambio(sender, **kwargs):
-    # Asegurarnos de que los modelos ya estén cargados
-    Currency = apps.get_model('webapp', 'Currency')
-    LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
+# @receiver(post_migrate)
+# def crear_limites_intercambio(sender, **kwargs):
+#     # Asegurarnos de que los modelos ya estén cargados
+#     Currency = apps.get_model('webapp', 'Currency')
+#     LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
 
-    # Evitamos ejecutarlo para apps que no sean la tuya
-    if sender.label != 'webapp':
-        return
+#     # Evitamos ejecutarlo para apps que no sean la tuya
+#     if sender.label != 'webapp':
+#         return
 
-    # Iterar sobre todas las monedas y categorías
-    for moneda in Currency.objects.all():
+#     # Iterar sobre todas las monedas y categorías
+#     for moneda in Currency.objects.all():
         
-        # Crear el límite si no existe
-        LimiteIntercambio.objects.get_or_create(
-            moneda=moneda,
-            defaults={
-                'limite_dia': 1000,     # valor por defecto mínimo
-                'limite_mes': 1000   # valor por defecto máximo
-            }
-        )
+#         # Crear el límite si no existe
+#         LimiteIntercambio.objects.get_or_create(
+#             moneda=moneda,
+#             defaults={
+#                 'limite_dia': 1000,     # valor por defecto mínimo
+#                 'limite_mes': 1000   # valor por defecto máximo
+#             }
+#         )
 
 @receiver(post_save, sender='webapp.Currency')
 def crear_limites_por_moneda(sender, instance, created, **kwargs):
@@ -137,66 +137,66 @@ from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from .models import Currency
 
-@receiver(post_migrate)
-def create_default_currency(sender, **kwargs):
-    # Evitar que se ejecute para apps que no sean la tuya
-    if sender.name != "webapp":
-        return
+# @receiver(post_migrate)
+# def create_default_currency(sender, **kwargs):
+#     # Evitar que se ejecute para apps que no sean la tuya
+#     if sender.name != "webapp":
+#         return
 
-    if Currency.objects.count() == 0:
-        Currency.objects.create(
-            code="PYG",
-            name="Guaraní Paraguayo",
-            symbol="G",
-            base_price=1.0,
-            comision_venta=1.0,
-            comision_compra=1.0,
-            decimales_cotizacion=2,
-            decimales_monto=0,
-            is_active=True
-        )
-        print("Se creó la moneda por defecto: Guaraní Paraguayo (PYG)")
+#     if Currency.objects.count() == 0:
+#         Currency.objects.create(
+#             code="PYG",
+#             name="Guaraní Paraguayo",
+#             symbol="G",
+#             base_price=1.0,
+#             comision_venta=1.0,
+#             comision_compra=1.0,
+#             decimales_cotizacion=2,
+#             decimales_monto=0,
+#             is_active=True
+#         )
+#         print("Se creó la moneda por defecto: Guaraní Paraguayo (PYG)")
 
-@receiver(post_migrate)
-def create_default_cobro_types(sender, **kwargs):
-    # Asegurarse de que solo se ejecute para nuestra app
-    if sender.name != "webapp":
-        return
+# @receiver(post_migrate)
+# def create_default_cobro_types(sender, **kwargs):
+#     # Asegurarse de que solo se ejecute para nuestra app
+#     if sender.name != "webapp":
+#         return
 
-    TipoCobro = apps.get_model("webapp", "TipoCobro")
-    defaults = {"activo": True, "comision": 0.0}
+#     TipoCobro = apps.get_model("webapp", "TipoCobro")
+#     defaults = {"activo": True, "comision": 0.0}
     
-    # Lista de tipos de pago fijos
-    tipos = ["Billetera", "Cuenta Bancaria", "Tarjeta", "Tauser"]
+#     # Lista de tipos de pago fijos
+#     tipos = ["Billetera", "Cuenta Bancaria", "Tarjeta", "Tauser"]
     
-    for nombre in tipos:
-        TipoCobro.objects.get_or_create(nombre=nombre, defaults=defaults)
+#     for nombre in tipos:
+#         TipoCobro.objects.get_or_create(nombre=nombre, defaults=defaults)
 
 
-@receiver(post_migrate)
-def crear_entidades_genericas(sender, **kwargs):
-    """
-    Crea entidades genéricas si no existen:
-    - Bancos
-    - Compañías de billetera/telefonía
-    """
-    if sender.name != 'webapp':
-        return
+# @receiver(post_migrate)
+# def crear_entidades_genericas(sender, **kwargs):
+#     """
+#     Crea entidades genéricas si no existen:
+#     - Bancos
+#     - Compañías de billetera/telefonía
+#     """
+#     if sender.name != 'webapp':
+#         return
 
-    bancos = [
-        "Banco Nacional de Paraguay",
-        "Banco Regional",
-        "Banco Continental"
-    ]
+#     bancos = [
+#         "Banco Nacional de Paraguay",
+#         "Banco Regional",
+#         "Banco Continental"
+#     ]
 
-    billeteras = [
-        "Bancard Wallet",
-        "Tigo Money",
-        "Personal Wallet"
-    ]
+#     billeteras = [
+#         "Bancard Wallet",
+#         "Tigo Money",
+#         "Personal Wallet"
+#     ]
 
-    for nombre in bancos:
-        Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "banco", "activo": True})
+#     for nombre in bancos:
+#         Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "banco", "activo": True})
 
-    for nombre in billeteras:
-        Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "telefono", "activo": True})
+#     for nombre in billeteras:
+#         Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "telefono", "activo": True})
