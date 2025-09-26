@@ -1,0 +1,54 @@
+{% extends "webapp/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Listado de Transacciones</h2>
+    <table class="table table-striped table-bordered">
+        <thead class="thead-dark">
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Usuario</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Fecha Creación</th>
+                <th>Fecha Pago</th>
+                <th>Moneda Origen</th>
+                <th>Monto Origen</th>
+                <th>Moneda Destino</th>
+                <th>Monto Destino</th>
+                <th>Tasa de Cambio</th>
+                <th>Medio de Pago</th>
+                <th>Medio de Cobro</th>
+                <th>Factura Asociada</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaccion in transacciones %}
+            <tr>
+                <td>{{ transaccion.id }}</td>
+                <td>{{ transaccion.cliente }}</td>
+                <td>{{ transaccion.usuario }}</td>
+                <td>{{ transaccion.get_tipo_display }}</td>
+                <td>{{ transaccion.get_estado_display }}</td>
+                <td>{{ transaccion.fecha_creacion }}</td>
+                <td>{{ transaccion.fecha_pago|default:"-" }}</td>
+                <td>{{ transaccion.moneda_origen }}</td>
+                <td>{{ transaccion.monto_origen }}</td>
+                <td>{{ transaccion.moneda_destino }}</td>
+                <td>{{ transaccion.monto_destino }}</td>
+                <td>{{ transaccion.tasa_cambio }}</td>
+                <td>{{ transaccion.medio_pago }}</td>
+                <td>{{ transaccion.medio_cobro }}</td>
+                <td>{{ transaccion.factura_asociada|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="16" class="text-center">No hay transacciones registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
