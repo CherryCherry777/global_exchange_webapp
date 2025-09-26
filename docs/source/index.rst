@@ -23,6 +23,7 @@ Contenido
    instalacion
    uso
    modulos_documentacion
+   documentacion_vistas
 
 Referencia de Módulos
 ---------------------

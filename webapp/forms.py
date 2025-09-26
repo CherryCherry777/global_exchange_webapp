@@ -185,11 +185,13 @@ class ClienteForm(forms.ModelForm):
     # Validación del RUC 
     # --------------------------
     def clean_ruc(self):
-        ruc = self.cleaned_data.get("ruc", "").strip()
-        if ruc:
-            # El patrón: uno o más dígitos, un guion y un dígito final
-            if not re.match(r'^\d+-\d$', ruc):
-                raise ValidationError("El RUC debe tener el formato: números-dígito (ej. 1234567-8).")
+        ruc = self.cleaned_data.get("ruc")
+        if ruc is not None:
+            ruc = ruc.strip()
+            if ruc:
+                # El patrón: uno o más dígitos, un guion y un dígito final
+                if not re.match(r'^\d+-\d$', ruc):
+                    raise ValidationError("El RUC debe tener el formato: números-dígito (ej. 1234567-8).")
         return ruc
     
     # --------------------------
