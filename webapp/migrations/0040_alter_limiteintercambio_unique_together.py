@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('webapp', '0038_currencyhistory'),
+        ('webapp', '0039_add_generic_tausers'),
     ]
 
     operations = [

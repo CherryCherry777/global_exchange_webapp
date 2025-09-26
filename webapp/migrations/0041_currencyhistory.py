@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('webapp', '0037_alter_entidad_tipo'),
+        ('webapp', '0040_alter_limiteintercambio_unique_together'),
     ]
 
     operations = [
