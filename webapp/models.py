@@ -11,6 +11,10 @@ from decimal import Decimal, ROUND_DOWN
 #Las clases van aqui
 #Los usuarios heredan AbstractUser
 class CustomUser(AbstractUser):
+<<<<<<< HEAD
+    
+=======
+>>>>>>> release/v1.2
     """
     CustomUser model extends Django's AbstractUser to enforce unique email addresses.
     Attributes:
@@ -27,6 +31,10 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+<<<<<<< HEAD
+
+=======
+>>>>>>> release/v1.2
 
 class Role(models.Model):
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="role")
@@ -642,6 +650,9 @@ class MedioCobro(models.Model):
         unique_together = ("cliente", "tipo", "nombre")
     
     def __str__(self):
+<<<<<<< HEAD
+        return f"{self.medio_pago.nombre} - {self.numero_cheque}"
+=======
         return f"{self.cliente.nombre} - {self.get_tipo_display()} - {self.nombre}"
 
 
@@ -921,3 +932,4 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"Detalle {self.id} - {self.descripcion}"
+>>>>>>> release/v1.2
