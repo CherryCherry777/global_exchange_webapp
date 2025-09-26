@@ -126,6 +126,9 @@ urlpatterns = [
 
     # Conversión
     path("api/currencies/", views.api_active_currencies, name="api_currencies"),
+    path("api/currencies/active/", views.api_active_currencies, name="api_active_currencies"),
+    path("api/currencies/history/", views.api_currency_history, name="api_currency_history"),
+    path("historical/", views.historical_view, name="historical"),   
     path("cliente-seleccionado/", views.set_cliente_seleccionado, name="set_cliente_seleccionado"),
     path("metodos-pago-cobro/", views.get_metodos_pago_cobro, name="get_metodos_pago_cobro"),
     path("change-client/", views.change_client, name="change_client"),

@@ -72,6 +72,24 @@ class Currency(models.Model):
     def __str__(self):
         return f"{self.code} - {self.name}"
 
+class CurrencyHistory(models.Model):
+    currency = models.ForeignKey(
+        "Currency", on_delete=models.CASCADE, related_name="histories"
+    )
+    date = models.DateField(verbose_name="Fecha de la cotización")
+    compra = models.DecimalField(max_digits=23, decimal_places=8, verbose_name="Tasa de compra")
+    venta = models.DecimalField(max_digits=23, decimal_places=8, verbose_name="Tasa de venta")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Histórico de moneda"
+        verbose_name_plural = "Históricos de monedas"
+        ordering = ["-date", "currency"]
+        unique_together = ("currency", "date")  # 🔹 No duplicar la misma moneda en la misma fecha
+
+    def __str__(self):
+        return f"{self.currency.code} - {self.date} (C:{self.compra}, V:{self.venta})"
+
 
 # --------------------------------------------------------------
 # Modelo de la tabla cliente para migración en la tabla de datos
