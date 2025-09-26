@@ -1,0 +1,455 @@
+/* ===========================================
+   ADD PAYMENT METHOD STYLES
+   =========================================== */
+
+/* Main Container */
+.add-payment-method-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    padding: 20px 0;
+}
+
+/* Header Section */
+.add-payment-method-header {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%);
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.back-button {
+    display: inline-block;
+    background: rgba(238, 233, 210, 0.1);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 20px;
+    margin-bottom: 30px;
+    transition: none;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.2);
+    transform: none;
+    text-decoration: none;
+    color: white;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.header-text {
+    flex: 1;
+    min-width: 300px;
+}
+
+.add-payment-method-title {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: white;
+    margin: 0 0 10px 0;
+}
+
+.add-payment-method-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 20px;
+    color: white;
+    margin: 0;
+}
+
+/* Header Icon */
+.header-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.payment-method-icon-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #391196 0%, #08052A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(91, 21, 194, 0.3);
+}
+
+.payment-method-icon {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+/* Form Container */
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-card {
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    padding: 40px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.form-title {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: white;
+    margin: 0 0 10px 0;
+}
+
+.form-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+}
+
+/* Form Sections */
+.form-section {
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    color: white;
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(91, 21, 194, 0.3);
+}
+
+/* Form Rows */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Form Groups */
+.form-group {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.form-label {
+    display: block;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: white;
+    margin-bottom: 8px;
+    transition: none;
+}
+
+.form-group.focused .form-label {
+    color: #5B15C2;
+}
+
+/* Form Inputs */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 15px 20px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    transition: none;
+    backdrop-filter: blur(5px);
+}
+
+.form-group input::placeholder,
+.form-group select::placeholder,
+.form-group textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #5B15C2;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 20px rgba(91, 21, 194, 0.2);
+}
+
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.form-group select:hover {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 20px;
+}
+
+/* Inputs de texto en hover - Sin ícono */
+.form-group input[type="text"]:hover,
+.form-group input[type="email"]:hover,
+.form-group input[type="tel"]:hover,
+.form-group input[type="number"]:hover {
+    background-image: none;
+}
+
+/* Select Styling - Solo para elementos select */
+.form-group select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 20px;
+    padding-right: 50px;
+}
+
+/* Inputs de texto - Sin ícono */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="number"] {
+    background-image: none;
+    padding-right: 20px;
+}
+
+/* Estilos para las opciones del select */
+.form-group select option {
+    background-color: #1a1a2e;
+    color: white;
+    padding: 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+}
+
+.form-group select option:hover {
+    background-color: #2a2a3e;
+    color: white;
+}
+
+.form-group select option:checked {
+    background-color: #5B15C2;
+    color: white;
+}
+
+.form-group select option:focus {
+    background-color: #391196;
+    color: white;
+}
+
+/* Error Messages */
+.error-message {
+    display: block;
+    color: #ff6b6b;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-button {
+    padding: 15px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 16px;
+    transition: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 150px;
+}
+
+.submit-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+    color: white;
+}
+
+.submit-button:hover {
+    transform: none;
+    box-shadow: 0 8px 20px rgba(91, 21, 194, 0.3);
+}
+
+.submit-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cancel-button {
+    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 100%);
+    color: white;
+}
+
+.cancel-button:hover {
+    transform: none;
+    box-shadow: 0 8px 20px rgba(47, 47, 47, 0.3);
+    text-decoration: none;
+    color: white;
+}
+
+/* Alerts */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    animation: none;
+}
+
+.alert-success {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
+}
+
+.alert-error {
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid #F44336;
+    color: #F44336;
+}
+
+.alert-warning {
+    background: rgba(255, 152, 0, 0.2);
+    border: 1px solid #FF9800;
+    color: #FF9800;
+}
+
+.alert-info {
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196F3;
+    color: #2196F3;
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .add-payment-method-title {
+        font-size: 24px;
+    }
+    
+    .add-payment-method-subtitle {
+        font-size: 16px;
+    }
+    
+    .payment-method-icon-circle {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .payment-method-icon {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .form-card {
+        padding: 30px 20px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .action-button {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0 15px;
+    }
+    
+    .add-payment-method-title {
+        font-size: 20px;
+    }
+    
+    .add-payment-method-subtitle {
+        font-size: 14px;
+    }
+    
+    .form-title {
+        font-size: 24px;
+    }
+    
+    .form-card {
+        padding: 25px 15px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+    
+    .action-button {
+        padding: 12px 25px;
+        font-size: 14px;
+    }
+}

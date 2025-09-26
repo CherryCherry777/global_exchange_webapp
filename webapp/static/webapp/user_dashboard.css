@@ -1,0 +1,433 @@
+/* ===========================================
+   USER DASHBOARD STYLES - SEPARATE FILE
+   =========================================== */
+
+/* Force override of any conflicting styles */
+.user-dashboard-container {
+    min-height: 100vh !important;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%) !important;
+    padding: 20px 0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* User Dashboard Header */
+.user-dashboard-header {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%) !important;
+    padding: 40px 0 !important;
+    margin-bottom: 30px !important;
+}
+
+.user-dashboard-header .main-content {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+.user-dashboard-header .header-content {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 30px !important;
+}
+
+.user-dashboard-header .header-text {
+    flex: 1 !important;
+    min-width: 300px !important;
+}
+
+.user-dashboard-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 32px !important;
+    color: white !important;
+    margin: 0 0 10px 0 !important;
+}
+
+.user-dashboard-subtitle {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 20px !important;
+    color: white !important;
+    margin: 0 !important;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex !important;
+    gap: 15px !important;
+    flex-wrap: wrap !important;
+}
+
+.quick-action-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
+    color: white !important;
+    padding: 12px 20px !important;
+    border-radius: 25px !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 16px !important;
+}
+
+.quick-action-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(91, 21, 194, 0.3) !important;
+    text-decoration: none !important;
+    color: white !important;
+}
+
+.quick-action-btn .btn-icon {
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.quick-action-btn .btn-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+/* User Management Section */
+.user-management-section {
+    background: rgba(238, 233, 210, 0.1) !important;
+    border-radius: 20px !important;
+    padding: 40px !important;
+    margin-bottom: 30px !important;
+}
+
+.user-management-section .section-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 28px !important;
+    color: white !important;
+    margin: 0 0 10px 0 !important;
+    text-align: center !important;
+}
+
+.user-management-section .section-subtitle {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 18px !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin: 0 0 40px 0 !important;
+    text-align: center !important;
+}
+
+/* User Management Grid */
+.user-management-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)) !important;
+    gap: 30px !important;
+    max-width: 1000px !important;
+    margin: 0 auto !important;
+}
+
+/* User Management Cards - Override admin-card styles */
+.user-management-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 2px solid rgba(238, 233, 210, 0.1) !important;
+    border-radius: 20px !important;
+    padding: 30px !important;
+    text-decoration: none !important;
+    color: white !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+.user-management-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 4px !important;
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
+}
+
+.user-management-card:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
+    border-color: rgba(91, 21, 194, 0.3) !important;
+    text-decoration: none !important;
+    color: white !important;
+}
+
+.payment-card:hover::before {
+    background: linear-gradient(90deg, #4CAF50 0%, #2E7D32 50%, #1B5E20 100%) !important;
+}
+
+.cobro-card:hover::before {
+    background: linear-gradient(90deg, #2196F3 0%, #1565C0 50%, #0D47A1 100%) !important;
+}
+
+/* Card Header */
+.card-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 20px !important;
+}
+
+.card-header .card-icon {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #391196 0%, #08052A 100%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.card-header .card-icon img {
+    width: 40px !important;
+    height: 40px !important;
+    object-fit: contain !important;
+    filter: none !important;
+    transition: none !important;
+}
+
+/* Override icon hover effects from landing.css */
+.user-management-card:hover .card-icon img {
+    transform: none !important;
+    filter: none !important;
+}
+
+.card-badge {
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.payment-badge {
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%) !important;
+    color: white !important;
+}
+
+.cobro-badge {
+    background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%) !important;
+    color: white !important;
+}
+
+/* Card Content */
+.user-management-card .card-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.user-management-card .card-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 22px !important;
+    color: white !important;
+    margin: 0 0 15px 0 !important;
+}
+
+.user-management-card .card-description {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 16px !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin: 0 0 20px 0 !important;
+    line-height: 1.5 !important;
+}
+
+/* Card Features */
+.card-features {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-bottom: 20px !important;
+}
+
+.feature-tag {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    padding: 4px 12px !important;
+    border-radius: 15px !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Card Arrow */
+.card-arrow {
+    align-self: flex-end !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    transition: all 0.3s ease !important;
+}
+
+.user-management-card:hover .card-arrow {
+    color: white !important;
+    transform: translateX(5px) !important;
+}
+
+/* No Access Section */
+.no-access-section {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 400px !important;
+    padding: 40px 20px !important;
+}
+
+.no-access-content {
+    text-align: center !important;
+    max-width: 500px !important;
+}
+
+.no-access-icon {
+    width: 100px !important;
+    height: 100px !important;
+    margin: 0 auto 30px !important;
+    opacity: 0.5 !important;
+}
+
+.no-access-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+.no-access-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 24px !important;
+    color: white !important;
+    margin: 0 0 15px 0 !important;
+}
+
+.no-access-description {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 16px !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin: 0 0 30px 0 !important;
+    line-height: 1.5 !important;
+}
+
+.no-access-btn {
+    display: inline-block !important;
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
+    color: white !important;
+    padding: 15px 30px !important;
+    border-radius: 25px !important;
+    text-decoration: none !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+.no-access-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(91, 21, 194, 0.3) !important;
+    text-decoration: none !important;
+    color: white !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .user-dashboard-header .header-content {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+    
+    .user-dashboard-title {
+        font-size: 24px !important;
+    }
+    
+    .user-dashboard-subtitle {
+        font-size: 16px !important;
+    }
+    
+    .user-management-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+    
+    .user-management-section {
+        padding: 30px 20px !important;
+    }
+    
+    .user-management-section .section-title {
+        font-size: 24px !important;
+    }
+    
+    .user-management-card {
+        padding: 25px !important;
+    }
+    
+    .user-management-card .card-title {
+        font-size: 20px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-dashboard-header .main-content {
+        padding: 0 15px !important;
+    }
+    
+    .user-dashboard-title {
+        font-size: 20px !important;
+    }
+    
+    .user-dashboard-subtitle {
+        font-size: 14px !important;
+    }
+    
+    .quick-action-btn {
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+    }
+    
+    .user-management-section {
+        padding: 20px 15px !important;
+    }
+    
+    .user-management-card {
+        padding: 20px !important;
+    }
+    
+    .card-header .card-icon {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    
+    .card-header .card-icon img {
+        width: 30px !important;
+        height: 30px !important;
+    }
+}

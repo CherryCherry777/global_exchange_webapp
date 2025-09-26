@@ -1,0 +1,572 @@
+/* My Cobro Methods Styles */
+.my-cobro-methods-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    padding: 20px 0;
+}
+
+/* Header Section */
+.my-cobro-methods-header {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%);
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.back-button {
+    display: inline-block;
+    background: rgba(238, 233, 210, 0.1);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 20px;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.2);
+    transform: translateY(-2px);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.header-text {
+    flex: 1;
+    min-width: 300px;
+}
+
+.my-cobro-methods-title {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: white;
+    margin: 0 0 10px 0;
+}
+
+.my-cobro-methods-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 20px;
+    color: white;
+    margin: 0;
+}
+
+/* Metrics Cards */
+.header-metrics {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.metric-card {
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    min-width: 177px;
+    height: 149px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.metric-label {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: 16px;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.metric-number {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 96px;
+    color: white;
+    line-height: 1;
+}
+
+/* Add Cobro Methods Section */
+.add-cobro-methods-section {
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: white;
+    margin: 0 0 20px 0;
+    text-align: center;
+}
+
+.add-buttons-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.add-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+
+.add-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(91, 21, 194, 0.3);
+}
+
+.button-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.button-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.button-text {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Cobro Methods List Container */
+.cobro-methods-list-container {
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+}
+
+.search-section {
+    margin-bottom: 30px;
+}
+
+.search-title {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: white;
+    margin: 0 0 20px 0;
+}
+
+.search-bar {
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(238, 233, 210, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #5B15C2;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Cobro Methods Table */
+.cobro-methods-table-container {
+    overflow-x: auto;
+}
+
+.cobro-methods-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+}
+
+.cobro-methods-table th {
+    background: rgba(238, 233, 210, 0.1);
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 15px;
+    text-align: left;
+    border-bottom: 2px solid rgba(238, 233, 210, 0.2);
+}
+
+.cobro-methods-table td {
+    padding: 15px;
+    border-bottom: 1px solid rgba(238, 233, 210, 0.1);
+    vertical-align: middle;
+}
+
+.cobro-method-row:hover {
+    background: rgba(238, 233, 210, 0.05);
+}
+
+/* Method Cell */
+.cobro-method-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.cobro-method-icon-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #391196 0%, #08052A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cobro-method-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.cobro-method-name {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: white;
+}
+
+/* Type Cell */
+.type-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    text-transform: capitalize;
+}
+
+.type-billetera {
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    color: white;
+}
+
+.type-cuenta_bancaria {
+    background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+    color: white;
+}
+
+.type-tarjeta {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+}
+
+/* Details Cell */
+.details-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.detail-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.detail-label {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    min-width: 80px;
+}
+
+.detail-value {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: white;
+}
+
+/* Status Cell */
+.status-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot.active {
+    background: linear-gradient(135deg, #391196 0%, #08052A 100%);
+}
+
+.status-dot.inactive {
+    background: linear-gradient(135deg, #909090 0%, #535353 100%);
+}
+
+.status-text {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 16px;
+    color: white;
+}
+
+/* Actions Cell */
+.actions-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-button {
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+.edit-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+    color: white;
+}
+
+.edit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(91, 21, 194, 0.3);
+}
+
+.delete-button {
+    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 100%);
+    color: white;
+}
+
+.delete-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(47, 47, 47, 0.3);
+}
+
+/* Empty State */
+.empty-row {
+    background: transparent;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    opacity: 0.5;
+}
+
+.empty-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.empty-state h3 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    color: white;
+    margin: 0;
+}
+
+.empty-state p {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+/* Alerts */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
+}
+
+.alert-error {
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid #F44336;
+    color: #F44336;
+}
+
+.alert-warning {
+    background: rgba(255, 152, 0, 0.2);
+    border: 1px solid #FF9800;
+    color: #FF9800;
+}
+
+.alert-info {
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196F3;
+    color: #2196F3;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .header-metrics {
+        justify-content: center;
+    }
+    
+    .metric-card {
+        min-width: 150px;
+        height: 120px;
+    }
+    
+    .metric-number {
+        font-size: 60px;
+    }
+    
+    .add-buttons-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .add-button {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .cobro-method-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .actions-container {
+        flex-direction: column;
+    }
+    
+    .action-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0 15px;
+    }
+    
+    .my-cobro-methods-title {
+        font-size: 24px;
+    }
+    
+    .my-cobro-methods-subtitle {
+        font-size: 16px;
+    }
+    
+    .metric-card {
+        min-width: 120px;
+        height: 100px;
+    }
+    
+    .metric-number {
+        font-size: 48px;
+    }
+    
+    .cobro-methods-table {
+        font-size: 14px;
+    }
+    
+    .cobro-methods-table th,
+    .cobro-methods-table td {
+        padding: 10px 8px;
+    }
+}

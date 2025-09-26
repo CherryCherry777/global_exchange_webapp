@@ -533,6 +533,7 @@ class LimiteIntercambio(models.Model):
         verbose_name = "Límite de Intercambio"
         verbose_name_plural = "Límites de Intercambio"
         ordering = ['moneda__code']
+        unique_together = ['moneda']
 
     def clean(self):
         if not self.moneda:

@@ -2,6 +2,10 @@
    ADMIN PANEL STYLES
    =========================================== */
 
+/* ===========================================
+   USER DASHBOARD STYLES MOVED TO user_dashboard.css
+   =========================================== */
+
 /* Main Admin Panel Container - High specificity */
 body main .admin-panel,
 .admin-panel {
