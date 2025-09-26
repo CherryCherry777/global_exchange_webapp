@@ -3033,9 +3033,15 @@ def get_metodos_pago_cobro(request):
     return JsonResponse({"metodo_pago": metodo_pago, "metodo_cobro": metodo_cobro})
 
 def transaccion_list(request):
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
+        messages.error(request, "No hay cliente seleccionado")
+        return redirect("change_client")  # O la vista que corresponda
+
     transacciones = Transaccion.objects.select_related(
         "cliente", "usuario", "moneda_origen", "moneda_destino", "factura_asociada"
-    ).all()
+    ).filter(cliente_id=cliente_id)  # Filtramos por el cliente de la sesión
+
     return render(request, "webapp/historial_transacciones.html", {"transacciones": transacciones})
 
 # ENTIDADES BANCARIAS Y TELEFONICAS PARA MEDIOS DE PAGO O COBRO
