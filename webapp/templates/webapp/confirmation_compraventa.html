@@ -1,0 +1,25 @@
+{% extends "webapp/base.html" %}
+{% block title %}Confirmar operación{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>Confirmación de operación</h2>
+    <p>Revisá los datos antes de confirmar:</p>
+
+    <ul>
+    <li><strong>Tipo:</strong> {{ data.tipo }}</li>
+    <li><strong>Moneda origen:</strong> {{ data.moneda_origen }}</li>
+    <li><strong>Monto origen:</strong> {{ data.monto_origen }}</li>
+    <li><strong>Moneda destino:</strong> {{ data.moneda_destino }}</li>
+    <li><strong>Monto destino:</strong> {{ data.monto_destino }}</li>
+    <li><strong>Tasa de cambio:</strong> {{ data.tasa_cambio }}</li>
+    <li><strong>Medio de pago:</strong> {{ data.medio_pago_type }} (id {{ data.medio_pago_id }})</li>
+    <li><strong>Medio de cobro:</strong> {{ data.medio_cobro_type }} (id {{ data.medio_cobro_id }})</li>
+    </ul>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="confirmar" class="btn btn-success">Confirmar operación</button>
+    </form>
+
+</div>
+{% endblock %}

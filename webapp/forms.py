@@ -2,8 +2,9 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import CustomUser, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque
+from .models import BilleteraCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -184,11 +185,13 @@ class ClienteForm(forms.ModelForm):
     # Validación del RUC 
     # --------------------------
     def clean_ruc(self):
-        ruc = self.cleaned_data.get("ruc", "").strip()
-        if ruc:
-            # El patrón: uno o más dígitos, un guion y un dígito final
-            if not re.match(r'^\d+-\d$', ruc):
-                raise ValidationError("El RUC debe tener el formato: números-dígito (ej. 1234567-8).")
+        ruc = self.cleaned_data.get("ruc")
+        if ruc is not None:
+            ruc = ruc.strip()
+            if ruc:
+                # El patrón: uno o más dígitos, un guion y un dígito final
+                if not re.match(r'^\d+-\d$', ruc):
+                    raise ValidationError("El RUC debe tener el formato: números-dígito (ej. 1234567-8).")
         return ruc
     
     # --------------------------
@@ -289,167 +292,421 @@ class AsignarClienteForm(forms.Form):
 
 
 # ===========================================
+# MIXIN PARA DESHABILITAR MONEDA
+# ===========================================
+class MonedaDisabledMixin:
+    def disable_moneda(self):
+        if 'moneda' in self.fields:
+            self.fields['moneda'].disabled = True
+            self.fields['moneda'].queryset = Currency.objects.filter(activo=True)
+            self.fields['moneda'].widget.attrs.update({'class': 'form-control'})
+
+
+# ===========================================
 # FORMULARIOS PARA MEDIOS DE PAGO
 # ===========================================
-
 class TarjetaForm(forms.ModelForm):
+    entidad = forms.ModelChoiceField(
+        queryset=Entidad.objects.filter(tipo="banco", activo=True),
+        label="Banco Emisor",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = Tarjeta
-        fields = ['numero_tokenizado', 'banco', 'fecha_vencimiento', 'ultimos_digitos']
+        fields = ['numero_tokenizado', 'entidad', 'fecha_vencimiento', 'ultimos_digitos']
         widgets = {
-            'numero_tokenizado': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Número tokenizado (ej: tok_123456789)',
-                'required': True
-            }),
-            'banco': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Banco emisor (ej: Banco Nacional)',
-                'required': True
-            }),
-            'fecha_vencimiento': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date',
-                'required': True
-            }),
-            'ultimos_digitos': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Últimos 4 dígitos (ej: 1234)',
-                'maxlength': '4',
-                'pattern': '[0-9]{4}',
-                'required': True
-            })
-        }
-        labels = {
-            'numero_tokenizado': 'Número Tokenizado',
-            'banco': 'Banco Emisor',
-            'fecha_vencimiento': 'Fecha de Vencimiento',
-            'ultimos_digitos': 'Últimos 4 Dígitos'
+            'numero_tokenizado': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_vencimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'ultimos_digitos': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '4', 'pattern': '[0-9]{4}'}),
         }
 
     def clean_ultimos_digitos(self):
         ultimos_digitos = self.cleaned_data.get('ultimos_digitos')
-        if ultimos_digitos and not ultimos_digitos.isdigit():
-            raise ValidationError("Los últimos dígitos deben ser números.")
-        if ultimos_digitos and len(ultimos_digitos) != 4:
-            raise ValidationError("Debe ingresar exactamente 4 dígitos.")
+        if ultimos_digitos and (not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4):
+            raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
         return ultimos_digitos
 
-
+"""
 class BilleteraForm(forms.ModelForm):
+    
+    entidad = forms.ModelChoiceField(
+        queryset=Entidad.objects.filter(tipo="telefono", activo=True),
+        label="Proveedor",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = Billetera
-        fields = ['numero_celular', 'proveedor']
+        fields = ['numero_celular', 'entidad']
         widgets = {
-            'numero_celular': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Número de celular (ej: 0981234567)',
-                'required': True
-            }),
-            'proveedor': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Proveedor (ej: Tigo Money, Zimple)',
-                'required': True
-            })
-        }
-        labels = {
-            'numero_celular': 'Número de Celular',
-            'proveedor': 'Proveedor'
+            'numero_celular': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def clean_numero_celular(self):
         numero_celular = self.cleaned_data.get('numero_celular')
-        if numero_celular:
-            # Limpiar el número (remover espacios, guiones, etc.)
-            numero_limpio = re.sub(r'[^\d]', '', numero_celular)
-            if not numero_limpio.isdigit():
-                raise ValidationError("El número de celular debe contener solo dígitos.")
-            if len(numero_limpio) < 8 or len(numero_limpio) > 15:
-                raise ValidationError("El número de celular debe tener entre 8 y 15 dígitos.")
+        numero_limpio = re.sub(r'[^\d]', '', numero_celular or "")
+        if not numero_limpio.isdigit():
+            raise ValidationError("El número de celular debe contener solo dígitos.")
+        if len(numero_limpio) < 8 or len(numero_limpio) > 15:
+            raise ValidationError("El número de celular debe tener entre 8 y 15 dígitos.")
+        return numero_celular
+"""
+
+class BilleteraForm(forms.ModelForm):
+    class Meta:
+        model = Billetera
+        fields = ["numero_celular", "entidad"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        qs = Entidad.telefonicas()
+
+        if self.instance and self.instance.entidad_id:
+            qs = Entidad.objects.filter(
+                Q(id=self.instance.entidad_id) | Q(tipo="telefono", activo=True)
+            )
+
+        self.fields["entidad"].queryset = qs
+
+    def clean_numero_celular(self):
+        numero_celular = self.cleaned_data.get("numero_celular") or ""
+        numero_limpio = re.sub(r"[^\d]", "", numero_celular)
+        if not numero_limpio.isdigit() or not (8 <= len(numero_limpio) <= 15):
+            raise ValidationError("El número de celular debe contener entre 8 y 15 dígitos.")
         return numero_celular
 
-
 class CuentaBancariaForm(forms.ModelForm):
+    entidad = forms.ModelChoiceField(
+        queryset=Entidad.objects.filter(tipo="banco", activo=True),
+        label="Banco",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = CuentaBancaria
-        fields = ['numero_cuenta', 'banco', 'alias_cbu']
+        fields = ['numero_cuenta', 'entidad', 'alias_cbu']
         widgets = {
-            'numero_cuenta': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Número de cuenta',
-                'required': True
-            }),
-            'banco': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Banco (ej: Banco Nacional)',
-                'required': True
-            }),
-            'alias_cbu': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Alias o CBU',
-                'required': True
-            })
+            'numero_cuenta': forms.TextInput(attrs={'class': 'form-control'}),
+            'alias_cbu': forms.TextInput(attrs={'class': 'form-control'}),
         }
-        labels = {
-            'numero_cuenta': 'Número de Cuenta',
-            'banco': 'Banco',
-            'alias_cbu': 'Alias/CBU'
-        }
-
-
-class ChequeForm(forms.ModelForm):
-    class Meta:
-        model = Cheque
-        fields = ['numero_cheque', 'banco_emisor', 'fecha_vencimiento', 'monto']
-        widgets = {
-            'numero_cheque': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Número de cheque',
-                'required': True
-            }),
-            'banco_emisor': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Banco emisor (ej: Banco Nacional)',
-                'required': True
-            }),
-            'fecha_vencimiento': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date',
-                'required': True
-            }),
-            'monto': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Monto del cheque',
-                'step': '0.01',
-                'min': '0',
-                'required': True
-            })
-        }
-        labels = {
-            'numero_cheque': 'Número de Cheque',
-            'banco_emisor': 'Banco Emisor',
-            'fecha_vencimiento': 'Fecha de Vencimiento',
-            'monto': 'Monto'
-        }
-
-    def clean_monto(self):
-        monto = self.cleaned_data.get('monto')
-        if monto is not None and monto <= 0:
-            raise ValidationError("El monto debe ser mayor a 0.")
-        return monto
 
 
 class MedioPagoForm(forms.ModelForm):
     class Meta:
         model = MedioPago
-        fields = ['nombre']
+        fields = ['nombre', 'moneda']
+
+
+class TipoPagoForm(forms.ModelForm):
+    class Meta:
+        model = TipoPago
+        fields = ["activo", "comision"]
         widgets = {
-            'nombre': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Nombre del medio de pago (ej: Visa Principal)',
-                'required': True
-            })
+            "activo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "comision": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
         }
-        labels = {
-            'nombre': 'Nombre del Medio de Pago'
+
+# ===========================================
+# FORMULARIOS PARA MEDIOS DE COBRO
+# ===========================================
+class TarjetaCobroForm(TarjetaForm):
+    class Meta(TarjetaForm.Meta):
+        model = TarjetaCobro
+
+
+class BilleteraCobroForm(BilleteraForm):
+    class Meta(BilleteraForm.Meta):
+        model = BilleteraCobro
+
+
+class CuentaBancariaCobroForm(CuentaBancariaForm):
+    class Meta(CuentaBancariaForm.Meta):
+        model = CuentaBancariaCobro
+
+
+class MedioCobroForm(forms.ModelForm):
+    class Meta:
+        model = MedioCobro
+        fields = ['nombre', 'moneda']
+
+
+class TipoCobroForm(forms.ModelForm):
+    class Meta:
+        model = TipoCobro
+        fields = ["activo", "comision"]
+        widgets = {
+            "activo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "comision": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
         }
+
+class TransaccionForm(forms.ModelForm):
+    class Meta:
+        model = Transaccion
+        fields = [
+            "cliente",
+            "usuario",
+            "tipo",
+            "estado",
+            "fecha_pago",
+            "moneda_origen",
+            "moneda_destino",
+            "tasa_cambio",
+            "monto_origen",
+            "monto_destino",
+            "medio_pago_type",  # necesario para GenericForeignKey
+            "medio_pago_id",    # necesario para GenericForeignKey
+            "factura_asociada",
+        ]
+        widgets = {
+            "fecha_pago": forms.DateInput(attrs={"type": "date"}),
+        }
+
+# -------------------------
+# Edit forms - MÉTODOS DE COBRO
+# -------------------------
+class TarjetaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Banco Emisor",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = TarjetaCobro
+        fields = ['numero_tokenizado', 'entidad', 'fecha_vencimiento', 'ultimos_digitos']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
+        self.fields['numero_tokenizado'].widget.attrs.update({'class': 'form-control'})
+        self.fields['fecha_vencimiento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
+        self.fields['ultimos_digitos'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_ultimos_digitos(self):
+        ultimos_digitos = self.cleaned_data.get('ultimos_digitos') or ""
+        if not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4:
+            raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
+        return ultimos_digitos
+
+
+class BilleteraCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Proveedor",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = BilleteraCobro
+        fields = ['numero_celular', 'entidad']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='telefono', activo=True)
+        self.fields['numero_celular'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_numero_celular(self):
+        numero_celular = self.cleaned_data.get('numero_celular') or ""
+        numero_limpio = re.sub(r'[^\d]', '', numero_celular)
+        if not numero_limpio.isdigit() or not (8 <= len(numero_limpio) <= 15):
+            raise ValidationError("El número de celular debe contener entre 8 y 15 dígitos numéricos.")
+        return numero_celular
+
+
+class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Banco",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = CuentaBancariaCobro
+        fields = ['numero_cuenta', 'entidad', 'alias_cbu']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
+        self.fields['numero_cuenta'].widget.attrs.update({'class': 'form-control'})
+        self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
+
+
+class MedioCobroForm(forms.ModelForm):
+    class Meta:
+        model = MedioCobro
+        fields = ['nombre', 'moneda']
+
+
+class TipoCobroForm(forms.ModelForm):
+    class Meta:
+        model = TipoCobro
+        fields = ["activo", "comision"]
+        widgets = {
+            "activo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "comision": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        }
+
+# -------------------------
+# Edit forms - MEDIOS DE PAGO
+# -------------------------
+class TarjetaEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Banco Emisor",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = Tarjeta
+        fields = ['numero_tokenizado', 'entidad', 'fecha_vencimiento', 'ultimos_digitos']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # deshabilita moneda si aplica
+        self.disable_moneda()
+        # limitar entidades a bancos activos
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
+        # asegurar clases en widgets
+        self.fields['numero_tokenizado'].widget.attrs.update({'class': 'form-control'})
+        self.fields['fecha_vencimiento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
+        self.fields['ultimos_digitos'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_ultimos_digitos(self):
+        ultimos_digitos = self.cleaned_data.get('ultimos_digitos') or ""
+        if not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4:
+            raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
+        return ultimos_digitos
+
+
+class BilleteraEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Proveedor",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = Billetera
+        fields = ['numero_celular', 'entidad']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='telefono', activo=True)
+        self.fields['numero_celular'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_numero_celular(self):
+        numero_celular = self.cleaned_data.get('numero_celular') or ""
+        numero_limpio = re.sub(r'[^\d]', '', numero_celular)
+        if not numero_limpio.isdigit() or not (8 <= len(numero_limpio) <= 15):
+            raise ValidationError("El número de celular debe contener entre 8 y 15 dígitos numéricos.")
+        return numero_celular
+
+
+class CuentaBancariaEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Banco",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = CuentaBancaria
+        fields = ['numero_cuenta', 'entidad', 'alias_cbu']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
+        self.fields['numero_cuenta'].widget.attrs.update({'class': 'form-control'})
+        self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
+
+
+
+# -------------------------
+# Edit forms - MÉTODOS DE COBRO
+# -------------------------
+class TarjetaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Banco Emisor",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = TarjetaCobro
+        fields = ['numero_tokenizado', 'entidad', 'fecha_vencimiento', 'ultimos_digitos']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
+        self.fields['numero_tokenizado'].widget.attrs.update({'class': 'form-control'})
+        self.fields['fecha_vencimiento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
+        self.fields['ultimos_digitos'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_ultimos_digitos(self):
+        ultimos_digitos = self.cleaned_data.get('ultimos_digitos') or ""
+        if not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4:
+            raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
+        return ultimos_digitos
+
+
+class BilleteraCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Proveedor",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = BilleteraCobro
+        fields = ['numero_celular', 'entidad']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='telefono', activo=True)
+        self.fields['numero_celular'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_numero_celular(self):
+        numero_celular = self.cleaned_data.get('numero_celular') or ""
+        numero_limpio = re.sub(r'[^\d]', '', numero_celular)
+        if not numero_limpio.isdigit() or not (8 <= len(numero_limpio) <= 15):
+            raise ValidationError("El número de celular debe contener entre 8 y 15 dígitos numéricos.")
+        return numero_celular
+
+
+class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+    entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
+                                     label="Banco",
+                                     widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = CuentaBancariaCobro
+        fields = ['numero_cuenta', 'entidad', 'alias_cbu']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disable_moneda()
+        self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
+        self.fields['numero_cuenta'].widget.attrs.update({'class': 'form-control'})
+        self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
+
+
+# Form de limites de intercambio
+
+class LimiteIntercambioForm(forms.ModelForm):
+    class Meta:
+        model = LimiteIntercambio
+        fields = ['moneda', 'limite_dia', 'limite_mes']
+
+
+# Entidades bancarias y telefonicas
+
+class EntidadForm(forms.ModelForm):
+    """Formulario para crear una entidad"""
+    class Meta:
+        model = Entidad
+        fields = ["nombre", "tipo", "activo"]
+
+
+class EntidadEditForm(forms.ModelForm):
+    """Formulario para editar una entidad (puede deshabilitar campos si se desea)"""
+    class Meta:
+        model = Entidad
+        fields = ["nombre", "tipo", "activo"]
+        # Si querés deshabilitar el tipo al editar:
+        # widgets = {
+        #     "tipo": forms.Select(attrs={"disabled": True}),
+        # }
+

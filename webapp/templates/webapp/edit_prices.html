@@ -1,0 +1,68 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+{% load custom_filters %} 
+
+{% block title %}Editar Cotización{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Editar Cotización: {{ currency.code }}</h1>
+
+    <div class="back-container">
+        <a href="{% url 'prices_list' %}" class="btn-back">← Volver al listado</a>
+    </div>
+
+    <div class="cliente-form-container">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-container">
+
+                <!-- Código y nombre -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_code">Código:</label>
+                        <input type="text" value="{{ currency.code }}" disabled>       
+                    </p>
+                </div>
+
+                <!-- Precio base -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_base_price">Precio base:</label>
+                        <input type="number"
+                               name="base_price"
+                               id="id_base_price"
+                               step="{{ '0.'|add:'0'|ljust:currency.decimales_cotizacion|add:'1' }}"
+                               value="{{ currency.base_price|format_decimals:currency.decimales_cotizacion }}"
+                               required>
+                    </p>
+                </div>
+
+                <!-- Comisiones -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_comision_venta">Comisión de venta:</label>
+                        <input type="number"
+                               name="comision_venta"
+                               id="id_comision_venta"
+                               step="{{ '0.'|add:'0'|ljust:currency.decimales_cotizacion|add:'1' }}"
+                               value="{{ currency.comision_venta|format_decimals:currency.decimales_cotizacion }}"
+                               required>
+                    </p>
+                    <p>
+                        <label for="id_comision_compra">Comisión de compra:</label>
+                        <input type="number"
+                               name="comision_compra"
+                               id="id_comision_compra"
+                               step="{{ '0.'|add:'0'|ljust:currency.decimales_cotizacion|add:'1' }}"
+                               value="{{ currency.comision_compra|format_decimals:currency.decimales_cotizacion }}"
+                               required>
+                    </p>
+                </div>
+
+            </div>
+            <button type="submit" class="add-btn">Actualizar Cotización</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

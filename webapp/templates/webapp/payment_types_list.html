@@ -1,0 +1,38 @@
+{% extends "webapp/base.html" %}
+{% block title %}Tipos de Pago{% endblock %}
+
+{% block content %}
+<div class="admin-page-container">
+    <div class="admin-header">
+        <h1 class="page-title">Tipos de Pago</h1>
+        <p class="page-subtitle">Activar/desactivar métodos y modificar comisiones</p>
+    </div>
+
+    <table class="roles-table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Activo</th>
+                <th>Comisión (%)</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tipo in tipos %}
+            <tr>
+                <td>{{ tipo.nombre }}</td>
+                <td>{{ tipo.activo|yesno:"Sí,No" }}</td>
+                <td>{{ tipo.comision }}</td>
+                <td>
+                    <a href="{% url 'edit_payment_type' tipo.id %}" class="btn btn-secondary btn-sm">Editar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No hay tipos de pago registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

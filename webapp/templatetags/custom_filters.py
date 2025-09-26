@@ -37,3 +37,32 @@ def porcentaje(value):
     - Store as decimal in DB, display as readable percentage in templates.
     """
     return round(value * 100, 1)
+
+@register.filter
+def format_decimals(value, num_decimals=2):
+    """
+    Formatea un número con la cantidad de decimales especificada.
+    Ejemplo: {{ 123.4567|format_decimals:4 }} -> 123.4567
+    """
+    try:
+        num_decimals = int(num_decimals)
+    except (ValueError, TypeError):
+        num_decimals = 2
+
+    if value is None:
+        return ""
+
+    format_str = f"{{:.{num_decimals}f}}"
+    return format_str.format(value)
+
+@register.filter
+def decimal_step(value):
+    """Devuelve el step para un input tipo number según decimales."""
+    try:
+        dec = int(value)
+        if dec <= 0:
+            return '1'
+        return '0.' + '0'*(dec-1) + '1'
+    except:
+        return '1'
+

@@ -1,6 +1,6 @@
 from django.test import TestCase, RequestFactory
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, AnonymousUser
 from django.http import HttpResponse
 from django.urls import reverse
 from webapp.decorators import role_required, permitir_permisos
@@ -107,6 +107,9 @@ class DecoratorTests(TestCase):
 
     def test_role_required_admin_can_access_employee_functions(self):
         """Prueba que un admin puede acceder a funciones de empleado"""
+        # Agregar rol de empleado al admin
+        self.admin_user.groups.add(self.employee_group)
+        
         @role_required("Empleado")
         def test_view(request):
             return HttpResponse("Acceso permitido")
@@ -146,7 +149,7 @@ class DecoratorTests(TestCase):
         request.user = self.regular_user  # Usuario sin permisos
         
         response = test_view(request)
-        self.assertEqual(response.status_code, 302)  # Redirige por falta de permisos
+        self.assertEqual(response.status_code, 403)  # Forbidden por falta de permisos
 
     def test_permitir_permisos_multiple_permissions(self):
         """Prueba que un usuario necesita todos los permisos especificados"""
@@ -154,18 +157,18 @@ class DecoratorTests(TestCase):
         permission1 = Permission.objects.get(codename='add_cliente')
         permission2 = Permission.objects.get(codename='change_cliente')
         
-        # Asignar solo uno de los permisos
-        self.admin_user.user_permissions.add(permission1)
+        # Asignar solo uno de los permisos a un usuario regular
+        self.regular_user.user_permissions.add(permission1)
         
         @permitir_permisos(['webapp.add_cliente', 'webapp.change_cliente'])
         def test_view(request):
             return HttpResponse("Acceso permitido")
         
         request = self.factory.get('/test/')
-        request.user = self.admin_user
+        request.user = self.regular_user
         
         response = test_view(request)
-        self.assertEqual(response.status_code, 302)  # Redirige por falta de permisos
+        self.assertEqual(response.status_code, 403)  # Forbidden por falta de permisos
 
     def test_permitir_permisos_all_permissions(self):
         """Prueba que un usuario con todos los permisos puede acceder"""
@@ -194,7 +197,7 @@ class DecoratorTests(TestCase):
             return HttpResponse("Acceso permitido")
         
         request = self.factory.get('/test/')
-        request.user = None  # Usuario anónimo
+        request.user = AnonymousUser()  # Usuario anónimo
         
         response = test_view(request)
         self.assertEqual(response.status_code, 302)  # Redirige por falta de permisos
@@ -206,10 +209,10 @@ class DecoratorTests(TestCase):
             return HttpResponse("Acceso permitido")
         
         request = self.factory.get('/test/')
-        request.user = None  # Usuario anónimo
+        request.user = AnonymousUser()  # Usuario anónimo
         
         response = test_view(request)
-        self.assertEqual(response.status_code, 302)  # Redirige por falta de permisos
+        self.assertEqual(response.status_code, 403)  # Forbidden por falta de permisos
 
     def test_role_required_invalid_role(self):
         """Prueba que un rol inválido no permite acceso"""
@@ -230,7 +233,32 @@ class DecoratorTests(TestCase):
             return HttpResponse("Acceso permitido")
         
         request = self.factory.get('/test/')
-        request.user = self.admin_user
+        request.user = self.regular_user  # Usuario sin rol de admin
+        
+        response = test_view(request)
+        self.assertEqual(response.status_code, 403)  # Forbidden por falta de permisos
+
+    def test_role_required_employee_denied(self):
+        """Prueba que un empleado no puede acceder a funciones que requieren rol admin"""
+        @role_required("Administrador")
+        def test_view(request):
+            return HttpResponse("Acceso permitido")
+        
+        request = self.factory.get('/test/')
+        request.user = self.employee_user
         
         response = test_view(request)
         self.assertEqual(response.status_code, 302)  # Redirige por falta de permisos
+
+    def test_role_required_employee_access(self):
+        """Prueba que un empleado puede acceder a funciones que requieren rol empleado"""
+        @role_required("Empleado")
+        def test_view(request):
+            return HttpResponse("Acceso permitido")
+        
+        request = self.factory.get('/test/')
+        request.user = self.employee_user
+        
+        response = test_view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.decode(), "Acceso permitido")

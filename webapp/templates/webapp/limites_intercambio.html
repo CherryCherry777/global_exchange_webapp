@@ -1,0 +1,39 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Límites de Intercambio{% endblock %}
+
+{% block content %}
+<h1>Límites de Intercambio</h1>
+
+<!-- Scroll horizontal para la tabla -->
+<div style="overflow-x: auto; max-width: 100%;">
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; min-width: 400px;">
+        <thead>
+            <tr style="background-color: #4CAF50; color: white;">
+                <th>Moneda</th>
+                <th>Límite Diario</th>
+                <th>Límite Mensual</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in tabla %}
+            <tr>
+                <td>{{ fila.moneda.code }} - {{ fila.moneda.name }}</td>
+                {% with dec=fila.moneda.decimales_cotizacion %}
+                    <td>{{ fila.limite_dia|floatformat:dec }}</td>
+                    <td>{{ fila.limite_mes|floatformat:dec }}</td>
+                {% endwith %}
+                <td>
+                    <a href="{% url 'limite_edit' fila.moneda.id %}" 
+                       style="text-decoration: none; padding: 5px 10px; background-color: #2196F3; color: white; border-radius: 4px;">
+                        Modificar
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

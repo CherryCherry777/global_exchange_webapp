@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from webapp.forms import (
     RegistrationForm, LoginForm, UserUpdateForm, 
     ClienteForm, ClienteUpdateForm, AsignarClienteForm,
-    TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm
+    TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm
 )
 from webapp.models import Cliente, Categoria, ClienteUsuario
 
@@ -147,9 +147,19 @@ class FormTests(TestCase):
 
     def test_tarjeta_form_valid(self):
         """Prueba que el formulario de tarjeta es válido"""
+        # Crear una entidad bancaria para la prueba
+        from webapp.models import Entidad
+        entidad, created = Entidad.objects.get_or_create(
+            nombre="Banco Test Tarjeta",
+            defaults={
+                'tipo': 'banco',
+                'activo': True
+            }
+        )
+        
         form_data = {
             'numero_tokenizado': 'tok_123456789',
-            'banco': 'Banco Test',
+            'entidad': entidad.id,
             'fecha_vencimiento': '2025-12-31',
             'ultimos_digitos': '1234'
         }
@@ -169,9 +179,19 @@ class FormTests(TestCase):
 
     def test_billetera_form_valid(self):
         """Prueba que el formulario de billetera es válido"""
+        # Crear una entidad telefónica para la prueba
+        from webapp.models import Entidad
+        entidad, created = Entidad.objects.get_or_create(
+            nombre="Tigo Money Test",
+            defaults={
+                'tipo': 'telefono',
+                'activo': True
+            }
+        )
+        
         form_data = {
             'numero_celular': '0981234567',
-            'proveedor': 'Tigo Money'
+            'entidad': entidad.id
         }
         form = BilleteraForm(data=form_data)
         self.assertTrue(form.is_valid())
@@ -187,40 +207,43 @@ class FormTests(TestCase):
 
     def test_cuenta_bancaria_form_valid(self):
         """Prueba que el formulario de cuenta bancaria es válido"""
+        # Crear una entidad bancaria para la prueba
+        from webapp.models import Entidad
+        entidad, created = Entidad.objects.get_or_create(
+            nombre="Banco Test Form",
+            defaults={
+                'tipo': 'banco',
+                'activo': True
+            }
+        )
+        
         form_data = {
             'numero_cuenta': '1234567890',
-            'banco': 'Banco Test',
+            'entidad': entidad.id,
             'alias_cbu': 'alias.test'
         }
         form = CuentaBancariaForm(data=form_data)
         self.assertTrue(form.is_valid())
 
-    def test_cheque_form_valid(self):
-        """Prueba que el formulario de cheque es válido"""
-        form_data = {
-            'numero_cheque': 'CHQ001',
-            'banco_emisor': 'Banco Test',
-            'fecha_vencimiento': '2025-12-31',
-            'monto': 1000.00
-        }
-        form = ChequeForm(data=form_data)
-        self.assertTrue(form.is_valid())
-
-    def test_cheque_form_invalid_monto(self):
-        """Prueba que el formulario de cheque es inválido con monto negativo"""
-        form_data = {
-            'numero_cheque': 'CHQ001',
-            'banco_emisor': 'Banco Test',
-            'fecha_vencimiento': '2025-12-31',
-            'monto': -100.00  # Monto negativo
-        }
-        form = ChequeForm(data=form_data)
-        self.assertFalse(form.is_valid())
 
     def test_medio_pago_form_valid(self):
         """Prueba que el formulario de medio de pago es válido"""
+        # Crear una moneda para la prueba
+        from webapp.models import Currency
+        moneda, created = Currency.objects.get_or_create(
+            code="USD",
+            defaults={
+                'name': 'Dólar Americano Test',
+                'symbol': '$',
+                'decimales_cotizacion': 2,
+                'decimales_monto': 2,
+                'is_active': True
+            }
+        )
+        
         form_data = {
-            'nombre': 'Visa Principal'
+            'nombre': 'Visa Principal',
+            'moneda': moneda.id
         }
         form = MedioPagoForm(data=form_data)
         self.assertTrue(form.is_valid())
@@ -232,3 +255,19 @@ class FormTests(TestCase):
         }
         form = MedioPagoForm(data=form_data)
         self.assertFalse(form.is_valid())
+
+    def test_login_form_valid(self):
+        """Prueba que el formulario de login es válido"""
+        form_data = {
+            'username': 'testuser',
+            'password': 'testpass123'
+        }
+        form = LoginForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_cliente_form_valid(self):
+        """Prueba que el formulario de cliente es válido"""
+        form = ClienteForm()
+        self.assertIsNotNone(form)
+        self.assertIn('nombre', form.fields)
+        self.assertIn('documento', form.fields)

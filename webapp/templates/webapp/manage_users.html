@@ -1,216 +1,114 @@
-{% extends "webapp/base.html" %}
+{% extends 'webapp/base.html' %}
 {% load static %}
 
 {% block title %}Administrar Usuarios{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/manage_users.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="admin-page-container">
+<div class="manage-users-container">
     <!-- Header Section -->
-    <div class="admin-page-header">
-        <div class="header-content">
-            <div class="header-left">
-                <a href="{% url 'landing' %}" class="back-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                    Volver al Panel
-                </a>
-                <h1 class="page-title">Administrar Usuarios</h1>
-                <p class="page-subtitle">Gestiona los usuarios del sistema Global Exchange</p>
-            </div>
-            <div class="header-right">
-                <div class="user-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">{{ users|length }}</span>
-                        <span class="stat-label">Total Usuarios</span>
+    <div class="manage-users-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-users-title">Administrar Usuarios</h1>
+                    <p class="manage-users-subtitle">Visualizar, editar y activar/desactivar usuarios</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Usuarios</div>
+                        <div class="metric-number">{{ total_users }}</div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-number">{{ users|length|add:"-1" }}</span>
-                        <span class="stat-label">Activos</span>
+                    <div class="metric-card">
+                        <div class="metric-label">Usuarios Activos</div>
+                        <div class="metric-number">{{ active_users }}</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Messages Section -->
-    {% if messages %}
-    <div class="messages-container">
-        {% for message in messages %}
-            <div class="message message-{{ message.tags }}">
-                <div class="message-icon">
-                    {% if message.tags == 'success' %}
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                            <polyline points="22,4 12,14.01 9,11.01"/>
-                        </svg>
-                    {% elif message.tags == 'error' %}
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="15" y1="9" x2="9" y2="15"/>
-                            <line x1="9" y1="9" x2="15" y2="15"/>
-                        </svg>
-                    {% else %}
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M12 6v6l4 2"/>
-                        </svg>
-                    {% endif %}
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Users List Container -->
+        <div class="users-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de usuarios</h2>
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar usuario" id="searchInput">
                 </div>
-                <span class="message-text">{{ message }}</span>
             </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 
-    <!-- Users Table Section -->
-    <div class="table-container">
-        <div class="table-header">
-            <h3>Lista de Usuarios</h3>
-            <div class="table-actions">
-                <div class="search-box">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="M21 21l-4.35-4.35"/>
-                    </svg>
-                    <input type="text" placeholder="Buscar usuarios..." id="userSearch">
-                </div>
-            </div>
-        </div>
-        
-        <div class="table-wrapper">
-            <table class="modern-table">
+            <!-- Users Table -->
+            <div class="users-table-container">
+            <table class="users-table">
                 <thead>
                     <tr>
-                        <th>
-                            <div class="th-content">
-                                <span>Usuario</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 6h18M3 12h18M3 18h18"/>
-                                </svg>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="th-content">
-                                <span>Email</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 6h18M3 12h18M3 18h18"/>
-                                </svg>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="th-content">
-                                <span>Nombre Completo</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 6h18M3 12h18M3 18h18"/>
-                                </svg>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="th-content">
-                                <span>Estado</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 6h18M3 12h18M3 18h18"/>
-                                </svg>
-                            </div>
-                        </th>
-                        <th>
-                            <div class="th-content">
-                                <span>Acciones</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 6h18M3 12h18M3 18h18"/>
-                                </svg>
-                            </div>
-                        </th>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Nombre Completo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for user in users %}
-                    <tr class="user-row {% if not user.is_active %}inactive-user{% endif %}">
+                    <tr class="user-row">
                         <td>
                             <div class="user-info">
-                                <div class="user-avatar">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                        <circle cx="12" cy="7" r="4"/>
-                                    </svg>
+                                <div class="user-icon">
+                                    <img src="{% static 'webapp/pantalla_administar_usuarios/1.Administar_Usuarios.png' %}" alt="Usuario">
                                 </div>
-                                <div class="user-details">
-                                    <span class="username">{{ user.username }}</span>
-                                    {% if user.is_superuser %}
-                                        <span class="user-badge admin-badge">Admin</span>
-                                    {% endif %}
-                                </div>
+                                <span class="username">{{ user.username }}</span>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.first_name }} {{ user.last_name }}</td>
+                        <td>
+                            <div class="status-cell">
+                                <div class="status-dot {% if user.is_active %}active{% else %}inactive{% endif %}"></div>
+                                <span class="status-text">
+                                    {% if user.is_active %}Activo{% else %}Inactivo{% endif %}
+                                </span>
                             </div>
                         </td>
                         <td>
-                            <span class="email">{{ user.email }}</span>
-                        </td>
-                        <td>
-                            <span class="full-name">{{ user.first_name }} {{ user.last_name }}</span>
-                        </td>
-                        <td>
-                            <div class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
-                                <div class="status-dot"></div>
-                                <span>{% if user.is_active %}Activo{% else %}Inactivo{% endif %}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                <a href="{% url 'modify_users' user.id %}" class="action-btn edit-btn">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                    </svg>
-                                    Editar
-                                </a>
-
-                                <form method="POST" action="{% url 'manage_users' %}" class="inline-form">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="toggle_user">
-                                    <input type="hidden" name="user_id" value="{{ user.id }}">
-                                    {% if user.is_active %}
-                                        <button type="submit" class="action-btn deactivate-btn">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <circle cx="12" cy="12" r="10"/>
-                                                <line x1="15" y1="9" x2="9" y2="15"/>
-                                                <line x1="9" y1="9" x2="15" y2="15"/>
-                                            </svg>
-                                            Desactivar
-                                        </button>
-                                    {% else %}
-                                        <button type="submit" class="action-btn activate-btn">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <circle cx="12" cy="12" r="10"/>
-                                                <polyline points="22,4 12,14.01 9,11.01"/>
-                                            </svg>
-                                            Activar
-                                        </button>
-                                    {% endif %}
-                                </form>
+                            <div class="actions-cell">
+                                <a href="{% url 'modify_users' user.id %}" class="action-button modify-button">Modificar</a>
+                                {% if user.is_active %}
+                                    <a href="{% url 'deactivate_user' user.id %}" class="action-button deactivate-button">Desactivar</a>
+                                {% else %}
+                                    <a href="{% url 'activate_user' user.id %}" class="action-button activate-button">Activar</a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
 // Search functionality
-document.getElementById('userSearch').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
     const rows = document.querySelectorAll('.user-row');
     
     rows.forEach(row => {
         const username = row.querySelector('.username').textContent.toLowerCase();
-        const email = row.querySelector('.email').textContent.toLowerCase();
-        const fullName = row.querySelector('.full-name').textContent.toLowerCase();
+        const email = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+        const fullName = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
         
         if (username.includes(searchTerm) || email.includes(searchTerm) || fullName.includes(searchTerm)) {
             row.style.display = '';
@@ -219,14 +117,5 @@ document.getElementById('userSearch').addEventListener('input', function(e) {
         }
     });
 });
-
-// Auto-hide messages after 5 seconds
-setTimeout(function() {
-    const messages = document.querySelectorAll('.message');
-    messages.forEach(message => {
-        message.style.opacity = '0';
-        setTimeout(() => message.remove(), 300);
-    });
-}, 5000);
 </script>
 {% endblock %}

@@ -1,0 +1,71 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Editar Límites - {{ moneda.code }}{% endblock %}
+
+{% block content %}
+<h1>Editar Límites para {{ moneda.code }} - {{ moneda.name }}</h1>
+
+<form method="post" id="limites-form">
+    {% csrf_token %}
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+            <tr style="background-color: #4CAF50; color: white;">
+                <th>Periodo</th>
+                <th>Monto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% with dec=moneda.decimales_cotizacion %}
+            <tr>
+                <td>Límite Diario</td>
+                <td>
+                    <input type="number"
+                            step="{{ moneda.decimales_cotizacion|decimal_step }}"
+                            name="limite_dia"
+                            value="{{ limite.limite_dia }}"
+                            required>
+                </td>
+            </tr>
+            <tr>
+                <td>Límite Mensual</td>
+                <td>
+                    <input type="number"
+                            step="{{ moneda.decimales_cotizacion|decimal_step }}"
+                            name="limite_mes"
+                            value="{{ limite.limite_mes }}"
+                            required>
+                </td>
+            </tr>
+            {% endwith %}
+        </tbody>
+    </table>
+
+    <button type="submit" style="margin-top: 15px; padding: 10px 20px; background-color: #2196F3; color: white; border: none; border-radius: 4px;">
+        Guardar Cambios
+    </button>
+</form>
+
+<a href="{% url 'limites_list' %}" style="display: inline-block; margin-top: 15px; text-decoration: none; color: #555;">
+    ← Volver a la lista
+</a>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("limites-form");
+
+    form.addEventListener("submit", function (e) {
+        const minDia = parseFloat(form["limite_dia"].value);
+        const minMes = parseFloat(form["limite_mes"].value);
+
+        if (!isNaN(minDia) && !isNaN(minMes)) {
+            if (minDia > minMes) {
+                e.preventDefault();
+                alert("El límite diario no puede ser mayor que el límite mensual.");
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

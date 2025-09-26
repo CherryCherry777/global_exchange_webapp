@@ -1,0 +1,131 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Administrar Métodos de Cobro Globales{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/manage_cobro_methods.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="manage-cobro-methods-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="manage-cobro-methods-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-cobro-methods-title">Administrar Métodos de Cobro Globales</h1>
+                    <p class="manage-cobro-methods-subtitle">Administra los métodos de cobro globales</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Métodos</div>
+                        <div class="metric-number">{{ total_cobro_methods }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Cobro Methods List Container -->
+        <div class="cobro-methods-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de Métodos de Cobro Globales</h2>
+            </div>
+
+            <!-- Cobro Methods Table -->
+            <div class="cobro-methods-table-container">
+                <table class="cobro-methods-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Comisión (%)</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for method in cobro_methods %}
+                        <tr class="cobro-method-row">
+                            <td class="name-cell">
+                                <div class="cobro-method-info">
+                                    <div class="cobro-method-icon-circle">
+                                        <img src="{% static 'webapp/pantalla_metodo_cobro/1.metodo_cobro.png' %}" alt="Cobro Method Icon" class="cobro-method-icon">
+                                    </div>
+                                    <span class="cobro-method-name">{{ method.nombre }}</span>
+                                </div>
+                            </td>
+                            <td class="status-cell">
+                                <div class="status-container">
+                                    {% if method.activo %}
+                                        <div class="status-dot active"></div>
+                                        <span class="status-text">Activo</span>
+                                    {% else %}
+                                        <div class="status-dot inactive"></div>
+                                        <span class="status-text">Inactivo</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="commission-cell">
+                                <span class="commission-percentage">{{ method.comision }}%</span>
+                            </td>
+                            <td class="actions-cell">
+                                <div class="actions-container">
+                                    <a href="{% url 'modify_cobro_method' method.id %}" class="action-button modify-button">Modificar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

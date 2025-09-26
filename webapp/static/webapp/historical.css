@@ -1,0 +1,64 @@
+/* ====== Contenedor principal ====== */
+.main-home-container {
+    padding: 2rem;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* ====== Título ====== */
+.historical-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #ffb300;
+}
+
+/* ====== Selector de monedas ====== */
+.currency-selector {
+    margin-bottom: 1rem;
+}
+
+.currency-selector label {
+    font-weight: 500;
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.currency-selector select {
+    background: #1e1e2d;
+    color: #fff;
+    border: 2px solid #ffb300;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    appearance: none;
+    cursor: pointer;
+}
+
+.currency-selector select:focus {
+    outline: none;
+    border-color: #ffc733;
+    box-shadow: 0 0 8px rgba(255, 179, 0, 0.5);
+}
+
+/* ====== Botones de rango ====== */
+.range-buttons {
+    margin-bottom: 1.5rem;
+}
+
+.range-buttons .btn-range {
+    background: #ffb300;
+    color: #000;
+    font-weight: 600;
+    border: none;
+    padding: 8px 16px;
+    margin-right: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.range-buttons .btn-range:hover {
+    background: #ffc733;
+}

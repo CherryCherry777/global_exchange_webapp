@@ -3,83 +3,288 @@
 
 {% block title %}Agregar Billetera - {{ cliente.nombre }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/add_payment_method.css' %}" />
+<style>
+/* Force override of global styles */
+.add-payment-method-container {
+    min-height: 100vh !important;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%) !important;
+    padding: 20px 0 !important;
+}
+
+.add-payment-method-header {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%) !important;
+    padding: 40px 0 !important;
+    margin-bottom: 30px !important;
+}
+
+.add-payment-method-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 32px !important;
+    color: white !important;
+    margin: 0 0 10px 0 !important;
+}
+
+.add-payment-method-subtitle {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 20px !important;
+    color: white !important;
+    margin: 0 !important;
+}
+
+.form-card {
+    background: rgba(238, 233, 210, 0.1) !important;
+    border-radius: 20px !important;
+    padding: 40px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.form-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 28px !important;
+    color: white !important;
+    margin: 0 0 10px 0 !important;
+}
+
+.form-subtitle {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 16px !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin: 0 !important;
+}
+
+.form-group input,
+.form-group select {
+    width: 100% !important;
+    padding: 15px 20px !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none !important;
+    border-color: #5B15C2 !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 0 20px rgba(91, 21, 194, 0.2) !important;
+}
+
+.form-label {
+    display: block !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    color: white !important;
+    margin-bottom: 8px !important;
+}
+
+.submit-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
+    color: white !important;
+    padding: 15px 30px !important;
+    border-radius: 25px !important;
+    border: none !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+}
+
+.cancel-button {
+    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 100%) !important;
+    color: white !important;
+    padding: 15px 30px !important;
+    border-radius: 25px !important;
+    text-decoration: none !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 16px !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="admin-page-container">
-    <!-- Header -->
-    <div class="admin-header">
-        <div class="header-content">
-            <div class="header-left">
-                <a href="{% url 'manage_client_payment_methods_detail' cliente.id %}" class="back-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                    Volver
-                </a>
-                <h1 class="page-title">Agregar Billetera</h1>
-                <p class="page-subtitle">Cliente: {{ cliente.nombre }}</p>
+<div class="add-payment-method-container">
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Header Section -->
+    <div class="add-payment-method-header">
+        <div class="main-content">
+            <a href="{% url 'my_payment_methods' %}" class="back-button">← Volver a Mis Métodos de Pago</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="add-payment-method-title">Agregar Billetera</h1>
+                    <p class="add-payment-method-subtitle">Cliente: {{ cliente.nombre }}</p>
+                </div>
+                
+                <!-- Icon Section -->
+                <div class="header-icon">
+                    <div class="payment-method-icon-circle">
+                        <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="Billetera Icon" class="payment-method-icon">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Formulario -->
-    <div class="form-container">
-        <div class="form-card">
-            <div class="form-header">
-                <h3>Datos de la Billetera</h3>
-                <p>Complete la información de la billetera electrónica</p>
-            </div>
-            
-            <form method="post" class="payment-form">
-                {% csrf_token %}
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Form Container -->
+        <div class="form-container">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2 class="form-title">Datos de la Billetera</h2>
+                    <p class="form-subtitle">Complete la información de la billetera electrónica</p>
+                </div>
                 
-                <div class="form-section">
-                    <h4>Información General</h4>
-                    <div class="form-group">
-                        {{ medio_pago_form.nombre.label_tag }}
-                        {{ medio_pago_form.nombre }}
-                        {% if medio_pago_form.nombre.errors %}
-                            <div class="form-errors">
-                                {% for error in medio_pago_form.nombre.errors %}
-                                    <span class="error">{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h4>Datos de la Billetera</h4>
-                    <div class="form-group">
-                        {{ form.numero_celular.label_tag }}
-                        {{ form.numero_celular }}
-                        {% if form.numero_celular.errors %}
-                            <div class="form-errors">
-                                {% for error in form.numero_celular.errors %}
-                                    <span class="error">{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+                <form method="post" class="payment-form">
+                    {% csrf_token %}
                     
-                    <div class="form-group">
-                        {{ form.proveedor.label_tag }}
-                        {{ form.proveedor }}
-                        {% if form.proveedor.errors %}
-                            <div class="form-errors">
-                                {% for error in form.proveedor.errors %}
-                                    <span class="error">{{ error }}</span>
+                    <!-- Información General Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">Información General</h3>
+                        <div class="form-group">
+                            <label for="{{ medio_pago_form.nombre.id_for_label }}" class="form-label">
+                                {{ medio_pago_form.nombre.label }}
+                            </label>
+                            {{ medio_pago_form.nombre }}
+                            {% for error in medio_pago_form.nombre.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Datos de la Billetera Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">Datos de la Billetera</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="{{ form.numero_celular.id_for_label }}" class="form-label">
+                                    {{ form.numero_celular.label }}
+                                </label>
+                                {{ form.numero_celular }}
+                                {% for error in form.numero_celular.errors %}
+                                    <span class="error-message">{{ error }}</span>
                                 {% endfor %}
                             </div>
-                        {% endif %}
+                            <div class="form-group">
+                                <label for="{{ form.proveedor.id_for_label }}" class="form-label">
+                                    {{ form.proveedor.label }}
+                                </label>
+                                {{ form.proveedor }}
+                                {% for error in form.proveedor.errors %}
+                                    <span class="error-message">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-actions">
-                    <a href="{% url 'manage_client_payment_methods_detail' cliente.id %}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Agregar Billetera</button>
-                </div>
-            </form>
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <a href="{% url 'my_payment_methods' %}" class="action-button cancel-button">Cancelar</a>
+                        <button type="submit" class="action-button submit-button">Agregar Billetera</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+
+// Form validation and enhancement
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.payment-form');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    // Add focus/blur effects
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            if (!this.value) {
+                this.parentElement.classList.remove('focused');
+            }
+        });
+        
+        // Check if input has value on load
+        if (input.value) {
+            input.parentElement.classList.add('focused');
+        }
+    });
+    
+    // Form submission enhancement
+    form.addEventListener('submit', function(e) {
+        const submitButton = this.querySelector('.submit-button');
+        submitButton.innerHTML = '<span class="loading-spinner"></span> Procesando...';
+        submitButton.disabled = true;
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+</style>
 {% endblock %}

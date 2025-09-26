@@ -1,26 +1,34 @@
+from datetime import timezone
+from django import forms
 from django.db import IntegrityError, models
+from django.forms import modelformset_factory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.core.mail import send_mail
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.views import LoginView, LogoutView
+from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404, JsonResponse
+from django.views.decorators.http import require_GET, require_POST
+from django.utils.timezone import now, timedelta
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from webapp.emails import send_activation_email
-from .forms import RegistrationForm, LoginForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, ChequeForm, MedioPagoForm
+from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Cheque
-from django.contrib.auth.decorators import permission_required
-from decimal import Decimal, InvalidOperation
+from .models import CurrencyHistory, Transaccion, Tauser, Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
+from decimal import ROUND_DOWN, Decimal, InvalidOperation
+import json
 
 User = get_user_model()
 PROTECTED_ROLES = ["Administrador", "Empleado", "Usuario"]
@@ -53,12 +61,136 @@ def public_home(request):
     if currencies.exists():
         last_update = currencies.order_by('-updated_at').first().updated_at
     
+    is_guest = not request.user.is_authenticated
+
     return render(request, "webapp/home.html", {
         "can_access_gestiones": can_access_gestiones,
         "currencies": currencies,
-        "last_update": last_update
+        "last_update": last_update,
+        "is_guest": is_guest
     })
 
+@require_GET
+def api_active_currencies(request):
+    user = request.user
+    descuento = Decimal('0')  # Por defecto para invitados
+
+    if user.is_authenticated:
+        try:
+            # Obtener cliente asociado al usuario
+            cliente_id = request.session.get("cliente_id")
+            cliente_usuario = None
+            if cliente_id:
+                cliente_usuario = ClienteUsuario.objects.filter(
+                    usuario=user,
+                    cliente_id=cliente_id
+                ).select_related("cliente__categoria").first()
+            else:
+                descuento = Decimal('0')
+
+            if cliente_usuario and cliente_usuario.cliente.categoria:
+                descuento = cliente_usuario.cliente.categoria.descuento or Decimal('0')
+        except Exception:
+            descuento = Decimal('0')
+
+    # Intentar obtener IDs de método de pago/cobro
+    metodo_pago_id = request.GET.get("metodo_pago_id")
+    metodo_cobro_id = request.GET.get("metodo_cobro_id")
+
+    metodo_pago = None
+    metodo_cobro = None
+    if metodo_pago_id:
+        try:
+            metodo_pago = TipoPago.objects.get(id=metodo_pago_id, activo=True)
+        except TipoPago.DoesNotExist:
+            metodo_pago = None
+    if metodo_cobro_id:
+        try:
+            metodo_cobro = TipoCobro.objects.get(id=metodo_cobro_id, activo=True)
+        except TipoCobro.DoesNotExist:
+            metodo_cobro = None
+
+    qs = Currency.objects.filter(is_active=True)
+    items = []
+
+    for c in qs:
+        base = Decimal(c.base_price)
+        com_venta = Decimal(c.comision_venta)
+        com_compra = Decimal(c.comision_compra)
+
+        # Aplicar fórmulas según descuento del cliente
+        venta = base + (com_venta * (1 - descuento))
+        compra = base - (com_compra * (1 - descuento))
+
+        # Aplicar comisiones del método seleccionado si existen
+        if metodo_pago:
+            venta = venta * (1 + Decimal(metodo_pago.comision)/100 + Decimal(metodo_cobro.comision)/100)
+        if metodo_cobro:
+            compra = compra * (1 - Decimal(metodo_cobro.comision)/100 - Decimal(metodo_pago.comision)/100)
+
+        items.append({
+            "code": c.code,
+            "name": c.name,
+            "decimals": int(c.decimales_monto or 2),
+            "venta": float(venta),
+            "compra": float(compra),
+        })
+
+    # Asegurar que PYG siempre exista
+    if not any(x["code"] == "PYG" for x in items):
+        items.append({
+            "code": "PYG",
+            "name": "Guaraní",
+            "decimals": 0,
+            "venta": 1.0,
+            "compra": 1.0,
+        })
+
+    return JsonResponse({"items": items})
+
+@login_required
+@require_POST
+def set_cliente_seleccionado(request):
+    """
+    Actualiza la variable de sesión 'cliente_id' según la selección del usuario.
+    - Si se recibe un cliente_id válido, se guarda en la sesión.
+    - Si no se recibe, se elimina de la sesión (pop).
+    Redirige a la página anterior.
+    """
+    cliente_id = request.POST.get("cliente_id")
+    #print(cliente_id)  # Para depuración, imprime el ID seleccionado
+    if cliente_id:
+        request.session["cliente_id"] = int(cliente_id)
+    else:
+        request.session.pop('cliente_id', None)  # Borra la sesión si no hay cliente
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required
+def change_client(request):
+    """
+    Vista para cambiar el cliente seleccionado por el usuario
+    """
+    if request.method == "POST":
+        cliente_id = request.POST.get("cliente_id")
+        if cliente_id:
+            request.session["cliente_id"] = int(cliente_id)
+            messages.success(request, "Cliente seleccionado correctamente.")
+        else:
+            request.session.pop('cliente_id', None)
+            messages.success(request, "Cliente deseleccionado correctamente.")
+        
+        # Redirigir a la página anterior o al home
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+    
+    # GET request - mostrar la página de selección
+    # Obtener clientes disponibles del context processor
+    from .context_processors import clientes_disponibles
+    clientes_context = clientes_disponibles(request)
+    
+    return render(request, "webapp/change_client.html", {
+        "clientes_disponibles": clientes_context["clientes_disponibles"]
+    })
 
 def register(request):
     if request.method == "POST":
@@ -82,9 +214,6 @@ def register(request):
         form = RegistrationForm()
 
     return render(request, "webapp/register.html", {"form": form})
-
-
-
 
 def verify_email(request, uidb64, token):
     try:
@@ -432,6 +561,10 @@ def employee_dash(request):
 def manage_users(request):
     users = User.objects.all()
 
+    # Calcular métricas
+    total_users = User.objects.count()
+    active_users = User.objects.filter(is_active=True).count()
+
     if request.method == "POST":
         action = request.POST.get("action")
         user_id = request.POST.get("user_id")
@@ -464,7 +597,53 @@ def manage_users(request):
         
         return redirect("manage_users")
 
-    return render(request, "webapp/manage_users.html", {"users": users})
+    context = {
+        "users": users,
+        "total_users": total_users,
+        "active_users": active_users,
+    }
+    
+    return render(request, "webapp/manage_users.html", context)
+
+@login_required
+@role_required("Administrador")
+def activate_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    # Evitar activar/desactivar admins o tu propio usuario
+    if user.is_superuser:
+        messages.error(request, "No puede modificar un usuario administrador.")
+        return redirect("manage_users")
+    
+    if user == request.user:
+        messages.error(request, "No puede modificar su propio usuario.")
+        return redirect("manage_users")
+    
+    user.is_active = True
+    user.save()
+    messages.success(request, f"Usuario '{user.username}' activado correctamente.")
+    
+    return redirect("manage_users")
+
+@login_required
+@role_required("Administrador")
+def deactivate_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    # Evitar activar/desactivar admins o tu propio usuario
+    if user.is_superuser:
+        messages.error(request, "No puede modificar un usuario administrador.")
+        return redirect("manage_users")
+    
+    if user == request.user:
+        messages.error(request, "No puede modificar su propio usuario.")
+        return redirect("manage_users")
+    
+    user.is_active = False
+    user.save()
+    messages.success(request, f"Usuario '{user.username}' desactivado correctamente.")
+    
+    return redirect("manage_users")
 
 @login_required
 @role_required("Administrador")
@@ -574,6 +753,8 @@ def modify_users(request, user_id):
         "ROLE_TIERS": {"Administrador": 3, "Empleado": 2, "Usuario": 1}
     })
 
+# MONEDAS
+
 @login_required
 @permission_required('webapp.view_currency', raise_exception=True)
 def currency_list(request):
@@ -586,9 +767,6 @@ def create_currency(request):
         code = request.POST.get('code')
         name = request.POST.get('name')
         symbol = request.POST.get('symbol')
-        base_price = request.POST.get('base_price')
-        comision_venta = request.POST.get('comision_venta')
-        comision_compra = request.POST.get('comision_compra')
         decimales_cotizacion = request.POST.get('decimales_cotizacion')
         decimales_monto = request.POST.get('decimales_monto')
         flag_image = request.FILES.get('flag_image')
@@ -604,9 +782,6 @@ def create_currency(request):
             code=code.upper(),
             name=name,
             symbol=symbol,
-            base_price=base_price,
-            comision_venta=comision_venta,
-            comision_compra=comision_compra,
             decimales_cotizacion=decimales_cotizacion,
             decimales_monto=decimales_monto,
             flag_image=flag_image,
@@ -628,9 +803,6 @@ def edit_currency(request, currency_id):
 
         # Validar campos decimales
         try:
-            currency.base_price = Decimal(request.POST.get('base_price').replace(",", "."))
-            currency.comision_venta = Decimal(request.POST.get('comision_venta').replace(",", "."))
-            currency.comision_compra = Decimal(request.POST.get('comision_compra').replace(",", "."))
             currency.decimales_cotizacion = int(request.POST.get('decimales_cotizacion'))
             currency.decimales_monto = int(request.POST.get('decimales_monto'))
         except (InvalidOperation, ValueError):
@@ -665,6 +837,84 @@ def toggle_currency(request):
     
     return redirect('currency_list')
 
+# COTIZACIONES
+
+def prices_list(request):
+    currencies = Currency.objects.all()
+    total = currencies.count()
+    activas = currencies.filter(is_active=True).count()
+    return render(request, "webapp/prices_list.html", {
+        "currencies": currencies,
+        "total": total,
+        "activas": activas,
+    })
+@login_required
+def edit_prices(request, currency_id):
+    currency = get_object_or_404(Currency, id=currency_id)
+    
+    if request.method == 'POST':
+
+        # Validar campos decimales
+        try:
+            currency.base_price = Decimal(request.POST.get('base_price').replace(",", "."))
+            currency.comision_venta = Decimal(request.POST.get('comision_venta').replace(",", "."))
+            currency.comision_compra = Decimal(request.POST.get('comision_compra').replace(",", "."))
+            
+        except (InvalidOperation, ValueError):
+            messages.error(request, "Uno de los valores numéricos ingresados no es válido.")
+            return render(request, 'webapp/edit_prices.html', {'currency': currency})
+
+
+        # Guardar
+        currency.save()
+        messages.success(request, 'Cotización actualizada exitosamente.')
+        return redirect('prices_list')
+
+    return render(request, 'webapp/edit_prices.html', {'currency': currency})
+
+@require_GET
+def api_currency_history(request):
+    """
+    Devuelve histórico de una moneda en JSON.
+    Query params:
+      - code: código de moneda (ej: USD, EUR)
+      - range: week|month|6months|year
+    """
+    code = request.GET.get("code", "USD")
+    rango = request.GET.get("range", "week")
+
+    try:
+        currency = Currency.objects.get(code=code)
+    except Currency.DoesNotExist:
+        return JsonResponse({"error": "Moneda no encontrada"}, status=404)
+
+    today = now().date()
+    if rango == "week":
+        start = today - timedelta(days=7)
+    elif rango == "month":
+        start = today - timedelta(days=30)
+    elif rango == "6months":
+        start = today - timedelta(days=180)
+    elif rango == "year":
+        start = today - timedelta(days=365)
+    else:
+        start = today - timedelta(days=30)
+
+    qs = CurrencyHistory.objects.filter(currency=currency, date__gte=start).order_by("date")
+
+    items = [
+        {
+            "date": h.date.strftime("%d/%m/%Y"),
+            "compra": float(h.compra),
+            "venta": float(h.venta),
+        }
+        for h in qs
+    ]
+    return JsonResponse({"items": items})
+
+@login_required
+def historical_view(request):
+    return render(request, "webapp/historical.html")
 
 # ===========================================
 # VISTAS PARA ADMINISTRACIÓN DE CLIENTES
@@ -704,7 +954,9 @@ def manage_clientes(request):
     total_categorias = Categoria.objects.count()
     
     context = {
-        'clientes': clientes,
+        'clients': clientes,
+        'total_clients': total_clientes,
+        'active_clients': clientes_activos,
         'search_query': search_query,
         'categoria_filter': categoria_filter,
         'estado_filter': estado_filter,
@@ -714,7 +966,137 @@ def manage_clientes(request):
         'total_categorias': total_categorias,
     }
     
-    return render(request, "webapp/manage_clientes.html", context)
+    return render(request, "webapp/manage_clients.html", context)
+
+@login_required
+@role_required("Administrador")
+def modify_client(request, client_id):
+    """Vista para modificar un cliente existente"""
+    client = get_object_or_404(Cliente, id=client_id)
+    
+    if request.method == "POST":
+        # Procesar formulario de modificación
+        nombre = request.POST.get('nombre', '')
+        razon_social = request.POST.get('razon_social', '')
+        direccion = request.POST.get('direccion', '')
+        tipo_cliente = request.POST.get('tipo_cliente', '')
+        documento = request.POST.get('documento', '')
+        ruc = request.POST.get('ruc', '')
+        correo = request.POST.get('correo', '')
+        telefono = request.POST.get('telefono', '')
+        categoria_id = request.POST.get('categoria', '')
+        estado = request.POST.get('estado') == 'on'
+        
+        try:
+            # Actualizar campos del cliente
+            client.nombre = nombre
+            client.razonSocial = razon_social if razon_social else None
+            client.direccion = direccion
+            client.tipoCliente = tipo_cliente
+            client.documento = documento
+            client.ruc = ruc if ruc else None
+            client.correo = correo
+            client.telefono = telefono
+            client.estado = estado
+            
+            # Actualizar categoría
+            if categoria_id:
+                categoria = Categoria.objects.get(id=categoria_id)
+                client.categoria = categoria
+            
+            client.save()
+            messages.success(request, f"Cliente '{client.nombre}' modificado correctamente.")
+            return redirect("manage_clientes")
+            
+        except Exception as e:
+            messages.error(request, f"Error al modificar el cliente: {str(e)}")
+            return redirect("modify_client", client_id=client_id)
+    
+    # GET request - mostrar formulario
+    categorias = Categoria.objects.all()
+    
+    context = {
+        "client": client,
+        "categorias": categorias,
+    }
+    
+    return render(request, "webapp/modify_client.html", context)
+
+@login_required
+@role_required("Administrador")
+def create_client(request):
+    """Vista para crear un nuevo cliente"""
+    if request.method == "POST":
+        # Procesar formulario de creación
+        nombre = request.POST.get('nombre', '')
+        razon_social = request.POST.get('razon_social', '')
+        direccion = request.POST.get('direccion', '')
+        tipo = request.POST.get('tipo', '')
+        documento = request.POST.get('documento', '')
+        ruc = request.POST.get('ruc', '')
+        correo = request.POST.get('correo', '')
+        telefono = request.POST.get('telefono', '')
+        categoria_id = request.POST.get('categoria', '')
+        activo = request.POST.get('activo') == 'on'
+        
+        try:
+            # Validar datos requeridos
+            if not nombre or not direccion or not tipo or not documento or not correo or not telefono or not categoria_id:
+                messages.error(request, "Todos los campos son requeridos.")
+                return redirect("create_client")
+            
+            # Verificar si ya existe un cliente con el mismo documento
+            if Cliente.objects.filter(documento=documento).exists():
+                messages.error(request, "Ya existe un cliente con este documento.")
+                return redirect("create_client")
+            
+            # Verificar si ya existe un cliente con el mismo correo
+            if Cliente.objects.filter(correo=correo).exists():
+                messages.error(request, "Ya existe un cliente con este correo.")
+                return redirect("create_client")
+            
+            # Obtener categoría
+            categoria = Categoria.objects.get(id=categoria_id)
+            
+            # Crear nuevo cliente
+            client = Cliente.objects.create(
+                nombre=nombre,
+                razonSocial=razon_social if razon_social else None,
+                direccion=direccion,
+                tipoCliente=tipo,
+                documento=documento,
+                ruc=ruc if ruc else None,
+                correo=correo,
+                telefono=telefono,
+                categoria=categoria,
+                estado=activo
+            )
+            
+            messages.success(request, f"Cliente '{client.nombre}' creado exitosamente.")
+            return redirect("manage_clientes")
+            
+        except Categoria.DoesNotExist:
+            messages.error(request, "La categoría seleccionada no existe.")
+            return redirect("create_client")
+        except Exception as e:
+            messages.error(request, f"Error al crear el cliente: {str(e)}")
+            return redirect("create_client")
+    
+    # GET request - mostrar formulario
+    categorias = Categoria.objects.all()
+    
+    # Opciones de tipo de cliente
+    tipo_choices = [
+        ('Persona Natural', 'Persona Natural'),
+        ('Persona Jurídica', 'Persona Jurídica'),
+    ]
+    
+    context = {
+        "categorias": categorias,
+        "tipo_choices": tipo_choices,
+    }
+    
+    return render(request, "webapp/create_client.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -824,8 +1206,24 @@ def edit_profile(request):
 
 @login_required
 def landing_page(request):
+    
+    User = get_user_model()
+    
+    # Obtener métricas reales
+    usuarios_activos = User.objects.filter(is_active=True).count()
+    monedas_activas = Currency.objects.filter(is_active=True).count()
+    clientes_activos = Cliente.objects.filter(estado=True).count()
+    
     role = get_user_primary_role(request.user)
-    return render(request, "webapp/landing.html", {"role": role})
+    
+    context = {
+        "role": role,
+        "usuarios_activos": usuarios_activos,
+        "monedas_activas": monedas_activas,
+        "clientes_activos": clientes_activos,
+    }
+    
+    return render(request, "webapp/landing.html", context)
 
 # --------------------------------------------
 # Vista para inactivar un cliente
@@ -937,12 +1335,12 @@ def manage_categories(request):
 
 
 # ===========================================
-# VISTAS PARA MEDIOS DE PAGO
+# VISTAS PARA MEDIOS DE PAGO (DEPRECADO)
 # ===========================================
 
 @role_required("Administrador")
-def manage_client_payment_methods(request):
-    """Vista para gestionar los medios de pago de los clientes"""
+def manage_client_payment_methods_deprecado(request):
+    #Vista para gestionar los medios de pago de los clientes
     # GET - Listar clientes con opción de gestionar medios de pago
     clientes = Cliente.objects.filter(estado=True).order_by('nombre')
     
@@ -952,8 +1350,8 @@ def manage_client_payment_methods(request):
 
 
 @role_required("Administrador")
-def manage_client_payment_methods_detail(request, cliente_id):
-    """Vista para gestionar los medios de pago de un cliente específico"""
+def manage_client_payment_methods_detail_deprecado(request, cliente_id):
+    #Vista para gestionar los medios de pago de un cliente específico
     try:
         cliente = Cliente.objects.get(id=cliente_id)
         
@@ -1013,7 +1411,7 @@ def manage_client_payment_methods_detail(request, cliente_id):
 
 
 @role_required("Administrador")
-def view_client_payment_methods(request, cliente_id):
+def view_client_payment_methods_deprecado(request, cliente_id):
     """Vista para ver los medios de pago de un cliente específico"""
     try:
         cliente = Cliente.objects.get(id=cliente_id)
@@ -1028,7 +1426,7 @@ def view_client_payment_methods(request, cliente_id):
         return redirect("manage_client_payment_methods")
  
 @role_required("Administrador")
-def add_payment_method(request, cliente_id, tipo):
+def add_payment_method_deprecado(request, cliente_id, tipo):
     """Vista para agregar un nuevo medio de pago"""
     try:
         cliente = Cliente.objects.get(id=cliente_id)
@@ -1050,8 +1448,6 @@ def add_payment_method(request, cliente_id, tipo):
                     form = BilleteraForm(request.POST)
                 elif tipo == 'cuenta_bancaria':
                     form = CuentaBancariaForm(request.POST)
-                elif tipo == 'cheque':
-                    form = ChequeForm(request.POST)
                 else:
                     messages.error(request, "Tipo de medio de pago no válido")
                     return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1077,8 +1473,6 @@ def add_payment_method(request, cliente_id, tipo):
                 form = BilleteraForm()
             elif tipo == 'cuenta_bancaria':
                 form = CuentaBancariaForm()
-            elif tipo == 'cheque':
-                form = ChequeForm()
             else:
                 messages.error(request, "Tipo de medio de pago no válido")
                 return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1096,7 +1490,7 @@ def add_payment_method(request, cliente_id, tipo):
 
 
 @role_required("Administrador")
-def edit_payment_method(request, cliente_id, medio_pago_id):
+def edit_payment_method_deprecado(request, cliente_id, medio_pago_id):
     """Vista para editar un medio de pago existente"""
     try:
         cliente = Cliente.objects.get(id=cliente_id)
@@ -1130,13 +1524,6 @@ def edit_payment_method(request, cliente_id, medio_pago_id):
                         form = CuentaBancariaForm(request.POST, instance=medio_especifico)
                     except CuentaBancaria.DoesNotExist:
                         form = CuentaBancariaForm(request.POST)
-                        medio_especifico = None
-                elif medio_pago.tipo == 'cheque':
-                    try:
-                        medio_especifico = medio_pago.cheque
-                        form = ChequeForm(request.POST, instance=medio_especifico)
-                    except Cheque.DoesNotExist:
-                        form = ChequeForm(request.POST)
                         medio_especifico = None
                 else:
                     messages.error(request, "Tipo de medio de pago no válido")
@@ -1176,12 +1563,6 @@ def edit_payment_method(request, cliente_id, medio_pago_id):
                     form = CuentaBancariaForm(instance=medio_especifico)
                 except CuentaBancaria.DoesNotExist:
                     form = CuentaBancariaForm()
-            elif medio_pago.tipo == 'cheque':
-                try:
-                    medio_especifico = medio_pago.cheque
-                    form = ChequeForm(instance=medio_especifico)
-                except Cheque.DoesNotExist:
-                    form = ChequeForm()
             else:
                 messages.error(request, "Tipo de medio de pago no válido")
                 return redirect("manage_client_payment_methods_detail", cliente_id=cliente_id)
@@ -1196,3 +1577,1516 @@ def edit_payment_method(request, cliente_id, medio_pago_id):
     except (Cliente.DoesNotExist, MedioPago.DoesNotExist):
         messages.error(request, "Cliente o medio de pago no encontrado")
         return redirect("manage_client_payment_methods")
+
+#METODOS DE PAGO (VISTA DE CADA CLIENTE)
+
+FORM_MAP = {
+    'tarjeta': TarjetaForm,
+    'billetera': BilleteraForm,
+    'cuenta_bancaria': CuentaBancariaForm,
+}
+
+@login_required
+def my_payment_methods(request):
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
+    cliente = cliente_usuario.cliente
+
+    medios_pago = MedioPago.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+
+    # Adjuntar estado global desde TipoPago
+    tipos_pago = {tp.nombre.lower(): tp.activo for tp in TipoPago.objects.all()}
+    for medio in medios_pago:
+        medio.activo_global = tipos_pago.get(medio.tipo, False)
+
+    return render(request, "webapp/my_payment_methods.html", {
+        "medios_pago": medios_pago
+    })
+
+
+@login_required
+def manage_payment_method(request, tipo, medio_pago_id=None):
+    """
+    Maneja creación y edición de métodos de pago.
+    La moneda solo se puede elegir al crear.
+    """
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
+    cliente = cliente_usuario.cliente
+
+    FORM_MAP = {
+        'tarjeta': TarjetaForm,
+        'billetera': BilleteraForm,
+        'cuenta_bancaria': CuentaBancariaForm,
+    }
+    form_class = FORM_MAP.get(tipo)
+    if not form_class:
+        raise Http404("Tipo de método de pago desconocido.")
+
+    is_edit = False
+    medio_pago = None
+    pago_obj = None
+
+    if medio_pago_id:
+        medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente, tipo=tipo)
+        pago_obj = getattr(medio_pago, tipo)
+        is_edit = True
+
+        if request.GET.get('delete') == "1":
+            medio_pago.delete()
+            messages.success(request, f"Método de pago '{medio_pago.nombre}' eliminado correctamente")
+            return redirect('my_payment_methods')
+
+    if request.method == "POST":
+        form = form_class(request.POST, instance=pago_obj)
+        medio_pago_form = MedioPagoForm(request.POST, instance=medio_pago)
+
+        if form.is_valid() and medio_pago_form.is_valid():
+            if is_edit:
+                medio_pago_form.save()
+                form.save()
+                messages.success(request, f"Método de pago '{medio_pago.nombre}' modificado correctamente")
+            else:
+                moneda_id = request.POST.get("moneda")
+                if not moneda_id:
+                    messages.error(request, "Debe seleccionar una moneda")
+                    monedas = Currency.objects.filter(activo=True)
+                    return render(request, "webapp/manage_payment_method_base.html", {
+                        "tipo": tipo,
+                        "form": form,
+                        "medio_pago_form": medio_pago_form,
+                        "is_edit": is_edit,
+                        "monedas": monedas
+                    })
+                moneda = get_object_or_404(Currency, id=moneda_id)
+                mp = MedioPago.objects.create(
+                    cliente=cliente,
+                    tipo=tipo,
+                    nombre=medio_pago_form.cleaned_data['nombre'],
+                    moneda=moneda
+                )
+                obj = form.save(commit=False)
+                obj.medio_pago = mp
+                obj.save()
+                messages.success(request, f"Método de pago '{mp.nombre}' agregado correctamente")
+
+            return redirect('my_payment_methods')
+    else:
+        form = form_class(instance=pago_obj)
+        medio_pago_form = MedioPagoForm(instance=medio_pago)
+
+    monedas = Currency.objects.filter(is_active=True)
+
+    return render(request, "webapp/manage_payment_method_base.html", {
+        "tipo": tipo,
+        "form": form,
+        "medio_pago_form": medio_pago_form,
+        "is_edit": is_edit,
+        "medio_pago": medio_pago,
+        "monedas": monedas
+    })
+
+
+@login_required
+def confirm_delete_payment_method(request, medio_pago_id):
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
+    cliente = cliente_usuario.cliente
+
+    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente)
+    tipo = medio_pago.tipo
+
+    if request.method == "POST":
+        medio_pago.delete()
+        messages.success(request, f"Medio de pago '{medio_pago.nombre}' eliminado correctamente")
+        return redirect('my_payment_methods')
+
+    return render(request, "webapp/confirm_delete_payment_method.html", {
+        "medio_pago": medio_pago,
+        "tipo": tipo
+    })
+
+# ADMINISTRACION GLOBAL DE METODOS DE PAGO
+
+@login_required
+def payment_types_list(request):
+    tipos = TipoPago.objects.all().order_by("nombre")
+    return render(request, "webapp/payment_types_list.html", {"tipos": tipos})
+
+@login_required
+def edit_payment_type(request, tipo_id):
+    tipo = get_object_or_404(TipoPago, id=tipo_id)
+    if request.method == "POST":
+        form = TipoPagoForm(request.POST, instance=tipo)
+        if form.is_valid():
+            form.save()
+            return redirect("payment_types_list")
+    else:
+        form = TipoPagoForm(instance=tipo)
+    return render(request, "webapp/edit_payment_type.html", {"form": form, "tipo": tipo})
+
+
+# ADMINISTRAR LIMITES DE CAMBIO DE MONEDAS POR DIA Y POR MES
+
+# LISTADO DE LÍMITES
+@login_required
+def limites_intercambio_list(request):
+    monedas = Currency.objects.all().order_by('code')
+    tabla = []
+
+    for moneda in monedas:
+        limite, _ = LimiteIntercambio.objects.get_or_create(
+            moneda=moneda,
+            defaults={'limite_dia': 0, 'limite_mes': 0}
+        )
+        tabla.append({
+            'moneda': moneda,
+            'limite_dia': limite.limite_dia,
+            'limite_mes': limite.limite_mes
+        })
+
+    return render(request, 'webapp/limites_intercambio.html', {
+        'tabla': tabla
+    })
+
+
+# EDITAR LÍMITES
+@login_required
+def limite_edit(request, moneda_id):
+    moneda = get_object_or_404(Currency, id=moneda_id)
+    limite, _ = LimiteIntercambio.objects.get_or_create(
+        moneda=moneda,
+        defaults={'limite_dia': 0, 'limite_mes': 0}
+    )
+
+    if request.method == "POST":
+        dec = moneda.decimales_cotizacion
+        errores = False
+        try:
+            limite_dia = Decimal(request.POST.get('limite_dia', 0)).quantize(
+                Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
+            )
+            limite_mes = Decimal(request.POST.get('limite_mes', 0)).quantize(
+                Decimal('1.' + '0' * dec), rounding=ROUND_DOWN
+            )
+
+            limite.limite_dia = limite_dia
+            limite.limite_mes = limite_mes
+            limite.save()
+        except Exception as e:
+            errores = True
+            messages.error(request, f"Error al guardar los límites: {e}")
+
+        if not errores:
+            messages.success(request, "Límites actualizados correctamente.")
+            return redirect("limites_list")
+
+    return render(request, "webapp/limite_edit.html", {
+        "moneda": moneda,
+        "limite": limite
+    })
+
+
+# ===========================================
+# MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
+# ===========================================
+
+FORM_MAP = {
+    'tarjeta': TarjetaCobroForm,
+    'billetera': BilleteraCobroForm,
+    'cuenta_bancaria': CuentaBancariaCobroForm,
+}
+
+@login_required
+def my_cobro_methods(request):
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
+    cliente = cliente_usuario.cliente
+
+    medios_cobro = MedioCobro.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+
+    tipos_pago = {tp.nombre.lower(): tp.activo for tp in TipoPago.objects.all()}
+    for medio in medios_cobro:
+        medio.activo_global = tipos_pago.get(medio.tipo, False)
+
+    return render(request, "webapp/my_cobro_methods.html", {
+        "medios_cobro": medios_cobro
+    })
+
+COBRO_FORM_MAP = {
+    "tarjeta": TarjetaCobroForm,
+    "billetera": BilleteraCobroForm,
+    "cuenta_bancaria": CuentaBancariaCobroForm,
+}
+
+
+RELATED_MAP = {
+    "tarjeta": "tarjeta_cobro",
+    "billetera": "billetera_cobro",
+    "cuenta_bancaria": "cuenta_bancaria_cobro",
+}
+
+@login_required
+def manage_cobro_method(request, tipo, **kwargs):
+    """
+    Gestiona la creación y edición de los medios de cobro de un cliente:
+    - tarjeta
+    - billetera
+    - cuenta_bancaria
+    """
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
+    cliente = cliente_usuario.cliente
+
+    medio_cobro_id = kwargs.get('medio_cobro_id')
+
+    # Mapeo de forms por tipo
+    cobro_form_map = {
+        'tarjeta': TarjetaCobroForm,
+        'billetera': BilleteraCobroForm,
+        'cuenta_bancaria': CuentaBancariaCobroForm,
+    }
+
+    form_class = cobro_form_map.get(tipo)
+    if not form_class:
+        raise Http404("Tipo de método de cobro desconocido.")
+
+    # Mapeo de relaciones para acceder al objeto específico
+    related_map = {
+        'tarjeta': 'tarjeta_cobro',
+        'billetera': 'billetera_cobro',
+        'cuenta_bancaria': 'cuenta_bancaria_cobro',
+    }
+
+    is_edit = False
+    medio_cobro = None
+    cobro_obj = None
+
+    if medio_cobro_id:
+        medio_cobro = get_object_or_404(MedioCobro, id=medio_cobro_id, cliente=cliente, tipo=tipo)
+        cobro_obj = getattr(medio_cobro, related_map[tipo], None)
+        is_edit = True
+
+        # Eliminación desde GET
+        if request.GET.get('delete') == "1":
+            medio_cobro.delete()
+            messages.success(request, f"Método de cobro '{medio_cobro.nombre}' eliminado correctamente")
+            return redirect(reverse_lazy('my_cobro_methods'))
+
+    if request.method == "POST":
+        form = form_class(request.POST, instance=cobro_obj)
+        medio_cobro_form = MedioCobroForm(request.POST, instance=medio_cobro)
+
+        if form.is_valid() and medio_cobro_form.is_valid():
+            if is_edit:
+                medio_cobro_form.save()
+                form.save()
+                messages.success(request, f"Método de cobro '{medio_cobro.nombre}' modificado correctamente")
+                return redirect('my_cobro_methods')
+            else:
+                # Crear nuevo medio de cobro
+                moneda_id = request.POST.get("moneda")
+                if not moneda_id:
+                    messages.error(request, "Debe seleccionar una moneda")
+                    monedas = Currency.objects.filter(is_active=True)
+                    return render(request, "webapp/manage_cobro_method_base.html", {
+                        "tipo": tipo,
+                        "form": form,
+                        "medio_cobro_form": medio_cobro_form,
+                        "is_edit": is_edit,
+                        "monedas": monedas
+                    })
+                moneda = get_object_or_404(Currency, id=moneda_id)
+                mc = MedioCobro.objects.create(
+                    cliente=cliente,
+                    tipo=tipo,
+                    nombre=medio_cobro_form.cleaned_data['nombre'],
+                    moneda=moneda
+                )
+                obj = form.save(commit=False)
+                obj.medio_cobro = mc
+                obj.save()
+                messages.success(request, f"Método de cobro '{mc.nombre}' agregado correctamente")
+
+            return redirect(reverse_lazy('my_cobro_methods'))
+    else:
+        form = form_class(instance=cobro_obj)
+        medio_cobro_form = MedioCobroForm(instance=medio_cobro)
+
+    monedas = Currency.objects.filter(is_active=True)
+
+    return render(request, "webapp/manage_cobro_method_base.html", {
+        "tipo": tipo,
+        "form": form,
+        "medio_cobro_form": medio_cobro_form,
+        "is_edit": is_edit,
+        "medio_cobro": medio_cobro,
+        "monedas": monedas
+    })
+
+
+
+@login_required
+def confirm_delete_cobro_method(request, medio_cobro_id):
+    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
+    if not cliente_usuario:
+        raise Http404("No tienes un cliente asociado.")
+    cliente = cliente_usuario.cliente
+
+    medio_cobro = get_object_or_404(MedioCobro, id=medio_cobro_id, cliente=cliente)
+    tipo = medio_cobro.tipo
+
+    if request.method == "POST":
+        medio_cobro.delete()
+        messages.success(request, f"Método de cobro '{medio_cobro.nombre}' eliminado correctamente")
+        return redirect('my_cobro_methods')
+
+    return render(request, "webapp/confirm_delete_cobro_method.html", {
+        "medio_cobro": medio_cobro,
+        "tipo": tipo
+    })
+
+# Administracion de metodos de cobro (Vista de admin)
+
+@login_required
+def cobro_types_list(request):
+    tipos = TipoCobro.objects.all().order_by("nombre")
+    return render(request, "webapp/cobro_types_list.html", {"tipos": tipos})
+
+@login_required
+def edit_cobro_type(request, tipo_id):
+    tipo = get_object_or_404(TipoCobro, id=tipo_id)
+    if request.method == "POST":
+        form = TipoCobroForm(request.POST, instance=tipo)
+        if form.is_valid():
+            form.save()
+            return redirect("cobro_types_list")
+    else:
+        form = TipoCobroForm(instance=tipo)
+    return render(request, "webapp/edit_cobro_type.html", {"form": form, "tipo": tipo})
+
+# Administracion de roles
+
+@login_required
+@role_required("Administrador")
+def modify_users(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == "POST":
+        # Verificar si es una solicitud de eliminación de rol
+        if 'role_id' in request.POST:
+            role_id = request.POST.get('role_id')
+            try:
+                role = Group.objects.get(id=role_id)
+                user.groups.remove(role)
+                messages.success(request, f"Rol '{role.name}' eliminado del usuario '{user.username}' correctamente.")
+            except Group.DoesNotExist:
+                messages.error(request, "El rol especificado no existe.")
+            return redirect("modify_users", user_id=user_id)
+        
+        # Procesar formulario de modificación
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        email = request.POST.get('email', '')
+        username = request.POST.get('username', '')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        # Actualizar datos del usuario
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.username = username
+        user.is_active = is_active
+        user.save()
+        
+        messages.success(request, f"Usuario '{user.username}' modificado correctamente.")
+        return redirect("manage_users")
+    
+    # Obtener roles del usuario
+    user_roles = user.groups.all()
+    
+    context = {
+        "user": user,
+        "user_roles": user_roles,
+    }
+    
+    return render(request, "webapp/modify_user.html", context)
+
+@login_required
+@role_required("Administrador")
+def manage_roles(request):
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "remove_permission":
+            role_id = request.POST.get("role_id")
+            permission_id = request.POST.get("permission_id")
+            
+            try:
+                role = Group.objects.get(id=role_id)
+                permission = Permission.objects.get(id=permission_id)
+                role.permissions.remove(permission)
+                messages.success(request, f"Permiso '{permission.name}' eliminado del rol '{role.name}' correctamente.")
+            except (Group.DoesNotExist, Permission.DoesNotExist):
+                messages.error(request, "Error al eliminar el permiso.")
+        
+        elif action == "toggle_role_status":
+            role_id = request.POST.get("role_id")
+            
+            try:
+                role = Group.objects.get(id=role_id)
+                
+                # Verificar si el rol tiene usuarios activos
+                has_active_users = role.user_set.filter(is_active=True).exists()
+                
+                if has_active_users:
+                    # Si tiene usuarios activos, desactivamos el rol
+                    # Removemos el rol del usuario actual para simular la desactivación
+                    if request.user in role.user_set.all():
+                        role.user_set.remove(request.user)
+                        messages.success(request, f"Rol '{role.name}' desactivado correctamente.")
+                    else:
+                        messages.info(request, f"Rol '{role.name}' ya estaba desactivado para tu usuario.")
+                else:
+                    # Si no tiene usuarios activos, lo activamos asignándolo al usuario actual
+                    if request.user.is_authenticated:
+                        role.user_set.add(request.user)
+                        messages.success(request, f"Rol '{role.name}' activado correctamente.")
+                    else:
+                        messages.error(request, "No se pudo activar el rol: usuario no autenticado.")
+                    
+            except Group.DoesNotExist:
+                messages.error(request, "Error al actualizar el estado del rol.")
+        
+        return redirect("manage_roles")
+    
+    roles = Group.objects.all()
+    
+    # Calcular métricas
+    total_roles = Group.objects.count()
+    active_roles = Group.objects.filter(user__is_active=True).distinct().count()
+    
+    # Agregar información de estado a cada rol
+    roles_with_status = []
+    for role in roles:
+        # Un rol se considera activo si tiene al menos un usuario activo asignado
+        # En una implementación real, podrías tener un campo 'is_active' en el modelo Group
+        role.is_active = role.user_set.filter(is_active=True).exists()
+        
+        # Para roles protegidos (como Administrador), siempre los consideramos activos
+        if role.name == 'Administrador':
+            role.is_active = True
+            
+        roles_with_status.append(role)
+    
+    context = {
+        "roles": roles_with_status,
+        "total_roles": total_roles,
+        "active_roles": active_roles,
+    }
+    
+    return render(request, "webapp/manage_roles.html", context)
+
+@login_required
+@role_required("Administrador")
+def modify_role(request, role_id):
+    role = get_object_or_404(Group, id=role_id)
+    
+    if request.method == "POST":
+        # Verificar si es una solicitud de eliminación de permiso
+        if 'permission_id' in request.POST:
+            permission_id = request.POST.get('permission_id')
+            try:
+                permission = Permission.objects.get(id=permission_id)
+                role.permissions.remove(permission)
+                messages.success(request, f"Permiso '{permission.name}' eliminado del rol '{role.name}' correctamente.")
+            except Permission.DoesNotExist:
+                messages.error(request, "El permiso especificado no existe.")
+            return redirect("modify_role", role_id=role_id)
+        
+        # Verificar si es una solicitud de eliminación del rol
+        if request.POST.get('action') == 'delete_role':
+            # Proteger el rol Administrador
+            if role.name == 'Administrador':
+                messages.error(request, "No se puede eliminar el rol 'Administrador'.")
+                return redirect("modify_role", role_id=role_id)
+            
+            role_name = role.name
+            role.delete()
+            messages.success(request, f"Rol '{role_name}' eliminado correctamente.")
+            return redirect("manage_roles")
+        
+        # Procesar formulario de modificación
+        role_name = request.POST.get('role_name', '')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        role.name = role_name
+        role.save()
+        
+        messages.success(request, f"Rol '{role.name}' modificado correctamente.")
+        return redirect("manage_roles")
+    
+    role_permissions = role.permissions.all()
+    all_permissions = Permission.objects.all()
+    
+    # Agregar información de estado al rol
+    role.is_active = role.user_set.filter(is_active=True).exists()
+    
+    context = {
+        "role": role,
+        "role_permissions": role_permissions,
+        "all_permissions": all_permissions,
+    }
+    
+    return render(request, "webapp/modify_role.html", context)
+
+@login_required
+@role_required("Administrador")
+def create_role(request):
+    if request.method == "POST":
+        role_name = request.POST.get('role_name', '').strip()
+        is_protected = request.POST.get('is_protected') == 'on'
+        permissions = request.POST.getlist('permissions')
+        
+        # Validar que el nombre no esté vacío
+        if not role_name:
+            messages.error(request, "El nombre del rol es obligatorio.")
+            return redirect("create_role")
+        
+        # Verificar que el nombre no exista
+        if Group.objects.filter(name=role_name).exists():
+            messages.error(request, f"Ya existe un rol con el nombre '{role_name}'.")
+            return redirect("create_role")
+        
+        try:
+            # Crear el nuevo rol
+            new_role = Group.objects.create(name=role_name)
+            
+            # Asignar permisos si se seleccionaron
+            if permissions:
+                permission_objects = Permission.objects.filter(id__in=permissions)
+                new_role.permissions.set(permission_objects)
+            
+            messages.success(request, f"Rol '{role_name}' creado correctamente.")
+            return redirect("manage_roles")
+            
+        except Exception as e:
+            messages.error(request, f"Error al crear el rol: {str(e)}")
+            return redirect("create_role")
+    
+    # GET request - mostrar formulario
+    all_permissions = Permission.objects.all()
+    
+    context = {
+        "all_permissions": all_permissions,
+    }
+    
+    return render(request, "webapp/create_role.html", context)
+
+@login_required
+@role_required("Administrador")
+def manage_user_roles(request):
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "add_role":
+            user_id = request.POST.get("user_id")
+            role_id = request.POST.get("role_id")
+            
+            try:
+                user = User.objects.get(id=user_id)
+                role = Group.objects.get(id=role_id)
+                
+                # Verificar si el usuario ya tiene este rol
+                if user.groups.filter(id=role_id).exists():
+                    messages.info(request, f"El usuario '{user.username}' ya tiene el rol '{role.name}'.")
+                else:
+                    user.groups.add(role)
+                    messages.success(request, f"Rol '{role.name}' asignado al usuario '{user.username}' correctamente.")
+                    
+            except (User.DoesNotExist, Group.DoesNotExist):
+                messages.error(request, "Error al asignar el rol.")
+        
+        elif action == "remove_role":
+            user_id = request.POST.get("user_id")
+            role_name = request.POST.get("role_name")
+            
+            try:
+                user = User.objects.get(id=user_id)
+                role = Group.objects.get(name=role_name)
+                
+                user.groups.remove(role)
+                messages.success(request, f"Rol '{role_name}' eliminado del usuario '{user.username}' correctamente.")
+                
+            except (User.DoesNotExist, Group.DoesNotExist):
+                messages.error(request, "Error al eliminar el rol.")
+        
+        return redirect("manage_user_roles")
+    
+    # GET request - mostrar la página
+    users = User.objects.all().order_by('username')
+    all_roles = Group.objects.all().order_by('name')
+    
+    # Calcular métricas
+    total_users = User.objects.count()
+    total_roles = Group.objects.count()
+    
+    context = {
+        "users": users,
+        "all_roles": all_roles,
+        "total_users": total_users,
+        "total_roles": total_roles,
+    }
+    
+    return render(request, "webapp/manage_user_roles.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def view_client(request, client_id):
+    """Vista para visualizar los datos de un cliente"""
+    try:
+        client = Cliente.objects.get(id=client_id)
+        # Obtener usuarios asignados a través del modelo intermedio
+        usuarios_asignados = User.objects.filter(clienteusuario__cliente=client)
+    except Cliente.DoesNotExist:
+        messages.error(request, "Cliente no encontrado.")
+        return redirect("manage_clientes")
+    
+    context = {
+        "client": client,
+        "usuarios_asignados": usuarios_asignados,
+    }
+    
+    return render(request, "webapp/view_client.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def assign_clients(request):
+    """Vista para administrar asignaciones de clientes a usuarios"""
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "assign":
+            cliente_id = request.POST.get("cliente_id")
+            usuario_id = request.POST.get("usuario_id")
+            
+            try:
+                cliente = Cliente.objects.get(id=cliente_id)
+                usuario = User.objects.get(id=usuario_id)
+                
+                # Verificar si ya existe la asignación
+                if ClienteUsuario.objects.filter(cliente=cliente, usuario=usuario).exists():
+                    messages.info(request, f"El usuario '{usuario.username}' ya está asignado al cliente '{cliente.nombre}'.")
+                else:
+                    ClienteUsuario.objects.create(cliente=cliente, usuario=usuario)
+                    messages.success(request, f"Cliente '{cliente.nombre}' asignado al usuario '{usuario.username}' correctamente.")
+                    
+            except (Cliente.DoesNotExist, User.DoesNotExist):
+                messages.error(request, "Error al asignar el cliente.")
+        
+        elif action == "unassign":
+            asignacion_id = request.POST.get("asignacion_id")
+            
+            try:
+                asignacion = ClienteUsuario.objects.get(id=asignacion_id)
+                cliente_nombre = asignacion.cliente.nombre
+                usuario_nombre = asignacion.usuario.username
+                asignacion.delete()
+                messages.success(request, f"Cliente '{cliente_nombre}' desasignado del usuario '{usuario_nombre}' correctamente.")
+                
+            except ClienteUsuario.DoesNotExist:
+                messages.error(request, "Error al desasignar el cliente.")
+        
+        return redirect("assign_clients")
+    
+    # GET request - mostrar la página
+    clientes = Cliente.objects.filter(estado=True).order_by('nombre')
+    usuarios = User.objects.filter(is_active=True).order_by('username')
+    asignaciones = ClienteUsuario.objects.select_related('cliente', 'usuario').order_by('-fecha_asignacion')
+    
+    # Calcular métricas
+    total_users = User.objects.filter(is_active=True).count()
+    total_clients = Cliente.objects.filter(estado=True).count()
+    
+    context = {
+        "clientes": clientes,
+        "usuarios": usuarios,
+        "asignaciones": asignaciones,
+        "total_users": total_users,
+        "total_clients": total_clients,
+    }
+    
+    return render(request, "webapp/assign_clients.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_categories(request):
+    """Vista para administrar categorías"""
+    # Obtener todas las categorías
+    categorias = Categoria.objects.all().order_by('nombre')
+    
+    # Calcular métricas
+    total_categories = Categoria.objects.count()
+    
+    context = {
+        "categorias": categorias,
+        "total_categories": total_categories,
+    }
+    
+    return render(request, "webapp/manage_categories.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def modify_category(request, category_id):
+    """Vista para modificar una categoría"""
+    try:
+        categoria = Categoria.objects.get(id=category_id)
+    except Categoria.DoesNotExist:
+        messages.error(request, "Categoría no encontrada.")
+        return redirect("manage_categories")
+    
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        descuento = request.POST.get("descuento")
+        
+        try:
+            # Validar datos
+            if not nombre or not descuento:
+                messages.error(request, "Todos los campos son obligatorios.")
+                return redirect("modify_category", category_id=category_id)
+            
+            descuento = Decimal(descuento)
+            if descuento < 0 or descuento > 100:
+                messages.error(request, "El descuento debe estar entre 0 y 100.")
+                return redirect("modify_category", category_id=category_id)
+            
+            # Validar máximo 1 decimal
+            if descuento.as_tuple().exponent < -1:  # ej: -2 sería 2 decimales
+                messages.error(request, "El descuento solo puede tener como máximo 1 decimal (ej: 10.5, no 10.55).")
+                return redirect("modify_category", category_id=category_id)
+            
+            # Actualizar categoría
+            categoria.nombre = nombre
+            categoria.descuento = descuento / 100
+            categoria.save()
+            
+            messages.success(request, f"Categoría '{categoria.nombre}' actualizada correctamente.")
+            return redirect("manage_categories")
+            
+        except ValueError:
+            messages.error(request, "El descuento debe ser un número válido.")
+            return redirect("modify_category", category_id=category_id)
+        except Exception as e:
+            messages.error(request, "Error al actualizar la categoría.")
+            return redirect("modify_category", category_id=category_id)
+    
+    context = {
+        "categoria": categoria,
+    }
+    
+    return render(request, "webapp/modify_category.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_currencies(request):
+    """Vista para administrar monedas"""
+    currencies = Currency.objects.all().order_by('name')
+    total_currencies = currencies.count()
+    active_currencies = currencies.filter(is_active=True).count()
+    
+    if request.method == "POST":
+        action = request.POST.get("action")
+        currency_id = request.POST.get("currency_id")
+        
+        try:
+            currency = Currency.objects.get(id=currency_id)
+            
+            if action == "activate":
+                currency.is_active = True
+                currency.save()
+                messages.success(request, f"Moneda '{currency.name}' activada correctamente.")
+            elif action == "deactivate":
+                currency.is_active = False
+                currency.save()
+                messages.success(request, f"Moneda '{currency.name}' desactivada correctamente.")
+            else:
+                messages.error(request, "Acción no válida.")
+                
+        except Currency.DoesNotExist:
+            messages.error(request, "Moneda no encontrada.")
+        except Exception as e:
+            messages.error(request, "Error al procesar la solicitud.")
+    
+    context = {
+        "currencies": currencies,
+        "total_currencies": total_currencies,
+        "active_currencies": active_currencies,
+    }
+    
+    return render(request, "webapp/manage_currencies.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def create_currency(request):
+    """Vista para crear una nueva moneda"""
+    if request.method == "POST":
+        code = request.POST.get("code")
+        name = request.POST.get("name")
+        symbol = request.POST.get("symbol")
+        decimales_cotizacion = request.POST.get("decimales_cotizacion")
+        decimales_monto = request.POST.get("decimales_monto")
+        is_active = request.POST.get("is_active") == "on"
+        flag_image = request.FILES.get("flag_image")
+        
+        try:
+            # Validar datos
+            if not all([code, name, symbol, decimales_cotizacion, decimales_monto]):
+                messages.error(request, "Todos los campos obligatorios deben ser completados.")
+                return redirect("create_currency")
+            
+            # Validar código único
+            if Currency.objects.filter(code=code.upper()).exists():
+                messages.error(request, f"Ya existe una moneda con el código '{code.upper()}'.")
+                return redirect("create_currency")
+            
+            # Validar decimales
+            decimales_cotizacion = int(decimales_cotizacion)
+            decimales_monto = int(decimales_monto)
+            
+            if not (0 <= decimales_cotizacion <= 8):
+                messages.error(request, "Los decimales de cotización deben estar entre 0 y 8.")
+                return redirect("create_currency")
+            
+            if not (0 <= decimales_monto <= 8):
+                messages.error(request, "Los decimales de monto deben estar entre 0 y 8.")
+                return redirect("create_currency")
+            
+            # Crear moneda
+            currency = Currency.objects.create(
+                code=code.upper(),
+                name=name,
+                symbol=symbol,
+                decimales_cotizacion=decimales_cotizacion,
+                decimales_monto=decimales_monto,
+                is_active=is_active,
+                flag_image=flag_image
+            )
+            
+            messages.success(request, f"Moneda '{currency.name}' creada correctamente.")
+            return redirect("manage_currencies")
+            
+        except ValueError:
+            messages.error(request, "Los valores de decimales deben ser números válidos.")
+            return redirect("create_currency")
+        except Exception as e:
+            messages.error(request, "Error al crear la moneda.")
+            return redirect("create_currency")
+    
+    return render(request, "webapp/create_currency.html")
+
+
+@login_required
+@role_required("Administrador")
+def modify_currency(request, currency_id):
+    """Vista para modificar una moneda"""
+    try:
+        currency = Currency.objects.get(id=currency_id)
+    except Currency.DoesNotExist:
+        messages.error(request, "Moneda no encontrada.")
+        return redirect("manage_currencies")
+    
+    if request.method == "POST":
+        name = request.POST.get("name")
+        symbol = request.POST.get("symbol")
+        decimales_cotizacion = request.POST.get("decimales_cotizacion")
+        decimales_monto = request.POST.get("decimales_monto")
+        is_active = request.POST.get("is_active") == "on"
+        flag_image = request.FILES.get("flag_image")
+        
+        try:
+            # Validar datos
+            if not all([name, symbol, decimales_cotizacion, decimales_monto]):
+                messages.error(request, "Todos los campos obligatorios deben ser completados.")
+                return redirect("modify_currency", currency_id=currency_id)
+            
+            # Validar decimales
+            decimales_cotizacion = int(decimales_cotizacion)
+            decimales_monto = int(decimales_monto)
+            
+            if not (0 <= decimales_cotizacion <= 8):
+                messages.error(request, "Los decimales de cotización deben estar entre 0 y 8.")
+                return redirect("modify_currency", currency_id=currency_id)
+            
+            if not (0 <= decimales_monto <= 8):
+                messages.error(request, "Los decimales de monto deben estar entre 0 y 8.")
+                return redirect("modify_currency", currency_id=currency_id)
+            
+            # Actualizar moneda
+            currency.name = name
+            currency.symbol = symbol
+            currency.decimales_cotizacion = decimales_cotizacion
+            currency.decimales_monto = decimales_monto
+            currency.is_active = is_active
+            
+            # Actualizar bandera solo si se proporciona una nueva
+            if flag_image:
+                currency.flag_image = flag_image
+
+            currency.save()
+
+            messages.success(request, f"Moneda '{currency.name}' actualizada correctamente.")
+            return redirect("manage_currencies")
+            
+        except ValueError:
+            messages.error(request, "Los valores de decimales deben ser números válidos.")
+            return redirect("modify_currency", currency_id=currency_id)
+        except Exception as e:
+            messages.error(request, "Error al actualizar la moneda.")
+            return redirect("modify_currency", currency_id=currency_id)
+    
+    context = {
+        "currency": currency,
+    }
+    
+    return render(request, "webapp/modify_currency.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_quotes(request):
+    """Vista para administrar cotizaciones"""
+    currencies = Currency.objects.all().order_by('name')
+    total_quotes = currencies.count()
+    active_quotes = currencies.filter(is_active=True).count()
+    
+    if request.method == "POST":
+        action = request.POST.get("action")
+        currency_id = request.POST.get("currency_id")
+        
+        try:
+            currency = Currency.objects.get(id=currency_id)
+            
+            if action == "activate":
+                currency.is_active = True
+                currency.save()
+                messages.success(request, f"Cotización de '{currency.name}' activada correctamente.")
+            elif action == "deactivate":
+                currency.is_active = False
+                currency.save()
+                messages.success(request, f"Cotización de '{currency.name}' desactivada correctamente.")
+            else:
+                messages.error(request, "Acción no válida.")
+                
+        except Currency.DoesNotExist:
+            messages.error(request, "Moneda no encontrada.")
+        except Exception as e:
+            messages.error(request, "Error al procesar la solicitud.")
+    
+    context = {
+        "currencies": currencies,
+        "total_quotes": total_quotes,
+        "active_quotes": active_quotes,
+    }
+    
+    return render(request, "webapp/manage_quotes.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def modify_quote(request, currency_id):
+    """Vista para modificar una cotización"""
+    try:
+        currency = Currency.objects.get(id=currency_id)
+    except Currency.DoesNotExist:
+        messages.error(request, "Moneda no encontrada.")
+        return redirect("manage_quotes")
+    
+    if request.method == "POST":
+        base_price = request.POST.get("base_price")
+        comision_compra = request.POST.get("comision_compra")
+        comision_venta = request.POST.get("comision_venta")
+        is_active = request.POST.get("is_active") == "on"
+        
+        try:
+            # Validar datos
+            if not all([base_price, comision_compra, comision_venta]):
+                messages.error(request, "Todos los campos obligatorios deben ser completados.")
+                return redirect("modify_quote", currency_id=currency_id)
+            
+            # Validar valores numéricos
+            base_price = float(base_price)
+            comision_compra = float(comision_compra)
+            comision_venta = float(comision_venta)
+            
+            if base_price < 0 or comision_compra < 0 or comision_venta < 0:
+                messages.error(request, "Los valores no pueden ser negativos.")
+                return redirect("modify_quote", currency_id=currency_id)
+            
+            # Actualizar cotización
+            currency.base_price = base_price
+            currency.comision_compra = comision_compra
+            currency.comision_venta = comision_venta
+            currency.is_active = is_active
+            currency.save()
+            
+            # Cancelar todas las transacciones PENDIENTE donde la moneda esté en origen o destino
+            transacciones = Transaccion.objects.filter(
+                Q(moneda_origen=currency) | Q(moneda_destino=currency),
+                estado=Transaccion.Estado.PENDIENTE
+            )
+
+            transacciones.update(estado=Transaccion.Estado.CANCELADA)
+            messages.success(request, f"Cotización de '{currency.name}' actualizada correctamente.")
+            return redirect("manage_quotes")
+            
+        except ValueError:
+            messages.error(request, "Los valores deben ser números válidos.")
+            return redirect("modify_quote", currency_id=currency_id)
+        except Exception as e:
+            messages.error(request, "Error al actualizar la cotización.")
+            return redirect("modify_quote", currency_id=currency_id)
+    
+    # Asegurar que los valores tengan valores por defecto si están vacíos
+    if not currency.base_price:
+        currency.base_price = 1.0
+    if not currency.comision_compra:
+        currency.comision_compra = 1.0
+    if not currency.comision_venta:
+        currency.comision_venta = 1.0
+    
+    context = {
+        "currency": currency,
+    }
+    
+    return render(request, "webapp/modify_quote.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_payment_methods(request):
+    """
+    Vista para administrar métodos de pago globales
+    """
+    
+    # Obtener todos los métodos de pago (TipoPago)
+    payment_methods = TipoPago.objects.all().order_by('nombre')
+    total_payment_methods = payment_methods.count()
+    
+    context = {
+        "payment_methods": payment_methods,
+        "total_payment_methods": total_payment_methods,
+    }
+    
+    return render(request, "webapp/manage_payment_methods.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def modify_payment_method(request, payment_method_id):
+    """
+    Vista para modificar un método de pago global
+    """
+    try:
+        payment_method = TipoPago.objects.get(id=payment_method_id)
+    except TipoPago.DoesNotExist:
+        messages.error(request, "El método de pago no existe.")
+        return redirect("manage_payment_methods")
+    
+    if request.method == "POST":
+        try:
+            # Obtener datos del formulario
+            comision = request.POST.get("comision")
+            activo = request.POST.get("activo") == "on"
+            
+            # Validar datos
+            if not comision:
+                messages.error(request, "La comisión es requerida.")
+                return redirect("modify_payment_method", payment_method_id=payment_method_id)
+            
+            try:
+                comision_decimal = float(comision)
+                if comision_decimal < 0 or comision_decimal > 100:
+                    messages.error(request, "La comisión debe estar entre 0 y 100.")
+                    return redirect("modify_payment_method", payment_method_id=payment_method_id)
+            except ValueError:
+                messages.error(request, "La comisión debe ser un número válido.")
+                return redirect("modify_payment_method", payment_method_id=payment_method_id)
+            
+            # Actualizar el método de pago
+            payment_method.comision = comision_decimal
+            payment_method.activo = activo
+            payment_method.save()
+            
+            messages.success(request, f"El método de pago '{payment_method.nombre}' ha sido actualizado exitosamente.")
+            return redirect("manage_payment_methods")
+            
+        except Exception as e:
+            messages.error(request, "Error al actualizar el método de pago.")
+            return redirect("modify_payment_method", payment_method_id=payment_method_id)
+    
+    context = {
+        "payment_method": payment_method,
+    }
+    
+    return render(request, "webapp/modify_payment_method.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def manage_cobro_methods(request):
+    """
+    Vista para administrar métodos de cobro globales
+    """
+    # Obtener todos los métodos de cobro (TipoCobro)
+    cobro_methods = TipoCobro.objects.all().order_by('nombre')
+    total_cobro_methods = cobro_methods.count()
+    
+    context = {
+        "cobro_methods": cobro_methods,
+        "total_cobro_methods": total_cobro_methods,
+    }
+    
+    return render(request, "webapp/manage_cobro_methods.html", context)
+
+
+@login_required
+@role_required("Administrador")
+def modify_cobro_method(request, cobro_method_id):
+    """
+    Vista para modificar un método de cobro global
+    """
+    try:
+        cobro_method = TipoCobro.objects.get(id=cobro_method_id)
+    except TipoCobro.DoesNotExist:
+        messages.error(request, "El método de cobro no existe.")
+        return redirect("manage_cobro_methods")
+    
+    if request.method == "POST":
+        try:
+            # Obtener datos del formulario
+            comision = request.POST.get("comision")
+            activo = request.POST.get("activo") == "on"
+            
+            # Validar datos
+            if not comision:
+                messages.error(request, "La comisión es requerida.")
+                return redirect("modify_cobro_method", cobro_method_id=cobro_method_id)
+            
+            try:
+                comision_decimal = float(comision)
+                if comision_decimal < 0 or comision_decimal > 100:
+                    messages.error(request, "La comisión debe estar entre 0 y 100.")
+                    return redirect("modify_cobro_method", cobro_method_id=cobro_method_id)
+            except ValueError:
+                messages.error(request, "La comisión debe ser un número válido.")
+                return redirect("modify_cobro_method", cobro_method_id=cobro_method_id)
+            
+            # Actualizar el método de cobro
+            cobro_method.comision = comision_decimal
+            cobro_method.activo = activo
+            cobro_method.save()
+            
+            messages.success(request, f"El método de cobro '{cobro_method.nombre}' ha sido actualizado exitosamente.")
+            return redirect("manage_cobro_methods")
+            
+        except Exception as e:
+            messages.error(request, "Error al actualizar el método de cobro.")
+            return redirect("modify_cobro_method", cobro_method_id=cobro_method_id)
+    
+    context = {
+        "cobro_method": cobro_method,
+    }
+    
+    return render(request, "webapp/modify_cobro_method.html", context)
+
+# ===========================================
+# Vistas de compraventa
+# ===========================================
+
+def compraventa_view(request):
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
+        # Agregar mensaje de error
+        messages.error(request, "No hay cliente seleccionado")
+        # Redirigir a la página change_client.html
+        return redirect("change_client") 
+
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+
+    if request.method == "POST":
+        # Confirmación final
+        if "confirmar" in request.POST:
+            data = request.session.get("form_data")
+            if not data:
+                return redirect("compraventa")
+
+            # Validación del monto
+            try:
+                monto_origen = float(data["monto_origen"])
+                monto_destino=float(data["monto_destino"])
+                if monto_origen <= 0:
+                    raise ValueError
+                if monto_destino <= 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                messages.error(request, "Debés ingresar un monto válido.")
+                return redirect('nombre_de_tu_vista')
+            # Construcción de transacción
+            transaccion = Transaccion(
+                cliente=cliente,
+                usuario=request.user,
+                tipo=data["tipo"],
+                moneda_origen=Currency.objects.get(code=data["moneda_origen"]),
+                moneda_destino=Currency.objects.get(code=data["moneda_destino"]),
+                tasa_cambio=data["tasa_cambio"],
+                monto_origen=monto_origen,
+                monto_destino=monto_destino,
+                medio_pago_type=ContentType.objects.get_for_id(data["medio_pago_type"]),
+                medio_pago_id=data["medio_pago_id"],
+                medio_cobro_type=ContentType.objects.get_for_id(data["medio_cobro_type"]),
+                medio_cobro_id=data["medio_cobro_id"],
+            )
+            transaccion.save()
+
+            # limpiar la sesión
+            request.session.pop("form_data", None)
+            return redirect("transaccion_list")
+
+        # Paso previo: guardar en sesión y mostrar confirmación
+        data = {
+            "tipo": request.POST.get("tipo"),
+            "moneda_origen": request.POST.get("moneda_origen"),
+            "moneda_destino": request.POST.get("moneda_destino"),
+            "tasa_cambio": request.POST.get("tasa_cambio"),
+            "monto_origen": request.POST.get("monto_origen"),
+            "monto_destino": request.POST.get("monto_destino"),
+            "medio_pago_type": request.POST.get("medio_pago_type"),
+            "medio_pago_id": request.POST.get("medio_pago_id"),
+            "medio_cobro_type": request.POST.get("medio_cobro_type"),
+            "medio_cobro_id": request.POST.get("medio_cobro_id"),
+        }
+
+        request.session["form_data"] = data
+        return render(request, "webapp/confirmation_compraventa.html", {"data": data})
+
+    return render(request, "webapp/compraventa.html")
+
+def get_metodos_pago_cobro(request):
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
+        return JsonResponse({"metodo_pago": [], "metodo_cobro": []})
+
+    moneda_pago = request.GET.get("from")
+    moneda_cobro = request.GET.get("to")
+
+    print(moneda_pago)
+    print(moneda_cobro)
+    # ---------------- ContentTypes ----------------
+    ct_tarjeta = ContentType.objects.get_for_model(Tarjeta)
+    ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
+    ct_billetera = ContentType.objects.get_for_model(Billetera)
+    ct_tauser = ContentType.objects.get_for_model(Tauser)
+
+    ct_tarjeta_cobro = ContentType.objects.get_for_model(TarjetaCobro)
+    ct_transferencia_cobro = ContentType.objects.get_for_model(CuentaBancariaCobro)
+    ct_billetera_cobro = ContentType.objects.get_for_model(BilleteraCobro)
+
+    # ---------------- Métodos de Pago ----------------
+    metodo_pago = []
+
+    tarjetas = Tarjeta.objects.filter(
+        medio_pago__cliente__id=cliente_id, medio_pago__activo=True
+    ).select_related("medio_pago__tipo_pago", "entidad")
+    for t in tarjetas:
+        if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
+            continue
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": "tarjeta",
+            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
+            "tipo_general_id": t.medio_pago.tipo_pago_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "content_type_id": ct_tarjeta.id,
+            "moneda_code": t.medio_pago.moneda.code
+        })
+
+    transferencias = CuentaBancaria.objects.filter(
+        medio_pago__cliente__id=cliente_id, medio_pago__activo=True
+    ).select_related("medio_pago__tipo_pago", "entidad")
+    for t in transferencias:
+        if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
+            continue
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": "transferencia",
+            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
+            "numero_cuenta": t.numero_cuenta,
+            "tipo_general_id": t.medio_pago.tipo_pago_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.medio_pago.moneda.code,
+            "content_type_id": ct_transferencia.id
+        })
+
+    billeteras = Billetera.objects.filter(
+        medio_pago__cliente__id=cliente_id, medio_pago__activo=True
+    ).select_related("medio_pago__tipo_pago", "entidad")
+    for t in billeteras:
+        if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
+            continue
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": "billetera",
+            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "tipo_general_id": t.medio_pago.tipo_pago_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.medio_pago.moneda.code,
+            "content_type_id": ct_billetera.id
+        })
+
+    tausers = Tauser.objects.filter(activo=True)
+    for t in tausers:
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": t.tipo,
+            "nombre": t.nombre,
+            "ubicacion": t.ubicacion,
+            "tipo_general_id": t.tipo_pago_id,
+            "moneda_code": None,
+            "content_type_id": ct_tauser.id
+        })
+
+    # ---------------- Métodos de Cobro ----------------
+    metodo_cobro = []
+
+    tarjetas = TarjetaCobro.objects.filter(
+        medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
+    ).select_related("medio_cobro__tipo_cobro", "entidad")
+    for t in tarjetas:
+        if moneda_cobro and t.medio_cobro.moneda.code != moneda_cobro:
+            continue
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": "tarjeta",
+            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
+            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.medio_cobro.moneda.code,
+            "content_type_id": ct_tarjeta_cobro.id
+        })
+
+    transferencias = CuentaBancariaCobro.objects.filter(
+        medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
+    ).select_related("medio_cobro__tipo_cobro", "entidad")
+    for t in transferencias:
+        if moneda_cobro and t.medio_cobro.moneda.code != moneda_cobro:
+            continue
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": "transferencia",
+            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
+            "numero_cuenta": t.numero_cuenta,
+            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.medio_cobro.moneda.code,
+            "content_type_id": ct_transferencia_cobro.id
+        })
+
+    billeteras = BilleteraCobro.objects.filter(
+        medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
+    ).select_related("medio_cobro__tipo_cobro", "entidad")
+    for t in billeteras:
+        if moneda_cobro and t.medio_cobro.moneda.code != moneda_cobro:
+            continue
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": "billetera",
+            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.medio_cobro.moneda.code,
+            "content_type_id": ct_billetera_cobro.id
+        })
+
+    tausers = Tauser.objects.filter(activo=True)
+    for t in tausers:
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": t.tipo,
+            "nombre": t.nombre,
+            "ubicacion": t.ubicacion,
+            "tipo_general_id": t.tipo_cobro_id,
+            "moneda_code": None,
+            "content_type_id": ct_tauser.id
+        })
+
+    return JsonResponse({"metodo_pago": metodo_pago, "metodo_cobro": metodo_cobro})
+
+def transaccion_list(request):
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
+        messages.error(request, "No hay cliente seleccionado")
+        return redirect("change_client")  # O la vista que corresponda
+
+    transacciones = Transaccion.objects.select_related(
+        "cliente", "usuario", "moneda_origen", "moneda_destino", "factura_asociada"
+    ).filter(cliente_id=cliente_id)  # Filtramos por el cliente de la sesión
+
+    return render(request, "webapp/historial_transacciones.html", {"transacciones": transacciones})
+
+# ENTIDADES BANCARIAS Y TELEFONICAS PARA MEDIOS DE PAGO O COBRO
+@login_required
+def entidad_list(request):
+    entidades = Entidad.objects.all().order_by("nombre")
+    return render(request, "webapp/entidad_list.html", {"entidades": entidades})
+
+
+@login_required
+def entidad_create(request):
+    if request.method == "POST":
+        form = EntidadForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Entidad creada correctamente")
+            return redirect("entidad_list")
+    else:
+        form = EntidadForm()
+
+    return render(request, "webapp/entidad_form.html", {"form": form})
+
+
+@login_required
+def entidad_update(request, pk):
+    entidad = get_object_or_404(Entidad, pk=pk)
+
+    if request.method == "POST":
+        form = EntidadEditForm(request.POST, instance=entidad)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Entidad actualizada correctamente")
+            return redirect("entidad_list")
+    else:
+        form = EntidadEditForm(instance=entidad)
+
+    return render(request, "webapp/entidad_form.html", {"form": form, "entidad": entidad})
+
+
+@login_required
+def entidad_toggle(request, pk):
+    entidad = get_object_or_404(Entidad, pk=pk)
+    entidad.activo = not entidad.activo
+    entidad.save()
+    messages.success(request, f"Entidad '{entidad.nombre}' actualizada correctamente")
+    return redirect("entidad_list")
+
+

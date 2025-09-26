@@ -1,128 +1,155 @@
-{% extends "webapp/base.html" %}
+{% extends 'webapp/base.html' %}
 {% load static %}
-{% load custom_filters %}
+{% block title %}Crear Moneda{% endblock %}
 
-{% block title %}Crear Nueva Moneda{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/create_currency.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="admin-page-container">
-    <div class="admin-page-header">
-        <div class="header-content">
-            <div class="header-left">
-                <a href="{% url 'currency_list' %}" class="back-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                    Volver a Monedas
-                </a>
-                <h1 class="page-title">Crear Nueva Moneda</h1>
-                <p class="page-subtitle">Agrega una nueva moneda al sistema</p>
-            </div>
-        </div>
-    </div>
-
+{% csrf_token %}
+<div class="create-currency-container">
+    <!-- Messages -->
     {% if messages %}
     <div class="messages-container">
         {% for message in messages %}
-        <div class="message message-{{ message.tags }}">
-            <div class="message-icon">
-                {% if message.tags == 'error' %}
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="15" y1="9" x2="9" y2="15"/>
-                        <line x1="9" y1="9" x2="15" y2="15"/>
-                    </svg>
-                {% elif message.tags == 'success' %}
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                        <polyline points="22,4 12,14.01 9,11.01"/>
-                    </svg>
-                {% else %}
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="16" x2="12" y2="12"/>
-                        <line x1="12" y1="8" x2="12.01" y2="8"/>
-                    </svg>
-                {% endif %}
-            </div>
-            <span>{{ message }}</span>
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
         </div>
         {% endfor %}
     </div>
     {% endif %}
-
-    <div class="create-currency-form-container">
-        <div class="form-header">
-            <h3>Información de la Moneda</h3>
+    
+    <!-- Header Section -->
+    <div class="create-currency-header">
+        <div class="main-content">
+            <a href="{% url 'manage_currencies' %}" class="back-button">← Volver a Administrar Monedas</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="create-currency-title">Crear Moneda</h1>
+                    <p class="create-currency-subtitle">Crea una nueva moneda</p>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <form method="POST" action="{% url 'create_currency' %}" enctype="multipart/form-data" class="create-currency-form">
-            {% csrf_token %}
-
-            <!-- Información básica -->
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="id_code">Código *</label>
-                    <input type="text" name="code" id="id_code" maxlength="3" placeholder="USD, EUR, etc." required>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Create Currency Section -->
+        <div class="create-section">
+            <h2 class="section-title">Crear Moneda</h2>
+            
+            <div class="create-content">
+                <!-- Currency Profile Section - Inside the gradient container -->
+                <div class="currency-profile-section">
+                    <div class="currency-icon-circle">
+                        <img src="{% static 'webapp/pantalla_moneda/1.Moneda.png' %}" alt="Currency Icon" class="currency-profile-icon">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="id_name">Nombre *</label>
-                    <input type="text" name="name" id="id_name" placeholder="Dólar Estadounidense" required>
+                
+                <!-- Form Container -->
+                <div class="form-container">
+                    <form method="post" enctype="multipart/form-data" class="create-form" id="create-form">
+                        {% csrf_token %}
+                        
+                        <!-- First Row: Código, Nombre, Símbolo -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Código</label>
+                                <input type="text" name="code" class="form-input" placeholder="USD" maxlength="3" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Nombre</label>
+                                <input type="text" name="name" class="form-input" placeholder="Dólar Estadounidense" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Símbolo</label>
+                                <input type="text" name="symbol" class="form-input" placeholder="$" maxlength="5" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Second Row: Decimales Tasa, Decimales Monto, Bandera -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Decimales Tasa</label>
+                                <input type="number" name="decimales_cotizacion" class="form-input" placeholder="0-8" min="0" max="8" value="4" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Decimales Monto</label>
+                                <input type="number" name="decimales_monto" class="form-input" placeholder="0-8" min="0" max="8" value="2" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Bandera</label>
+                                <div class="file-upload-container">
+                                    <input type="file" name="flag_image" id="flag_image" accept="image/*" class="file-input" onchange="updateFileName(this)">
+                                    <label for="flag_image" class="file-upload-button">
+                                        Añadir Archivo
+                                    </label>
+                                    <div class="file-info">
+                                        <div class="file-status" id="file-status">No se ha seleccionado ningún archivo</div>
+                                        <div class="file-dimensions">Dimensión sugerida: 255x135 px</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Third Row: Activo -->
+                        <div class="form-row single-field-row">
+                            <div class="form-field">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="is_active" class="checkbox-input" checked>
+                                    <span class="checkbox-text">Activo</span>
+                                </label>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="id_symbol">Símbolo *</label>
-                    <input type="text" name="symbol" id="id_symbol" placeholder="$" required>
+                
+                <!-- Action Buttons - Inside gradient container -->
+                <div class="action-buttons">
+                    <button type="submit" form="create-form" class="create-button">Crear</button>
+                    <a href="{% url 'manage_currencies' %}" class="discard-button">Descartar</a>
                 </div>
             </div>
-
-            <!-- Precios y comisiones -->
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="id_base_price">Precio Base *</label>
-                    <input type="number" name="base_price" id="id_base_price" step="0.00000001" value="1.0" required>
-                </div>
-                <div class="form-group">
-                    <label for="id_comision_venta">Comisión Venta *</label>
-                    <input type="number" name="comision_venta" id="id_comision_venta" step="0.00000001" value="1.0" required>
-                </div>
-                <div class="form-group">
-                    <label for="id_comision_compra">Comisión Compra *</label>
-                    <input type="number" name="comision_compra" id="id_comision_compra" step="0.00000001" value="1.0" required>
-                </div>
-            </div>
-
-            <!-- Decimales -->
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="id_decimales_cotizacion">Decimales Tasa *</label>
-                    <input type="number" name="decimales_cotizacion" id="id_decimales_cotizacion" min="0" max="8" value="4" required>
-                </div>
-                <div class="form-group">
-                    <label for="id_decimales_monto">Decimales Monto *</label>
-                    <input type="number" name="decimales_monto" id="id_decimales_monto" min="0" max="8" value="2" required>
-                </div>
-                <div class="form-group">
-                    <label for="id_flag_image">Bandera</label>
-                    <input type="file" name="flag_image" id="id_flag_image" accept="image/*">
-                    <small>Dimensión sugerida: 255x135 px</small>
-                </div>
-            </div>
-
-            <!-- Estado activo -->
-            <div class="form-row">
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="is_active" checked> Activo
-                    </label>
-                </div>
-            </div>
-
-            <!-- Botones -->
-            <div class="form-actions">
-                <button type="submit" class="create-currency-btn">Crear Moneda</button>
-                <a href="{% url 'currency_list' %}" class="cancel-btn">Cancelar</a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
+
+<script>
+function updateFileName(input) {
+    const fileStatus = document.getElementById('file-status');
+    if (input.files && input.files[0]) {
+        fileStatus.textContent = input.files[0].name;
+    } else {
+        fileStatus.textContent = 'No se ha seleccionado ningún archivo';
+    }
+}
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
 {% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Modificar Categoría{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/modify_category.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="modify-category-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="modify-category-header">
+        <div class="main-content">
+            <a href="{% url 'manage_categories' %}" class="back-button">← Volver a Administrar Categorías</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="modify-category-title">Modificar Categorías</h1>
+                    <p class="modify-category-subtitle">Modifica los datos de una categoría</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Modify Category Section -->
+        <div class="modify-section">
+            <h2 class="section-title">Modificar Categoría</h2>
+            
+            <div class="modify-content">
+                <!-- Category Profile Section - Inside the gradient container -->
+                <div class="category-profile-section">
+                    <div class="category-icon-circle">
+                        <img src="{% static 'webapp/pantalla_categorias/1.Categorias.png' %}" alt="Category Icon" class="category-profile-icon">
+                    </div>
+                    <div class="category-name-display">{{ categoria.nombre }}</div>
+                </div>
+                
+                <!-- Form Container -->
+                <div class="form-container">
+                    <form method="post" class="modify-form" id="modify-form">
+                        {% csrf_token %}
+                        
+                        <!-- First Row: Nombre, Descuento -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Nombre</label>
+                                <input type="text" name="nombre" value="{{ categoria.nombre }}" class="form-input">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Descuento (%)</label>
+                                <input type="number" name="descuento" value="{{ categoria.descuento }}" step="0.1" class="form-input" min="0" max="100">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Action Buttons - Inside gradient container -->
+                <div class="action-buttons">
+                    <button type="submit" form="modify-form" class="save-button">Guardar</button>
+                    <a href="{% url 'manage_categories' %}" class="discard-button">Descartar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,325 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}
+{% if is_edit %}
+Editar {{ tipo|capfirst }}
+{% else %}
+Agregar {{ tipo|capfirst }}
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/add_payment_method.css' %}" />
+<style>
+/* Estilos inline para forzar la aplicación */
+.add-payment-method-container {
+    min-height: 100vh !important;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%) !important;
+    padding: 20px 0 !important;
+}
+
+.add-payment-method-header {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%) !important;
+    padding: 40px 0 !important;
+    margin-bottom: 30px !important;
+}
+
+.add-payment-method-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: bold !important;
+    font-size: 32px !important;
+    color: white !important;
+    margin: 0 !important;
+}
+
+.add-payment-method-subtitle {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 20px !important;
+    color: white !important;
+    margin: 10px 0 0 0 !important;
+}
+
+.form-container {
+    max-width: 800px !important;
+    margin: 0 auto !important;
+}
+
+.form-card {
+    background: rgba(238, 233, 210, 0.1) !important;
+    border-radius: 20px !important;
+    padding: 40px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.form-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 28px !important;
+    color: white !important;
+    margin: 0 0 10px 0 !important;
+}
+
+.form-subtitle {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 16px !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin: 0 !important;
+}
+
+.form-group input,
+.form-group select {
+    width: 100% !important;
+    padding: 15px 20px !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none !important;
+    border-color: #5B15C2 !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 0 20px rgba(91, 21, 194, 0.2) !important;
+}
+
+.form-group input::placeholder,
+.form-group select::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.form-group select:hover {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 15px center !important;
+    background-size: 20px !important;
+}
+
+.form-group input[type="text"]:hover,
+.form-group input[type="email"]:hover,
+.form-group input[type="tel"]:hover,
+.form-group input[type="number"]:hover {
+    background-image: none !important;
+}
+
+.form-group select {
+    cursor: pointer !important;
+    appearance: none !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 15px center !important;
+    background-size: 20px !important;
+    padding-right: 50px !important;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="number"] {
+    background-image: none !important;
+    padding-right: 20px !important;
+}
+
+.form-group select option {
+    background-color: #1a1a2e !important;
+    color: white !important;
+    padding: 10px !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 16px !important;
+}
+
+.form-label {
+    display: block !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    color: white !important;
+    margin-bottom: 8px !important;
+    transition: none !important;
+}
+
+.submit-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
+    color: white !important;
+    padding: 15px 30px !important;
+    border-radius: 25px !important;
+    border: none !important;
+    cursor: pointer !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 16px !important;
+    transition: none !important;
+    min-width: 150px !important;
+}
+
+.cancel-button {
+    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 100%) !important;
+    color: white !important;
+    padding: 15px 30px !important;
+    border-radius: 25px !important;
+    border: none !important;
+    cursor: pointer !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 16px !important;
+    transition: none !important;
+    min-width: 150px !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    text-align: center !important;
+}
+
+.section-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 18px !important;
+    color: white !important;
+    margin-bottom: 20px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 2px solid rgba(91, 21, 194, 0.3) !important;
+}
+
+.error-message {
+    display: block !important;
+    color: #ff6b6b !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 14px !important;
+    margin-top: 5px !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-payment-method-container">
+    <div class="add-payment-method-header">
+        <div class="main-content">
+            <a href="{% url 'my_cobro_methods' %}" class="back-button">
+                ← Volver a Mis Medios de Cobro
+            </a>
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="add-payment-method-title">
+                        {% if is_edit %}
+                        Editar {{ tipo|capfirst }}
+                        {% else %}
+                        Agregar {{ tipo|capfirst }}
+                        {% endif %}
+                    </h1>
+                    <p class="add-payment-method-subtitle">
+                        {% if is_edit %}
+                        Modifica los datos de tu {{ tipo|capfirst }}
+                        {% else %}
+                        Completa los datos para agregar un nuevo {{ tipo|capfirst }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="header-icon">
+                    <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="{{ tipo|capfirst }}" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); padding: 15px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="form-container">
+            <div class="form-card">
+            <div class="form-header">
+                <h3 class="form-title">
+                    {% if is_edit %}
+                    Editar {{ tipo|capfirst }}
+                    {% else %}
+                    Agregar {{ tipo|capfirst }}
+                    {% endif %}
+                </h3>
+                <p class="form-subtitle">
+                    {% if is_edit %}
+                    Modifica los datos de tu {{ tipo|capfirst }}
+                    {% else %}
+                    Completa los datos para agregar un nuevo {{ tipo|capfirst }}
+                    {% endif %}
+                </p>
+            </div>
+
+            <form method="post" class="payment-form">
+                {% csrf_token %}
+
+                <!-- Información General -->
+                <div class="form-section">
+                    <h4 class="section-title">Información General</h4>
+                    <div class="form-group">
+                        <label class="form-label">{{ medio_cobro_form.nombre.label }}</label>
+                        {{ medio_cobro_form.nombre }}
+                        {% for error in medio_cobro_form.nombre.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Dropdown de moneda solo al crear -->
+                    {% if not is_edit %}
+                    <div class="form-group">
+                        <label class="form-label">Moneda</label>
+                        <select name="moneda" id="id_moneda" class="form-group select" required>
+                            <option value="">-- Seleccione una moneda --</option>
+                            {% for m in monedas %}
+                                <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <!-- Mostrar moneda como campo deshabilitado al editar -->
+                    {% if is_edit and medio_cobro and medio_cobro.moneda %}
+                    <div class="form-group">
+                        <label class="form-label">Moneda</label>
+                        <input type="text" class="form-group input" value="{{ medio_cobro.moneda.code }} - {{ medio_cobro.moneda.name }}" disabled>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Datos Específicos -->
+                <div class="form-section">
+                    <h4 class="section-title">Datos del {{ tipo|capfirst }}</h4>
+                    {% for field in form.visible_fields %}
+                        <div class="form-group">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'my_cobro_methods' %}" class="cancel-button">Cancelar</a>
+                    <button type="submit" class="submit-button">
+                        {% if is_edit %}Guardar Cambios{% else %}Agregar{% endif %}
+                    </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

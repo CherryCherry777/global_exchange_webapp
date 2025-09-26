@@ -1,0 +1,141 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Cambiar Cliente{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/change_client.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="change-client-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="change-client-header">
+        <div class="main-content">
+            <a href="{% url 'public_home' %}" class="back-button">← Volver al Inicio</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="change-client-title">Cambiar Cliente</h1>
+                    <p class="change-client-subtitle">Selecciona el cliente con el cual deseas operar</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Client Selection Section -->
+        <div class="client-selection-section">
+            <div class="current-client-info">
+                <h2 class="section-title">Cliente Actual</h2>
+                <div class="current-client-card">
+                    {% if request.session.cliente_id %}
+                        {% for cliente in clientes_disponibles %}
+                            {% if request.session.cliente_id|stringformat:"s" == cliente.id|stringformat:"s" %}
+                                <div class="client-info">
+                                    <div class="client-icon-circle">
+                                        <img src="{% static 'webapp/pantalla_administar_asignaciones/1.Administar_Asignaciones.png' %}" alt="Cliente Icon" class="client-icon">
+                                    </div>
+                                    <div class="client-details">
+                                        <div class="client-name">{{ cliente.nombre }}</div>
+                                        <div class="client-type">{{ cliente.get_tipo_display }}</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-client-selected">
+                            <div class="no-client-icon">👤</div>
+                            <div class="no-client-text">Ningún cliente seleccionado</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="available-clients">
+                <h2 class="section-title">Clientes Disponibles</h2>
+                <div class="clients-grid">
+                    {% for cliente in clientes_disponibles %}
+                        <div class="client-card {% if request.session.cliente_id|stringformat:'s' == cliente.id|stringformat:'s' %}selected{% endif %}">
+                            <form method="post" class="client-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                <button type="submit" class="client-button">
+                                    <div class="client-icon-circle">
+                                        <img src="{% static 'webapp/pantalla_administar_asignaciones/1.Administar_Asignaciones.png' %}" alt="Cliente Icon" class="client-icon">
+                                    </div>
+                                    <div class="client-details">
+                                        <div class="client-name">{{ cliente.nombre }}</div>
+                                        <div class="client-type">{{ cliente.get_tipo_display }}</div>
+                                        <div class="client-status {% if cliente.estado %}active{% else %}inactive{% endif %}">
+                                            {% if cliente.estado %}Activo{% else %}Inactivo{% endif %}
+                                        </div>
+                                    </div>
+                                </button>
+                            </form>
+                        </div>
+                    {% empty %}
+                        <div class="no-clients">
+                            <div class="no-clients-icon">📋</div>
+                            <div class="no-clients-text">No tienes clientes asignados</div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                {% if clientes_disponibles %}
+                    <div class="deselect-client">
+                        <form method="post" class="deselect-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="cliente_id" value="">
+                            <button type="submit" class="deselect-button">
+                                <span class="deselect-icon">❌</span>
+                                <span class="deselect-text">Deseleccionar Cliente</span>
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

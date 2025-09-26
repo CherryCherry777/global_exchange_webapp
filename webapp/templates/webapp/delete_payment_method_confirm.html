@@ -1,0 +1,20 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Eliminar Medio de Pago{% endblock %}
+
+{% block content %}
+<div class="admin-page-container">
+    <div class="admin-header">
+        <h1 class="page-title">Eliminar Medio de Pago</h1>
+    </div>
+
+    <p>¿Estás seguro que deseas eliminar el medio de pago <strong>{{ medio_pago.nombre }}</strong> ({{ medio_pago.tipo|capfirst }})?</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'my_payment_methods' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
