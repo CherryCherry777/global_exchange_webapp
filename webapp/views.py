@@ -96,6 +96,8 @@ def api_active_currencies(request):
     metodo_pago_id = request.GET.get("metodo_pago_id")
     metodo_cobro_id = request.GET.get("metodo_cobro_id")
 
+    print(metodo_pago_id)
+    print(metodo_cobro_id)
     metodo_pago = None
     metodo_cobro = None
     if metodo_pago_id:
@@ -2766,7 +2768,10 @@ def modify_cobro_method(request, cobro_method_id):
 def compraventa_view(request):
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
-        raise Http404("No hay cliente seleccionado")
+        # Agregar mensaje de error
+        messages.error(request, "No hay cliente seleccionado")
+        # Redirigir a la página change_client.html
+        return redirect("change_client") 
 
     cliente = get_object_or_404(Cliente, id=cliente_id)
 
