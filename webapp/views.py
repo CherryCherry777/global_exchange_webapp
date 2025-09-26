@@ -96,8 +96,6 @@ def api_active_currencies(request):
     metodo_pago_id = request.GET.get("metodo_pago_id")
     metodo_cobro_id = request.GET.get("metodo_cobro_id")
 
-    print(metodo_pago_id)
-    print(metodo_cobro_id)
     metodo_pago = None
     metodo_cobro = None
     if metodo_pago_id:
@@ -159,7 +157,7 @@ def set_cliente_seleccionado(request):
     Redirige a la página anterior.
     """
     cliente_id = request.POST.get("cliente_id")
-    print(cliente_id)  # Para depuración, imprime el ID seleccionado
+    #print(cliente_id)  # Para depuración, imprime el ID seleccionado
     if cliente_id:
         request.session["cliente_id"] = int(cliente_id)
     else:
@@ -2847,6 +2845,7 @@ def get_metodos_pago_cobro(request):
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
     for t in tarjetas:
+        print(t.medio_pago.tipo_pago_id)
         if moneda_pago and t.moneda.code != moneda_pago:
             continue
         metodo_pago.append({
@@ -2856,13 +2855,14 @@ def get_metodos_pago_cobro(request):
             "tipo_general_id": t.medio_pago.tipo_pago_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
             "content_type_id": ct_tarjeta.id,
-            "moneda_code": t.moneda.code
+            "moneda_code": t.medio_pago.moneda.code
         })
 
     transferencias = CuentaBancaria.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
     for t in transferencias:
+        print(t.medio_pago.tipo_pago_id)
         if moneda_pago and t.moneda.code != moneda_pago:
             continue
         metodo_pago.append({
@@ -2872,7 +2872,7 @@ def get_metodos_pago_cobro(request):
             "numero_cuenta": t.numero_cuenta,
             "tipo_general_id": t.medio_pago.tipo_pago_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "moneda_code": t.moneda.code,
+            "moneda_code": t.medio_pago.moneda.code,
             "content_type_id": ct_transferencia.id
         })
 
@@ -2880,6 +2880,7 @@ def get_metodos_pago_cobro(request):
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
     for t in billeteras:
+        print(t.medio_pago.tipo_pago_id)
         if moneda_pago and t.moneda.code != moneda_pago:
             continue
         metodo_pago.append({
@@ -2888,7 +2889,7 @@ def get_metodos_pago_cobro(request):
             "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
             "tipo_general_id": t.medio_pago.tipo_pago_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "moneda_code": t.moneda.code,
+            "moneda_code": t.medio_pago.moneda.code,
             "content_type_id": ct_billetera.id
         })
 
@@ -2919,7 +2920,7 @@ def get_metodos_pago_cobro(request):
             "nombre": f"Tarjeta ****{t.ultimos_digitos}",
             "tipo_general_id": t.medio_cobro.tipo_cobro_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "moneda_code": t.moneda.code,
+            "moneda_code": t.medio_cobro.moneda.code,
             "content_type_id": ct_tarjeta_cobro.id
         })
 
@@ -2936,7 +2937,7 @@ def get_metodos_pago_cobro(request):
             "numero_cuenta": t.numero_cuenta,
             "tipo_general_id": t.medio_cobro.tipo_cobro_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "moneda_code": t.moneda.code,
+            "moneda_code": t.medio_cobro.moneda.code,
             "content_type_id": ct_transferencia_cobro.id
         })
 
@@ -2952,7 +2953,7 @@ def get_metodos_pago_cobro(request):
             "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
             "tipo_general_id": t.medio_cobro.tipo_cobro_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "moneda_code": t.moneda.code,
+            "moneda_code": t.medio_cobro.moneda.code,
             "content_type_id": ct_billetera_cobro.id
         })
 
