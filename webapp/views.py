@@ -25,7 +25,7 @@ from webapp.emails import send_activation_email
 from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Transaccion, Tauser, Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
+from .models import CurrencyHistory, Transaccion, Tauser, Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 import json
 
@@ -871,6 +871,49 @@ def edit_prices(request, currency_id):
 
     return render(request, 'webapp/edit_prices.html', {'currency': currency})
 
+@require_GET
+def api_currency_history(request):
+    """
+    Devuelve histórico de una moneda en JSON.
+    Query params:
+      - code: código de moneda (ej: USD, EUR)
+      - range: week|month|6months|year
+    """
+    code = request.GET.get("code", "USD")
+    rango = request.GET.get("range", "week")
+
+    try:
+        currency = Currency.objects.get(code=code)
+    except Currency.DoesNotExist:
+        return JsonResponse({"error": "Moneda no encontrada"}, status=404)
+
+    today = now().date()
+    if rango == "week":
+        start = today - timedelta(days=7)
+    elif rango == "month":
+        start = today - timedelta(days=30)
+    elif rango == "6months":
+        start = today - timedelta(days=180)
+    elif rango == "year":
+        start = today - timedelta(days=365)
+    else:
+        start = today - timedelta(days=30)
+
+    qs = CurrencyHistory.objects.filter(currency=currency, date__gte=start).order_by("date")
+
+    items = [
+        {
+            "date": h.date.strftime("%d/%m/%Y"),
+            "compra": float(h.compra),
+            "venta": float(h.venta),
+        }
+        for h in qs
+    ]
+    return JsonResponse({"items": items})
+
+@login_required
+def historical_view(request):
+    return render(request, "webapp/historical.html")
 
 # ===========================================
 # VISTAS PARA ADMINISTRACIÓN DE CLIENTES
