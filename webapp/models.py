@@ -751,6 +751,64 @@ class TipoCobro(models.Model):
     def __str__(self):
         return self.nombre
 
+# ------------------------
+# Modelos para el tauser
+# ------------------------
+
+# Modelo Tauser que representa un medio de pago/cobro específico de la casa
+class Tauser(models.Model):
+    tipo = "Tauser"
+
+    # Heredamos campos básicos de pago/cobro
+    tipo_cobro = models.ForeignKey(
+        "TipoCobro",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Tipo de Cobro Global",
+        help_text="Configuración global de activación y comisión"
+    )
+
+    tipo_pago = models.ForeignKey(
+        "TipoPago",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Tipo de Pago Global",
+        help_text="Configuración global de activación y comisión"
+    )
+
+    nombre = models.CharField(max_length=100, verbose_name="Nombre")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    ubicacion = models.CharField(max_length=200, null=True, blank=True, verbose_name="Ubicación")  # Campo ubicación
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
+
+    class Meta:
+        db_table = "tauser"
+        verbose_name = "Tauser"
+        verbose_name_plural = "Tausers"
+
+    def __str__(self):
+        return f"{self.nombre} ({self.tipo})"
+
+# Tabla intermedia entre Tauser y Currency
+"""
+class TauserCurrency(models.Model):
+    tauser = models.ForeignKey(Tauser, on_delete=models.CASCADE, related_name="monedas")
+    currency = models.ForeignKey("Currency", on_delete=models.PROTECT, related_name="tausers")
+    stock = models.DecimalField(max_digits=20, decimal_places=2, default=0.0, verbose_name="Stock disponible")
+
+    class Meta:
+        db_table = "tauser_currency"
+        verbose_name = "Stock Tauser por Moneda"
+        verbose_name_plural = "Stocks Tauser por Moneda"
+        unique_together = ("tauser", "currency")
+
+    def __str__(self):
+        return f"{self.tauser.nombre} - {self.currency.code}: {self.stock}"
+"""
+
 # ------------------------------------------------------
 # Modelo Transaccion para el registro de la compraventa
 # ------------------------------------------------------

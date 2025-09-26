@@ -20,11 +20,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.utils.timezone import now, timedelta
+from django.contrib.contenttypes.models import ContentType
 from webapp.emails import send_activation_email
 from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
 from .utils import get_user_primary_role
-from .models import Entidad, MedioCobro, Role, Currency, CurrencyHistory, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
+from .models import Transaccion, Tauser, Entidad, MedioCobro, Role, Currency, Cliente, ClienteUsuario, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, LimiteIntercambio, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
 from decimal import ROUND_DOWN, Decimal, InvalidOperation
 import json
 
@@ -77,13 +78,14 @@ def api_active_currencies(request):
         try:
             # Obtener cliente asociado al usuario
             cliente_id = request.session.get("cliente_id")
+            cliente_usuario = None
             if cliente_id:
                 cliente_usuario = ClienteUsuario.objects.filter(
                     usuario=user,
                     cliente_id=cliente_id
                 ).select_related("cliente__categoria").first()
             else:
-                cliente_usuario = ClienteUsuario.objects.filter(usuario=user).select_related("cliente__categoria").first()
+                descuento = Decimal('0')
 
             if cliente_usuario and cliente_usuario.cliente.categoria:
                 descuento = cliente_usuario.cliente.categoria.descuento or Decimal('0')
@@ -144,67 +146,6 @@ def api_active_currencies(request):
         })
 
     return JsonResponse({"items": items})
-
-@require_GET
-def api_currency_history(request):
-    """
-    Devuelve histórico de una moneda en JSON.
-    Query params:
-      - code: código de moneda (ej: USD, EUR)
-      - range: week|month|6months|year
-    """
-    code = request.GET.get("code", "USD")
-    rango = request.GET.get("range", "week")
-
-    try:
-        currency = Currency.objects.get(code=code)
-    except Currency.DoesNotExist:
-        return JsonResponse({"error": "Moneda no encontrada"}, status=404)
-
-    today = now().date()
-    if rango == "week":
-        start = today - timedelta(days=7)
-    elif rango == "month":
-        start = today - timedelta(days=30)
-    elif rango == "6months":
-        start = today - timedelta(days=180)
-    elif rango == "year":
-        start = today - timedelta(days=365)
-    else:
-        start = today - timedelta(days=30)
-
-    qs = CurrencyHistory.objects.filter(currency=currency, date__gte=start).order_by("date")
-
-    items = [
-        {
-            "date": h.date.strftime("%d/%m/%Y"),
-            "compra": float(h.compra),
-            "venta": float(h.venta),
-        }
-        for h in qs
-    ]
-    return JsonResponse({"items": items})
-
-@login_required
-def historical_view(request):
-    return render(request, "webapp/historical.html")
-
-def get_metodos_pago_cobro(request):
-    """
-    Devuelve los métodos de pago y cobro activos en formato JSON.
-    Se consultan las tablas TipoPago y TipoCobro filtrando por activo=True,
-    y se ordenan por nombre.
-    """
-    tipos_pago = TipoPago.objects.filter(activo=True).order_by("nombre")
-    tipos_cobro = TipoCobro.objects.filter(activo=True).order_by("nombre")
-
-    data = {
-        # Convierte los QuerySets en listas de diccionarios con id y nombre
-        "tipos_pago": [{"id": t.id, "nombre": t.nombre} for t in tipos_pago],
-        "tipos_cobro": [{"id": t.id, "nombre": t.nombre} for t in tipos_cobro],
-    }
-    # Devuelve la respuesta JSON con los métodos
-    return JsonResponse(data)
 
 @login_required
 @require_POST
@@ -2819,57 +2760,216 @@ def modify_cobro_method(request, cobro_method_id):
     return render(request, "webapp/modify_cobro_method.html", context)
 
 # ===========================================
-# MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
+# Vistas de compraventa
 # ===========================================
 
 def compraventa_view(request):
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
-        # Si no hay cliente seleccionado, podés manejarlo como error o redirigir
         raise Http404("No hay cliente seleccionado")
 
     cliente = get_object_or_404(Cliente, id=cliente_id)
-    
-    # Traer todos los específicos de pago
-    tarjetas_pago = Tarjeta.objects.select_related("medio_pago").filter(medio_pago__cliente=cliente)
-    transferencias_pago = CuentaBancaria.objects.select_related("medio_pago", "entidad", "moneda").filter(medio_pago__cliente=cliente)
-    billeteras_pago = Billetera.objects.select_related("medio_pago").filter(medio_pago__cliente=cliente)
-
-    # Traer todos los específicos de cobro
-    tarjetas_cobro = TarjetaCobro.objects.select_related("medio_cobro").filter(medio_cobro__cliente=cliente)
-    transferencias_cobro = CuentaBancariaCobro.objects.select_related("medio_cobro", "entidad", "moneda").filter(medio_cobro__cliente=cliente)
-    billeteras_cobro = BilleteraCobro.objects.select_related("medio_cobro").filter(medio_cobro__cliente=cliente)
 
     if request.method == "POST":
-        # Paso 1: Si ya estamos confirmando
+        # Confirmación final
         if "confirmar" in request.POST:
-            form = TransaccionForm(request.session.get("form_data"))
-            if form.is_valid():
-                transaccion = form.save(commit=False)
-                transaccion.fechaCreacion = timezone.now()
-                transaccion.save()
-                # limpiar la sesión
-                request.session.pop("form_data", None)
-                return redirect("transaccion_list")
+            data = request.session.get("form_data")
+            if not data:
+                return redirect("compraventa")
 
-        # Paso 2: usuario llena el formulario y pide confirmar
-        form = TransaccionForm(request.POST)
-        if form.is_valid():
-            request.session["form_data"] = request.POST
-            return render(request, "webapp/confirmation_compraventa.html", {"form": form})
+            # Construcción de transacción
+            transaccion = Transaccion(
+                cliente=cliente,
+                usuario=request.user,
+                tipo=data["tipo"],
+                moneda_origen=Currency.objects.get(code=data["moneda_origen"]),
+                moneda_destino=Currency.objects.get(code=data["moneda_destino"]),
+                tasa_cambio=data["tasa_cambio"],
+                monto_origen=data["monto_origen"],
+                monto_destino=data["monto_destino"],
+                medio_pago_type=ContentType.objects.get_for_id(data["medio_pago_type"]),
+                medio_pago_id=data["medio_pago_id"],
+                medio_cobro_type=ContentType.objects.get_for_id(data["medio_cobro_type"]),
+                medio_cobro_id=data["medio_cobro_id"],
+            )
+            transaccion.save()
 
-    else:
-        form = TransaccionForm()
+            # limpiar la sesión
+            request.session.pop("form_data", None)
+            return redirect("transaccion_list")
 
-    return render(request, "webapp/compraventa.html", {
-        "form": form,
-        "tarjetas_pago": tarjetas_pago,
-        "transferencias_pago": transferencias_pago,
-        "billeteras_pago": billeteras_pago,
-        "tarjetas_cobro": tarjetas_cobro,
-        "transferencias_cobro": transferencias_cobro,
-        "billeteras_cobro": billeteras_cobro,
-    })
+        # Paso previo: guardar en sesión y mostrar confirmación
+        data = {
+            "tipo": request.POST.get("tipo"),
+            "moneda_origen": request.POST.get("moneda_origen"),
+            "moneda_destino": request.POST.get("moneda_destino"),
+            "tasa_cambio": request.POST.get("tasa_cambio"),
+            "monto_origen": request.POST.get("monto_origen"),
+            "monto_destino": request.POST.get("monto_destino"),
+            "medio_pago_type": request.POST.get("medio_pago_type"),
+            "medio_pago_id": request.POST.get("medio_pago_id"),
+            "medio_cobro_type": request.POST.get("medio_cobro_type"),
+            "medio_cobro_id": request.POST.get("medio_cobro_id"),
+        }
+
+        request.session["form_data"] = data
+        return render(request, "webapp/confirmation_compraventa.html", {"data": data})
+
+    return render(request, "webapp/compraventa.html")
+
+def get_metodos_pago_cobro(request):
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
+        return JsonResponse({"metodo_pago": [], "metodo_cobro": []})
+
+    moneda_pago = request.GET.get("from")
+    moneda_cobro = request.GET.get("to")
+
+    # ---------------- ContentTypes ----------------
+    ct_tarjeta = ContentType.objects.get_for_model(Tarjeta)
+    ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
+    ct_billetera = ContentType.objects.get_for_model(Billetera)
+    ct_tauser = ContentType.objects.get_for_model(Tauser)
+
+    ct_tarjeta_cobro = ContentType.objects.get_for_model(TarjetaCobro)
+    ct_transferencia_cobro = ContentType.objects.get_for_model(CuentaBancariaCobro)
+    ct_billetera_cobro = ContentType.objects.get_for_model(BilleteraCobro)
+
+    # ---------------- Métodos de Pago ----------------
+    metodo_pago = []
+
+    tarjetas = Tarjeta.objects.filter(
+        medio_pago__cliente__id=cliente_id, medio_pago__activo=True
+    ).select_related("medio_pago__tipo_pago", "entidad")
+    for t in tarjetas:
+        if moneda_pago and t.moneda.code != moneda_pago:
+            continue
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": "tarjeta",
+            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
+            "tipo_general_id": t.medio_pago.tipo_pago_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "content_type_id": ct_tarjeta.id,
+            "moneda_code": t.moneda.code
+        })
+
+    transferencias = CuentaBancaria.objects.filter(
+        medio_pago__cliente__id=cliente_id, medio_pago__activo=True
+    ).select_related("medio_pago__tipo_pago", "entidad")
+    for t in transferencias:
+        if moneda_pago and t.moneda.code != moneda_pago:
+            continue
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": "transferencia",
+            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
+            "numero_cuenta": t.numero_cuenta,
+            "tipo_general_id": t.medio_pago.tipo_pago_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.moneda.code,
+            "content_type_id": ct_transferencia.id
+        })
+
+    billeteras = Billetera.objects.filter(
+        medio_pago__cliente__id=cliente_id, medio_pago__activo=True
+    ).select_related("medio_pago__tipo_pago", "entidad")
+    for t in billeteras:
+        if moneda_pago and t.moneda.code != moneda_pago:
+            continue
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": "billetera",
+            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "tipo_general_id": t.medio_pago.tipo_pago_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.moneda.code,
+            "content_type_id": ct_billetera.id
+        })
+
+    tausers = Tauser.objects.filter(activo=True)
+    for t in tausers:
+        metodo_pago.append({
+            "id": t.id,
+            "tipo": t.tipo,
+            "nombre": t.nombre,
+            "ubicacion": t.ubicacion,
+            "tipo_general_id": t.tipo_pago_id,
+            "moneda_code": None,
+            "content_type_id": ct_tauser.id
+        })
+
+    # ---------------- Métodos de Cobro ----------------
+    metodo_cobro = []
+
+    tarjetas = TarjetaCobro.objects.filter(
+        medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
+    ).select_related("medio_cobro__tipo_cobro", "entidad")
+    for t in tarjetas:
+        if moneda_cobro and t.moneda.code != moneda_cobro:
+            continue
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": "tarjeta",
+            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
+            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.moneda.code,
+            "content_type_id": ct_tarjeta_cobro.id
+        })
+
+    transferencias = CuentaBancariaCobro.objects.filter(
+        medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
+    ).select_related("medio_cobro__tipo_cobro", "entidad")
+    for t in transferencias:
+        if moneda_cobro and t.moneda.code != moneda_cobro:
+            continue
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": "transferencia",
+            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
+            "numero_cuenta": t.numero_cuenta,
+            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.moneda.code,
+            "content_type_id": ct_transferencia_cobro.id
+        })
+
+    billeteras = BilleteraCobro.objects.filter(
+        medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
+    ).select_related("medio_cobro__tipo_cobro", "entidad")
+    for t in billeteras:
+        if moneda_cobro and t.moneda.code != moneda_cobro:
+            continue
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": "billetera",
+            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
+            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
+            "moneda_code": t.moneda.code,
+            "content_type_id": ct_billetera_cobro.id
+        })
+
+    tausers = Tauser.objects.filter(activo=True)
+    for t in tausers:
+        metodo_cobro.append({
+            "id": t.id,
+            "tipo": t.tipo,
+            "nombre": t.nombre,
+            "ubicacion": t.ubicacion,
+            "tipo_general_id": t.tipo_cobro_id,
+            "moneda_code": None,
+            "content_type_id": ct_tauser.id
+        })
+
+    return JsonResponse({"metodo_pago": metodo_pago, "metodo_cobro": metodo_cobro})
+
+def transaccion_list(request):
+    transacciones = Transaccion.objects.select_related(
+        "cliente", "usuario", "moneda_origen", "moneda_destino", "factura_asociada"
+    ).all()
+    return render(request, "webapp/historial_transacciones.html", {"transacciones": transacciones})
 
 # ENTIDADES BANCARIAS Y TELEFONICAS PARA MEDIOS DE PAGO O COBRO
 @login_required

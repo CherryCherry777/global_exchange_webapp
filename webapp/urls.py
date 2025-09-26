@@ -132,4 +132,7 @@ urlpatterns = [
     path("cliente-seleccionado/", views.set_cliente_seleccionado, name="set_cliente_seleccionado"),
     path("metodos-pago-cobro/", views.get_metodos_pago_cobro, name="get_metodos_pago_cobro"),
     path("change-client/", views.change_client, name="change_client"),
+
+    # Transacciones
+    path("historial-transacciones/", views.transaccion_list, name="transaccion_list"),
 ]

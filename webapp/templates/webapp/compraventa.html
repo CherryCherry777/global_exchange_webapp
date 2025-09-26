@@ -27,10 +27,10 @@
                         <label class="field-label">Tengo esta moneda</label>
                         <div class="field-row">
                             <div class="select-wrapper">
-                                <select id="simu-from" class="currency-select"></select>
+                                <select id="simu-from" name="moneda_origen" class="currency-select"></select>
                                 <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
                             </div>
-                            <input id="simu-amount" type="number" step="0.01" min="0" class="amount-input">
+                            <input id="simu-amount" name="monto_origen" type="number" step="0.01" min="0" class="amount-input">
                         </div>
                     </div>
 
@@ -39,11 +39,15 @@
                         <label class="field-label">Quiero esta moneda</label>
                         <div class="field-row">
                             <div class="select-wrapper">
-                                <select id="simu-to" class="currency-select"></select>
+                                <select id="simu-to" name="moneda_destino" class="currency-select"></select>
                                 <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
                             </div>
-                            <input type="text" readonly class="result-input" id="simu-result-main">
+                            <input name="monto_destino" type="text" readonly class="result-input" id="simu-result-main">
                         </div>
+                    </div>
+
+                    <div class="converter-actions">
+                        <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>
                     </div>
 
                     {% is_usuario_asociado request.user as usuario_asociado %}
@@ -53,7 +57,7 @@
                             <label class="field-label">Método de pago</label>
                             <div class="field-row">
                                 <div class="select-wrapper">
-                                    <select id="simu-metodo-pago" class="currency-select">
+                                    <select id="simu-metodo-pago" name="medio_pago" class="currency-select">
                                     </select>
                                     <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
                                 </div>
@@ -65,7 +69,7 @@
                             <label class="field-label">Método de cobro</label>
                             <div class="field-row">
                                 <div class="select-wrapper">
-                                    <select id="simu-metodo-cobro" class="currency-select">
+                                    <select id="simu-metodo-cobro" name="medio_cobro" class="currency-select">
                                     </select>
                                     <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
                                 </div>
@@ -74,56 +78,27 @@
 
                     {% endif %}
 
-                    <div class="converter-actions">
-                        <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>
-                    </div>
-
                     <div class="converter-result">
                         <p id="simu-result-detail" class="result-detail">Ingresá un monto para calcular</p>
                     </div>
 
+                    <div class="converter-actions mt-4">
+                        <button type="submit" class="btn btn-primary">Confirmar operación</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!--Selectores de método de cobro y método de pago-->
-        <h3>Métodos de Pago</h3>
-        <select name="medio_pago">
-            <optgroup label="Tarjetas">
-                {% for t in tarjetas_pago %}
-                <option value="TarjetaPago-{{ t.id }}">Tarjeta {{ t.ultimos_digitos }} ({{ t.entidad }})</option>
-                {% endfor %}
-            </optgroup>
-            <optgroup label="Transferencias">
-                {% for tr in transferencias_pago %}
-                <option value="TransferenciaPago-{{ tr.id }}">Transferencia {{ tr.entidad }}</option>
-                {% endfor %}
-            </optgroup>
-            <optgroup label="Billeteras">
-                {% for tr in billeteras_pago %}
-                <option value="BilleteraPago-{{ b.id }}">Billetera {{ b.entidad }}</option>
-                {% endfor %}
-            </optgroup>
-        </select>
-
-        <h3>Métodos de Cobro</h3>
-        <select name="medio_cobro">
-            <optgroup label="Tarjetas">
-                {% for t in tarjetas_cobro %}
-                <option value="TarjetaCobro-{{ t.id }}">Tarjeta {{ t.ultimos_digitos }} ({{ t.entidad }})</option>
-                {% endfor %}
-            </optgroup>
-            <optgroup label="Transferencias">
-                {% for tr in transferencias_cobro %}
-                <option value="TransferenciaCobro-{{ tr.id }}">Transferencia {{ tr.entidad }}</option>
-                {% endfor %}
-            </optgroup>
-            <optgroup label="Billeteras">
-                {% for tr in billeteras_cobro %}
-                <option value="BilleteraCobro-{{ tr.id }}">Billetera {{ tr.entidad }}</option>
-                {% endfor %}
-            </optgroup>
-        </select>
+        <input type="hidden" id="input-tipo" name="tipo">
+        <input type="hidden" id="input-moneda-origen" name="moneda_origen">
+        <input type="hidden" id="input-moneda-destino" name="moneda_destino">
+        <input type="hidden" id="input-monto-origen" name="monto_origen">
+        <input type="hidden" id="input-monto-destino" name="monto_destino">
+        <input type="hidden" id="input-tasa-cambio" name="tasa_cambio">
+        <input type="hidden" id="input-medio-pago-id" name="medio_pago_id">
+        <input type="hidden" id="input-medio-pago-type" name="medio_pago_type">
+        <input type="hidden" id="input-medio-cobro-id" name="medio_cobro_id">
+        <input type="hidden" id="input-medio-cobro-type" name="medio_cobro_type">
 
     </form>
 
@@ -173,12 +148,29 @@
     }
 
     function enforceDifferent(changed, other) {
-        if (changed.value === other.value) {
-            const target = CODES.find(c => c !== changed.value);
-            if (target) other.value = target;
+        // Caso 1: si el usuario pone PYG en ambos
+        if (from.value === "PYG" && to.value === "PYG") {
+            // fijamos que el "otro" se quede en USD (si existe) en vez de tomar el primero al azar
+            const fallback = CODES.includes("USD") ? "USD" : CODES.find(c => c !== "PYG");
+            if (changed === from) to.value = fallback;
+            else from.value = fallback;
+        }
+
+        // Caso 2: si el usuario pone la misma moneda en ambos (pero no es PYG)
+        else if (from.value === to.value) {
+            // el otro se fuerza a PYG
+            if (changed === from) to.value = "PYG";
+            else from.value = "PYG";
+        }
+
+        // Caso 3: si ninguno es PYG
+        if (from.value !== "PYG" && to.value !== "PYG") {
+            // el que no cambió se fuerza a PYG
+            if (changed === from) to.value = "PYG";
+            else from.value = "PYG";
         }
     }
-
+    
     function compute() {
         const raw = parseFloat((amount.value || "").toString().replace(",", "."));
         if (isNaN(raw) || raw <= 0) {
@@ -213,24 +205,52 @@
     function attachListeners() {
         ["input","change"].forEach(evt => {
             amount.addEventListener(evt, compute);
-            from.addEventListener(evt, () => { enforceDifferent(from,to); compute(); });
-            to.addEventListener(evt, () => { enforceDifferent(to,from); compute(); });
+            from.addEventListener(evt, async () => {
+                enforceDifferent(from,to);
+                await recargarMetodos();
+                compute();
+            });
+            to.addEventListener(evt, async () => {
+                enforceDifferent(to,from);
+                await recargarMetodos();
+                compute();
+            });
         });
 
-        intercambiar.addEventListener("click", () => {
+        intercambiar.addEventListener("click", async () => {
             const tmp = from.value; from.value = to.value; to.value = tmp;
-            enforceDifferent(from,to); compute();
+            enforceDifferent(from,to);
+            await recargarMetodos();
+            compute();
         });
 
         if (metodoPago && metodoCobro) {
-            [metodoPago, metodoCobro].forEach(el => el.addEventListener("change", updateRatesForMetodo));
-        }
+            [metodoPago, metodoCobro].forEach(el => 
+                el.addEventListener("change", async () => {
+                    await updateRatesForMetodo();
+                    compute();
+                })
+            );
+}
+
     }
 
     async function updateRatesForMetodo() {
         try {
             if (!metodoPago || !metodoCobro) return;
-            const url = `{% url 'api_currencies' %}?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;
+
+            // Función que obtiene el tipo general desde dataset
+            const getTipoGeneral = (select) => {
+                const val = select.value;
+                if (!val) return "";
+                const option = Array.from(select.options).find(opt => opt.value === val);
+                return option?.dataset.tipogeneral || val;  // Si dataset no existe, devuelve el id normal
+            };
+
+            const pagoId = getTipoGeneral(metodoPago);
+            const cobroId = getTipoGeneral(metodoCobro);
+
+            const url = `{% url 'api_currencies' %}?metodo_pago_id=${pagoId}&metodo_cobro_id=${cobroId}`;
             const res = await fetch(url, { cache:"no-store" });
             const payload = await res.json();
             const items = payload.items || [];
@@ -239,7 +259,7 @@
             if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
             CODES = Object.keys(byCode).sort((a,b)=> a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));
             CODES.forEach(code=>META[code]=byCode[code]);
-            // Solo recalcula, no reconstruye select de monedas
+
             compute();
         } catch(e) {
             console.error("Error al actualizar tasas:", e);
@@ -247,54 +267,49 @@
     }
 
     async function recargarMetodos() {
-        if (!metodoPago || !metodoCobro) return; // no existen selects
+        if (!metodoPago || !metodoCobro) return;
 
         try {
-            const res = await fetch("{% url 'get_metodos_pago_cobro' %}");
+            const res = await fetch(`{% url 'get_metodos_pago_cobro' %}?from=${from.value}&to=${to.value}`);
             const data = await res.json();
 
-            if (metodoPago.options.length === 0) {
-                data.tipos_pago.forEach(item => {
-                    const opt = document.createElement("option");
-                    opt.value = item.id;
-                    opt.textContent = item.nombre;
-                    if (item.nombre.toLowerCase() === "tauser") opt.selected = true;
-                    metodoPago.appendChild(opt);
-                });
-            }
+            metodoPago.innerHTML = "";
+            metodoCobro.innerHTML = "";
 
-            if (metodoCobro.options.length === 0) {
-                data.tipos_cobro.forEach(item => {
-                    const opt = document.createElement("option");
-                    opt.value = item.id;
+            const crearOption = (item) => {
+                const opt = document.createElement("option");
+                opt.value = item.id;
+                opt.dataset.tipoGeneral = item.tipo_general_id || "";
+                if (item.tipo.toLowerCase() === "tauser") {
+                    opt.textContent = `${item.nombre} (${item.ubicacion || "Sin ubicación"})`;
+                } else if (item.tipo.toLowerCase() === "billetera") {
+                    opt.textContent = `${item.nombre} - ${item.numero || ""} - ${item.entidad?.nombre || ""}`;
+                } else if (item.tipo.toLowerCase() === "tarjeta") {
+                    opt.textContent = `${item.nombre} - ${item.entidad?.nombre || ""}`;
+                } else if (item.tipo.toLowerCase() === "transferencia") {
+                    opt.textContent = `${item.entidad?.nombre || ""} - ${item.numero_cuenta || ""}`;
+                } else {
                     opt.textContent = item.nombre;
-                    if (item.nombre.toLowerCase() === "tauser") opt.selected = true;
-                    metodoCobro.appendChild(opt);
-                });
-            }
-        } catch(error) {
+                }
+                opt.dataset.contentTypeId = item.content_type_id || "";
+                return opt;
+            };
+
+            data.metodo_pago.forEach(item => metodoPago.appendChild(crearOption(item)));
+            data.metodo_cobro.forEach(item => metodoCobro.appendChild(crearOption(item)));
+
+            if (metodoPago.options.length) metodoPago.selectedIndex = 0;
+            if (metodoCobro.options.length) metodoCobro.selectedIndex = 0;
+
+            await updateRatesForMetodo();
+        } catch (error) {
             console.error("Error al cargar métodos de pago/cobro:", error);
         }
     }
-
+    
     async function boot() {
         try {
-            let url = "{% url 'api_currencies' %}";
-            if (metodoPago && metodoCobro) {
-                url += `?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;
-            }
-
-            const res = await fetch(url, { cache:"no-store" });
-            const payload = await res.json();
-            const items = payload.items || [];
-            const byCode = {};
-            items.forEach(it => { byCode[it.code] = it; });
-
-            if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
-
-            CODES = Object.keys(byCode).sort((a,b)=> a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));
-            CODES.forEach(code=>META[code]=byCode[code]);
-
+            await updateRatesForMetodo()
             buildOptions(from,"USD");
             buildOptions(to,"PYG");
             enforceDifferent(from,to);
@@ -302,6 +317,7 @@
         } catch(e) {
             console.error("No se pudieron cargar monedas:", e);
         }
+        await recargarMetodos();
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -309,10 +325,48 @@
         attachListeners();
         boot();
     });
+    const hiddenInputs = {
+        tipo: document.getElementById("input-tipo"),
+        moneda_origen: document.getElementById("input-moneda-origen"),
+        moneda_destino: document.getElementById("input-moneda-destino"),
+        tasa_cambio: document.getElementById("input-tasa-cambio"),
+        monto_origen: document.getElementById("input-monto-origen"),
+        monto_destino: document.getElementById("input-monto-destino"),
+        medio_pago_type: document.getElementById("input-medio-pago-type"),
+        medio_pago_id: document.getElementById("input-medio-pago-id"),
+        medio_cobro_type: document.getElementById("input-medio-cobro-type"),
+        medio_cobro_id: document.getElementById("input-medio-cobro-id"),
+    };
 
+    document.querySelector("form").addEventListener("submit", function () {
+        const montoOrigen = parseFloat(amount.value || "0");
+        const montoDestino = parseFloat(out.value.replace(/[^\d.,-]/g,"").replace(",",".")) || 0;
+        const a = from.value, b = to.value;
+
+        hiddenInputs.tipo.value = (a === "PYG" && b !== "PYG") ? "COMPRA" : "VENTA";
+        hiddenInputs.moneda_origen.value = a;
+        hiddenInputs.moneda_destino.value = b;
+        hiddenInputs.monto_origen.value = montoOrigen;
+        hiddenInputs.monto_destino.value = montoDestino;
+
+        if (a === "PYG" && b !== "PYG") {
+            hiddenInputs.tasa_cambio.value = 1 / META[b].venta;
+        } else if (a !== "PYG" && b === "PYG") {
+            hiddenInputs.tasa_cambio.value = META[a].compra;
+        }
+
+        if (metodoPago.options.length > 0) {
+            hiddenInputs.medio_pago_id.value = metodoPago.value;
+            hiddenInputs.medio_pago_type.value = metodoPago.selectedOptions[0].dataset.contentTypeId;
+        }
+        if (metodoCobro.options.length > 0) {
+            hiddenInputs.medio_cobro_id.value = metodoCobro.value;
+            hiddenInputs.medio_cobro_type.value = metodoCobro.selectedOptions[0].dataset.contentTypeId;
+        }
+
+    });
 })();
 
 </script>
+
 {% endblock %}
-
-
