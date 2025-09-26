@@ -2759,7 +2759,7 @@ def modify_cobro_method(request, cobro_method_id):
     return render(request, "webapp/modify_cobro_method.html", context)
 
 # ===========================================
-# MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
+# Vistas de compraventa
 # ===========================================
 
 def compraventa_view(request):
@@ -2963,6 +2963,12 @@ def get_metodos_pago_cobro(request):
         })
 
     return JsonResponse({"metodo_pago": metodo_pago, "metodo_cobro": metodo_cobro})
+
+def transaccion_list(request):
+    transacciones = Transaccion.objects.select_related(
+        "cliente", "usuario", "moneda_origen", "moneda_destino", "factura_asociada"
+    ).all()
+    return render(request, "webapp/historial_transacciones.html", {"transacciones": transacciones})
 
 # ENTIDADES BANCARIAS Y TELEFONICAS PARA MEDIOS DE PAGO O COBRO
 @login_required
