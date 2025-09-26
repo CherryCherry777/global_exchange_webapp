@@ -21,6 +21,7 @@ from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.utils.timezone import now, timedelta
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from webapp.emails import send_activation_email
 from .forms import BilleteraCobroForm, CuentaBancariaCobroForm, EntidadEditForm, MedioCobroForm, RegistrationForm, LoginForm, TarjetaCobroForm, TipoCobroForm, UserUpdateForm, ClienteForm, AsignarClienteForm, ClienteUpdateForm, TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm, TipoPagoForm, LimiteIntercambioForm, EntidadForm, TransaccionForm
 from .decorators import role_required, permitir_permisos
@@ -2541,9 +2542,9 @@ def modify_currency(request, currency_id):
             # Actualizar bandera solo si se proporciona una nueva
             if flag_image:
                 currency.flag_image = flag_image
-            
+
             currency.save()
-            
+
             messages.success(request, f"Moneda '{currency.name}' actualizada correctamente.")
             return redirect("manage_currencies")
             
@@ -2639,6 +2640,13 @@ def modify_quote(request, currency_id):
             currency.is_active = is_active
             currency.save()
             
+            # Cancelar todas las transacciones PENDIENTE donde la moneda esté en origen o destino
+            transacciones = Transaccion.objects.filter(
+                Q(moneda_origen=currency) | Q(moneda_destino=currency),
+                estado=Transaccion.Estado.PENDIENTE
+            )
+
+            transacciones.update(estado=Transaccion.Estado.CANCELADA)
             messages.success(request, f"Cotización de '{currency.name}' actualizada correctamente.")
             return redirect("manage_quotes")
             
@@ -2823,6 +2831,17 @@ def compraventa_view(request):
             if not data:
                 return redirect("compraventa")
 
+            # Validación del monto
+            try:
+                monto_origen = float(data["monto_origen"])
+                monto_destino=float(data["monto_destino"])
+                if monto_origen <= 0:
+                    raise ValueError
+                if monto_destino <= 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                messages.error(request, "Debés ingresar un monto válido.")
+                return redirect('nombre_de_tu_vista')
             # Construcción de transacción
             transaccion = Transaccion(
                 cliente=cliente,
@@ -2831,8 +2850,8 @@ def compraventa_view(request):
                 moneda_origen=Currency.objects.get(code=data["moneda_origen"]),
                 moneda_destino=Currency.objects.get(code=data["moneda_destino"]),
                 tasa_cambio=data["tasa_cambio"],
-                monto_origen=data["monto_origen"],
-                monto_destino=data["monto_destino"],
+                monto_origen=monto_origen,
+                monto_destino=monto_destino,
                 medio_pago_type=ContentType.objects.get_for_id(data["medio_pago_type"]),
                 medio_pago_id=data["medio_pago_id"],
                 medio_cobro_type=ContentType.objects.get_for_id(data["medio_cobro_type"]),
