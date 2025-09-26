@@ -44,8 +44,11 @@ class ClienteTests(TestCase):
         response = self.client.post(reverse('create_cliente'), {
             'nombre': 'Nuevo Cliente',
             'documento': '87654321',
-            'tipoCliente': 'empresa',
+            'tipoCliente': 'persona_juridica',
             'categoria': self.categoria.id,
+            'correo': 'nuevo@example.com',
+            'telefono': '0987654321',
+            'direccion': 'Dirección del nuevo cliente',
             'estado': True
         })
         
@@ -67,8 +70,11 @@ class ClienteTests(TestCase):
         response = self.client.post(reverse('update_cliente', kwargs={'cliente_id': self.cliente.id}), {
             'nombre': 'Cliente Actualizado',
             'documento': '12345678',
-            'tipoCliente': 'empresa',
+            'tipoCliente': 'persona_juridica',
             'categoria': self.categoria.id,
+            'correo': 'updated@example.com',
+            'telefono': '0987654321',
+            'direccion': 'Nueva dirección',
             'estado': True
         })
         
@@ -97,11 +103,16 @@ class ClienteTests(TestCase):
         form_data = {
             'nombre': 'Cliente Form Test',
             'documento': '11111111',
-            'tipoCliente': 'persona',
+            'tipoCliente': 'persona_fisica',
             'categoria': self.categoria.id,
+            'correo': 'test@example.com',
+            'telefono': '0981234567',
+            'direccion': 'Dirección de prueba',
             'estado': True
         }
         form = ClienteForm(data=form_data)
+        if not form.is_valid():
+            print("Errores del formulario:", form.errors)
         self.assertTrue(form.is_valid())
 
     def test_cliente_form_invalid(self):
@@ -109,8 +120,11 @@ class ClienteTests(TestCase):
         form_data = {
             'nombre': '',  # Campo requerido vacío
             'documento': '12345678',  # Documento duplicado
-            'tipoCliente': 'persona',
+            'tipoCliente': 'persona_fisica',
             'categoria': self.categoria.id,
+            'correo': 'test@example.com',
+            'telefono': '0981234567',
+            'direccion': 'Dirección de prueba',
             'estado': True
         }
         form = ClienteForm(data=form_data)
@@ -121,11 +135,16 @@ class ClienteTests(TestCase):
         form_data = {
             'nombre': 'Cliente Actualizado',
             'documento': '12345678',
-            'tipoCliente': 'empresa',
+            'tipoCliente': 'persona_juridica',
             'categoria': self.categoria.id,
+            'correo': 'updated@example.com',
+            'telefono': '0987654321',
+            'direccion': 'Nueva dirección',
             'estado': False
         }
         form = ClienteUpdateForm(data=form_data, instance=self.cliente)
+        if not form.is_valid():
+            print("Errores del formulario de actualización:", form.errors)
         self.assertTrue(form.is_valid())
 
     def test_asignar_cliente_usuario(self):
@@ -166,3 +185,19 @@ class ClienteTests(TestCase):
         
         self.cliente.refresh_from_db()
         self.assertTrue(self.cliente.estado)
+
+    def test_create_cliente_view(self):
+        """Prueba la vista de creación de cliente"""
+        self.client.login(username='admin', password='testpass123')
+        
+        response = self.client.get(reverse('create_cliente'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Crear Cliente')
+
+    def test_view_cliente_view(self):
+        """Prueba la vista de detalle de cliente"""
+        self.client.login(username='admin', password='testpass123')
+        
+        response = self.client.get(reverse('view_cliente', kwargs={'cliente_id': self.cliente.id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Cliente Test')
