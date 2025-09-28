@@ -338,15 +338,15 @@
         medio_cobro_id: document.getElementById("input-medio-cobro-id"),
     };
 
-document.querySelector("form").addEventListener("submit", function (e) {
-    const montoOrigen = parseFloat(amount.value || "0");
+    document.querySelector("form").addEventListener("submit", function (e) {
+        const montoOrigen = parseFloat(amount.value || "0");
 
-    if (isNaN(montoOrigen) || montoOrigen <= 0) {
-        e.preventDefault();  // Cancela el submit
-        alert("Debes ingresar un monto válido antes de confirmar la operación");
-        amount.focus();
-        return;
-    }
+        if (isNaN(montoOrigen) || montoOrigen <= 0) {
+            e.preventDefault();  // Cancela el submit
+            alert("Debes ingresar un monto válido antes de confirmar la operación");
+            amount.focus();
+            return;
+        }
 
         const montoDestino = parseFloat(out.value.replace(/[^\d.,-]/g,"").replace(",",".")) || 0;
         const a = from.value, b = to.value;
