@@ -5,9 +5,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from ..decorators import role_required
 
-# ---------------------------------------------
-# Asignación de roles (Posible vista nueva)
-# ---------------------------------------------
+# --------------------
+# User Role Management 
+# --------------------
+# Assign roles to users
 
 @login_required
 @role_required("Administrador")
@@ -67,12 +68,6 @@ def manage_user_roles(request):
     return render(request, "webapp/manage_user_roles.html", context)
 
 
-
-# ------------------------------------------
-# User Role Management (Posible vista vieja)
-# ------------------------------------------
-# Assign roles to users
-
 @login_required
 @role_required("Administrador")
 def user_role_list(request):
@@ -81,41 +76,6 @@ def user_role_list(request):
     return render(request, "webapp/manage_user_roles.html", {
         "users": users,
         "all_roles": all_roles,
-    })
-
-@login_required
-def manage_user_roles(request):
-    users = User.objects.all()
-    roles_list = Group.objects.all()
-
-    # Determine current user's highest-tier role
-    current_user_roles = request.user.groups.all()
-    current_user_tier = min(ROLE_TIERS.get(r.name, 99) for r in current_user_roles) if current_user_roles else 99
-
-    # Prepare data for template
-    user_roles_data = []
-    for u in users:
-        roles_info = []
-        user_role_names = [g.name for g in u.groups.all()]
-
-        for r in u.groups.all():
-            role_tier = ROLE_TIERS.get(r.name, 99)
-            # Can remove if not removing own highest-tier role
-            can_remove = not (u == request.user and role_tier >= current_user_tier)
-            roles_info.append({
-                "role": r,
-                "can_remove": can_remove
-            })
-
-        user_roles_data.append({
-            "user": u,
-            "roles_info": roles_info,
-            "user_role_names": user_role_names
-        })
-
-    return render(request, "webapp/manage_user_roles.html", {
-        "user_roles_data": user_roles_data,
-        "roles_list": roles_list
     })
 
 
