@@ -9,6 +9,7 @@ urlpatterns = [
     path("verify-email/<uidb64>/<token>/", views.verify_email, name="verify-email"),
     path("resend-verification/", views.resend_verification_email, name="resend_verification"),
     path("login/", views.CustomLoginView.as_view(), name="login"),
+    path("mfa-verify/", views.MFAVerifyView.as_view(), name="mfa_verify"),
     path("logout/", views.custom_logout, name="logout"),
 
     # Profile

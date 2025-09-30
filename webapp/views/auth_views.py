@@ -1,18 +1,37 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login
 from django.contrib import messages
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
-from webapp.emails import send_activation_email
+from django.views import View
+from web_project import settings
+from web_project.settings import MFA_LOGIN
+from webapp.emails import send_activation_email, send_mfa_login_email
 from ..forms import RegistrationForm, LoginForm
 from .constants import *
 
 class CustomLoginView(LoginView):
     template_name = "webapp/auth/login.html"
     form_class = LoginForm
+
+    def form_valid(self, form):
+        """
+        En vez de loguear directamente al usuario,
+        enviamos el código MFA y redirigimos.
+        """
+        user = form.get_user()
+        if user and user.is_active:
+            if getattr(settings, "MFA_LOGIN", True):
+                send_mfa_login_email(self.request, user)
+                self.request.session["mfa_user_id"] = user.id
+                return redirect("mfa_verify")
+            else:
+                login(self.request, user, backend="django.contrib.auth.backends.ModelBackend")
+                return redirect(self.get_success_url())
+        return super().form_invalid(form)
 
     def get_success_url(self):
         return reverse_lazy("public_home")
@@ -26,6 +45,39 @@ class CustomLoginView(LoginView):
                     break
         return super().form_invalid(form)
     
+User = get_user_model()
+
+class MFAVerifyView(View):
+    template_name = "webapp/auth/mfa_verify.html"
+
+    def get(self, request):
+        return render(request, self.template_name)
+
+    def post(self, request):
+        input_code = request.POST.get("code")
+        session_code = request.session.get("mfa_code")
+        user_id = request.session.get("mfa_user_id")
+
+        if input_code and session_code and input_code == session_code:
+            try:
+                user = User.objects.get(pk=user_id)
+
+                # ✅ aquí hacemos login "oficial"
+                login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+
+                # limpiar la sesión
+                request.session.pop("mfa_code", None)
+                request.session.pop("mfa_user_id", None)
+
+                return redirect("public_home")
+            except User.DoesNotExist:
+                messages.error(request, "Error: usuario no encontrado")
+        else:
+            messages.error(request, "Código incorrecto o expirado")
+
+        return render(request, self.template_name)
+    
+
 def custom_logout(request):
     logout(request)
     return redirect("public_home")

@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Verificación MFA</title>
+  <link rel="stylesheet" href="{% static 'webapp/auth.css' %}">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-form-section">
+      <div class="auth-form-wrapper">
+        <h1 class="auth-title">Verificación en dos pasos</h1>
+        <p>Se envió un código a tu correo electrónico.</p>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="auth-form-group">
+            <label for="code">Código</label>
+            <input type="text" id="code" name="code" placeholder="Ingrese su código" required>
+          </div>
+          <button type="submit" class="auth-button">Verificar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
