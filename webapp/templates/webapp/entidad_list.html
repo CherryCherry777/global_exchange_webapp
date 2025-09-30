@@ -1,52 +1,105 @@
 {% extends "webapp/base.html" %}
+{% load static %}
+
 {% block title %}Administrar Entidades{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/entidades.css' %}" />
+{% endblock %}
+
 {% block content %}
-<div class="admin-page-container">
-    <div class="admin-header">
-        <h2>Administrar Entidades</h2>
-        <a href="{% url 'entidad_add' %}" class="btn btn-primary">Agregar Entidad</a>
+<div class="manage-entidades-container">
+    <!-- Header Section -->
+    <div class="manage-entidades-header">
+        <div class="header-content">
+            <a href="{% url 'landing' %}" class="back-button">
+                ← Volver al Panel
+            </a>
+            <div class="header-text">
+                <h1 class="manage-entidades-title">Administrar Entidades</h1>
+                <p class="manage-entidades-subtitle">Administra las entidades del sistema</p>
+            </div>
+        </div>
+        <div class="header-metrics">
+            <div class="metric-card">
+                <div class="metric-label">Total Entidades</div>
+                <div class="metric-number">{{ entidades_activas }}</div>
+            </div>
+        </div>
     </div>
 
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Tipo</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for entidad in entidades %}
-            <tr>
-                <td>{{ entidad.nombre }}</td>
-                <td>{{ entidad.get_tipo_display }}</td>
-                <td>
-                    {% if entidad.activo %}
-                        <span class="badge bg-success">Activo</span>
-                    {% else %}
-                        <span class="badge bg-danger">Inactivo</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{% url 'entidad_edit' entidad.pk %}" class="btn btn-sm btn-warning">Editar</a>
-                    <form method="post" action="{% url 'entidad_toggle' entidad.pk %}" style="display:inline;">
-                        {% csrf_token %}
-                        {% if entidad.activo %}
-                        <button type="submit" class="btn btn-sm btn-secondary">Desactivar</button>
-                        {% else %}
-                        <button type="submit" class="btn btn-sm btn-success">Activar</button>
-                        {% endif %}
-                    </form>
-                </td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="4">No hay entidades registradas.</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <!-- Main Content -->
+    <div class="manage-entidades-content">
+        <!-- Create Button -->
+        <div class="create-button-container">
+            <a href="{% url 'entidad_add' %}" class="create-entidad-button">
+                Crear Nueva Entidad
+            </a>
+        </div>
+
+        <!-- List Container -->
+        <div class="entidades-list-container">
+            <h2 class="entidades-list-title">Lista de Entidades</h2>
+            
+            <!-- Table Container -->
+            <div class="entidades-table-container">
+                <table class="entidades-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entidad in entidades %}
+                        <tr class="entidad-row">
+                            <td class="entidad-info">
+                                <div class="entidad-icon-circle">
+                                    <img src="{% static 'webapp/pantalla_entidades/1.Entidades.png' %}" 
+                                         alt="Entidad" 
+                                         class="entidad-icon">
+                                </div>
+                                <span class="entidad-name">{{ entidad.nombre }}</span>
+                            </td>
+                            <td class="type-value">{{ entidad.get_tipo_display }}</td>
+                            <td>
+                                {% if entidad.activo %}
+                                    <span class="status-circle active"></span>Activo
+                                {% else %}
+                                    <span class="status-circle inactive"></span>Inactivo
+                                {% endif %}
+                            </td>
+                            <td class="actions-container">
+                                <a href="{% url 'entidad_edit' entidad.pk %}" class="action-button modify-button">
+                                    Modificar
+                                </a>
+                                <form method="post" action="{% url 'entidad_toggle' entidad.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    {% if entidad.activo %}
+                                        <button type="submit" class="action-button deactivate-button">
+                                            Desactivar
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="action-button modify-button">
+                                            Activar
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="entidad-row">
+                            <td colspan="4" style="text-align: center; padding: 40px;">
+                                No hay entidades registradas.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

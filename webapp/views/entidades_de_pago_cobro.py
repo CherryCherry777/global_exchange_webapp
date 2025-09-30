@@ -12,7 +12,11 @@ from ..models import Entidad
 @login_required
 def entidad_list(request):
     entidades = Entidad.objects.all().order_by("nombre")
-    return render(request, "webapp/entidad_list.html", {"entidades": entidades})
+    entidades_activas = Entidad.objects.filter(activo=True).count()
+    return render(request, "webapp/entidad_list.html", {
+        "entidades": entidades,
+        "entidades_activas": entidades_activas
+    })
 
 
 @login_required

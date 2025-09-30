@@ -28,7 +28,7 @@ class CustomLoginView(LoginView):
     
 def custom_logout(request):
     logout(request)
-    return render(request, "webapp/logout.html")
+    return redirect("public_home")
 
 def register(request):
     if request.method == "POST":

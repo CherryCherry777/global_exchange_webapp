@@ -1,16 +1,133 @@
 {% extends "webapp/base.html" %}
-{% block title %}{% if object %}Editar{% else %}Agregar{% endif %} Entidad{% endblock %}
+{% load static %}
+
+{% block title %}{% if entidad %}Modificar Entidad{% else %}Crear Entidad{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/entidad_edit.css' %}" />
+{% endblock %}
 
 {% block content %}
-<div class="admin-page-container">
-    <h2>{% if object %}Editar{% else %}Agregar{% endif %} Entidad</h2>
+<div class="entidad-edit-container">
+    <!-- Header Section -->
+    <div class="entidad-edit-header">
+        <a href="{% url 'entidad_list' %}" class="back-button">
+            ← Volver al Administrar Entidades
+        </a>
+        <h1 class="entidad-edit-title">{% if entidad %}Modificar Entidad{% else %}Crear Entidad{% endif %}</h1>
+        <p class="entidad-edit-subtitle">{% if entidad %}Edita la información y parámetros de una entidad{% else %}Crea una nueva entidad en el sistema{% endif %}</p>
+    </div>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
+    <!-- Main Content -->
+    <div class="entidad-edit-content">
+        <!-- Entity Title -->
+        {% if entidad %}
+        <h2 class="entity-title">{{ entidad.nombre }}</h2>
+        {% else %}
+        <h2 class="entity-title">Nueva Entidad</h2>
+        {% endif %}
 
-        <button type="submit" class="btn btn-success">Guardar</button>
-        <a href="{% url 'entidad_list' %}" class="btn btn-secondary">Cancelar</a>
-    </form>
+        <!-- Form Container -->
+        <div class="entidad-edit-form-container">
+            <!-- Entity Icon Circle -->
+            <div class="entity-icon-circle">
+                <img src="{% static 'webapp/pantalla_entidades/1.Entidades.png' %}" 
+                     alt="Entidad" 
+                     class="entity-icon">
+            </div>
+
+            <!-- Form -->
+            <form method="post" id="entidad-form" class="form-fields-container">
+                {% csrf_token %}
+                
+                <!-- Nombre Field -->
+                <div class="form-group">
+                    <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre</label>
+                    <input type="text"
+                           id="{{ form.nombre.id_for_label }}"
+                           name="{{ form.nombre.name }}"
+                           class="form-input"
+                           value="{% if form.nombre.value %}{{ form.nombre.value }}{% elif entidad %}{{ entidad.nombre }}{% endif %}"
+                           placeholder="{% if entidad %}Valor actual: {{ entidad.nombre }}{% else %}Ingrese el nombre de la entidad{% endif %}"
+                           required>
+                    {% if form.nombre.errors %}
+                        <div class="error-message">{{ form.nombre.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tipo Field -->
+                <div class="form-group">
+                    <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo</label>
+                    <select id="{{ form.tipo.id_for_label }}"
+                            name="{{ form.tipo.name }}"
+                            class="form-select"
+                            required>
+                        <option value="">Seleccione un tipo</option>
+                        {% for choice in form.tipo.field.choices %}
+                            <option value="{{ choice.0 }}" 
+                                    {% if choice.0 == form.tipo.value or choice.0 == entidad.tipo %}selected{% endif %}>
+                                {{ choice.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.tipo.errors %}
+                        <div class="error-message">{{ form.tipo.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Activo Checkbox -->
+                <div class="checkbox-group">
+                    <input type="checkbox"
+                           id="{{ form.activo.id_for_label }}"
+                           name="{{ form.activo.name }}"
+                           class="checkbox-input"
+                           {% if form.activo.value or entidad.activo %}checked{% endif %}>
+                    <label for="{{ form.activo.id_for_label }}" class="checkbox-label">Activo</label>
+                </div>
+
+                <!-- Buttons Container -->
+                <div class="buttons-container">
+                    <button type="submit" class="save-button">
+                        Guardar
+                    </button>
+                    <a href="{% url 'entidad_list' %}" class="discard-button">
+                        Descartar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("entidad-form");
+
+    form.addEventListener("submit", function (e) {
+        const nombre = form.querySelector('input[name="nombre"]').value.trim();
+        
+        if (!nombre) {
+            e.preventDefault();
+            alert("El nombre de la entidad es requerido.");
+            return false;
+        }
+
+        if (nombre.length < 2) {
+            e.preventDefault();
+            alert("El nombre debe tener al menos 2 caracteres.");
+            return false;
+        }
+    });
+
+    // Agregar validación en tiempo real para el nombre
+    const nombreInput = form.querySelector('input[name="nombre"]');
+    nombreInput.addEventListener("input", function() {
+        if (this.value.length < 2 && this.value.length > 0) {
+            this.style.borderColor = "#ff4444";
+        } else {
+            this.style.borderColor = "transparent";
+        }
+    });
+});
+</script>
 {% endblock %}
