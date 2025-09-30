@@ -6,6 +6,9 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 import random
 
+from web_project import settings
+from webapp.models import Currency
+
 def send_activation_email(request, user):
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -32,26 +35,32 @@ def send_activation_email(request, user):
         html_message=html_body,
     )
 
-def send_mfa_login_email(request, user):
-    code = f"{random.randint(100000,999999)}"
-    request.session["mfa_code"] = code
-    request.session["mfa_user_id"] = user.id
+def send_exchange_rates_email(to_email):
+    """
+    Envía un correo con las tasas de cambio de todas las monedas activas.
+    Funciona tanto en modo debug (ejecutado al login) como en producción (ejecutado con Celery).
+    """
+    # Traemos las monedas activas
+    currencies = Currency.objects.filter(is_active=True)
 
-    context = {
-        "user": user,
-        "project_name": "Global Exchange",
-        "code" : code
-    }
+    # Construimos el mensaje
+    lines = ["Tasas de cambio actuales:\n"]
+    for currency in currencies:
+        lines.append(f"- {currency.name}: {currency.exchange_rate}")
 
-    subject = "Código de verificación MFA - Global Exchange"
-    text_body = render_to_string("emails/mfa_login.txt", context)
-    html_body = render_to_string("emails/mfa_login.html", context)
+    message = "\n".join(lines)
 
-    # Usa DEFAULT_FROM_EMAIL ya definido en settings
+    # Asunto configurable
+    subject = "Simulador - Tasas de cambio"
+
+    # Dirección de envío (usa settings.DEFAULT_FROM_EMAIL)
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
+
+    # Enviamos correo
     send_mail(
-        subject=subject,
-        message=text_body,
-        from_email=None,
-        recipient_list=[user.email],
-        html_message=html_body,
+        subject,
+        message,
+        from_email,
+        [to_email],
+        fail_silently=False,
     )

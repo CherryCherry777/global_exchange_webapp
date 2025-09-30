@@ -9,7 +9,7 @@ from django.contrib.auth.views import LoginView
 from django.views import View
 from web_project import settings
 from web_project.settings import MFA_LOGIN
-from webapp.emails import send_activation_email, send_mfa_login_email
+from webapp.emails import send_activation_email, send_exchange_rates_email, send_mfa_login_email
 from ..forms import RegistrationForm, LoginForm
 from .constants import *
 
@@ -29,6 +29,9 @@ class CustomLoginView(LoginView):
                 self.request.session["mfa_user_id"] = user.id
                 return redirect("mfa_verify")
             else:
+                #login directo
+                if settings.DEBUG:
+                    send_exchange_rates_email(user.email)  # ejecución directa (no Celery)
                 login(self.request, user, backend="django.contrib.auth.backends.ModelBackend")
                 return redirect(self.get_success_url())
         return super().form_invalid(form)

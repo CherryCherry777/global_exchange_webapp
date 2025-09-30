@@ -2,6 +2,9 @@ from pathlib import Path
 import environ
 import os
 from django.urls import reverse_lazy
+from celery.schedules import crontab
+#from .celery import app
+from django.conf import settings
 
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -122,3 +125,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 #Para activar/desactivar MFA en login
 MFA_LOGIN = env.bool('MFA_LOGIN', default=True)
+
+#Intervalo (en minutos) de tiempo de envio de correo de tasas
+SEND_RATES_INTERVAL = int(os.getenv("SEND_RATES_INTERVAL", 60))  # por defecto cada 60 min
