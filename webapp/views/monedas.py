@@ -180,11 +180,6 @@ def modify_currency(request, currency_id):
 # Currencies CRUD (Posibles vistas viejas)
 # ----------------
 
-@login_required
-@permission_required('webapp.view_currency', raise_exception=True)
-def currency_list(request):
-    currencies = Currency.objects.all()
-    return render(request, 'webapp/currency_list.html', {'currencies': currencies})
 
 @login_required
 def create_currency(request):
@@ -213,7 +208,7 @@ def create_currency(request):
             is_active=is_active,
         )
         messages.success(request, 'Moneda creada exitosamente.')
-        return redirect('currency_list')
+        return redirect('manage_currencies')
 
     # GET request - mostrar formulario
     return render(request, 'webapp/create_currency.html')
@@ -244,7 +239,7 @@ def edit_currency(request, currency_id):
         # Guardar
         currency.save()
         messages.success(request, 'Moneda actualizada exitosamente.')
-        return redirect('currency_list')
+        return redirect('manage_currencies')
 
     return render(request, 'webapp/edit_currency.html', {'currency': currency})
 

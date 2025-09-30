@@ -44,10 +44,13 @@
                         {% for fila in tabla %}
                         <tr class="limite-row" data-currency="{{ fila.moneda.name|lower }}">
                             <td class="currency-cell">
-                                <img src="{% static 'webapp/flags/' %}{{ fila.moneda.code|lower }}.png" 
-                                     alt="{{ fila.moneda.name }}" 
-                                     class="currency-flag"
-                                     onerror="this.style.display='none'">
+                                {% if fila.moneda.flag_image %}
+                                    <img src="{{ fila.moneda.flag_image.url }}" 
+                                         alt="{{ fila.moneda.name }}" 
+                                         class="currency-flag">
+                                {% else %}
+                                    <div class="currency-flag-placeholder"></div>
+                                {% endif %}
                                 <span class="currency-name">{{ fila.moneda.name }}</span>
                             </td>
                             {% with dec=fila.moneda.decimales_cotizacion %}

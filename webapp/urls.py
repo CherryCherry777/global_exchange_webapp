@@ -71,7 +71,6 @@ urlpatterns = [
     path('manage-user-roles/', views.manage_user_roles, name='manage_user_roles'),
 
     # Currency Manager
-    path('currency/', views.currency_list, name='currency_list'),
     path('currency/crear/', views.create_currency, name='create_currency'),
     path('currency/editar/<int:currency_id>/', views.edit_currency, name='edit_currency'),
     path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
