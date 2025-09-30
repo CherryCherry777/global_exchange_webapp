@@ -9,7 +9,8 @@ from django.contrib.auth.views import LoginView
 from django.views import View
 from web_project import settings
 from web_project.settings import MFA_LOGIN
-from webapp.emails import send_activation_email, send_mfa_login_email
+from webapp.emails import send_activation_email, send_exchange_rates_email_debug, send_mfa_login_email
+from webapp.tasks import send_exchange_rates_email
 from ..forms import RegistrationForm, LoginForm
 from .constants import *
 
@@ -24,11 +25,14 @@ class CustomLoginView(LoginView):
         """
         user = form.get_user()
         if user and user.is_active:
-            if getattr(settings, "MFA_LOGIN", True):
+            if (getattr(settings, "MFA_LOGIN", True) and settings.DEBUG) or (not settings.DEBUG):
                 send_mfa_login_email(self.request, user)
                 self.request.session["mfa_user_id"] = user.id
                 return redirect("mfa_verify")
             else:
+                #login directo
+                if settings.DEBUG and settings.CORREO_TASAS_LOGIN and user.receive_exchange_emails:
+                    send_exchange_rates_email_debug(user)  # envia un correo de prueba con las tasas actuales
                 login(self.request, user, backend="django.contrib.auth.backends.ModelBackend")
                 return redirect(self.get_success_url())
         return super().form_invalid(form)

@@ -7,8 +7,12 @@ from django.views.decorators.http import require_GET
 from django.utils.timezone import now, timedelta
 from django.db.models import Q
 from ..decorators import role_required
-from ..models import CurrencyHistory, Transaccion, Currency
+from ..models import CurrencyHistory, CustomUser, EmailScheduleConfig, Transaccion, Currency
 from decimal import Decimal, InvalidOperation
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
+
 
 # ---------------------------------
 # Vistas para modificar cotizaciones (Posibles vistas nuevas)
@@ -209,3 +213,44 @@ def api_currency_history(request):
 @login_required
 def historical_view(request):
     return render(request, "webapp/cotizaciones/historical.html")
+
+
+# Configuracion de frecuencia de emails de cotizaciones de tasas
+def manage_schedule(request):
+    config, _ = EmailScheduleConfig.objects.get_or_create(pk=1)
+
+    if request.method == "POST":
+        config.frequency = request.POST.get("frequency")
+        config.hour = int(request.POST.get("hour", 8))
+        config.minute = int(request.POST.get("minute", 0))
+        if config.frequency == "custom":
+            config.interval_minutes = int(request.POST.get("interval_minutes", 60))
+        else:
+            config.interval_minutes = None
+        config.save()
+        return redirect("manage_schedule")
+
+    return render(request, "webapp/cotizaciones/manage_schedule.html", {"config": config})
+
+# Desuscribirse de los correos de tasas
+def unsubscribe(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and user.unsubscribe_token == token:
+        user.receive_exchange_emails = False
+        user.save()
+        return redirect('unsubscribe_confirm')
+    return redirect('unsubscribe_error')
+
+def unsubscribe_confirm(request):
+    """Página que muestra mensaje de confirmación."""
+    return render(request, 'webapp/cotizaciones/unsubscribe_confirm.html')
+
+
+def unsubscribe_error(request):
+    """Página que muestra mensaje de error en desuscripción."""
+    return render(request, 'webapp/cotizaciones/unsubscribe_error.html')

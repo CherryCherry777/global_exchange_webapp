@@ -135,4 +135,10 @@ urlpatterns = [
 
     # Transacciones
     path("historial-transacciones/", views.transaccion_list, name="transaccion_list"),
+
+    #Configuracion de notificaciones de correo
+    path("schedule/", views.manage_schedule, name="manage_schedule"),
+    path("unsubscribe/<uidb64>/<token>/", views.unsubscribe, name="unsubscribe"),
+    path('unsubscribe/confirm/', views.unsubscribe_confirm, name='unsubscribe_confirm'),
+    path('unsubscribe/error/', views.unsubscribe_error, name='unsubscribe_error'),
 ]

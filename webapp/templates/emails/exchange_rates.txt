@@ -1,0 +1,7 @@
+Tasas de cambio actuales:
+
+{% for currency in currencies %}
+{{ currency.name }} ({{ currency.code }}): Compra {{ currency.precio_compra }} - Venta {{ currency.precio_venta }}
+{% endfor %}
+
+Para desuscribirte: {{ unsubscribe_url }}

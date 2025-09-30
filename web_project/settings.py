@@ -2,6 +2,9 @@ from pathlib import Path
 import environ
 import os
 from django.urls import reverse_lazy
+from celery.schedules import crontab
+#from .celery import app
+from django.conf import settings
 
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,6 +19,8 @@ else:
 
 
 #print("DB_NAME", env("DB_NAME", default="not set"))
+
+SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000')
 
 # Usuario custom
 AUTH_USER_MODEL = 'webapp.CustomUser'
@@ -122,3 +127,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 #Para activar/desactivar MFA en login
 MFA_LOGIN = env.bool('MFA_LOGIN', default=True)
+
+#Para activar/desactivar el envio de correo de tasas al hacer login
+CORREO_TASAS_LOGIN = env.bool('CORREO_TASAS_LOGIN', default=True)

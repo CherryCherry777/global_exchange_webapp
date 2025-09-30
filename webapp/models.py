@@ -21,6 +21,13 @@ class CustomUser(AbstractUser):
     """
     email = models.EmailField(unique=True)
 
+    receive_exchange_emails = models.BooleanField(
+        default=True,
+        verbose_name="Recibir notificaciones de tasas de cambio"
+    )
+
+    unsubscribe_token = models.CharField(max_length=64, blank=True, null=True)
+
     class Meta:
         permissions = [
             ("access_admin_panel", "Can access admin panel")
@@ -923,3 +930,26 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"Detalle {self.id} - {self.descripcion}"
+
+
+# Configuracion de frecuencia de correos electronicos
+class EmailScheduleConfig(models.Model):
+    """
+    Configuración para la frecuencia de envío de correos con tasas de cambio.
+    """
+    frequency = models.CharField(
+        max_length=20,
+        choices=[
+            ("daily", "Diario"),
+            ("weekly", "Semanal"),
+            ("custom", "Personalizado"),
+        ],
+        default="daily"
+    )
+    hour = models.IntegerField(default=8)  # hora del día (0–23)
+    minute = models.IntegerField(default=0)  # minuto del día
+    interval_minutes = models.IntegerField(null=True, blank=True)  # solo si es "custom"
+
+    def __str__(self):
+        return f"Envío {self.frequency} a las {self.hour:02d}:{self.minute:02d}"
+
