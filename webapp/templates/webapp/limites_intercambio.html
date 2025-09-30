@@ -1,39 +1,90 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 
-{% block title %}Límites de Intercambio{% endblock %}
+{% block title %}Administrar Límites de Intercambio{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/limites_intercambio.css' %}" />
+{% endblock %}
 
 {% block content %}
-<h1>Límites de Intercambio</h1>
+<div class="limites-container">
+    <!-- Header Section -->
+    <div class="limites-header">
+        <a href="{% url 'landing' %}" class="back-button">
+            ← Volver al Panel
+        </a>
+        <h1 class="limites-title">Administrar Límites de Intercambio</h1>
+        <p class="limites-subtitle">Administra los límites de intercambio del sistema</p>
+    </div>
 
-<!-- Scroll horizontal para la tabla -->
-<div style="overflow-x: auto; max-width: 100%;">
-    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; min-width: 400px;">
-        <thead>
-            <tr style="background-color: #4CAF50; color: white;">
-                <th>Moneda</th>
-                <th>Límite Diario</th>
-                <th>Límite Mensual</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for fila in tabla %}
-            <tr>
-                <td>{{ fila.moneda.code }} - {{ fila.moneda.name }}</td>
-                {% with dec=fila.moneda.decimales_cotizacion %}
-                    <td>{{ fila.limite_dia|floatformat:dec }}</td>
-                    <td>{{ fila.limite_mes|floatformat:dec }}</td>
-                {% endwith %}
-                <td>
-                    <a href="{% url 'limite_edit' fila.moneda.id %}" 
-                       style="text-decoration: none; padding: 5px 10px; background-color: #2196F3; color: white; border-radius: 4px;">
-                        Modificar
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- Main Content -->
+    <div class="limites-content">
+        <!-- List Container -->
+        <div class="limites-list-container">
+            <h2 class="limites-list-title">Lista de Límites de Intercambio</h2>
+            
+            <!-- Search Container -->
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Buscar límites de Intercambio" id="searchInput">
+            </div>
+
+            <!-- Table Container -->
+            <div class="limites-table-container">
+                <table class="limites-table">
+                    <thead>
+                        <tr>
+                            <th>Moneda</th>
+                            <th>Límite Diario</th>
+                            <th>Límite Mensual</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fila in tabla %}
+                        <tr class="limite-row" data-currency="{{ fila.moneda.name|lower }}">
+                            <td class="currency-cell">
+                                <img src="{% static 'webapp/flags/' %}{{ fila.moneda.code|lower }}.png" 
+                                     alt="{{ fila.moneda.name }}" 
+                                     class="currency-flag"
+                                     onerror="this.style.display='none'">
+                                <span class="currency-name">{{ fila.moneda.name }}</span>
+                            </td>
+                            {% with dec=fila.moneda.decimales_cotizacion %}
+                                <td class="limit-value">{{ fila.limite_dia|floatformat:dec }}</td>
+                                <td class="limit-value">{{ fila.limite_mes|floatformat:dec }}</td>
+                            {% endwith %}
+                            <td class="actions-cell">
+                                <a href="{% url 'limite_edit' fila.moneda.id %}" class="modify-button">
+                                    Modificar
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const rows = document.querySelectorAll('.limite-row');
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        rows.forEach(row => {
+            const currencyName = row.getAttribute('data-currency');
+            if (currencyName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
