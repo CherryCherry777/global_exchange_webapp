@@ -20,7 +20,7 @@ else:
 
 #print("DB_NAME", env("DB_NAME", default="not set"))
 
-SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000/')
+SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000')
 
 # Usuario custom
 AUTH_USER_MODEL = 'webapp.CustomUser'

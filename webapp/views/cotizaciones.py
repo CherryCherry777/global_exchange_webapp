@@ -10,6 +10,9 @@ from ..decorators import role_required
 from ..models import CurrencyHistory, CustomUser, EmailScheduleConfig, Transaccion, Currency
 from decimal import Decimal, InvalidOperation
 from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
+
 
 # ---------------------------------
 # Vistas para modificar cotizaciones (Posibles vistas nuevas)
@@ -231,28 +234,23 @@ def manage_schedule(request):
 
 # Desuscribirse de los correos de tasas
 def unsubscribe(request, uidb64, token):
-    """
-    uidb64: usuario codificado (Base64)
-    token: token seguro opcional para validar la acción
-    """
     try:
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = get_object_or_404(CustomUser, pk=uid)
-        # Aquí puedes verificar un token si quieres mayor seguridad
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and user.unsubscribe_token == token:
         user.receive_exchange_emails = False
         user.save()
-        return redirect("unsubscribe_success")  # página de confirmación
-    except Exception:
-        return redirect("unsubscribe_error")
+        return redirect('unsubscribe_confirm')
+    return redirect('unsubscribe_error')
 
 def unsubscribe_confirm(request):
-    """
-    Muestra un mensaje de confirmación cuando el usuario se desuscribe correctamente.
-    """
-    return render(request, 'unsubscribe_confirm.html')
+    """Página que muestra mensaje de confirmación."""
+    return render(request, 'webapp/cotizaciones/unsubscribe_confirm.html')
+
 
 def unsubscribe_error(request):
-    """
-    Muestra un mensaje de error cuando la desuscripción falla.
-    """
-    return render(request, 'unsubscribe_error.html')
+    """Página que muestra mensaje de error en desuscripción."""
+    return render(request, 'webapp/cotizaciones/unsubscribe_error.html')

@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from ..forms import UserUpdateForm
 from ..utils import get_user_primary_role
 from ..models import Currency, Cliente
+from django.contrib.auth import update_session_auth_hash
 # -------------
 # Public views
 # -------------
@@ -77,14 +78,49 @@ def profile(request):
 
 @login_required
 def edit_profile(request):
+    user = request.user
+
     if request.method == "POST":
-        form = UserUpdateForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect("profile")
-    else:
-        form = UserUpdateForm(instance=request.user)
-    return render(request, "webapp/paginas_principales/edit_profile.html", {"form": form})
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "").strip()
+        password_confirm = request.POST.get("password_confirm", "").strip()
+        receive_emails = bool(request.POST.get("receive_exchange_emails"))
+
+        # Validaciones de unicidad
+        if username and User.objects.exclude(pk=user.pk).filter(username=username).exists():
+            messages.error(request, "El nombre de usuario ya está en uso.")
+            return redirect('edit_profile')
+        if email and User.objects.exclude(pk=user.pk).filter(email=email).exists():
+            messages.error(request, "El correo electrónico ya está en uso.")
+            return redirect('edit_profile')
+
+        # Aplicar cambios solo si el campo no está vacío
+        if first_name:
+            user.first_name = first_name
+        if last_name:
+            user.last_name = last_name
+        if username:
+            user.username = username
+        if email:
+            user.email = email
+        # Validación de contraseña
+        if password:
+            if password != password_confirm:
+                messages.error(request, "Las contraseñas no coinciden.")
+                return redirect('edit_profile')
+            user.set_password(password)
+            update_session_auth_hash(request, user)  # Mantener sesión activa
+
+        user.receive_exchange_emails = receive_emails
+
+        user.save()
+        messages.success(request, "Perfil actualizado correctamente.")
+        return redirect('profile')  # <- ahora sí va a la página de perfil
+
+    return render(request, "webapp/paginas_principales/edit_profile.html", {"user": user})
 
 # ---------------------------------
 # Vista del sector de configuración

@@ -1,4 +1,5 @@
 from decimal import Decimal
+import secrets
 from celery import shared_task
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
@@ -49,35 +50,45 @@ def send_exchange_rates_email():
     users = CustomUser.objects.filter(receive_exchange_emails=True)
 
     for user in users:
-        # Descuento del cliente relacionado
+        """
+        Envía un correo con las tasas de cambio de todas las monedas activas.
+        Incluye enlace de desuscripción persistente.
+        """
+        # Obtener descuento del cliente relacionado
         try:
             cliente_usuario = ClienteUsuario.objects.select_related("cliente__categoria").get(usuario=user)
             descuento = cliente_usuario.cliente.categoria.descuento
         except ClienteUsuario.DoesNotExist:
             descuento = Decimal("0")
 
-        # Preparar lista de monedas con precios
+        # Preparar lista de monedas (excluyendo PYG)
         currencies = []
-        for c in currencies_db:
-            if c.code != "PYG":
-                currencies.append({
-                    "name": c.name,
-                    "code": c.code,
-                    "precio_compra": f"{(c.base_price - c.comision_compra*(1-descuento)):.2f}",
-                    "precio_venta": f"{(c.base_price + c.comision_venta*(1-descuento)):.2f}"
-                })
+        for c in Currency.objects.filter(is_active=True).exclude(code="PYG"):
+            precio_compra = c.base_price - c.comision_compra * (1 - descuento)
+            precio_venta = c.base_price + c.comision_venta * (1 - descuento)
+            currencies.append({
+                "name": c.name,
+                "code": c.code,
+                "precio_compra": f"{precio_compra:.2f}",
+                "precio_venta": f"{precio_venta:.2f}"
+            })
 
-        # URL de desuscripción
+        # Generar token persistente para desuscripción
+        if not user.unsubscribe_token:
+            user.unsubscribe_token = secrets.token_urlsafe(32)
+            user.save()
+
         uidb64 = urlsafe_base64_encode(force_bytes(user.id))
-        unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/token/"
+        unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/{user.unsubscribe_token}/"
 
-        # Renderizar templates
-        text_content = render_to_string("emails/exchange_rates.txt", {"currencies": currencies, "unsubscribe_url": unsubscribe_url})
-        html_content = render_to_string("emails/exchange_rates.html", {"currencies": currencies, "unsubscribe_url": unsubscribe_url})
+        # Renderizar plantillas
+        context = {"currencies": currencies, "unsubscribe_url": unsubscribe_url}
+        text_content = render_to_string("emails/exchange_rates.txt", context)
+        html_content = render_to_string("emails/exchange_rates.html", context)
 
         # Enviar email
         subject = "Simulador - Tasas de cambio"
         from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
-        email_message = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
-        email_message.attach_alternative(html_content, "text/html")
-        email_message.send(fail_silently=False)
+        email = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
+        email.attach_alternative(html_content, "text/html")
+        email.send(fail_silently=False)

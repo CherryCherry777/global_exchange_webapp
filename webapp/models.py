@@ -26,6 +26,8 @@ class CustomUser(AbstractUser):
         verbose_name="Recibir notificaciones de tasas de cambio"
     )
 
+    unsubscribe_token = models.CharField(max_length=64, blank=True, null=True)
+
     class Meta:
         permissions = [
             ("access_admin_panel", "Can access admin panel")

@@ -31,8 +31,8 @@ class CustomLoginView(LoginView):
                 return redirect("mfa_verify")
             else:
                 #login directo
-                if settings.DEBUG and settings.CORREO_TASAS_LOGIN:
-                    send_exchange_rates_email_debug(user.email, user)  # envia un correo de prueba con las tasas actuales
+                if settings.DEBUG and settings.CORREO_TASAS_LOGIN and user.receive_exchange_emails:
+                    send_exchange_rates_email_debug(user)  # envia un correo de prueba con las tasas actuales
                 login(self.request, user, backend="django.contrib.auth.backends.ModelBackend")
                 return redirect(self.get_success_url())
         return super().form_invalid(form)
