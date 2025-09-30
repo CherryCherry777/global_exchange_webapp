@@ -25,7 +25,7 @@ def manage_categories(request):
         "total_categories": total_categories,
     }
     
-    return render(request, "webapp/manage_categories.html", context)
+    return render(request, "webapp/categorias/manage_categories.html", context)
 
 
 @login_required
@@ -77,7 +77,7 @@ def modify_category(request, category_id):
         "categoria": categoria,
     }
     
-    return render(request, "webapp/modify_category.html", context)
+    return render(request, "webapp/categorias/modify_category.html", context)
 
 
 # -------------------------------------------
@@ -121,4 +121,4 @@ def manage_categories(request):
 
     # GET
     categorias = Categoria.objects.all()
-    return render(request, "webapp/manage_categories.html", {"categorias": categorias})
+    return render(request, "webapp/categorias/manage_categories.html", {"categorias": categorias})

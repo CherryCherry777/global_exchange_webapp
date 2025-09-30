@@ -17,7 +17,7 @@ def compraventa_view(request):
     if not cliente_id:
         # Agregar mensaje de error
         messages.error(request, "No hay cliente seleccionado")
-        # Redirigir a la página change_client.html
+        # Redirigir a la página change_client
         return redirect("change_client") 
 
     cliente = get_object_or_404(Cliente, id=cliente_id)
@@ -76,9 +76,9 @@ def compraventa_view(request):
         }
 
         request.session["form_data"] = data
-        return render(request, "webapp/confirmation_compraventa.html", {"data": data})
+        return render(request, "webapp/compraventa_y_conversion/confirmation_compraventa.html", {"data": data})
 
-    return render(request, "webapp/compraventa.html")
+    return render(request, "webapp/compraventa_y_conversion/compraventa.html")
 
 
 def get_metodos_pago_cobro(request):
@@ -242,7 +242,7 @@ def transaccion_list(request):
         "cliente", "usuario", "moneda_origen", "moneda_destino", "factura_asociada"
     ).filter(cliente_id=cliente_id)  # Filtramos por el cliente de la sesión
 
-    return render(request, "webapp/historial_transacciones.html", {"transacciones": transacciones})
+    return render(request, "webapp/compraventa_y_conversion/historial_transacciones.html", {"transacciones": transacciones})
 
 
 # ----------------------

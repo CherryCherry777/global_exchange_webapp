@@ -30,7 +30,7 @@ def my_payment_methods(request):
     for medio in medios_pago:
         medio.activo_global = tipos_pago.get(medio.tipo, False)
 
-    return render(request, "webapp/my_payment_methods.html", {
+    return render(request, "webapp/metodos_pago_cliente/my_payment_methods.html", {
         "medios_pago": medios_pago
     })
 
@@ -83,7 +83,7 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
                 if not moneda_id:
                     messages.error(request, "Debe seleccionar una moneda")
                     monedas = Currency.objects.filter(activo=True)
-                    return render(request, "webapp/manage_payment_method_base.html", {
+                    return render(request, "webapp/metodos_pago_cliente/manage_payment_method_base.html", {
                         "tipo": tipo,
                         "form": form,
                         "medio_pago_form": medio_pago_form,
@@ -109,7 +109,7 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
 
     monedas = Currency.objects.filter(is_active=True)
 
-    return render(request, "webapp/manage_payment_method_base.html", {
+    return render(request, "webapp/metodos_pago_cliente/manage_payment_method_base.html", {
         "tipo": tipo,
         "form": form,
         "medio_pago_form": medio_pago_form,
@@ -134,7 +134,7 @@ def confirm_delete_payment_method(request, medio_pago_id):
         messages.success(request, f"Medio de pago '{medio_pago.nombre}' eliminado correctamente")
         return redirect('my_payment_methods')
 
-    return render(request, "webapp/confirm_delete_payment_method.html", {
+    return render(request, "webapp/metodos_pago_cliente/confirm_delete_payment_method.html", {
         "medio_pago": medio_pago,
         "tipo": tipo
     })

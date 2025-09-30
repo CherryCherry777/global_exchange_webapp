@@ -47,7 +47,7 @@ def manage_currencies(request):
         "active_currencies": active_currencies,
     }
     
-    return render(request, "webapp/manage_currencies.html", context)
+    return render(request, "webapp/monedas/manage_currencies.html", context)
 
 
 @login_required
@@ -107,7 +107,7 @@ def create_currency(request):
             messages.error(request, "Error al crear la moneda.")
             return redirect("create_currency")
     
-    return render(request, "webapp/create_currency.html")
+    return render(request, "webapp/monedas/create_currency.html")
 
 
 @login_required
@@ -173,7 +173,7 @@ def modify_currency(request, currency_id):
         "currency": currency,
     }
     
-    return render(request, "webapp/modify_currency.html", context)
+    return render(request, "webapp/monedas/modify_currency.html", context)
 
 
 # ----------------
@@ -195,7 +195,7 @@ def create_currency(request):
         # Validar que el código no exista
         if Currency.objects.filter(code=code.upper()).exists():
             messages.error(request, 'El código de moneda ya existe.')
-            return render(request, 'webapp/create_currency.html')
+            return render(request, 'webapp/monedas/create_currency.html')
 
         # Crear la moneda
         Currency.objects.create(
@@ -211,7 +211,7 @@ def create_currency(request):
         return redirect('manage_currencies')
 
     # GET request - mostrar formulario
-    return render(request, 'webapp/create_currency.html')
+    return render(request, 'webapp/monedas/create_currency.html')
 
 @login_required
 def edit_currency(request, currency_id):
@@ -227,7 +227,7 @@ def edit_currency(request, currency_id):
             currency.decimales_monto = int(request.POST.get('decimales_monto'))
         except (InvalidOperation, ValueError):
             messages.error(request, "Uno de los valores numéricos ingresados no es válido.")
-            return render(request, 'webapp/edit_currency.html', {'currency': currency})
+            return render(request, 'webapp/monedas/edit_currency.html', {'currency': currency})
 
         # Checkbox activo
         currency.is_active = bool(request.POST.get('is_active'))
@@ -241,7 +241,7 @@ def edit_currency(request, currency_id):
         messages.success(request, 'Moneda actualizada exitosamente.')
         return redirect('manage_currencies')
 
-    return render(request, 'webapp/edit_currency.html', {'currency': currency})
+    return render(request, 'webapp/monedas/edit_currency.html', {'currency': currency})
 
 @login_required
 def toggle_currency(request):

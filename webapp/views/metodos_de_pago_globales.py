@@ -26,7 +26,7 @@ def manage_payment_methods(request):
         "total_payment_methods": total_payment_methods,
     }
     
-    return render(request, "webapp/manage_payment_methods.html", context)
+    return render(request, "webapp/metodos_pago_globales/manage_payment_methods.html", context)
 
 
 @login_required
@@ -77,7 +77,7 @@ def modify_payment_method(request, payment_method_id):
         "payment_method": payment_method,
     }
     
-    return render(request, "webapp/modify_payment_method.html", context)
+    return render(request, "webapp/metodos_pago_globales/modify_payment_method.html", context)
 
 
 # -----------------------------------------
@@ -87,7 +87,7 @@ def modify_payment_method(request, payment_method_id):
 @login_required
 def payment_types_list(request):
     tipos = TipoPago.objects.all().order_by("nombre")
-    return render(request, "webapp/payment_types_list.html", {"tipos": tipos})
+    return render(request, "webapp/metodos_pago_globales/payment_types_list.html", {"tipos": tipos})
 
 @login_required
 def edit_payment_type(request, tipo_id):
@@ -99,4 +99,4 @@ def edit_payment_type(request, tipo_id):
             return redirect("payment_types_list")
     else:
         form = TipoPagoForm(instance=tipo)
-    return render(request, "webapp/edit_payment_type.html", {"form": form, "tipo": tipo})
+    return render(request, "webapp/metodos_pago_globales/edit_payment_type.html", {"form": form, "tipo": tipo})

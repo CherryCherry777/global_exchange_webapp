@@ -13,12 +13,12 @@ from ..decorators import role_required
 
 class UserListView(ListView):
     model = User
-    template_name = 'webapp/user_list.html'
+    template_name = 'webapp/usuarios/user_list.html'
     context_object_name = 'users'
 
 class UserCreateView(CreateView):
     model = User
-    template_name = 'webapp/user_form.html'
+    template_name = 'webapp/usuarios/user_form.html'
     fields = ['username', 'password', 'email', 'first_name', 'last_name']
     success_url = reverse_lazy('user_list')
 
@@ -29,13 +29,13 @@ class UserCreateView(CreateView):
 
 class UserUpdateView(UpdateView):
     model = User
-    template_name = 'webapp/user_form.html'
+    template_name = 'webapp/usuarios/user_form.html'
     fields = ['username', 'email', 'first_name', 'last_name']
     success_url = reverse_lazy('user_list')
 
 class UserDeleteView(DeleteView):
     model = User
-    template_name = 'webapp/user_confirm_delete.html'
+    template_name = 'webapp/usuarios/user_confirm_delete.html'
     success_url = reverse_lazy('user_list')
 
 
@@ -90,7 +90,7 @@ def manage_users(request):
         "active_users": active_users,
     }
     
-    return render(request, "webapp/manage_users.html", context)
+    return render(request, "webapp/usuarios/manage_users.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -150,7 +150,7 @@ def confirm_delete_user(request, user_id):
         user_obj.delete()
         messages.success(request, f"Usuario '{user_obj.username}' eliminado exitosamente!")
         return redirect("manage_users")
-    return render(request, "webapp/confirm_delete_user.html", {"user_obj": user_obj})
+    return render(request, "webapp/usuarios/confirm_delete_user.html", {"user_obj": user_obj})
 
 
 @login_required
@@ -171,7 +171,7 @@ def modify_users(request, user_id):
                 messages.error(request, f"El nombre de usuario '{new_username}' ya existe. Por favor, elige otro.")
                 roles = Group.objects.all()
                 user_roles = {g.name for g in user_obj.groups.all()}
-                return render(request, "webapp/modify_users.html", {
+                return render(request, "webapp/usuarios/modify_users.html", {
                     "user_obj": user_obj,
                     "roles": roles,
                     "user_roles": user_roles,
@@ -184,7 +184,7 @@ def modify_users(request, user_id):
                 messages.error(request, f"El email '{new_email}' ya está en uso. Por favor, elige otro.")
                 roles = Group.objects.all()
                 user_roles = {g.name for g in user_obj.groups.all()}
-                return render(request, "webapp/modify_users.html", {
+                return render(request, "webapp/usuarios/modify_users.html", {
                     "user_obj": user_obj,
                     "roles": roles,
                     "user_roles": user_roles,
@@ -203,7 +203,7 @@ def modify_users(request, user_id):
             messages.error(request, f"Error al guardar los cambios: {str(e)}")
             roles = Group.objects.all()
             user_roles = {g.name for g in user_obj.groups.all()}
-            return render(request, "webapp/modify_users.html", {
+            return render(request, "webapp/usuarios/modify_users.html", {
                 "user_obj": user_obj,
                 "roles": roles,
                 "user_roles": user_roles,
@@ -233,7 +233,7 @@ def modify_users(request, user_id):
     roles = Group.objects.all()
     user_roles = {g.name for g in user_obj.groups.all()}
 
-    return render(request, "webapp/modify_users.html", {
+    return render(request, "webapp/usuarios/modify_users.html", {
         "user_obj": user_obj,
         "roles": roles,
         "user_roles": user_roles,

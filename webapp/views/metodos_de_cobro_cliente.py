@@ -31,7 +31,7 @@ def my_cobro_methods(request):
     for medio in medios_cobro:
         medio.activo_global = tipos_pago.get(medio.tipo, False)
 
-    return render(request, "webapp/my_cobro_methods.html", {
+    return render(request, "webapp/metodos_cobro_cliente/my_cobro_methods.html", {
         "medios_cobro": medios_cobro
     })
 
@@ -112,7 +112,7 @@ def manage_cobro_method(request, tipo, **kwargs):
                 if not moneda_id:
                     messages.error(request, "Debe seleccionar una moneda")
                     monedas = Currency.objects.filter(is_active=True)
-                    return render(request, "webapp/manage_cobro_method_base.html", {
+                    return render(request, "webapp/metodos_cobro_cliente/manage_cobro_method_base.html", {
                         "tipo": tipo,
                         "form": form,
                         "medio_cobro_form": medio_cobro_form,
@@ -138,7 +138,7 @@ def manage_cobro_method(request, tipo, **kwargs):
 
     monedas = Currency.objects.filter(is_active=True)
 
-    return render(request, "webapp/manage_cobro_method_base.html", {
+    return render(request, "webapp/metodos_cobro_cliente/manage_cobro_method_base.html", {
         "tipo": tipo,
         "form": form,
         "medio_cobro_form": medio_cobro_form,
@@ -164,7 +164,7 @@ def confirm_delete_cobro_method(request, medio_cobro_id):
         messages.success(request, f"Método de cobro '{medio_cobro.nombre}' eliminado correctamente")
         return redirect('my_cobro_methods')
 
-    return render(request, "webapp/confirm_delete_cobro_method.html", {
+    return render(request, "webapp/metodos_cobro_cliente/confirm_delete_cobro_method.html", {
         "medio_cobro": medio_cobro,
         "tipo": tipo
     })

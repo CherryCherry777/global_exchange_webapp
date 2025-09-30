@@ -13,7 +13,7 @@ from ..models import Entidad
 def entidad_list(request):
     entidades = Entidad.objects.all().order_by("nombre")
     entidades_activas = Entidad.objects.filter(activo=True).count()
-    return render(request, "webapp/entidad_list.html", {
+    return render(request, "webapp/entidades_pago_cobro/entidad_list.html", {
         "entidades": entidades,
         "entidades_activas": entidades_activas
     })
@@ -30,7 +30,7 @@ def entidad_create(request):
     else:
         form = EntidadForm()
 
-    return render(request, "webapp/entidad_form.html", {"form": form})
+    return render(request, "webapp/entidades_pago_cobro/entidad_form.html", {"form": form})
 
 
 @login_required
@@ -46,7 +46,7 @@ def entidad_update(request, pk):
     else:
         form = EntidadEditForm(instance=entidad)
 
-    return render(request, "webapp/entidad_form.html", {"form": form, "entidad": entidad})
+    return render(request, "webapp/entidades_pago_cobro/entidad_form.html", {"form": form, "entidad": entidad})
 
 
 @login_required

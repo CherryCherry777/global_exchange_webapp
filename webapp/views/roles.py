@@ -54,7 +54,7 @@ def modify_users(request, user_id):
         "user_roles": user_roles,
     }
     
-    return render(request, "webapp/modify_user.html", context)
+    return render(request, "webapp/roles/modify_user.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -129,7 +129,7 @@ def manage_roles(request):
         "active_roles": active_roles,
     }
     
-    return render(request, "webapp/manage_roles.html", context)
+    return render(request, "webapp/roles/manage_roles.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -182,7 +182,7 @@ def modify_role(request, role_id):
         "all_permissions": all_permissions,
     }
     
-    return render(request, "webapp/modify_role.html", context)
+    return render(request, "webapp/roles/modify_role.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -225,7 +225,7 @@ def create_role(request):
         "all_permissions": all_permissions,
     }
     
-    return render(request, "webapp/create_role.html", context)
+    return render(request, "webapp/roles/create_role.html", context)
 
 
 # ------------------------------------------------------------
@@ -264,7 +264,7 @@ def confirm_delete_role(request, role_id):
         messages.success(request, f"El rol '{role.name}' fue eliminado exitosamente.")
         return redirect("manage_roles")
 
-    return render(request, "webapp/confirm_delete_role.html", {"role": role})
+    return render(request, "webapp/roles/confirm_delete_role.html", {"role": role})
 
 
 @login_required

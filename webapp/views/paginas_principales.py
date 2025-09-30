@@ -30,7 +30,7 @@ def public_home(request):
     
     is_guest = not request.user.is_authenticated
 
-    return render(request, "webapp/home.html", {
+    return render(request, "webapp/paginas_principales/home.html", {
         "can_access_gestiones": can_access_gestiones,
         "currencies": currencies,
         "last_update": last_update,
@@ -63,7 +63,7 @@ def change_client(request):
     from ..context_processors import clientes_disponibles
     clientes_context = clientes_disponibles(request)
     
-    return render(request, "webapp/change_client.html", {
+    return render(request, "webapp/paginas_principales/change_client.html", {
         "clientes_disponibles": clientes_context["clientes_disponibles"]
     })
 
@@ -73,7 +73,7 @@ def change_client(request):
 
 @login_required
 def profile(request):
-    return render(request, "webapp/profile.html", {"user": request.user})
+    return render(request, "webapp/paginas_principales/profile.html", {"user": request.user})
 
 @login_required
 def edit_profile(request):
@@ -84,7 +84,7 @@ def edit_profile(request):
             return redirect("profile")
     else:
         form = UserUpdateForm(instance=request.user)
-    return render(request, "webapp/edit_profile.html", {"form": form})
+    return render(request, "webapp/paginas_principales/edit_profile.html", {"form": form})
 
 # ---------------------------------
 # Vista del sector de configuración
@@ -108,4 +108,4 @@ def landing_page(request):
         "clientes_activos": clientes_activos,
     }
     
-    return render(request, "webapp/landing.html", context)
+    return render(request, "webapp/paginas_principales/landing.html", context)

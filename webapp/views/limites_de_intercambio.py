@@ -26,7 +26,7 @@ def limites_intercambio_list(request):
             'limite_mes': limite.limite_mes
         })
 
-    return render(request, 'webapp/limites_intercambio.html', {
+    return render(request, 'webapp/limites_intercambio/limites_intercambio.html', {
         'tabla': tabla
     })
 
@@ -62,7 +62,7 @@ def limite_edit(request, moneda_id):
             messages.success(request, "Límites actualizados correctamente.")
             return redirect("limites_list")
 
-    return render(request, "webapp/limite_edit.html", {
+    return render(request, "webapp/limites_intercambio/limite_edit.html", {
         "moneda": moneda,
         "limite": limite
     })

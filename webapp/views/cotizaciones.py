@@ -51,7 +51,7 @@ def manage_quotes(request):
         "active_quotes": active_quotes,
     }
     
-    return render(request, "webapp/manage_quotes.html", context)
+    return render(request, "webapp/cotizaciones/manage_quotes.html", context)
 
 
 @login_required
@@ -121,7 +121,7 @@ def modify_quote(request, currency_id):
         "currency": currency,
     }
     
-    return render(request, "webapp/modify_quote.html", context)
+    return render(request, "webapp/cotizaciones/modify_quote.html", context)
 
 
 # --------------------
@@ -132,7 +132,7 @@ def prices_list(request):
     currencies = Currency.objects.all()
     total = currencies.count()
     activas = currencies.filter(is_active=True).count()
-    return render(request, "webapp/prices_list.html", {
+    return render(request, "webapp/cotizaciones/prices_list.html", {
         "currencies": currencies,
         "total": total,
         "activas": activas,
@@ -151,7 +151,7 @@ def edit_prices(request, currency_id):
             
         except (InvalidOperation, ValueError):
             messages.error(request, "Uno de los valores numéricos ingresados no es válido.")
-            return render(request, 'webapp/edit_prices.html', {'currency': currency})
+            return render(request, 'webapp/cotizaciones/edit_prices.html', {'currency': currency})
 
 
         # Guardar
@@ -159,7 +159,7 @@ def edit_prices(request, currency_id):
         messages.success(request, 'Cotización actualizada exitosamente.')
         return redirect('prices_list')
 
-    return render(request, 'webapp/edit_prices.html', {'currency': currency})
+    return render(request, 'webapp/cotizaciones/edit_prices.html', {'currency': currency})
 
 
 # ----------------------------------------
@@ -208,4 +208,4 @@ def api_currency_history(request):
 
 @login_required
 def historical_view(request):
-    return render(request, "webapp/historical.html")
+    return render(request, "webapp/cotizaciones/historical.html")

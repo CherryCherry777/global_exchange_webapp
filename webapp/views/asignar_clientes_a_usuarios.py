@@ -28,7 +28,7 @@ def view_client(request, client_id):
         "usuarios_asignados": usuarios_asignados,
     }
     
-    return render(request, "webapp/view_client.html", context)
+    return render(request, "webapp/asignar_clientes_a_usuarios/view_client.html", context)
 
 
 @login_required
@@ -88,7 +88,7 @@ def assign_clients(request):
         "total_clients": total_clients,
     }
     
-    return render(request, "webapp/assign_clients.html", context)
+    return render(request, "webapp/asignar_clientes_a_usuarios/assign_clients.html", context)
 
 
 # --------------------------------------------
@@ -115,7 +115,7 @@ def asignar_cliente_usuario(request):
     
     asignaciones = ClienteUsuario.objects.select_related('cliente', 'usuario').all().order_by('-fecha_asignacion')
     
-    return render(request, 'webapp/asignar_cliente_usuario.html', {
+    return render(request, 'webapp/asignar_clientes_a_usuarios/asignar_cliente_usuario.html', {
         'form': form,
         'asignaciones': asignaciones
     })

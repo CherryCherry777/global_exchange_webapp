@@ -65,7 +65,7 @@ def manage_user_roles(request):
         "total_roles": total_roles,
     }
     
-    return render(request, "webapp/manage_user_roles.html", context)
+    return render(request, "webapp/roles_usuarios/manage_user_roles.html", context)
 
 
 @login_required
@@ -73,7 +73,7 @@ def manage_user_roles(request):
 def user_role_list(request):
     users = User.objects.all().prefetch_related("groups")
     all_roles = Group.objects.all()
-    return render(request, "webapp/manage_user_roles.html", {
+    return render(request, "webapp/roles_usuarios/manage_user_roles.html", {
         "users": users,
         "all_roles": all_roles,
     })

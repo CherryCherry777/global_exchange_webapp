@@ -11,7 +11,7 @@ from ..forms import RegistrationForm, LoginForm
 from .constants import *
 
 class CustomLoginView(LoginView):
-    template_name = "webapp/login.html"
+    template_name = "webapp/auth/login.html"
     form_class = LoginForm
 
     def get_success_url(self):
@@ -51,7 +51,7 @@ def register(request):
     else:
         form = RegistrationForm()
 
-    return render(request, "webapp/register.html", {"form": form})
+    return render(request, "webapp/auth/register.html", {"form": form})
 
 def verify_email(request, uidb64, token):
     try:
@@ -83,4 +83,4 @@ def resend_verification_email(request):
             messages.error(request, "No se encontró una cuenta con este correo electrónico.")
         return redirect("login")
     
-    return render(request, "webapp/resend_verification.html")
+    return render(request, "webapp/auth/resend_verification.html")

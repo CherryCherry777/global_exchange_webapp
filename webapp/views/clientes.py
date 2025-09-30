@@ -54,7 +54,7 @@ def manage_clientes(request):
         'total_categorias': total_categorias,
     }
     
-    return render(request, "webapp/manage_clients.html", context)
+    return render(request, "webapp/clientes/manage_clients.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -108,7 +108,7 @@ def modify_client(request, client_id):
         "categorias": categorias,
     }
     
-    return render(request, "webapp/modify_client.html", context)
+    return render(request, "webapp/clientes/modify_client.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -184,7 +184,7 @@ def create_client(request):
         "tipo_choices": tipo_choices,
     }
     
-    return render(request, "webapp/create_client.html", context)
+    return render(request, "webapp/clientes/create_client.html", context)
 
 @login_required
 @role_required("Administrador")
@@ -199,7 +199,7 @@ def create_cliente(request):
     else:
         form = ClienteForm()
     
-    return render(request, "webapp/cliente_form.html", {
+    return render(request, "webapp/clientes/cliente_form.html", {
         'form': form,
         'title': 'Crear Cliente',
         'action': 'create'
@@ -220,7 +220,7 @@ def update_cliente(request, cliente_id):
     else:
         form = ClienteUpdateForm(instance=cliente)
     
-    return render(request, "webapp/cliente_form.html", {
+    return render(request, "webapp/clientes/cliente_form.html", {
         'form': form,
         'title': 'Editar Cliente',
         'action': 'update',
@@ -239,7 +239,7 @@ def delete_cliente(request, cliente_id):
         messages.success(request, f"Cliente '{cliente_nombre}' eliminado exitosamente.")
         return redirect("manage_clientes")
     
-    return render(request, "webapp/confirm_delete_cliente.html", {'cliente': cliente})
+    return render(request, "webapp/clientes/confirm_delete_cliente.html", {'cliente': cliente})
 
 @login_required
 @role_required("Administrador")
@@ -255,7 +255,7 @@ def view_cliente(request, cliente_id):
         'usuarios_asignados': usuarios_asignados,
     }
     
-    return render(request, "webapp/view_cliente.html", context)
+    return render(request, "webapp/clientes/view_cliente.html", context)
 
 # --------------------------------------------
 # Vista para inactivar un cliente
