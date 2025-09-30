@@ -7,7 +7,7 @@ from django.contrib.auth.tokens import default_token_generator
 import random
 
 from web_project import settings
-from webapp.models import Currency
+from webapp.models import Currency, ClienteUsuario
 
 def send_activation_email(request, user):
     token = default_token_generator.make_token(user)
@@ -35,7 +35,31 @@ def send_activation_email(request, user):
         html_message=html_body,
     )
 
-def send_exchange_rates_email(to_email):
+def send_mfa_login_email(request, user):
+    code = f"{random.randint(100000,999999)}"
+    request.session["mfa_code"] = code
+    request.session["mfa_user_id"] = user.id
+
+    context = {
+        "user": user,
+        "project_name": "Global Exchange",
+        "code" : code
+    }
+
+    subject = "Código de verificación MFA - Global Exchange"
+    text_body = render_to_string("emails/mfa_login.txt", context)
+    html_body = render_to_string("emails/mfa_login.html", context)
+
+    # Usa DEFAULT_FROM_EMAIL ya definido en settings
+    send_mail(
+        subject=subject,
+        message=text_body,
+        from_email=None,
+        recipient_list=[user.email],
+        html_message=html_body,
+    )
+
+def send_exchange_rates_email_debug(to_email, user_id):
     """
     Envía un correo con las tasas de cambio de todas las monedas activas.
     Funciona tanto en modo debug (ejecutado al login) como en producción (ejecutado con Celery).
@@ -43,10 +67,33 @@ def send_exchange_rates_email(to_email):
     # Traemos las monedas activas
     currencies = Currency.objects.filter(is_active=True)
 
+    """
+    # Aplicar fórmulas según descuento del cliente
+        venta = base + (com_venta * (1 - descuento))
+        compra = base - (com_compra * (1 - descuento))
+
+    # Obtener usuarios asignados a este cliente
+    usuarios_asignados = ClienteUsuario.objects.filter(cliente=cliente).select_related('usuario')
+   
+    """
+    try:
+        cliente_usuario = ClienteUsuario.objects.select_related("cliente__categoria").get(usuario_id=user_id)
+        descuento = cliente_usuario.cliente.categoria.descuento
+    except ClienteUsuario.DoesNotExist:
+        descuento = 0
+
+    width = 30
     # Construimos el mensaje
-    lines = ["Tasas de cambio actuales:\n"]
+    lines = [f"|{'Moneda':^{width}}|{'Compra (Gs)':^{width}}|{'Venta (Gs)':^{width}}|"]
+
+    
     for currency in currencies:
-        lines.append(f"- {currency.name}: {currency.exchange_rate}")
+        if str(currency.code) != 'PYG':
+            print("Codigo de "+ currency.name + ":" + currency.code)
+            precio_venta = currency.base_price + (currency.comision_venta * (1-descuento))
+            precio_compra = currency.base_price - (currency.comision_compra * (1-descuento))
+            lines.append(f"|{currency.name:^{width}}|{precio_compra:^{width}.2f}|{precio_venta:^{width}.2f}|")
+
 
     message = "\n".join(lines)
 
