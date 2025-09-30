@@ -1,4 +1,4 @@
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode
@@ -82,32 +82,33 @@ def send_exchange_rates_email_debug(to_email, user_id):
     except ClienteUsuario.DoesNotExist:
         descuento = 0
 
-    width = 30
-    # Construimos el mensaje
-    lines = [f"|{'Moneda':^{width}}|{'Compra (Gs)':^{width}}|{'Venta (Gs)':^{width}}|"]
-
-    
+    # Datos para la plantilla
+    rows = []
     for currency in currencies:
-        if str(currency.code) != 'PYG':
-            print("Codigo de "+ currency.name + ":" + currency.code)
-            precio_venta = currency.base_price + (currency.comision_venta * (1-descuento))
-            precio_compra = currency.base_price - (currency.comision_compra * (1-descuento))
-            lines.append(f"|{currency.name:^{width}}|{precio_compra:^{width}.2f}|{precio_venta:^{width}.2f}|")
+        code = (currency.code or "").strip().upper()
+        if code == "PYG":
+            continue  # saltamos PYG
+        precio_venta = currency.base_price + (currency.comision_venta * (1 - descuento))
+        precio_compra = currency.base_price - (currency.comision_compra * (1 - descuento))
+        rows.append({
+            "name": currency.name,
+            "code": code,
+            "compra": f"{precio_compra:.2f}",
+            "venta": f"{precio_venta:.2f}",
+        })
 
+    context = {
+        "rows": rows,
+        "user_email": to_email,
+        "project_name": "Global Exchange",
+    }
 
-    message = "\n".join(lines)
-
-    # Asunto configurable
-    subject = "Simulador - Tasas de cambio"
-
-    # Dirección de envío (usa settings.DEFAULT_FROM_EMAIL)
+    subject = "Tasas de cambio - Global Exchange"
     from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
 
-    # Enviamos correo
-    send_mail(
-        subject,
-        message,
-        from_email,
-        [to_email],
-        fail_silently=False,
-    )
+    text_body = render_to_string("emails/exchange_rates.txt", context)
+    html_body = render_to_string("emails/exchange_rates.html", context)
+
+    msg = EmailMultiAlternatives(subject, text_body, from_email, [to_email])
+    msg.attach_alternative(html_body, "text/html")
+    msg.send()

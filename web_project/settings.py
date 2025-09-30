@@ -126,5 +126,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 #Para activar/desactivar MFA en login
 MFA_LOGIN = env.bool('MFA_LOGIN', default=True)
 
-#Intervalo (en minutos) de tiempo de envio de correo de tasas
-SEND_RATES_INTERVAL = int(os.getenv("SEND_RATES_INTERVAL", 60))  # por defecto cada 60 min
+# envio de correos electronicos de tasas de cambio
+CELERY_BEAT_SCHEDULE = {
+    "send-daily-exchange-rates": {
+        "task": "webapp.tasks.send_daily_exchange_rates",
+        "schedule": crontab(hour=8, minute=0),  # todos los días a las 08:00
+    },
+}

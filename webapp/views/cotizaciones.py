@@ -209,3 +209,5 @@ def api_currency_history(request):
 @login_required
 def historical_view(request):
     return render(request, "webapp/cotizaciones/historical.html")
+
+

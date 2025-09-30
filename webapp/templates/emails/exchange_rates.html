@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; color: #333; }
+    h2 { color: #004aad; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 8px 12px; border: 1px solid #ddd; text-align: center; }
+    th { background-color: #004aad; color: white; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <h2>Tasas de cambio de hoy</h2>
+  <p>Hola {{ user_email }}, estas son las tasas actuales en <strong>{{ project_name }}</strong>:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Moneda</th>
+        <th>Código</th>
+        <th>Compra</th>
+        <th>Venta</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.name }}</td>
+        <td>{{ row.code }}</td>
+        <td>{{ row.compra }}</td>
+        <td>{{ row.venta }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p style="margin-top:20px;">Saludos,<br>Equipo {{ project_name }}</p>
+</body>
+</html>
