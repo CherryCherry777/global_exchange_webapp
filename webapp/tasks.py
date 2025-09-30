@@ -4,21 +4,42 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
-from .models import Currency, ClienteUsuario
+from .models import Currency, ClienteUsuario, EmailScheduleConfig
 
+from django.utils import timezone
+from .tasks import send_exchange_rates_email
 
 @shared_task
-def send_daily_exchange_rates():
+def check_and_send_exchange_rates():
     """
-    Envía las tasas de cambio a todos los usuarios activos.
-    Se ejecuta automáticamente cada día a las 8:00 AM (configurado en Celery Beat).
+    Se ejecuta cada minuto. Verifica la configuración guardada y decide si mandar correo.
     """
+    try:
+        config = EmailScheduleConfig.objects.first()
+    except EmailScheduleConfig.DoesNotExist:
+        return  # si no hay config, no hace nada
+
+    now = timezone.localtime()
+
+    # Caso diario
+    if config.frequency == "daily" and now.hour == config.hour and now.minute == config.minute:
+        _send_to_all_users()
+
+    # Caso semanal (ej: domingo a las 8:00)
+    elif config.frequency == "weekly" and now.weekday() == 0 and now.hour == config.hour and now.minute == config.minute:
+        _send_to_all_users()
+
+    # Caso personalizado
+    elif config.frequency == "custom" and config.interval_minutes:
+        if now.minute % config.interval_minutes == 0:
+            _send_to_all_users()
+
+
+def _send_to_all_users():
+    from django.contrib.auth import get_user_model
     User = get_user_model()
-    users = User.objects.filter(is_active=True).exclude(email="")
-
-    for user in users:
+    for user in User.objects.filter(is_active=True).exclude(email=""):
         send_exchange_rates_email(user.email, user.id)
-
 
 def send_exchange_rates_email(to_email, user_id):
     """

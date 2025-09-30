@@ -7,7 +7,7 @@ from django.views.decorators.http import require_GET
 from django.utils.timezone import now, timedelta
 from django.db.models import Q
 from ..decorators import role_required
-from ..models import CurrencyHistory, Transaccion, Currency
+from ..models import CurrencyHistory, EmailScheduleConfig, Transaccion, Currency
 from decimal import Decimal, InvalidOperation
 
 # ---------------------------------
@@ -211,3 +211,19 @@ def historical_view(request):
     return render(request, "webapp/cotizaciones/historical.html")
 
 
+# Configuracion de frecuencia de emails de cotizaciones de tasas
+def manage_schedule(request):
+    config, _ = EmailScheduleConfig.objects.get_or_create(pk=1)
+
+    if request.method == "POST":
+        config.frequency = request.POST.get("frequency")
+        config.hour = int(request.POST.get("hour", 8))
+        config.minute = int(request.POST.get("minute", 0))
+        if config.frequency == "custom":
+            config.interval_minutes = int(request.POST.get("interval_minutes", 60))
+        else:
+            config.interval_minutes = None
+        config.save()
+        return redirect("manage_schedule")
+
+    return render(request, "webapp/cotizaciones/manage_schedule.html", {"config": config})

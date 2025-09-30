@@ -1,0 +1,33 @@
+{% extends 'webapp/base.html' %}
+<h2>Configurar frecuencia de envío</h2>
+<form method="post">
+    {% csrf_token %}
+    <label>Frecuencia:</label>
+    <select name="frequency">
+        <option value="daily" {% if config.frequency == "daily" %}selected{% endif %}>Diario</option>
+        <option value="weekly" {% if config.frequency == "weekly" %}selected{% endif %}>Semanal</option>
+        <option value="custom" {% if config.frequency == "custom" %}selected{% endif %}>Personalizado</option>
+    </select>
+    <br>
+
+    <label>Hora:</label>
+    <input type="number" name="hour" value="{{ config.hour }}" min="0" max="23">
+    <label>Minuto:</label>
+    <input type="number" name="minute" value="{{ config.minute }}" min="0" max="59">
+    <br>
+
+    <div id="custom-settings" {% if config.frequency != "custom" %}style="display:none"{% endif %}>
+        <label>Intervalo (minutos):</label>
+        <input type="number" name="interval_minutes" value="{{ config.interval_minutes }}">
+    </div>
+
+    <br>
+    <button type="submit">Guardar</button>
+</form>
+
+<script>
+document.querySelector("select[name='frequency']").addEventListener("change", function(){
+    document.getElementById("custom-settings").style.display =
+        this.value === "custom" ? "block" : "none";
+});
+</script>
