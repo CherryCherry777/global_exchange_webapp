@@ -25,7 +25,7 @@ class CustomLoginView(LoginView):
         """
         user = form.get_user()
         if user and user.is_active:
-            if getattr(settings, "MFA_LOGIN", True) and settings.DEBUG:
+            if (getattr(settings, "MFA_LOGIN", True) and settings.DEBUG) or (not settings.DEBUG):
                 send_mfa_login_email(self.request, user)
                 self.request.session["mfa_user_id"] = user.id
                 return redirect("mfa_verify")
