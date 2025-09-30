@@ -1,13 +1,16 @@
+from decimal import Decimal
 from celery import shared_task
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
-from .models import Currency, ClienteUsuario, EmailScheduleConfig
+from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig
 
 from django.utils import timezone
-from .tasks import send_exchange_rates_email
+
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 
 @shared_task
 def check_and_send_exchange_rates():
@@ -38,49 +41,43 @@ def check_and_send_exchange_rates():
 def _send_to_all_users():
     from django.contrib.auth import get_user_model
     User = get_user_model()
-    for user in User.objects.filter(is_active=True).exclude(email=""):
+    for user in User.objects.filter(is_active=True,receive_exchange_emails=True).exclude(email=""):
         send_exchange_rates_email(user.email, user.id)
 
-def send_exchange_rates_email(to_email, user_id):
-    """
-    Construye y envía un correo HTML con las tasas de cambio.
-    """
-    currencies = Currency.objects.filter(is_active=True)
+def send_exchange_rates_email():
+    currencies_db = Currency.objects.filter(is_active=True)
+    users = CustomUser.objects.filter(receive_exchange_emails=True)
 
-    # Obtener descuento del cliente (si corresponde)
-    try:
-        cliente_usuario = ClienteUsuario.objects.select_related("cliente__categoria").get(usuario_id=user_id)
-        descuento = cliente_usuario.cliente.categoria.descuento
-    except ClienteUsuario.DoesNotExist:
-        descuento = 0
+    for user in users:
+        # Descuento del cliente relacionado
+        try:
+            cliente_usuario = ClienteUsuario.objects.select_related("cliente__categoria").get(usuario=user)
+            descuento = cliente_usuario.cliente.categoria.descuento
+        except ClienteUsuario.DoesNotExist:
+            descuento = Decimal("0")
 
-    # Datos para la plantilla
-    rows = []
-    for currency in currencies:
-        code = (currency.code or "").strip().upper()
-        if code == "PYG":
-            continue  # saltamos PYG
-        precio_venta = currency.base_price + (currency.comision_venta * (1 - descuento))
-        precio_compra = currency.base_price - (currency.comision_compra * (1 - descuento))
-        rows.append({
-            "name": currency.name,
-            "code": code,
-            "compra": f"{precio_compra:.2f}",
-            "venta": f"{precio_venta:.2f}",
-        })
+        # Preparar lista de monedas con precios
+        currencies = []
+        for c in currencies_db:
+            if c.code != "PYG":
+                currencies.append({
+                    "name": c.name,
+                    "code": c.code,
+                    "precio_compra": f"{(c.base_price - c.comision_compra*(1-descuento)):.2f}",
+                    "precio_venta": f"{(c.base_price + c.comision_venta*(1-descuento)):.2f}"
+                })
 
-    context = {
-        "rows": rows,
-        "user_email": to_email,
-        "project_name": "Global Exchange",
-    }
+        # URL de desuscripción
+        uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+        unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/token/"
 
-    subject = "Tasas de cambio - Global Exchange"
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
+        # Renderizar templates
+        text_content = render_to_string("emails/exchange_rates.txt", {"currencies": currencies, "unsubscribe_url": unsubscribe_url})
+        html_content = render_to_string("emails/exchange_rates.html", {"currencies": currencies, "unsubscribe_url": unsubscribe_url})
 
-    text_body = render_to_string("emails/exchange_rates.txt", context)
-    html_body = render_to_string("emails/exchange_rates.html", context)
-
-    msg = EmailMultiAlternatives(subject, text_body, from_email, [to_email])
-    msg.attach_alternative(html_body, "text/html")
-    msg.send()
+        # Enviar email
+        subject = "Simulador - Tasas de cambio"
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
+        email_message = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
+        email_message.attach_alternative(html_content, "text/html")
+        email_message.send(fail_silently=False)

@@ -1,5 +1,7 @@
 {% extends 'webapp/base.html' %}
-<h2>Configurar frecuencia de envío</h2>
+{% load static %}
+{% block title %}Configurar frecuencia de envío{% endblock %}
+{% block content %}
 <form method="post">
     {% csrf_token %}
     <label>Frecuencia:</label>
@@ -31,3 +33,4 @@ document.querySelector("select[name='frequency']").addEventListener("change", fu
         this.value === "custom" ? "block" : "none";
 });
 </script>
+{% endblock %}

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -59,13 +60,13 @@ def send_mfa_login_email(request, user):
         html_message=html_body,
     )
 
-def send_exchange_rates_email_debug(to_email, user_id):
+def send_exchange_rates_email_debug(to_email, user):
     """
     Envía un correo con las tasas de cambio de todas las monedas activas.
     Funciona tanto en modo debug (ejecutado al login) como en producción (ejecutado con Celery).
     """
     # Traemos las monedas activas
-    currencies = Currency.objects.filter(is_active=True)
+    currencies_db = Currency.objects.filter(is_active=True)
 
     """
     # Aplicar fórmulas según descuento del cliente
@@ -76,39 +77,35 @@ def send_exchange_rates_email_debug(to_email, user_id):
     usuarios_asignados = ClienteUsuario.objects.filter(cliente=cliente).select_related('usuario')
    
     """
+    # Descuento del cliente relacionado
     try:
-        cliente_usuario = ClienteUsuario.objects.select_related("cliente__categoria").get(usuario_id=user_id)
+        cliente_usuario = ClienteUsuario.objects.select_related("cliente__categoria").get(usuario=user)
         descuento = cliente_usuario.cliente.categoria.descuento
     except ClienteUsuario.DoesNotExist:
-        descuento = 0
+        descuento = Decimal("0")
 
-    # Datos para la plantilla
-    rows = []
-    for currency in currencies:
-        code = (currency.code or "").strip().upper()
-        if code == "PYG":
-            continue  # saltamos PYG
-        precio_venta = currency.base_price + (currency.comision_venta * (1 - descuento))
-        precio_compra = currency.base_price - (currency.comision_compra * (1 - descuento))
-        rows.append({
-            "name": currency.name,
-            "code": code,
-            "compra": f"{precio_compra:.2f}",
-            "venta": f"{precio_venta:.2f}",
-        })
+    # Preparar lista de monedas con precios
+    currencies = []
+    for c in currencies_db:
+        if c.code != "PYG":
+            currencies.append({
+                "name": c.name,
+                "code": c.code,
+                "precio_compra": f"{(c.base_price - c.comision_compra*(1-descuento)):.2f}",
+                "precio_venta": f"{(c.base_price + c.comision_venta*(1-descuento)):.2f}"
+            })
 
-    context = {
-        "rows": rows,
-        "user_email": to_email,
-        "project_name": "Global Exchange",
-    }
+    # URL de desuscripción
+    uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+    unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/token/"
 
-    subject = "Tasas de cambio - Global Exchange"
+    # Renderizar templates
+    text_content = render_to_string("emails/exchange_rates.txt", {"currencies": currencies, "unsubscribe_url": unsubscribe_url})
+    html_content = render_to_string("emails/exchange_rates.html", {"currencies": currencies, "unsubscribe_url": unsubscribe_url})
+
+    # Enviar email
+    subject = "Simulador - Tasas de cambio"
     from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
-
-    text_body = render_to_string("emails/exchange_rates.txt", context)
-    html_body = render_to_string("emails/exchange_rates.html", context)
-
-    msg = EmailMultiAlternatives(subject, text_body, from_email, [to_email])
-    msg.attach_alternative(html_body, "text/html")
-    msg.send()
+    email_message = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
+    email_message.attach_alternative(html_content, "text/html")
+    email_message.send(fail_silently=False)

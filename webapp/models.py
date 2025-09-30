@@ -21,6 +21,11 @@ class CustomUser(AbstractUser):
     """
     email = models.EmailField(unique=True)
 
+    receive_exchange_emails = models.BooleanField(
+        default=True,
+        verbose_name="Recibir notificaciones de tasas de cambio"
+    )
+
     class Meta:
         permissions = [
             ("access_admin_panel", "Can access admin panel")

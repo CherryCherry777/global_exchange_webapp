@@ -7,8 +7,9 @@ from django.views.decorators.http import require_GET
 from django.utils.timezone import now, timedelta
 from django.db.models import Q
 from ..decorators import role_required
-from ..models import CurrencyHistory, EmailScheduleConfig, Transaccion, Currency
+from ..models import CurrencyHistory, CustomUser, EmailScheduleConfig, Transaccion, Currency
 from decimal import Decimal, InvalidOperation
+from django.utils.http import urlsafe_base64_decode
 
 # ---------------------------------
 # Vistas para modificar cotizaciones (Posibles vistas nuevas)
@@ -227,3 +228,31 @@ def manage_schedule(request):
         return redirect("manage_schedule")
 
     return render(request, "webapp/cotizaciones/manage_schedule.html", {"config": config})
+
+# Desuscribirse de los correos de tasas
+def unsubscribe(request, uidb64, token):
+    """
+    uidb64: usuario codificado (Base64)
+    token: token seguro opcional para validar la acción
+    """
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = get_object_or_404(CustomUser, pk=uid)
+        # Aquí puedes verificar un token si quieres mayor seguridad
+        user.receive_exchange_emails = False
+        user.save()
+        return redirect("unsubscribe_success")  # página de confirmación
+    except Exception:
+        return redirect("unsubscribe_error")
+
+def unsubscribe_confirm(request):
+    """
+    Muestra un mensaje de confirmación cuando el usuario se desuscribe correctamente.
+    """
+    return render(request, 'unsubscribe_confirm.html')
+
+def unsubscribe_error(request):
+    """
+    Muestra un mensaje de error cuando la desuscripción falla.
+    """
+    return render(request, 'unsubscribe_error.html')
