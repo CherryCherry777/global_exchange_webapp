@@ -25,7 +25,7 @@ def manage_cobro_methods(request):
         "total_cobro_methods": total_cobro_methods,
     }
     
-    return render(request, "webapp/metodo_cobro_globales/manage_cobro_methods.html", context)
+    return render(request, "webapp/metodos_cobro_globales/manage_cobro_methods.html", context)
 
 
 @login_required
@@ -76,7 +76,7 @@ def modify_cobro_method(request, cobro_method_id):
         "cobro_method": cobro_method,
     }
     
-    return render(request, "webapp/metodo_cobro_globales/modify_cobro_method.html", context)
+    return render(request, "webapp/metodos_cobro_globales/modify_cobro_method.html", context)
 
 
 # ----------------------------------------
@@ -86,7 +86,7 @@ def modify_cobro_method(request, cobro_method_id):
 @login_required
 def cobro_types_list(request):
     tipos = TipoCobro.objects.all().order_by("nombre")
-    return render(request, "webapp/metodo_cobro_globales/cobro_types_list.html", {"tipos": tipos})
+    return render(request, "webapp/metodos_cobro_globales/cobro_types_list.html", {"tipos": tipos})
 
 @login_required
 def edit_cobro_type(request, tipo_id):
@@ -98,4 +98,4 @@ def edit_cobro_type(request, tipo_id):
             return redirect("cobro_types_list")
     else:
         form = TipoCobroForm(instance=tipo)
-    return render(request, "webapp/metodo_cobro_globales/edit_cobro_type.html", {"form": form, "tipo": tipo})
+    return render(request, "webapp/metodos_cobro_globales/edit_cobro_type.html", {"form": form, "tipo": tipo})

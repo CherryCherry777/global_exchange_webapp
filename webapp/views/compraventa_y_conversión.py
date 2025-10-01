@@ -89,8 +89,6 @@ def get_metodos_pago_cobro(request):
     moneda_pago = request.GET.get("from")
     moneda_cobro = request.GET.get("to")
 
-    print(moneda_pago)
-    print(moneda_cobro)
     # ---------------- ContentTypes ----------------
     ct_tarjeta = ContentType.objects.get_for_model(Tarjeta)
     ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
@@ -160,7 +158,7 @@ def get_metodos_pago_cobro(request):
             "tipo": t.tipo,
             "nombre": t.nombre,
             "ubicacion": t.ubicacion,
-            "tipo_general_id": t.tipo_pago_id,
+            "tipo_general_id": t.tipo_pago.id,
             "moneda_code": None,
             "content_type_id": ct_tauser.id
         })
@@ -224,7 +222,7 @@ def get_metodos_pago_cobro(request):
             "tipo": t.tipo,
             "nombre": t.nombre,
             "ubicacion": t.ubicacion,
-            "tipo_general_id": t.tipo_cobro_id,
+            "tipo_general_id": t.tipo_cobro.id,
             "moneda_code": None,
             "content_type_id": ct_tauser.id
         })
@@ -252,7 +250,7 @@ def transaccion_list(request):
 @require_GET
 def api_active_currencies(request):
     user = request.user
-    descuento = Decimal('0')  # Por defecto para invitados
+    descuentoCategoria = Decimal('0')  # Por defecto para invitados
 
     if user.is_authenticated:
         try:
@@ -265,27 +263,27 @@ def api_active_currencies(request):
                     cliente_id=cliente_id
                 ).select_related("cliente__categoria").first()
             else:
-                descuento = Decimal('0')
+                descuentoCategoria = Decimal('0')
 
             if cliente_usuario and cliente_usuario.cliente.categoria:
-                descuento = cliente_usuario.cliente.categoria.descuento or Decimal('0')
+                descuentoCategoria = cliente_usuario.cliente.categoria.descuento or Decimal('0')
         except Exception:
-            descuento = Decimal('0')
+            descuentoCategoria = Decimal('0')
 
     # Intentar obtener IDs de método de pago/cobro
-    metodo_pago_id = request.GET.get("metodo_pago_id")
-    metodo_cobro_id = request.GET.get("metodo_cobro_id")
+    tipo_metodo_pago_id = request.GET.get("tipo_metodo_pago_id")
+    tipo_metodo_cobro_id = request.GET.get("tipo_metodo_cobro_id")
 
     metodo_pago = None
     metodo_cobro = None
-    if metodo_pago_id:
+    if tipo_metodo_pago_id:
         try:
-            metodo_pago = TipoPago.objects.get(id=metodo_pago_id, activo=True)
+            metodo_pago = TipoPago.objects.get(id=tipo_metodo_pago_id, activo=True)
         except TipoPago.DoesNotExist:
             metodo_pago = None
-    if metodo_cobro_id:
+    if tipo_metodo_cobro_id:
         try:
-            metodo_cobro = TipoCobro.objects.get(id=metodo_cobro_id, activo=True)
+            metodo_cobro = TipoCobro.objects.get(id=tipo_metodo_cobro_id, activo=True)
         except TipoCobro.DoesNotExist:
             metodo_cobro = None
 
@@ -298,14 +296,32 @@ def api_active_currencies(request):
         com_compra = Decimal(c.comision_compra)
 
         # Aplicar fórmulas según descuento del cliente
-        venta = base + (com_venta * (1 - descuento))
-        compra = base - (com_compra * (1 - descuento))
+        venta = base + (com_venta * (1 - descuentoCategoria))
+        compra = base - (com_compra * (1 - descuentoCategoria))
 
         # Aplicar comisiones del método seleccionado si existen
-        if metodo_pago:
-            venta = venta * (1 + Decimal(metodo_pago.comision)/100 + Decimal(metodo_cobro.comision)/100)
-        if metodo_cobro:
-            compra = compra * (1 - Decimal(metodo_cobro.comision)/100 - Decimal(metodo_pago.comision)/100)
+        try:
+            if metodo_pago and metodo_cobro:
+                # Ajusta la venta y la compra con las comisiones
+                venta = venta * (1 + Decimal(metodo_pago.comision)/100 + Decimal(metodo_cobro.comision)/100)
+                compra = compra * (1 - Decimal(metodo_cobro.comision)/100 - Decimal(metodo_pago.comision)/100)
+            elif metodo_pago:
+                # Solo existe método de pago
+                venta = venta * (1 + Decimal(metodo_pago.comision)/100)
+                compra = compra * (1 - Decimal(metodo_pago.comision)/100)
+                # compra queda igual o se deja como estaba
+            elif metodo_cobro:
+                # Solo existe método de cobro
+                compra = compra * (1 - Decimal(metodo_cobro.comision)/100)
+                venta = venta * (1 + Decimal(metodo_cobro.comision)/100)
+                # venta queda igual o se deja como estaba
+        except (AttributeError, TypeError, ValueError) as e:
+            # Aquí podés decidir qué hacer si algo falla:
+            # - loguear el error
+            # - usar comisiones 0
+            # - dejar venta/compra sin modificar
+            print("Error al aplicar comisiones:", e)
+
 
         items.append({
             "code": c.code,
