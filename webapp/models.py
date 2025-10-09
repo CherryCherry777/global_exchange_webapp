@@ -461,7 +461,7 @@ class Billetera(models.Model):
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.entidad.nombre}"
 
-
+"""
 class CuentaBancaria(models.Model):
     medio_pago = models.OneToOneField(
         "MedioPago",
@@ -489,7 +489,7 @@ class CuentaBancaria(models.Model):
 
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.entidad.nombre}"
-
+"""
 
 # Administracion de metodo de pago global (para admin)
 
@@ -658,7 +658,7 @@ class MedioCobro(models.Model):
 # Administración de métodos de cobro
 # -------------------------------------
 
-class TarjetaCobro(models.Model):
+"""class TarjetaCobro(models.Model):
     medio_cobro = models.OneToOneField(
         "MedioCobro",
         on_delete=models.CASCADE,
@@ -686,7 +686,7 @@ class TarjetaCobro(models.Model):
 
     def __str__(self):
         return f"{self.medio_cobro.nombre} - ****{self.ultimos_digitos} ({self.entidad.nombre})"
-
+"""
 
 class BilleteraCobro(models.Model):
     medio_cobro = models.OneToOneField(

@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from ..forms import TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm
 from ..decorators import role_required
-from ..models import Cliente, MedioPago, Tarjeta, Billetera, CuentaBancaria
+from ..models import Cliente, MedioPago, Tarjeta, Billetera
 
 # -----------------------
 # Dashboards

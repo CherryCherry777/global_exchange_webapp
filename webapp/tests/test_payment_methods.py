@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from webapp.models import Cliente, Categoria, MedioPago, Tarjeta, Billetera, CuentaBancaria, Entidad, Currency
+from webapp.models import Cliente, Categoria, MedioPago, Tarjeta, Billetera,  Entidad, Currency
 from webapp.forms import TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm
 
 User = get_user_model()

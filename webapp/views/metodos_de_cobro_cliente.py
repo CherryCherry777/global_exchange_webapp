@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from webapp.emails import send_activation_email
-from ..forms import BilleteraCobroForm, CuentaBancariaCobroForm, MedioCobroForm, TarjetaCobroForm
+from ..forms import BilleteraCobroForm, CuentaBancariaCobroForm, MedioCobroForm
 from ..models import MedioCobro, Currency, ClienteUsuario, TipoPago
 
 # ----------------------------------------
@@ -13,7 +13,7 @@ from ..models import MedioCobro, Currency, ClienteUsuario, TipoPago
 # ----------------------------------------
 
 FORM_MAP = {
-    'tarjeta': TarjetaCobroForm,
+    #'tarjeta': TarjetaCobroForm,
     'billetera': BilleteraCobroForm,
     'cuenta_bancaria': CuentaBancariaCobroForm,
 }
@@ -36,14 +36,14 @@ def my_cobro_methods(request):
     })
 
 COBRO_FORM_MAP = {
-    "tarjeta": TarjetaCobroForm,
+    #"tarjeta": TarjetaCobroForm,
     "billetera": BilleteraCobroForm,
     "cuenta_bancaria": CuentaBancariaCobroForm,
 }
 
 
 RELATED_MAP = {
-    "tarjeta": "tarjeta_cobro",
+    #"tarjeta": "tarjeta_cobro",
     "billetera": "billetera_cobro",
     "cuenta_bancaria": "cuenta_bancaria_cobro",
 }
@@ -65,7 +65,7 @@ def manage_cobro_method(request, tipo, **kwargs):
 
     # Mapeo de forms por tipo
     cobro_form_map = {
-        'tarjeta': TarjetaCobroForm,
+        #'tarjeta': TarjetaCobroForm,
         'billetera': BilleteraCobroForm,
         'cuenta_bancaria': CuentaBancariaCobroForm,
     }
