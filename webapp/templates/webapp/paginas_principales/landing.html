@@ -7,8 +7,8 @@
 {% block title %}Panel de Administración{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'webapp/admin.css' %}" />
-<link rel="stylesheet" href="{% static 'webapp/user_dashboard.css' %}" />
+<link rel="stylesheet" href="{% static 'webapp/css/dashboards/admin.css' %}?v=2.2" />
+<link rel="stylesheet" href="{% static 'webapp/css/dashboards/user_dashboard.css' %}" />
 {% endblock %}
 
 {% block content %}
@@ -28,157 +28,134 @@
             <div class="metric-number">{{ usuarios_activos }}</div>
         </div>
         <div class="metric-card">
+            <div class="metric-label">Clientes Activos</div>
+            <div class="metric-number">{{ clientes_activos }}</div>
+        </div>
+        <div class="metric-card">
             <div class="metric-label">Monedas Activas</div>
             <div class="metric-number">{{ monedas_activas }}</div>
         </div>
         <div class="metric-card">
-            <div class="metric-label">Clientes Activos</div>
-            <div class="metric-number">{{ clientes_activos }}</div>
+            <div class="metric-label">Entidades Activas</div>
+            <div class="metric-number">{{ entidades_activas }}</div>
         </div>
     </div>
 
-    <!-- Management Buttons Grid -->
-    <div class="admin-grid">
-        {% has_perms request.user 'webapp.view_customuser' as can_view_customuser %}
-        {% if can_view_customuser %}
-        <!-- Primera Columna -->
-        <a href="{% url 'manage_users' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/1.Administar_Usuarios.png' %}" alt="Administrar Usuarios">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Usuarios</h3>
-            </div>
-        </a>
-        {% endif %}
-        {% has_perms request.user 'webapp.view_clienteusuario' as can_view_clienteusuario %}
-        {% if can_view_clienteusuario %}
-        <a href="{% url 'assign_clients' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/4.Asignar_Clientes_a_Usuarios.png' %}" alt="Asignar Clientes a Usuarios">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Asignar Clientes a Usuarios</h3>
-            </div>
-        </a>
-        {% endif %}
-        {% has_perms request.user 'webapp.view_categoria' as can_view_categoria %}
-        {% if can_view_categoria %}
-        <a href="{% url 'manage_categories' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/7.Administrar_Categorias.png' %}" alt="Administrar Categorías">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Categorías</h3>
-            </div>
-        </a>
-        {% endif %}
-        {% has_perms request.user 'webapp.view_mediopago' as can_view_mediopago %}
-        {% if can_view_mediopago %}
-        <a href="{% url 'manage_payment_methods' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/10.Administrar_Metodos_de_Pago_Globales.png' %}" alt="Administrar Métodos de Pago Globales">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Métodos de Pago Globales</h3>
-            </div>
-        </a>
-        {% endif %}
-        {% has_perms request.user 'webapp.view_limiteintercambio' as can_view_limiteintercambio %}
-        {% if can_view_limiteintercambio %}
-        <a href="{% url 'limites_list' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Límites de Intercambio">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Límites de Intercambio</h3>
-            </div>
-        </a>
-        {% endif %}
-        <!-- Segunda Columna -->
-        {% has_perms request.user 'webapp.view_role' as can_view_role %}
-        {% if can_view_role %}
-        <a href="{% url 'manage_roles' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/2.Administrar_Roles.png' %}" alt="Administrar Roles">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Roles</h3>
-            </div>
-        </a>
-        {% endif %}
-        {% has_perms request.user 'webapp.view_cliente' as can_view_cliente %}
-        {% if can_view_cliente %}
-        <a href="{% url 'manage_clientes' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/5.Administrar_Clientes.png' %}" alt="Administrar Clientes">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Clientes</h3>
-            </div>
-        </a>
-        {% endif %}
-        {% has_perms request.user 'webapp.view_currency' as can_view_currency %}
-        {% if can_view_currency %}
-        <a href="{% url 'manage_quotes' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/8.Administrar_Cotizaciones.png' %}" alt="Administrar Cotizaciones">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Cotizaciones</h3>
-            </div>
-        </a>
-        {% endif %}
-        <!-- Tercera Columna -->
-        {% has_perms request.user 'webapp.view_customuser' 'webapp.view_role' as can_view_customuser_role %}
-        {% if can_view_customuser_role %}
-        <a href="{% url 'manage_user_roles' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/3.Administar_Roles_de_Usuarios.png' %}" alt="Administrar Roles de Usuarios">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Roles de Usuarios</h3>
-            </div>
-        </a>
-        {% endif %}
-        {% has_perms request.user 'webapp.view_currency' as can_view_currency %}
-        {% if can_view_currency %}
-        <a href="{% url 'manage_currencies' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/6.Administrar_Monedas.png' %}" alt="Administrar Monedas">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Monedas</h3>
-            </div>
-        </a>
-        {% endif %}
-        {% has_perms request.user 'webapp.view_mediocobro' as can_view_mediocobro %}
-        {% if can_view_mediocobro %}
-        <a href="{% url 'manage_cobro_methods' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/12.Administrar_Metodos_de_Acreditacion_Globales.png' %}" alt="Administrar Métodos de Cobro Globales">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Métodos de Cobro Globales</h3>
-            </div>
-        </a>
-        {% endif %}
-        <a href="{% url 'entidad_list' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/12.Administrar_Metodos_de_Acreditacion_Globales.png' %}" alt="Administrar Métodos de Cobro Globales">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar Entidades de Pago/Cobro</h3>
-            </div>
-        </a>
-        <a href="{% url 'manage_schedule' %}" class="admin-card">
-            <div class="card-icon">
-                <img src="{% static 'webapp/panel_gestiones/3.Administar_Roles_de_Usuarios.png' %}" alt="Administrar Roles de Usuarios">
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Administrar frecuencia de correos global</h3>
-            </div>
-        </a>
+    <!-- Management Containers Grid -->
+    <div class="admin-containers-grid">
+        
+        <!-- Contenedor 1: Gestión de Usuarios y Roles -->
+        <div class="management-container usuarios-roles-container">
+            <h2 class="container-title">Gestión de Usuarios y Roles</h2>
+            
+            {% has_perms request.user 'webapp.view_customuser' as can_view_customuser %}
+            {% if can_view_customuser %}
+            <a href="{% url 'manage_users' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/1.Administar_Usuarios.png' %}" alt="Administrar Usuarios" class="button-icon">
+                <span class="button-text">Administrar Usuarios</span>
+            </a>
+            {% endif %}
+            
+            {% has_perms request.user 'webapp.view_role' as can_view_role %}
+            {% if can_view_role %}
+            <a href="{% url 'manage_roles' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/2.Administrar_Roles.png' %}" alt="Administrar Roles" class="button-icon">
+                <span class="button-text">Administrar Roles</span>
+            </a>
+            {% endif %}
+            
+            {% has_perms request.user 'webapp.view_customuser' 'webapp.view_role' as can_view_customuser_role %}
+            {% if can_view_customuser_role %}
+            <a href="{% url 'manage_user_roles' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/3.Administar_Roles_de_Usuarios.png' %}" alt="Administrar Roles de Usuarios" class="button-icon">
+                <span class="button-text">Administrar Roles de Usuarios</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Contenedor 2: Gestión de Clientes y Categorías -->
+        <div class="management-container clientes-categorias-container">
+            <h2 class="container-title">Gestión de Clientes y Categorías</h2>
+            
+            {% has_perms request.user 'webapp.view_cliente' as can_view_cliente %}
+            {% if can_view_cliente %}
+            <a href="{% url 'manage_clientes' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/5.Administrar_Clientes.png' %}" alt="Administrar Clientes" class="button-icon">
+                <span class="button-text">Administrar Clientes</span>
+            </a>
+            {% endif %}
+            
+            {% has_perms request.user 'webapp.view_clienteusuario' as can_view_clienteusuario %}
+            {% if can_view_clienteusuario %}
+            <a href="{% url 'assign_clients' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/4.Asignar_Clientes_a_Usuarios.png' %}" alt="Asignar Clientes a Usuarios" class="button-icon">
+                <span class="button-text">Asignar Clientes a Usuarios</span>
+            </a>
+            {% endif %}
+            
+            {% has_perms request.user 'webapp.view_categoria' as can_view_categoria %}
+            {% if can_view_categoria %}
+            <a href="{% url 'manage_categories' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/7.Administrar_Categorias.png' %}" alt="Administrar Categorías" class="button-icon">
+                <span class="button-text">Administrar Categorías</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Contenedor 3: Gestión de Monedas y Cotizaciones -->
+        <div class="management-container monedas-cotizaciones-container">
+            <h2 class="container-title">Gestión de Monedas y Cotizaciones</h2>
+            
+            {% has_perms request.user 'webapp.view_currency' as can_view_currency %}
+            {% if can_view_currency %}
+            <a href="{% url 'manage_currencies' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/6.Administrar_Monedas.png' %}" alt="Administrar Monedas" class="button-icon">
+                <span class="button-text">Administrar Monedas</span>
+            </a>
+            {% endif %}
+            
+            {% has_perms request.user 'webapp.view_currency' as can_view_currency %}
+            {% if can_view_currency %}
+            <a href="{% url 'manage_quotes' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/8.Administrar_Cotizaciones.png' %}" alt="Administrar Cotizaciones" class="button-icon">
+                <span class="button-text">Administrar Cotizaciones</span>
+            </a>
+            {% endif %}
+            
+            {% has_perms request.user 'webapp.view_limiteintercambio' as can_view_limiteintercambio %}
+            {% if can_view_limiteintercambio %}
+            <a href="{% url 'limites_list' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Límites de Intercambio" class="button-icon">
+                <span class="button-text">Administrar Límites de Intercambio</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Contenedor 4: Gestión de Métodos de Pago -->
+        <div class="management-container metodos-pago-container">
+            <h2 class="container-title">Gestión de Métodos de Pago</h2>
+            
+            {% has_perms request.user 'webapp.view_mediopago' as can_view_mediopago %}
+            {% if can_view_mediopago %}
+            <a href="{% url 'manage_payment_methods' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/9.Administrar_Metodos_de_Pago.png' %}" alt="Administrar Métodos de Pago Globales" class="button-icon">
+                <span class="button-text">Administrar Métodos de Pago Globales</span>
+            </a>
+            {% endif %}
+            
+            {% has_perms request.user 'webapp.view_mediocobro' as can_view_mediocobro %}
+            {% if can_view_mediocobro %}
+            <a href="{% url 'manage_cobro_methods' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/11.Administrar_Metodos_de_Cobro.png' %}" alt="Administrar Métodos de Cobro Globales" class="button-icon">
+                <span class="button-text">Administrar Métodos de Cobro Globales</span>
+            </a>
+            {% endif %}
+            
+            <a href="{% url 'entidad_list' %}" class="management-button long-text-button">
+                <img src="{% static 'webapp/panel_gestiones/14.Administrar_Entidades.png' %}" alt="Administrar Entidades de Pago/Cobro" class="button-icon">
+                <span class="button-text">Administrar Entidades de Pago/Cobro</span>
+            </a>
+        </div>
 
     </div>
 </div>

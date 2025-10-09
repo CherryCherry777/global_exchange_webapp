@@ -10,13 +10,92 @@ body {
     color: #ffffff;
 }
 
+/* ===== WELCOME SECTION ===== */
+.welcome-section {
+    background: #000000;
+    padding: 30px 0;
+    margin-bottom: 15px;
+}
+
+.welcome-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.welcome-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0 0 15px 0;
+}
+
+.user-name {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;!important
+}
+
+.client-info {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+}
+
+.client-name {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff; important
+}
+
+.no-client {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: #C7A601;
+    font-style: italic;
+}
+
+/* Responsive Welcome Section */
+@media (max-width: 768px) {
+    .welcome-section {
+        padding: 20px 0;
+        margin-bottom: 10px;
+    }
+    
+    .welcome-title {
+        font-size: 20px;
+    }
+    
+    .user-name {
+        font-size: 20px;
+    }
+    
+    .client-info {
+        font-size: 20px;
+    }
+    
+    .client-name {
+        font-size: 20px;
+    }
+    
+    .no-client {
+        font-size: 20px;
+    }
+}
+
 /* ===== HEADER NAVIGATION ===== */
 .header-nav {
     background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%) !important;
-    padding: 15px 0 !important;
+    padding: 8px 0 !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
-    position: sticky !important;
-    top: 0 !important;
+    position: static !important;
     z-index: 1000 !important;
     margin-bottom: 0 !important;
 }
@@ -42,8 +121,8 @@ body {
 }
 
 .logo-image {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     object-fit: contain;
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
     transition: transform 0.3s ease;
@@ -251,8 +330,8 @@ body {
     }
     
     .logo-image {
-        width: 60px;
-        height: 60px;
+        width: 90px;
+        height: 90px;
     }
 }
 

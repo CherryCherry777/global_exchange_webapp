@@ -1,0 +1,314 @@
+/* ===========================================
+   ADMIN PANEL STYLES - UPDATED SPECIFICATIONS
+   =========================================== */
+
+/* Main Admin Panel Container */
+.admin-panel {
+    min-height: 100vh;
+    background: #000000;
+    padding: 40px 20px;
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Force black background for the entire page */
+body {
+    background: #000000 !important;
+}
+
+html {
+    background: #000000 !important;
+}
+
+/* Ensure header matches home page */
+body:has(.admin-panel) .header-nav,
+body .admin-panel ~ .header-nav,
+.admin-panel .header-nav,
+body .header-nav {
+    background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%) !important;
+    padding: 8px 0 !important;
+    position: static !important;
+    z-index: 1000 !important;
+    margin-bottom: -1px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Admin Header */
+.admin-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.admin-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0 0 10px 0;
+}
+
+.admin-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 18px;
+    color: #E5E7EB;
+    margin: 0;
+}
+
+/* Metrics Section */
+.admin-metrics {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 50px;
+    flex-wrap: wrap;
+    padding-left: 30px;
+}
+
+.metric-card {
+    width: 333px;
+    height: 196px;
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: none;
+}
+
+.metric-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    font-style: italic;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+.metric-number {
+    font-family: 'Roboto', sans-serif;
+    font-size: 96px;
+    font-weight: 500;
+    color: #ffffff;
+    line-height: 1;
+}
+
+/* Management Containers Grid */
+.admin-containers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Management Container Base */
+.management-container {
+    width: 333px;
+    height: 380px;
+    border-radius: 8px;
+    background: transparent;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+/* Container Titles */
+.container-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    margin: 0 0 30px 0;
+    width: 100%;
+}
+
+/* Container 1: Gestión de Usuarios y Roles - Purple Border */
+.usuarios-roles-container {
+    border: 3px solid #4C1D95;
+}
+
+/* Container 2: Gestión de Clientes y Categorías - Green Border */
+.clientes-categorias-container {
+    border: 3px solid #127F65;
+}
+
+/* Container 3: Gestión de Monedas y Cotizaciones - Yellow Border */
+.monedas-cotizaciones-container {
+    border: 3px solid #646C0B;
+}
+
+/* Container 4: Gestión de Métodos de Pago - Green Border */
+.metodos-pago-container {
+    border: 3px solid #016723;
+}
+
+/* Management Buttons */
+.management-button {
+    width: 286px;
+    height: 71px;
+    background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%);
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    text-decoration: none;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.management-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(91, 21, 194, 0.3);
+}
+
+.management-button:active {
+    transform: translateY(0);
+}
+
+/* Button Icons */
+.button-icon {
+    width: 35px;
+    height: 35px;
+    margin-right: 15px;
+    object-fit: contain;
+}
+
+/* Button Text */
+.button-text {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #ffffff;
+    flex: 1;
+    text-align: left;
+}
+
+/* Specific button for long text */
+.long-text-button .button-text {
+    font-size: 19px;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .admin-containers-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .management-container {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-panel {
+        padding: 20px 10px;
+    }
+    
+    .admin-containers-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .admin-metrics {
+        gap: 15px;
+    }
+    
+    .metric-card {
+        width: 280px;
+        height: 160px;
+        padding: 15px;
+    }
+    
+    .metric-label {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+    
+    .metric-number {
+        font-size: 60px;
+    }
+    
+    .management-button {
+        width: 100%;
+        max-width: 280px;
+        height: 60px;
+    }
+    
+    .button-text {
+        font-size: 16px;
+    }
+    
+    .button-icon {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .container-title {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-title {
+        font-size: 24px;
+    }
+    
+    .admin-subtitle {
+        font-size: 16px;
+    }
+    
+    .management-container {
+        height: auto;
+        min-height: 300px;
+    }
+    
+    .metric-card {
+        width: 250px;
+        height: 140px;
+    }
+    
+    .metric-label {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    .metric-number {
+        font-size: 48px;
+    }
+    
+    .container-title {
+        font-size: 14px;
+    }
+    
+    .management-button {
+        height: 55px;
+    }
+    
+    .button-text {
+        font-size: 14px;
+    }
+    
+    .long-text-button .button-text {
+        font-size: 12px;
+    }
+    
+    .button-icon {
+        width: 25px;
+        height: 25px;
+    }
+}
