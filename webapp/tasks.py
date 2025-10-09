@@ -54,39 +54,69 @@ def send_exchange_rates_email():
         Envía un correo con las tasas de cambio de todas las monedas activas.
         Incluye enlace de desuscripción persistente.
         """
-        # Obtener descuento del cliente relacionado
-        try:
-            cliente_usuario = ClienteUsuario.objects.select_related("cliente__categoria").get(usuario=user)
-            descuento = cliente_usuario.cliente.categoria.descuento
-        except ClienteUsuario.DoesNotExist:
+        
+    # Generar token persistente si no existe
+    if not getattr(user, "unsubscribe_token", None):
+        user.unsubscribe_token = secrets.token_urlsafe(32)
+        user.save(update_fields=["unsubscribe_token"])
+
+    uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+    unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/{user.unsubscribe_token}/"
+
+    # Obtener todos los ClienteUsuario relacionados con el usuario
+    cliente_usuarios = (
+        ClienteUsuario.objects.select_related("cliente__categoria")
+        .filter(usuario=user)
+    )
+
+    # Si no hay clientes, se usa un descuento 0
+    if not cliente_usuarios.exists():
+        cliente_usuarios = [None]
+
+    # Monedas activas
+    currencies = Currency.objects.filter(is_active=True).exclude(code="PYG")
+
+    # Preparar datos consolidados
+    clientes_data = []
+
+    for cu in cliente_usuarios:
+        if cu:
+            cliente = cu.cliente
+            descuento = getattr(getattr(cliente, "categoria", None), "descuento", None) or Decimal("0")
+        else:
+            cliente = None
             descuento = Decimal("0")
 
-        # Preparar lista de monedas (excluyendo PYG)
-        currencies = []
-        for c in Currency.objects.filter(is_active=True).exclude(code="PYG"):
-            precio_compra = c.base_price - c.comision_compra * (1 - descuento)
-            precio_venta = c.base_price + c.comision_venta * (1 - descuento)
-            currencies.append({
+        # Calcular precios con descuento por moneda
+        monedas_info = []
+        for c in currencies:
+            precio_compra = c.base_price - (c.comision_compra * (Decimal("1") - descuento))
+            precio_venta  = c.base_price + (c.comision_venta * (Decimal("1") - descuento))
+            monedas_info.append({
                 "name": c.name,
                 "code": c.code,
                 "precio_compra": f"{precio_compra:.2f}",
-                "precio_venta": f"{precio_venta:.2f}"
+                "precio_venta":  f"{precio_venta:.2f}",
             })
 
-        # Generar token persistente para desuscripción
-        if not user.unsubscribe_token:
-            user.unsubscribe_token = secrets.token_urlsafe(32)
-            user.save()
+        clientes_data.append({
+            "cliente": cliente,
+            "descuento": f"{(descuento * 100):.0f}%" if descuento else "0%",
+            "monedas": monedas_info,
+        })
 
-        uidb64 = urlsafe_base64_encode(force_bytes(user.id))
-        unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/{user.unsubscribe_token}/"
+        # Contexto del email
+        context = {
+            "user": user,
+            "clientes_data": clientes_data,
+            "unsubscribe_url": unsubscribe_url,
+        }
 
-        # Renderizar plantillas
-        context = {"currencies": currencies, "unsubscribe_url": unsubscribe_url}
+        # Renderizar contenido
         text_content = render_to_string("emails/exchange_rates.txt", context)
         html_content = render_to_string("emails/exchange_rates.html", context)
 
-        # Enviar email
+        # Enviar email único
         subject = "Simulador - Tasas de cambio"
         from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
         email = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
