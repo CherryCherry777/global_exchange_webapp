@@ -54,7 +54,16 @@
                     {% if usuario_asociado %}
                         <!-- Método de Pago perspectiva de la casa de cambios -->
                         <div class="converter-field">
-                            <label class="field-label">Método de pago</label>
+                            <label class="field-label">Pagar con:</label>
+                                
+                            <div class="tab-row" id="pago-tabs">
+                            {% for tipo in tipos_pago %}
+                                <button type="button" class="tab-btn" data-tipo-general="{{ tipo.id }}">
+                                {{ tipo.nombre }}
+                                </button>
+                            {% endfor %}
+                            </div>
+
                             <div class="field-row">
                                 <div class="select-wrapper">
                                     <select id="simu-metodo-pago" name="medio_pago" class="currency-select">
@@ -66,7 +75,16 @@
                         
                         <!-- Método de Cobro perspectiva de la casa de cambios -->
                         <div class="converter-field">
-                            <label class="field-label">Método de cobro</label>
+                            <label class="field-label">Recibir en:</label>
+
+                            <div class="tab-row" id="cobro-tabs">
+                            {% for tipo in tipos_cobro %}
+                                <button type="button" class="tab-btn" data-tipo-general="{{ tipo.id }}">
+                                {{ tipo.nombre }}
+                                </button>
+                            {% endfor %}
+                            </div>
+                            
                             <div class="field-row">
                                 <div class="select-wrapper">
                                     <select id="simu-metodo-cobro" name="medio_cobro" class="currency-select">

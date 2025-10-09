@@ -130,3 +130,7 @@ MFA_LOGIN = env.bool('MFA_LOGIN', default=True)
 
 #Para activar/desactivar el envio de correo de tasas al hacer login
 CORREO_TASAS_LOGIN = env.bool('CORREO_TASAS_LOGIN', default=True)
+
+#Stripe
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")

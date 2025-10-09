@@ -77,8 +77,22 @@ def compraventa_view(request):
 
         request.session["form_data"] = data
         return render(request, "webapp/compraventa_y_conversion/confirmation_compraventa.html", {"data": data})
+    
+    # --- obtener tipos generales desde la base ---
+    tipos_pago = list(TipoPago.objects.order_by("-nombre").values("id", "nombre"))
+    tipos_cobro = list(TipoCobro.objects.order_by("-nombre").values("id", "nombre"))
 
-    return render(request, "webapp/compraventa_y_conversion/compraventa.html")
+    for tipo in tipos_pago:
+        nombre_normalizado = tipo["nombre"].replace(" ", "").lower()
+        if nombre_normalizado == "cuentabancaria":
+            tipo["nombre"] = "Transferencia"
+
+    context = {
+        "tipos_pago": tipos_pago,
+        "tipos_cobro": tipos_cobro,
+    }
+
+    return render(request, "webapp/compraventa_y_conversion/compraventa.html", context)
 
 
 def get_metodos_pago_cobro(request):
@@ -118,6 +132,8 @@ def get_metodos_pago_cobro(request):
             "moneda_code": t.medio_pago.moneda.code
         })
 
+    """
+    Eliminado
     transferencias = CuentaBancaria.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
@@ -134,7 +150,8 @@ def get_metodos_pago_cobro(request):
             "moneda_code": t.medio_pago.moneda.code,
             "content_type_id": ct_transferencia.id
         })
-
+    """
+    
     billeteras = Billetera.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
@@ -166,6 +183,8 @@ def get_metodos_pago_cobro(request):
     # ---------------- Métodos de Cobro ----------------
     metodo_cobro = []
 
+    """
+    Eliminado
     tarjetas = TarjetaCobro.objects.filter(
         medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
     ).select_related("medio_cobro__tipo_cobro", "entidad")
@@ -181,6 +200,7 @@ def get_metodos_pago_cobro(request):
             "moneda_code": t.medio_cobro.moneda.code,
             "content_type_id": ct_tarjeta_cobro.id
         })
+    """
 
     transferencias = CuentaBancariaCobro.objects.filter(
         medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
