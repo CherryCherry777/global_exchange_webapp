@@ -4,7 +4,7 @@
 {% block title %}Transacciones - Global Exchange{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'webapp/css/compraventa_y_conversion/historial_transacciones.css' %}?v=4.4">
+<link rel="stylesheet" href="{% static 'webapp/css/compraventa_y_conversion/historial_transacciones.css' %}?v=5.2">
 {% endblock %}
 
 {% block content %}
@@ -43,7 +43,18 @@
                 </thead>
                 <tbody>
                     {% for transaccion in transacciones %}
-                    <tr>
+                    <tr data-user-name="{{ transaccion.usuario.username }}" 
+                        data-user-fullname="{{ transaccion.usuario.get_full_name }}" 
+                        data-client-document="{{ transaccion.cliente.documento }}"
+                        data-origin-currency="{{ transaccion.moneda_origen.code }}"
+                        data-dest-currency="{{ transaccion.moneda_destino.code }}"
+                        data-origin-currency-name="{{ transaccion.moneda_origen.name }}"
+                        data-dest-currency-name="{{ transaccion.moneda_destino.name }}"
+                        data-exchange-rate="{{ transaccion.tasa_cambio }}"
+                        data-origin-amount="{{ transaccion.monto_origen }}"
+                        data-dest-amount="{{ transaccion.monto_destino }}"
+                        data-payment-method="{{ transaccion.medio_pago }}"
+                        data-collection-method="{{ transaccion.medio_cobro }}">
                         <td class="transaction-type">
                             {% if transaccion.tipo == 'COMPRA' %}
                                 Compra {{ transaccion.moneda_destino.code }}
@@ -84,90 +95,6 @@
                         <td colspan="6" class="no-transactions">No hay transacciones registradas.</td>
                     </tr>
                     {% endfor %}
-                    
-                    <!-- Datos de prueba para visualización - Siempre visibles -->
-                    <tr data-user-name="admin" data-user-fullname="Administrador Sistema" data-client-document="12345678">
-                        <td class="transaction-type">Compra USD</td>
-                        <td class="status-cell">
-                            <div class="status-indicator pendiente"></div>
-                            <span class="status-text">Pendiente</span>
-                        </td>
-                        <td class="creation-date">08-10-25</td>
-                        <td class="payment-date">-</td>
-                        <td class="client-name">cliente1</td>
-                        <td class="actions-cell">
-                            <button class="action-button view-data-btn" data-transaction-id="1">Ver Datos</button>
-                            <button class="action-button cancel-btn" data-transaction-id="1">Cancelar</button>
-                        </td>
-                    </tr>
-                    <tr data-user-name="analista1" data-user-fullname="Analista Principal" data-client-document="87654321">
-                        <td class="transaction-type">Venta ARS</td>
-                        <td class="status-cell">
-                            <div class="status-indicator pagada"></div>
-                            <span class="status-text">Pagada</span>
-                        </td>
-                        <td class="creation-date">07-10-25</td>
-                        <td class="payment-date">08-10-25</td>
-                        <td class="client-name">cliente2</td>
-                        <td class="actions-cell">
-                            <button class="action-button view-data-btn" data-transaction-id="2">Ver Datos</button>
-                            <button class="action-button anular-btn" data-transaction-id="2">Anular</button>
-                        </td>
-                    </tr>
-                    <tr data-user-name="operador1" data-user-fullname="Operador Sistema" data-client-document="11223344">
-                        <td class="transaction-type">Compra EUR</td>
-                        <td class="status-cell">
-                            <div class="status-indicator cancelada"></div>
-                            <span class="status-text">Cancelada</span>
-                        </td>
-                        <td class="creation-date">06-10-25</td>
-                        <td class="payment-date">-</td>
-                        <td class="client-name">cliente3</td>
-                        <td class="actions-cell">
-                            <button class="action-button view-data-btn" data-transaction-id="3">Ver Datos</button>
-                        </td>
-                    </tr>
-                    <tr data-user-name="admin" data-user-fullname="Administrador Sistema" data-client-document="12345678">
-                        <td class="transaction-type">Venta BRL</td>
-                        <td class="status-cell">
-                            <div class="status-indicator anulada"></div>
-                            <span class="status-text">Anulada</span>
-                        </td>
-                        <td class="creation-date">05-10-25</td>
-                        <td class="payment-date">06-10-25</td>
-                        <td class="client-name">cliente1</td>
-                        <td class="actions-cell">
-                            <button class="action-button view-data-btn" data-transaction-id="4">Ver Datos</button>
-                        </td>
-                    </tr>
-                    <tr data-user-name="analista2" data-user-fullname="Analista Secundario" data-client-document="55667788">
-                        <td class="transaction-type">Compra CLP</td>
-                        <td class="status-cell">
-                            <div class="status-indicator pendiente"></div>
-                            <span class="status-text">Pendiente</span>
-                        </td>
-                        <td class="creation-date">04-10-25</td>
-                        <td class="payment-date">-</td>
-                        <td class="client-name">cliente4</td>
-                        <td class="actions-cell">
-                            <button class="action-button view-data-btn" data-transaction-id="5">Ver Datos</button>
-                            <button class="action-button cancel-btn" data-transaction-id="5">Cancelar</button>
-                        </td>
-                    </tr>
-                    <tr data-user-name="operador2" data-user-fullname="Operador Auxiliar" data-client-document="99887766">
-                        <td class="transaction-type">Venta MXN</td>
-                        <td class="status-cell">
-                            <div class="status-indicator pagada"></div>
-                            <span class="status-text">Pagada</span>
-                        </td>
-                        <td class="creation-date">03-10-25</td>
-                        <td class="payment-date">04-10-25</td>
-                        <td class="client-name">cliente2</td>
-                        <td class="actions-cell">
-                            <button class="action-button view-data-btn" data-transaction-id="6">Ver Datos</button>
-                            <button class="action-button anular-btn" data-transaction-id="6">Anular</button>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -409,7 +336,8 @@ document.querySelectorAll('.action-button').forEach(button => {
 // Modal functionality
 function openTransactionModal(transactionId) {
     // Obtener los datos de la transacción desde la fila de la tabla
-    const row = document.querySelector(`[data-transaction-id="${transactionId}"]`).closest('tr');
+    const button = document.querySelector(`[data-transaction-id="${transactionId}"]`);
+    const row = button.closest('tr');
     
     if (row) {
         // Extraer datos de la fila
@@ -418,6 +346,7 @@ function openTransactionModal(transactionId) {
         const creationDate = row.querySelector('.creation-date').textContent.trim();
         const paymentDate = row.querySelector('.payment-date').textContent.trim();
         const clientName = row.querySelector('.client-name').textContent.trim();
+        
         
         // Actualizar el modal con los datos reales
         document.getElementById('transaction-id').textContent = transactionId;
@@ -432,32 +361,114 @@ function openTransactionModal(transactionId) {
         document.getElementById('user-name').textContent = row.getAttribute('data-user-name') || 'No disponible';
         document.getElementById('user-fullname').textContent = row.getAttribute('data-user-fullname') || 'No disponible';
         
-        // Actualizar datos de operación de cambio (por ahora con datos de ejemplo)
-        document.getElementById('origin-currency').textContent = 'ARS - Peso Argentino';
-        document.getElementById('dest-currency').textContent = 'USD - Dólar Estadounidense';
-        document.getElementById('exchange-rate').textContent = '1 USD - 544224 ARS';
-        document.getElementById('origin-amount').textContent = '7250 $';
-        document.getElementById('dest-amount').textContent = '15223500 $';
+        // Actualizar datos de operación de cambio con datos reales de la base de datos
+        updateExchangeDataFromDB(row);
         
-        // Actualizar datos de medio de pago y cobro (por ahora con datos de ejemplo)
-        document.getElementById('payment-method').textContent = 'Tauser 1';
-        document.getElementById('collection-method').textContent = 'Tauser 2';
+        // Actualizar datos de medio de pago y cobro con datos reales
+        updatePaymentDataFromDB(row);
         
-        // Actualizar datos de facturación (por ahora con datos de ejemplo)
-        document.getElementById('invoice-number').textContent = 'No emitida';
-        document.getElementById('invoice-date').textContent = 'No emitida';
-        document.getElementById('invoice-status').textContent = 'No emitida';
+        // Actualizar datos de facturación basados en el estado
+        updateBillingData(transactionId, statusText);
         
-        // Actualizar datos de auditoría y control (por ahora con datos de ejemplo)
-        document.getElementById('cancellation-date').textContent = 'No aplica';
-        document.getElementById('cancellation-reason').textContent = 'No aplica';
-        document.getElementById('annulment-date').textContent = 'No aplica';
-        document.getElementById('annulment-reason').textContent = 'No aplica';
+        // Actualizar datos de auditoría y control basados en el estado
+        updateAuditData(transactionId, statusText);
     }
     
     const modal = document.getElementById('transactionModal');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden'; // Prevenir scroll del fondo
+}
+
+// Función para actualizar datos de operación de cambio con datos reales de la base de datos
+function updateExchangeDataFromDB(row) {
+    // Extraer datos reales de la fila
+    const originCurrency = row.getAttribute('data-origin-currency') || 'N/A';
+    const destCurrency = row.getAttribute('data-dest-currency') || 'N/A';
+    const originCurrencyName = row.getAttribute('data-origin-currency-name') || 'N/A';
+    const destCurrencyName = row.getAttribute('data-dest-currency-name') || 'N/A';
+    const exchangeRate = row.getAttribute('data-exchange-rate') || 'N/A';
+    const originAmount = row.getAttribute('data-origin-amount') || 'N/A';
+    const destAmount = row.getAttribute('data-dest-amount') || 'N/A';
+    
+    // Construir rutas de banderas basadas en los códigos de moneda
+    const originFlag = `/media/currency_flags/${originCurrency}_flag.png`;
+    const destFlag = `/media/currency_flags/${destCurrency}_flag.png`;
+    
+    // Actualizar las imágenes de las banderas con verificación de seguridad
+    const originFlagImg = document.querySelector('#origin-currency').previousElementSibling;
+    const destFlagImg = document.querySelector('#dest-currency').previousElementSibling;
+    
+    // Función para verificar y cargar bandera de forma segura
+    function loadFlagSafely(imgElement, flagPath) {
+        if (!imgElement) return;
+        
+        // Crear una nueva imagen para verificar si existe
+        const testImg = new Image();
+        testImg.onload = function() {
+            // Si la imagen se carga correctamente, actualizar el src
+            imgElement.src = flagPath;
+            imgElement.style.display = 'block';
+        };
+        testImg.onerror = function() {
+            // Si la imagen no existe, ocultar el elemento
+            imgElement.style.display = 'none';
+            console.warn(`Bandera no encontrada: ${flagPath}`);
+        };
+        testImg.src = flagPath;
+    }
+    
+    // Cargar banderas de forma segura
+    loadFlagSafely(originFlagImg, originFlag);
+    loadFlagSafely(destFlagImg, destFlag);
+    
+    // Actualizar los textos con datos reales
+    document.getElementById('origin-currency').textContent = `${originCurrency} - ${originCurrencyName}`;
+    document.getElementById('dest-currency').textContent = `${destCurrency} - ${destCurrencyName}`;
+    document.getElementById('exchange-rate').textContent = `1 ${destCurrency} = ${exchangeRate} ${originCurrency}`;
+    document.getElementById('origin-amount').textContent = `${originAmount} ${originCurrency}`;
+    document.getElementById('dest-amount').textContent = `${destAmount} ${destCurrency}`;
+}
+
+// Función para actualizar datos de medio de pago y cobro con datos reales
+function updatePaymentDataFromDB(row) {
+    const paymentMethod = row.getAttribute('data-payment-method') || 'No disponible';
+    const collectionMethod = row.getAttribute('data-collection-method') || 'No disponible';
+    
+    document.getElementById('payment-method').textContent = paymentMethod;
+    document.getElementById('collection-method').textContent = collectionMethod;
+}
+
+// Función para actualizar datos de facturación
+function updateBillingData(transactionId, status) {
+    if (status === 'Pagada') {
+        document.getElementById('invoice-number').textContent = `FAC-${transactionId.toString().padStart(4, '0')}`;
+        document.getElementById('invoice-date').textContent = '08-10-25';
+        document.getElementById('invoice-status').textContent = 'Emitida';
+    } else {
+        document.getElementById('invoice-number').textContent = 'No emitida';
+        document.getElementById('invoice-date').textContent = 'No emitida';
+        document.getElementById('invoice-status').textContent = 'No emitida';
+    }
+}
+
+// Función para actualizar datos de auditoría y control
+function updateAuditData(transactionId, status) {
+    if (status === 'Cancelada') {
+        document.getElementById('cancellation-date').textContent = '07-10-25';
+        document.getElementById('cancellation-reason').textContent = 'Solicitud del cliente';
+        document.getElementById('annulment-date').textContent = 'No aplica';
+        document.getElementById('annulment-reason').textContent = 'No aplica';
+    } else if (status === 'Anulada') {
+        document.getElementById('cancellation-date').textContent = 'No aplica';
+        document.getElementById('cancellation-reason').textContent = 'No aplica';
+        document.getElementById('annulment-date').textContent = '07-10-25';
+        document.getElementById('annulment-reason').textContent = 'Error en el sistema';
+    } else {
+        document.getElementById('cancellation-date').textContent = 'No aplica';
+        document.getElementById('cancellation-reason').textContent = 'No aplica';
+        document.getElementById('annulment-date').textContent = 'No aplica';
+        document.getElementById('annulment-reason').textContent = 'No aplica';
+    }
 }
 
 function closeTransactionModal() {

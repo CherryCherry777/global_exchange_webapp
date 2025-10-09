@@ -403,7 +403,7 @@ body {
 /* Modal Container */
 .modal-container {
     width: 750px;
-    height: 700px;
+    height: 600px;
     background: #36342F;
     border-radius: 20px;
     position: relative;
@@ -415,7 +415,7 @@ body {
 /* Modal Header */
 .modal-header {
     position: relative;
-    padding: 30px 30px 20px 30px;
+    padding: 20px 30px 15px 30px;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -423,22 +423,22 @@ body {
 
 /* Modal Logo */
 .modal-logo {
-    width: 86px;
-    height: 51px;
+    width: 70px;
+    height: 42px;
     object-fit: contain;
 }
 
 /* Modal Title */
 .modal-title {
     font-family: 'Roboto', sans-serif;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     color: #ffffff;
     text-align: center;
     margin: 0;
     position: absolute;
     left: 50%;
-    top: 30px;
+    top: 20px;
     transform: translateX(-50%);
 }
 
@@ -447,14 +447,40 @@ body {
     width: 690px;
     height: 1px;
     background: #8D8D8D;
-    margin: 0 auto 0 auto;
+    margin: 0 auto 10px auto;
 }
 
 /* Modal Content */
 .modal-content {
     flex: 1;
-    padding: 0 30px 30px 30px;
+    padding: 0 30px 20px 30px;
     overflow-y: auto;
+}
+
+/* Custom Scrollbar for Modal */
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: #2A2824;
+    border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #8D8D8D 0%, #757575 50%, #5A5A5A 100%);
+    border-radius: 4px;
+    border: 1px solid #36342F;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #A0A0A0 0%, #8D8D8D 50%, #6B6B6B 100%);
+}
+
+/* Firefox scrollbar */
+.modal-content {
+    scrollbar-width: thin;
+    scrollbar-color: #8D8D8D #2A2824;
 }
 
 /* ===========================================
@@ -463,23 +489,23 @@ body {
 
 /* Info Section */
 .info-section {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 /* Section Title */
 .section-title {
     font-family: 'Roboto', sans-serif;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 800; /* ExtraBold */
     color: #ffffff;
     text-align: center;
-    margin: 15px 0 20px 0;
+    margin: 8px 0 12px 0;
 }
 
 /* Info Grid Layout */
 .info-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 90px;
+    grid-template-columns: 1fr 1fr 80px;
     gap: 6px;
     align-items: start;
 }
@@ -489,7 +515,7 @@ body {
 .info-center {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 5px;
 }
 
 .info-right {
@@ -508,7 +534,7 @@ body {
 /* Info Labels */
 .info-label {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500; /* Medium */
     color: #ffffff;
     white-space: nowrap;
@@ -517,7 +543,7 @@ body {
 /* Info Values */
 .info-value {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 300; /* Light */
     font-style: italic;
     color: #ffffff;
@@ -525,8 +551,8 @@ body {
 
 /* Status Box */
 .status-box {
-    width: 90px;
-    height: 75px;
+    width: 80px;
+    height: 60px;
     background: #36342F;
     border: 1px solid #757575;
     border-radius: 8px;
@@ -534,14 +560,14 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 4px;
-    padding: 6px;
+    gap: 3px;
+    padding: 4px;
 }
 
 /* Status Label */
 .status-label {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500; /* Medium */
     color: #ffffff;
     text-align: center;
@@ -550,7 +576,7 @@ body {
 /* Status Value */
 .status-value {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 300; /* Light */
     font-style: italic;
     color: #ffffff;
@@ -562,7 +588,7 @@ body {
     width: 690px;
     height: 1px;
     background: #8D8D8D;
-    margin: 15px auto 0 auto;
+    margin: 8px auto 0 auto;
 }
 
 /* ===========================================
@@ -595,7 +621,7 @@ body {
 /* Exchange Labels */
 .exchange-label {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500; /* Medium */
     color: #ffffff;
     white-space: nowrap;
@@ -604,7 +630,7 @@ body {
 /* Exchange Values */
 .exchange-value {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 300; /* Light */
     font-style: italic;
     color: #ffffff;
@@ -623,6 +649,12 @@ body {
     height: 15px;
     object-fit: cover;
     border-radius: 2px;
+    display: block; /* Asegurar que se muestre por defecto */
+}
+
+/* Ocultar bandera cuando no existe */
+.currency-flag[style*="display: none"] {
+    display: none !important;
 }
 
 /* Responsive Modal */
@@ -771,9 +803,10 @@ body {
 
 /* Payment Grid Layout */
 .payment-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    align-items: start;
 }
 
 /* Payment Items */
@@ -786,7 +819,7 @@ body {
 /* Payment Labels */
 .payment-label {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500; /* Medium */
     color: #ffffff;
     white-space: nowrap;
@@ -795,7 +828,7 @@ body {
 /* Payment Values */
 .payment-value {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 300; /* Light */
     font-style: italic;
     color: #ffffff;
@@ -808,7 +841,7 @@ body {
 /* Billing Grid Layout */
 .billing-grid {
     display: grid;
-    grid-template-columns: 1fr 90px;
+    grid-template-columns: 1fr 80px;
     gap: 6px;
     align-items: start;
 }
@@ -836,7 +869,7 @@ body {
 /* Billing Labels */
 .billing-label {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500; /* Medium */
     color: #ffffff;
     white-space: nowrap;
@@ -845,7 +878,7 @@ body {
 /* Billing Values */
 .billing-value {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 300; /* Light */
     font-style: italic;
     color: #ffffff;
@@ -853,8 +886,8 @@ body {
 
 /* Billing Status Box */
 .billing-status-box {
-    width: 90px;
-    height: 75px;
+    width: 80px;
+    height: 60px;
     background: #36342F;
     border: 1px solid #757575;
     border-radius: 8px;
@@ -862,14 +895,14 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 4px;
-    padding: 6px;
+    gap: 3px;
+    padding: 4px;
 }
 
 /* Billing Status Label */
 .billing-status-label {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500; /* Medium */
     color: #ffffff;
     text-align: center;
@@ -878,7 +911,7 @@ body {
 /* Billing Status Value */
 .billing-status-value {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 300; /* Light */
     font-style: italic;
     color: #ffffff;
@@ -915,7 +948,7 @@ body {
 /* Audit Labels */
 .audit-label {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500; /* Medium */
     color: #ffffff;
     white-space: nowrap;
@@ -924,7 +957,7 @@ body {
 /* Audit Values */
 .audit-value {
     font-family: 'Roboto', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 300; /* Light */
     font-style: italic;
     color: #ffffff;
