@@ -13,7 +13,7 @@ from ..models import Currency, ClienteUsuario, MedioPago, TipoPago
 FORM_MAP = {
     'tarjeta': TarjetaForm,
     'billetera': BilleteraForm,
-    #'cuenta_bancaria': CuentaBancariaForm,
+    'cuenta_bancaria': CuentaBancariaForm,
 }
 
 @login_required
@@ -49,7 +49,7 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
     FORM_MAP = {
         'tarjeta': TarjetaForm,
         'billetera': BilleteraForm,
-        #'cuenta_bancaria': CuentaBancariaForm,
+        'cuenta_bancaria': CuentaBancariaForm,
     }
     form_class = FORM_MAP.get(tipo)
     if not form_class:

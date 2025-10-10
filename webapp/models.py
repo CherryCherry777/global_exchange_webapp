@@ -461,7 +461,7 @@ class Billetera(models.Model):
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.entidad.nombre}"
 
-"""
+
 class CuentaBancaria(models.Model):
     medio_pago = models.OneToOneField(
         "MedioPago",
@@ -489,7 +489,7 @@ class CuentaBancaria(models.Model):
 
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.entidad.nombre}"
-"""
+
 
 # Administracion de metodo de pago global (para admin)
 

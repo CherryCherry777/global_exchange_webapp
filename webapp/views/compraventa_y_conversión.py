@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import Transaccion, Tauser, Currency, Cliente, ClienteUsuario, Tarjeta, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
+from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, Tarjeta, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
 
 # ----------------------
@@ -105,11 +105,11 @@ def get_metodos_pago_cobro(request):
 
     # ---------------- ContentTypes ----------------
     ct_tarjeta = ContentType.objects.get_for_model(Tarjeta)
-    #ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
+    ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
     ct_billetera = ContentType.objects.get_for_model(Billetera)
     ct_tauser = ContentType.objects.get_for_model(Tauser)
 
-    #ct_tarjeta_cobro = ContentType.objects.get_for_model(TarjetaCobro)
+    ct_tarjeta_cobro = ContentType.objects.get_for_model(TarjetaCobro)
     ct_transferencia_cobro = ContentType.objects.get_for_model(CuentaBancariaCobro)
     ct_billetera_cobro = ContentType.objects.get_for_model(BilleteraCobro)
 

@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
+from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
@@ -386,7 +386,7 @@ class CuentaBancariaForm(forms.ModelForm):
     )
 
     class Meta:
-        #model = CuentaBancaria
+        model = CuentaBancaria
         fields = ['numero_cuenta', 'entidad', 'alias_cbu']
         widgets = {
             'numero_cuenta': forms.TextInput(attrs={'class': 'form-control'}),
@@ -599,7 +599,7 @@ class BilleteraEditForm(MonedaDisabledMixin, forms.ModelForm):
         return numero_celular
 
 
-"""class CuentaBancariaEditForm(MonedaDisabledMixin, forms.ModelForm):
+class CuentaBancariaEditForm(MonedaDisabledMixin, forms.ModelForm):
     entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
                                      label="Banco",
                                      widget=forms.Select(attrs={'class': 'form-control'}))
@@ -614,7 +614,7 @@ class BilleteraEditForm(MonedaDisabledMixin, forms.ModelForm):
         self.fields['entidad'].queryset = Entidad.objects.filter(tipo='banco', activo=True)
         self.fields['numero_cuenta'].widget.attrs.update({'class': 'form-control'})
         self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
-"""
+
 
 
 # -------------------------
