@@ -10,7 +10,7 @@ def eliminar_registros(apps, schema_editor):
     TipoCobro.objects.filter(nombre="Tarjeta").delete()
 
     # Eliminar el registro "Cuenta_bancaria" de TipoPago
-    TipoPago.objects.filter(nombre="Cuenta_bancaria").delete()
+    TipoPago.objects.filter(nombre="Cuenta Bancaria").delete()
 
 class Migration(migrations.Migration):
 

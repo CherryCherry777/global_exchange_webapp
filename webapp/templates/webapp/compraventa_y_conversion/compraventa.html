@@ -52,13 +52,13 @@
 
                     {% is_usuario_asociado request.user as usuario_asociado %}
                     {% if usuario_asociado %}
-                        <!-- Método de Pago perspectiva de la casa de cambios -->
+                        <!-- Método de Pago perspectiva del cliente -->
                         <div class="converter-field">
                             <label class="field-label">Pagar con:</label>
                                 
                             <div class="tab-row" id="pago-tabs">
                             {% for tipo in tipos_pago %}
-                                <button type="button" class="tab-btn" data-tipo-general="{{ tipo.id }}">
+                                <button type="button" class="tab-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}">
                                 {{ tipo.nombre }}
                                 </button>
                             {% endfor %}
@@ -73,13 +73,13 @@
                             </div>
                         </div>
                         
-                        <!-- Método de Cobro perspectiva de la casa de cambios -->
+                        <!-- Método de Cobro perspectiva del cliente -->
                         <div class="converter-field">
                             <label class="field-label">Recibir en:</label>
 
                             <div class="tab-row" id="cobro-tabs">
                             {% for tipo in tipos_cobro %}
-                                <button type="button" class="tab-btn" data-tipo-general="{{ tipo.id }}">
+                                <button type="button"class="tab-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}">
                                 {{ tipo.nombre }}
                                 </button>
                             {% endfor %}
@@ -187,11 +187,21 @@
             selectEl.value = CODES[0];
     }
 
+    // variables y listeners utilizados en enforceDifferent()
+    let lastFrom = from.value;
+    let lastTo = to.value;
+
+    from.addEventListener("focus", () => lastFrom = from.value);
+    to.addEventListener("focus", () => lastTo = to.value);
+
     function enforceDifferent(changed, other) {
         // Caso 1: si el usuario pone PYG en ambos
         if (from.value === "PYG" && to.value === "PYG") {
-            // fijamos que el "otro" se quede en USD (si existe) en vez de tomar el primero al azar
-            const fallback = CODES.includes("USD") ? "USD" : CODES.find(c => c !== "PYG");
+            const prev = (changed === from ? lastFrom : lastTo);
+            const fallback = prev && prev !== "PYG"
+                ? prev
+                : (CODES.includes("USD") ? "USD" : CODES.find(c => c !== "PYG"));
+
             if (changed === from) to.value = fallback;
             else from.value = fallback;
         }
@@ -362,8 +372,15 @@
         if (!metodoPago || !metodoCobro) return;
 
         try {
+            // Obtiene las referencias de los grupos de botones de tipo general
+            const pagoTabs = document.getElementById("pago-tabs");
+            const cobroTabs = document.getElementById("cobro-tabs");
+
+            // Detecta qué botón está activo en cada grupo
+            const tipoGeneralPago = pagoTabs?.querySelector(".tab-btn.active")?.dataset.tipoGeneral || null;
+            const tipoGeneralCobro = cobroTabs?.querySelector(".tab-btn.active")?.dataset.tipoGeneral || null;
+
             // Llama a la API que devuelve los métodos disponibles según la conversión seleccionada
-            // Se pasan las monedas "from" y "to" como parámetros de la query
             const res = await fetch(`{% url 'get_metodos_pago_cobro' %}?from=${from.value}&to=${to.value}`);
             const data = await res.json(); // Parseo del JSON de respuesta
 
@@ -396,13 +413,24 @@
                 return opt; // devuelve el <option> ya construido
             };
 
-            // Agrega las opciones al select de métodos de pago y de cobro
-            data.metodo_pago.forEach(item => metodoPago.appendChild(crearOption(item)));
-            data.metodo_cobro.forEach(item => metodoCobro.appendChild(crearOption(item)));
+            // === 🔍 Filtra los métodos según el tipo general activo ===
+            const metodosPagoFiltrados = data.metodo_pago.filter(
+                (m) => !tipoGeneralPago || m.tipo_general_id == tipoGeneralPago
+            );
+            const metodosCobroFiltrados = data.metodo_cobro.filter(
+                (m) => !tipoGeneralCobro || m.tipo_general_id == tipoGeneralCobro
+            );
 
-            // Selecciona por defecto la primera opción en cada select (si existen)
+            // Agrega las opciones filtradas a los <select>
+            metodosPagoFiltrados.forEach(item => metodoPago.appendChild(crearOption(item)));
+            metodosCobroFiltrados.forEach(item => metodoCobro.appendChild(crearOption(item)));
+
+            // Selecciona por defecto la primera opción visible (si existen)
             if (metodoPago.options.length) metodoPago.selectedIndex = 0;
             if (metodoCobro.options.length) metodoCobro.selectedIndex = 0;
+
+            console.log("Tipo general cobro activo:", tipoGeneralCobro);
+            console.log("Métodos de cobro desde backend:", data.metodo_cobro);
 
             // Luego de recargar métodos, actualiza las tasas de cambio
             await updateRatesForMetodo();
@@ -413,6 +441,28 @@
         }
     }
     
+    function configurarTabsFiltro() {
+        const pagoTabs = document.getElementById("pago-tabs");
+        const cobroTabs = document.getElementById("cobro-tabs");
+
+        const activar = async (grupo, btn) => {
+            grupo.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            await recargarMetodos();
+            await updateRatesForMetodo();
+            compute();
+        };
+
+        pagoTabs.querySelectorAll(".tab-btn").forEach(btn =>
+            btn.addEventListener("click", () => activar(pagoTabs, btn))
+        );
+
+        cobroTabs.querySelectorAll(".tab-btn").forEach(btn =>
+            btn.addEventListener("click", () => activar(cobroTabs, btn))
+        );
+    }
+
     async function boot() {
         try {
             // Carga inicialmente las tasas de cambio según los métodos de pago/cobro seleccionados
@@ -444,6 +494,9 @@
 
         // Primero carga los métodos de pago/cobro iniciales desde el backend
         await recargarMetodos();
+
+        // Filtra los métodos de cobro y pago según el tipo general seleccionado
+        configurarTabsFiltro()
 
         // Ejecuta el arranque inicial (boot) para dejar todo preparado
         boot();

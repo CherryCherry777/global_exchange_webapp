@@ -83,8 +83,8 @@ def compraventa_view(request):
     tipos_cobro = list(TipoCobro.objects.order_by("-nombre").values("id", "nombre"))
 
     for tipo in tipos_pago:
-        nombre_normalizado = tipo["nombre"].replace(" ", "").lower()
-        """if nombre_normalizado == "cuentabancaria":
+        nombre_normalizado = tipo["nombre"].replace(" ", "").replace("_", "").lower()
+        if nombre_normalizado == "cuentabancaria":
             tipo["nombre"] = "Transferencia"""
 
     context = {
@@ -247,6 +247,8 @@ def get_metodos_pago_cobro(request):
             "content_type_id": ct_tauser.id
         })
 
+    for metodo in metodo_cobro:
+        print(metodo)
     return JsonResponse({"metodo_pago": metodo_pago, "metodo_cobro": metodo_cobro})
 
 
