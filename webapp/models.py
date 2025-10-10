@@ -583,7 +583,7 @@ class LimiteIntercambio(models.Model):
 class MedioCobro(models.Model):
     # Opciones predefinidas para los métodos de cobro
     TIPO_CHOICES = [
-        ('tarjeta', 'Tarjeta de Débito/Crédito'),
+        ('tauser', 'Tauser'),
         ('billetera', 'Billetera Electrónica'),
         ('cuenta_bancaria', 'Cuenta Bancaria'),
     ]
@@ -628,12 +628,12 @@ class MedioCobro(models.Model):
     )
     
     tipo_cobro = models.ForeignKey(
-        "TipoPago",
+        "TipoCobro",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name="Tipo de Cobro Global",
-        help_text="Configuración global de activación y comisión"
+        help_text="Configuración global de activación y comisión",
     )
 
     moneda = models.ForeignKey(

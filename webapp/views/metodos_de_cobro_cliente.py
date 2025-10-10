@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from webapp.emails import send_activation_email
 from ..forms import BilleteraCobroForm, CuentaBancariaCobroForm, MedioCobroForm
-from ..models import MedioCobro, Currency, ClienteUsuario, TipoPago
+from ..models import MedioCobro, Currency, ClienteUsuario, TipoCobro, TipoPago
 
 # ----------------------------------------
 # MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
@@ -48,6 +48,12 @@ RELATED_MAP = {
     "cuenta_bancaria": "cuenta_bancaria_cobro",
 }
 
+TIPO_COBRO_MAP = {
+    'billetera': 'Billetera',
+    'cuenta_bancaria': 'Cuenta Bancaria',
+    'tauser': 'Tauser'
+}
+
 @login_required
 def manage_cobro_method(request, tipo, **kwargs):
     """
@@ -76,7 +82,7 @@ def manage_cobro_method(request, tipo, **kwargs):
 
     # Mapeo de relaciones para acceder al objeto específico
     related_map = {
-        'tarjeta': 'tarjeta_cobro',
+        #'tarjeta': 'tarjeta_cobro',
         'billetera': 'billetera_cobro',
         'cuenta_bancaria': 'cuenta_bancaria_cobro',
     }
@@ -119,12 +125,20 @@ def manage_cobro_method(request, tipo, **kwargs):
                         "is_edit": is_edit,
                         "monedas": monedas
                     })
+                
+                tipo_cobro_nombre = TIPO_COBRO_MAP.get(tipo)
+                tipo_cobro = None
+                if tipo_cobro_nombre:
+                    tipo_cobro = TipoCobro.objects.filter(nombre__iexact=tipo_cobro_nombre).first()
+
                 moneda = get_object_or_404(Currency, id=moneda_id)
+
                 mc = MedioCobro.objects.create(
                     cliente=cliente,
                     tipo=tipo,
                     nombre=medio_cobro_form.cleaned_data['nombre'],
-                    moneda=moneda
+                    moneda=moneda,
+                    tipo_cobro=tipo_cobro
                 )
                 obj = form.save(commit=False)
                 obj.medio_cobro = mc
