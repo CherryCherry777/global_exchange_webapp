@@ -108,8 +108,6 @@ def get_metodos_pago_cobro(request):
     ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
     ct_billetera = ContentType.objects.get_for_model(Billetera)
     ct_tauser = ContentType.objects.get_for_model(Tauser)
-
-    ct_tarjeta_cobro = ContentType.objects.get_for_model(TarjetaCobro)
     ct_transferencia_cobro = ContentType.objects.get_for_model(CuentaBancariaCobro)
     ct_billetera_cobro = ContentType.objects.get_for_model(BilleteraCobro)
 
