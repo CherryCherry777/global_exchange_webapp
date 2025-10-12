@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, Tarjeta, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
+from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
 
 # ----------------------
@@ -104,7 +104,7 @@ def get_metodos_pago_cobro(request):
     moneda_cobro = request.GET.get("to")
 
     # ---------------- ContentTypes ----------------
-    ct_tarjeta = ContentType.objects.get_for_model(Tarjeta)
+    ct_tarjeta = ContentType.objects.get_for_model(TarjetaNacional)
     ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
     ct_billetera = ContentType.objects.get_for_model(Billetera)
     ct_tauser = ContentType.objects.get_for_model(Tauser)
@@ -114,7 +114,7 @@ def get_metodos_pago_cobro(request):
     # ---------------- Métodos de Pago ----------------
     metodo_pago = []
 
-    tarjetas = Tarjeta.objects.filter(
+    tarjetas = TarjetaNacional.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
     for t in tarjetas:
@@ -122,7 +122,7 @@ def get_metodos_pago_cobro(request):
             continue
         metodo_pago.append({
             "id": t.id,
-            "tipo": "tarjeta",
+            "tipo": "tarjeta_nacional",
             "nombre": f"Tarjeta ****{t.ultimos_digitos}",
             "tipo_general_id": t.medio_pago.tipo_pago_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,

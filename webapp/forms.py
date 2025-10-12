@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
+from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, TarjetaNacional, Billetera, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
@@ -313,7 +313,7 @@ class TarjetaForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Tarjeta
+        model = TarjetaNacional
         fields = ['numero_tokenizado', 'entidad', 'fecha_vencimiento', 'ultimos_digitos']
         widgets = {
             'numero_tokenizado': forms.TextInput(attrs={'class': 'form-control'}),
@@ -555,7 +555,7 @@ class TarjetaEditForm(MonedaDisabledMixin, forms.ModelForm):
                                      widget=forms.Select(attrs={'class': 'form-control'}))
 
     class Meta:
-        model = Tarjeta
+        model = TarjetaNacional
         fields = ['numero_tokenizado', 'entidad', 'fecha_vencimiento', 'ultimos_digitos']
 
     def __init__(self, *args, **kwargs):
