@@ -30,12 +30,24 @@ def public_home(request):
         last_update = currencies.order_by('-updated_at').first().updated_at
     
     is_guest = not request.user.is_authenticated
+    
+    # Obtener el cliente actual de la sesión
+    current_client = None
+    if request.user.is_authenticated:
+        cliente_id = request.session.get("cliente_id")
+        if cliente_id:
+            try:
+                current_client = Cliente.objects.get(id=cliente_id)
+            except Cliente.DoesNotExist:
+                # Si el cliente no existe, limpiar la sesión
+                request.session.pop('cliente_id', None)
 
     return render(request, "webapp/paginas_principales/home.html", {
         "can_access_gestiones": can_access_gestiones,
         "currencies": currencies,
         "last_update": last_update,
-        "is_guest": is_guest
+        "is_guest": is_guest,
+        "current_client": current_client
     })
 
 # ------------------------------
@@ -135,6 +147,10 @@ def landing_page(request):
     monedas_activas = Currency.objects.filter(is_active=True).count()
     clientes_activos = Cliente.objects.filter(estado=True).count()
     
+    # Importar el modelo de Entidades
+    from ..models import Entidad
+    entidades_activas = Entidad.objects.filter(activo=True).count()
+    
     role = get_user_primary_role(request.user)
     
     context = {
@@ -142,6 +158,7 @@ def landing_page(request):
         "usuarios_activos": usuarios_activos,
         "monedas_activas": monedas_activas,
         "clientes_activos": clientes_activos,
+        "entidades_activas": entidades_activas,
     }
     
     return render(request, "webapp/paginas_principales/landing.html", context)

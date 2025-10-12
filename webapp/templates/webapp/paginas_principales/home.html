@@ -4,10 +4,30 @@
 {% block title %}Global Exchange - Inicio{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'webapp/home.css' %}">
+<link rel="stylesheet" href="{% static 'webapp/css/paginas_principales/home.css' %}?v=1.9">
 {% endblock %}
 
 {% block content %}
+
+<!-- Welcome Message - Solo para usuarios autenticados -->
+{% if user.is_authenticated %}
+<div class="welcome-section">
+    <div class="welcome-container">
+        <h1 class="welcome-title">
+            ¡BIENVENIDO/A <span class="user-name">{{ user.get_full_name|default:user.username|upper }}</span>!
+        </h1>
+        {% if current_client %}
+            <p class="client-info">
+                Actualmente está operando con <span class="client-name">{{ current_client.nombre|upper }}</span>
+            </p>
+        {% else %}
+            <p class="client-info">
+                <span class="no-client">No hay cliente seleccionado</span>
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 
 <div class="main-home-container">
     <div class="main-content-row">
@@ -106,25 +126,6 @@
     </div>
 </div>
 
-<div class="homepage-services">
-    <div class="container">
-        <h2 class="animate-in">Nuestros Servicios</h2>
-        <div class="services-grid">
-            <div class="service-card">
-                <h3>Cambio de Monedas</h3>
-                <p>Intercambia tus monedas de forma segura y al mejor precio del mercado.</p>
-            </div>
-            <div class="service-card">
-                <h3>Transferencias Internacionales</h3>
-                <p>Envía dinero a cualquier parte del mundo de manera rápida y confiable.</p>
-            </div>
-            <div class="service-card">
-                <h3>Inversiones</h3>
-                <p>Diversifica tu portafolio con nuestras opciones de inversión seguras.</p>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
 function refreshRates() {
@@ -199,7 +200,7 @@ function refreshRates() {
     function compute() {
         const raw = parseFloat((amount.value || "").toString().replace(",", "."));
         if (isNaN(raw) || raw <= 0) {
-            out.value = "—";
+            out.value = "";
             detail.textContent = "Ingresá un monto para calcular";
             return;
         }
@@ -219,7 +220,7 @@ function refreshRates() {
             detail.innerHTML = `1 ${a} = ${nf(rateAB, "PYG")} ${b}`;
         } 
         else {
-            out.value = "—";
+            out.value = "";
             detail.textContent = "Sólo se permiten conversiones con Guaraníes";
             return;
         }
