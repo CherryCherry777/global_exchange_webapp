@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from ..forms import ClienteForm, ClienteUpdateForm
 from ..decorators import role_required, permitir_permisos
 from ..models import Cliente, ClienteUsuario, Categoria
+from django.conf import settings
+import stripe
 
 # -----------------------
 # Cliente Management Views
@@ -93,9 +95,50 @@ def modify_client(request, client_id):
                 client.categoria = categoria
             
             client.save()
+
+            # === Sincronizar con Stripe ===
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+
+            if client.stripe_customer_id:
+                # Actualizar cliente existente en Stripe
+                stripe.Customer.modify(
+                    client.stripe_customer_id,
+                    name=nombre,
+                    email=correo,
+                    phone=telefono,
+                    address={
+                        "line1": direccion,
+                    },
+                    metadata={
+                        "tipoCliente": tipo_cliente,
+                        "documento": documento,
+                        "id_local": client.id,
+                    }
+                )
+            else:
+                # Crear nuevo cliente en Stripe (por si no existía)
+                stripe_customer = stripe.Customer.create(
+                    name=nombre,
+                    email=correo,
+                    phone=telefono,
+                    address={
+                        "line1": direccion
+                    },
+                    metadata={
+                        "tipoCliente": tipo_cliente,
+                        "documento": documento,
+                        "id_local": client.id,
+                    }
+                )
+                client.stripe_customer_id = stripe_customer.id
+                client.save()
+
             messages.success(request, f"Cliente '{client.nombre}' modificado correctamente.")
             return redirect("manage_clientes")
             
+        except stripe.error.StripeError as e:
+            messages.error(request, f"Error al actualizar en Stripe: {str(e.user_message if hasattr(e, 'user_message') else str(e))}")
+            return redirect("modify_client", client_id=client_id)
         except Exception as e:
             messages.error(request, f"Error al modificar el cliente: {str(e)}")
             return redirect("modify_client", client_id=client_id)
@@ -160,11 +203,34 @@ def create_client(request):
                 estado=activo
             )
             
-            messages.success(request, f"Cliente '{client.nombre}' creado exitosamente.")
+             # === Crear cliente en Stripe ===
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            stripe_customer = stripe.Customer.create(
+                name=nombre,
+                email=correo,
+                phone=telefono,
+                address={
+                    "line1": direccion,
+                },
+                metadata={
+                    "tipoCliente": tipo,
+                    "documento": documento,
+                    "id_local": client.id,
+                }
+            )
+
+            # Guardar el ID del cliente de Stripe
+            client.stripe_customer_id = stripe_customer.id
+            client.save()
+
+            messages.success(request, f"Cliente '{client.nombre}' creado exitosamente y vinculado a stripe.")
             return redirect("manage_clientes")
             
         except Categoria.DoesNotExist:
             messages.error(request, "La categoría seleccionada no existe.")
+            return redirect("create_client")
+        except stripe.error.StripeError as e:
+            messages.error(request, f"Error en Stripe: {str(e.user_message if hasattr(e, 'user_message') else str(e))}")
             return redirect("create_client")
         except Exception as e:
             messages.error(request, f"Error al crear el cliente: {str(e)}")
@@ -188,47 +254,6 @@ def create_client(request):
 
 @login_required
 @role_required("Administrador")
-def create_cliente(request):
-    """Vista para crear un nuevo cliente"""
-    if request.method == "POST":
-        form = ClienteForm(request.POST)
-        if form.is_valid():
-            cliente = form.save()
-            messages.success(request, f"Cliente '{cliente.nombre}' creado exitosamente.")
-            return redirect("manage_clientes")
-    else:
-        form = ClienteForm()
-    
-    return render(request, "webapp/clientes/cliente_form.html", {
-        'form': form,
-        'title': 'Crear Cliente',
-        'action': 'create'
-    })
-
-@login_required
-@role_required("Administrador")
-def update_cliente(request, cliente_id):
-    """Vista para actualizar un cliente existente"""
-    cliente = get_object_or_404(Cliente, id=cliente_id)
-    
-    if request.method == "POST":
-        form = ClienteUpdateForm(request.POST, instance=cliente)
-        if form.is_valid():
-            cliente = form.save()
-            messages.success(request, f"Cliente '{cliente.nombre}' actualizado exitosamente.")
-            return redirect("manage_clientes")
-    else:
-        form = ClienteUpdateForm(instance=cliente)
-    
-    return render(request, "webapp/clientes/cliente_form.html", {
-        'form': form,
-        'title': 'Editar Cliente',
-        'action': 'update',
-        'cliente': cliente
-    })
-
-@login_required
-@role_required("Administrador")
 def delete_cliente(request, cliente_id):
     """Vista para eliminar un cliente"""
     cliente = get_object_or_404(Cliente, id=cliente_id)
@@ -240,22 +265,6 @@ def delete_cliente(request, cliente_id):
         return redirect("manage_clientes")
     
     return render(request, "webapp/clientes/confirm_delete_cliente.html", {'cliente': cliente})
-
-@login_required
-@role_required("Administrador")
-def view_cliente(request, cliente_id):
-    """Vista para ver los detalles de un cliente"""
-    cliente = get_object_or_404(Cliente, id=cliente_id)
-    
-    # Obtener usuarios asignados a este cliente
-    usuarios_asignados = ClienteUsuario.objects.filter(cliente=cliente).select_related('usuario')
-    
-    context = {
-        'cliente': cliente,
-        'usuarios_asignados': usuarios_asignados,
-    }
-    
-    return render(request, "webapp/clientes/view_cliente.html", context)
 
 # --------------------------------------------
 # Vista para inactivar un cliente

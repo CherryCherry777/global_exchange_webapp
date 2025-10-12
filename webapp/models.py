@@ -182,6 +182,9 @@ class Cliente(models.Model):  # Definimos el modelo Cliente, que representa la t
         verbose_name="Fecha de Registro"
     )
 
+    # ID del cliente asociado en stripe a este
+    stripe_customer_id = models.CharField(max_length=255, null=True, blank=True)
+
     # Representación del objeto en formato de texto
     def __str__(self):
         return f"{self.nombre} ({self.tipoCliente})"
