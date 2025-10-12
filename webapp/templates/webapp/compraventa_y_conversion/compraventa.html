@@ -472,6 +472,19 @@
             metodoPago.innerHTML = "";
             metodoCobro.innerHTML = "";
 
+            // 🆕 Opción inicial por defecto
+            const agregarOpcionInicial = (selectEl) => {
+                const opt = document.createElement("option");
+                opt.value = "";
+                opt.textContent = "---Seleccione una opción---";
+                opt.disabled = true;
+                opt.selected = true;
+                selectEl.appendChild(opt);
+            };
+
+            agregarOpcionInicial(metodoPago);
+            agregarOpcionInicial(metodoCobro);
+
             // Función auxiliar para crear un <option> a partir de un item recibido
             const crearOption = (item) => {
                 const opt = document.createElement("option");
@@ -512,9 +525,6 @@
             // Selecciona por defecto la primera opción visible (si existen)
             if (metodoPago.options.length) metodoPago.selectedIndex = 0;
             if (metodoCobro.options.length) metodoCobro.selectedIndex = 0;
-
-            console.log("Tipo general cobro activo:", tipoGeneralCobro);
-            console.log("Métodos de cobro desde backend:", data.metodo_cobro);
 
             // Luego de recargar métodos, actualiza las tasas de cambio
             await updateRatesForMetodo();
@@ -633,10 +643,98 @@
             hiddenInputs.medio_cobro_type.value = metodoCobro.selectedOptions[0].dataset.contentTypeId;
         }
     });
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Lógica del Wizard
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function mostrarMensaje(texto, tipo="error", duracion=5000) {
+        // Busca el contenedor; si no existe, lo crea y lo agrega al body
+        let container = document.getElementById("toast-container");
+        console.log(container)
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "toast-container";
+            container.style.position = "fixed";
+            container.style.top = "1rem";
+            container.style.right = "1rem";
+            container.style.zIndex = 9999;
+            container.style.display = "flex";
+            container.style.flexDirection = "column";
+            container.style.gap = "0.5rem";
+            document.body.appendChild(container);
+        }
+
+        // Crear el mensaje
+        const msg = document.createElement("div");
+        msg.className = `toast-message ${tipo}`;
+        msg.textContent = texto;
+        msg.style.padding = "0.8rem 1rem";
+        msg.style.borderRadius = "0.5rem";
+        msg.style.color = "#fff";
+        msg.style.backgroundColor = tipo === "error" ? "#e74c3c" : "#2ecc71";
+        msg.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+        msg.style.opacity = 0;
+        msg.style.transition = "opacity 0.3s";
+
+        container.appendChild(msg);
+
+        // Animación de aparición
+        requestAnimationFrame(() => { msg.style.opacity = 1; });
+
+        // Desaparece después de 'duracion' ms
+        setTimeout(() => {
+            msg.style.opacity = 0;
+            msg.addEventListener("transitionend", () => msg.remove());
+        }, duracion);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const step1 = document.getElementById("step-1");
+        const step2 = document.getElementById("step-2");
+        const next = document.getElementById("next-step");
+        const prev = document.getElementById("prev-step");
+
+        const ind1 = document.getElementById("indicator-step1");
+        const ind2 = document.getElementById("indicator-step2");
+
+        next.addEventListener("click", () => {
+            // Actualiza los datos de resumen
+            document.getElementById("resumen-tipo").textContent =
+            document.getElementById("input-tipo")?.value || "";
+
+            document.getElementById("resumen-origen").textContent =
+            `${document.getElementById("input-monto-origen")?.value || "-"} ${document.getElementById("input-moneda-origen")?.value || ""}`;
+
+            document.getElementById("resumen-destino").textContent =
+            `${document.getElementById("input-monto-destino")?.value || "-"} ${document.getElementById("input-moneda-destino")?.value || ""}`;
+
+            document.getElementById("resumen-pago").textContent =
+            document.getElementById("simu-metodo-pago")?.selectedOptions[0]?.text || "-";
+
+            document.getElementById("resumen-cobro").textContent =
+            document.getElementById("simu-metodo-cobro")?.selectedOptions[0]?.text || "-";
+
+            if (isNaN(amount.value) || amount.value <= 0) return mostrarMensaje("Monto inválido.", "error");
+            if (metodoPago.value === "") return mostrarMensaje("Selecciona un método de pago.", "error");
+            if (metodoCobro.value === "") return mostrarMensaje("Selecciona un método de cobro.", "error");
+
+            // Cambia la vista
+            step1.classList.add("d-none");
+            step2.classList.remove("d-none");
+            ind1.classList.remove("active");
+            ind2.classList.add("active");
+        });
+
+        prev.addEventListener("click", () => {
+            // Volver al paso anterior
+            step2.classList.add("d-none");
+            step1.classList.remove("d-none");
+            ind2.classList.remove("active");
+            ind1.classList.add("active");
+        });
+    });
 
 })();
 
 </script>
-
-<script src="{% static 'webapp/js/compraventa_wizard.js' %}"></script>
 {% endblock %}

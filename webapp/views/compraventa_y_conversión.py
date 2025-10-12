@@ -245,8 +245,6 @@ def get_metodos_pago_cobro(request):
             "content_type_id": ct_tauser.id
         })
 
-    for metodo in metodo_cobro:
-        print(metodo)
     return JsonResponse({"metodo_pago": metodo_pago, "metodo_cobro": metodo_cobro})
 
 
