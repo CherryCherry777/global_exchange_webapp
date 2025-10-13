@@ -13,16 +13,37 @@
 
 {% block content %}
 {% has_perms request.user 'webapp.access_admin_panel' as can_access_admin_panel %}
-{% if can_access_admin_panel %}
+{% has_perms request.user 'webapp.access_analyst_panel' as can_access_analyst_panel %}
+
+{# Permisos que usaremos para decidir si mostramos contenedores #}
+{% has_perms request.user 'webapp.view_currency' as p_view_currency %}
+{% has_perms request.user 'webapp.view_limiteintercambio' as p_view_lim %}
+{% has_perms request.user 'webapp.view_mediopago' as p_view_mediopago %}
+{% has_perms request.user 'webapp.view_mediocobro' as p_view_mediocobro %}
+
+{% if can_access_admin_panel or can_access_analyst_panel %}
 <div class="admin-panel">
     <!-- Header Section -->
     <div class="admin-header">
-        <h1 class="admin-title">Panel de administración</h1>
-        <p class="admin-subtitle">Gestión centralizada del sistema Global Exchange</p>
+        <h1 class="admin-title">
+            {% if can_access_admin_panel %}
+                Panel de administración
+            {% else %}
+                Panel de Analista
+            {% endif %}
+        </h1>
+        <p class="admin-subtitle">
+            {% if can_access_admin_panel %}
+                Gestión centralizada del sistema Global Exchange
+            {% else %}
+                Gestiones habilitadas para Analista
+            {% endif %}
+        </p>
     </div>
 
     <!-- Metrics Section -->
     <div class="admin-metrics">
+        {% if can_access_admin_panel %}
         <div class="metric-card">
             <div class="metric-label">Usuarios Activos</div>
             <div class="metric-number">{{ usuarios_activos }}</div>
@@ -31,19 +52,26 @@
             <div class="metric-label">Clientes Activos</div>
             <div class="metric-number">{{ clientes_activos }}</div>
         </div>
+        {% endif %}
+
+        {% if can_access_admin_panel or p_view_currency %}
         <div class="metric-card">
             <div class="metric-label">Monedas Activas</div>
             <div class="metric-number">{{ monedas_activas }}</div>
         </div>
+        {% endif %}
+
+        {% if can_access_admin_panel %}
         <div class="metric-card">
             <div class="metric-label">Entidades Activas</div>
             <div class="metric-number">{{ entidades_activas }}</div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Management Containers Grid -->
     <div class="admin-containers-grid">
-        
+        {% if can_access_admin_panel %}
         <!-- Contenedor 1: Gestión de Usuarios y Roles -->
         <div class="management-container usuarios-roles-container">
             <h2 class="container-title">Gestión de Usuarios y Roles</h2>
@@ -72,7 +100,10 @@
             </a>
             {% endif %}
         </div>
+        {% endif %}
 
+
+        {% if can_access_admin_panel %}
         <!-- Contenedor 2: Gestión de Clientes y Categorías -->
         <div class="management-container clientes-categorias-container">
             <h2 class="container-title">Gestión de Clientes y Categorías</h2>
@@ -101,13 +132,15 @@
             </a>
             {% endif %}
         </div>
+        {% endif %}
 
+        {% if can_access_admin_panel or p_view_currency or p_view_lim %}
         <!-- Contenedor 3: Gestión de Monedas y Cotizaciones -->
         <div class="management-container monedas-cotizaciones-container">
             <h2 class="container-title">Gestión de Monedas y Cotizaciones</h2>
             
             {% has_perms request.user 'webapp.view_currency' as can_view_currency %}
-            {% if can_view_currency %}
+            {% if can_access_admin_panel %}
             <a href="{% url 'manage_currencies' %}" class="management-button">
                 <img src="{% static 'webapp/panel_gestiones/6.Administrar_Monedas.png' %}" alt="Administrar Monedas" class="button-icon">
                 <span class="button-text">Administrar Monedas</span>
@@ -130,7 +163,9 @@
             </a>
             {% endif %}
         </div>
+        {% endif %}
 
+        {% if can_access_admin_panel or p_view_mediopago or p_view_mediocobro %}
         <!-- Contenedor 4: Gestión de Métodos de Pago -->
         <div class="management-container metodos-pago-container">
             <h2 class="container-title">Gestión de Métodos de Pago</h2>
@@ -151,11 +186,14 @@
             </a>
             {% endif %}
             
+            {% if can_access_admin_panel %}
             <a href="{% url 'entidad_list' %}" class="management-button long-text-button">
                 <img src="{% static 'webapp/panel_gestiones/14.Administrar_Entidades.png' %}" alt="Administrar Entidades de Pago/Cobro" class="button-icon">
                 <span class="button-text">Administrar Entidades de Pago/Cobro</span>
             </a>
+            {% endif %}
         </div>
+        {% endif %}
 
     </div>
 </div>

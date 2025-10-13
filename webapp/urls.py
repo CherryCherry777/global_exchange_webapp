@@ -39,6 +39,7 @@ urlpatterns = [
     path("landing/", views.landing_page, name="landing"),
     path("admin-dashboard/", views.admin_dash, name="admin_dashboard"),
     path("employee-dashboard/", views.employee_dash, name="employee_dashboard"),
+    path("analyst-dashboard/", views.analyst_dash, name="analyst_dashboard"),
 
     # User roles management
     path('manage-user-roles/', views.manage_user_roles, name='manage_user_roles'),
