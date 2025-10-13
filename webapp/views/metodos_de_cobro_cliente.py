@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from webapp.emails import send_activation_email
 from ..forms import BilleteraCobroForm, CuentaBancariaCobroForm, MedioCobroForm
-from ..models import MedioCobro, Currency, ClienteUsuario, TipoCobro, TipoPago
+from ..models import Cliente, MedioCobro, Currency, ClienteUsuario, TipoCobro, TipoPago
 
 # ----------------------------------------
 # MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
@@ -20,16 +20,21 @@ FORM_MAP = {
 
 @login_required
 def my_cobro_methods(request):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
         raise Http404("No tienes un cliente asociado.")
-    cliente = cliente_usuario.cliente
+    
+    try:
+        cliente = Cliente.objects.get(pk=cliente_id)
+    except Cliente.DoesNotExist:
+        raise Http404("Cliente no encontrado.")
 
     medios_cobro = MedioCobro.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
 
-    tipos_pago = {tp.nombre.lower(): tp.activo for tp in TipoPago.objects.all()}
+    tipos_cobro = {tp.nombre.lower(): tp.activo for tp in TipoCobro.objects.all()}
     for medio in medios_cobro:
-        medio.activo_global = tipos_pago.get(medio.tipo, False)
+        #medio.activo_global = medio.tipo_pago.activo if medio.tipo_pago else False
+        medio.activo_global = medio.tipo_cobro.activo if medio.tipo_cobro else False
 
     return render(request, "webapp/metodos_cobro_cliente/my_cobro_methods.html", {
         "medios_cobro": medios_cobro
@@ -62,11 +67,15 @@ def manage_cobro_method(request, tipo, **kwargs):
     - billetera
     - cuenta_bancaria
     """
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
         raise Http404("No tienes un cliente asociado.")
-    cliente = cliente_usuario.cliente
-
+    
+    try:
+        cliente = Cliente.objects.get(pk=cliente_id)
+    except Cliente.DoesNotExist:
+        raise Http404("Cliente no encontrado.")
+    
     medio_cobro_id = kwargs.get('medio_cobro_id')
 
     # Mapeo de forms por tipo
@@ -165,10 +174,14 @@ def manage_cobro_method(request, tipo, **kwargs):
 
 @login_required
 def confirm_delete_cobro_method(request, medio_cobro_id):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
         raise Http404("No tienes un cliente asociado.")
-    cliente = cliente_usuario.cliente
+    
+    try:
+        cliente = Cliente.objects.get(pk=cliente_id)
+    except Cliente.DoesNotExist:
+        raise Http404("Cliente no encontrado.")
 
     medio_cobro = get_object_or_404(MedioCobro, id=medio_cobro_id, cliente=cliente)
     tipo = medio_cobro.tipo
