@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from webapp.emails import send_activation_email
 from ..forms import BilleteraCobroForm, CuentaBancariaCobroForm, MedioCobroForm
-from ..models import MedioCobro, Currency, ClienteUsuario, TipoCobro, TipoPago
+from ..models import Cliente, MedioCobro, Currency, ClienteUsuario, TipoCobro, TipoPago
 
 # ----------------------------------------
 # MÉTODOS DE COBRO (VISTA DE CADA CLIENTE)
@@ -20,10 +20,14 @@ FORM_MAP = {
 
 @login_required
 def my_cobro_methods(request):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
         raise Http404("No tienes un cliente asociado.")
-    cliente = cliente_usuario.cliente
+    
+    try:
+        cliente = Cliente.objects.get(pk=cliente_id)
+    except Cliente.DoesNotExist:
+        raise Http404("Cliente no encontrado.")
 
     medios_cobro = MedioCobro.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
 
@@ -62,11 +66,15 @@ def manage_cobro_method(request, tipo, **kwargs):
     - billetera
     - cuenta_bancaria
     """
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
         raise Http404("No tienes un cliente asociado.")
-    cliente = cliente_usuario.cliente
-
+    
+    try:
+        cliente = Cliente.objects.get(pk=cliente_id)
+    except Cliente.DoesNotExist:
+        raise Http404("Cliente no encontrado.")
+    
     medio_cobro_id = kwargs.get('medio_cobro_id')
 
     # Mapeo de forms por tipo
@@ -165,10 +173,14 @@ def manage_cobro_method(request, tipo, **kwargs):
 
 @login_required
 def confirm_delete_cobro_method(request, medio_cobro_id):
-    cliente_usuario = ClienteUsuario.objects.filter(usuario=request.user).first()
-    if not cliente_usuario:
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
         raise Http404("No tienes un cliente asociado.")
-    cliente = cliente_usuario.cliente
+    
+    try:
+        cliente = Cliente.objects.get(pk=cliente_id)
+    except Cliente.DoesNotExist:
+        raise Http404("Cliente no encontrado.")
 
     medio_cobro = get_object_or_404(MedioCobro, id=medio_cobro_id, cliente=cliente)
     tipo = medio_cobro.tipo
