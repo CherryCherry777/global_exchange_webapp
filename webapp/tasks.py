@@ -1,129 +1,119 @@
-from decimal import Decimal
-import secrets
-from celery import shared_task
-from django.core.mail import send_mail, EmailMultiAlternatives
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.template.loader import render_to_string
 import time
-
-from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig
-
+import secrets
+from decimal import Decimal
+from django.conf import settings
 from django.utils import timezone
-
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
+from celery import shared_task
+
+from models import Currency, ClienteUsuario, EmailScheduleConfig, CustomUser
+
 
 @shared_task
 def check_and_send_exchange_rates():
     """
-    Se ejecuta cada minuto. Verifica la configuración guardada y decide si mandar correo.
+    Runs every minute. Checks config and decides if emails should be sent.
     """
-
-    
-    try:
-        config = EmailScheduleConfig.objects.first()
-    except EmailScheduleConfig.DoesNotExist:
-        return  # si no hay config, no hace nada
+    config = EmailScheduleConfig.objects.first()
+    if not config:
+        return
 
     now = timezone.localtime()
 
-    # Caso diario
-    if config.frequency == "daily" and now.hour == config.hour and now.minute == config.minute:
-        _send_to_all_users()
-
-    # Caso semanal (ej: domingo a las 8:00)
-    elif config.frequency == "weekly" and now.weekday() == 0 and now.hour == config.hour and now.minute == config.minute:
-        _send_to_all_users()
-
-    # Caso personalizado
+    should_send = False
+    if config.frequency == "daily":
+        should_send = now.hour == config.hour and now.minute == config.minute
+    elif config.frequency == "weekly":
+        # e.g., Monday at configured time
+        should_send = now.weekday() == 0 and now.hour == config.hour and now.minute == config.minute
     elif config.frequency == "custom" and config.interval_minutes:
-        if now.minute % config.interval_minutes == 0:
-            _send_to_all_users()
+        should_send = now.minute % config.interval_minutes == 0
+
+    if should_send:
+        _send_to_all_users.delay()  # ✅ Run as background task
 
 
+@shared_task
 def _send_to_all_users():
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    for user in User.objects.filter(is_active=True,receive_exchange_emails=True).exclude(email=""):
-        send_exchange_rates_email(user.email, user.id)
+    """
+    Dispatches one subtask per user, staggered to avoid rate limits.
+    """
+    users = CustomUser.objects.filter(is_active=True, receive_exchange_emails=True).exclude(email="")
+    for i, user in enumerate(users):
+        # space out each email by 2 seconds
+        send_exchange_rates_email.apply_async(args=[user.id], countdown=i * 2)
 
-def send_exchange_rates_email():
-    currencies_db = Currency.objects.filter(is_active=True)
-    users = CustomUser.objects.filter(receive_exchange_emails=True)
 
-    for user in users:
-        """
-        Envía un correo con las tasas de cambio de todas las monedas activas.
-        Incluye enlace de desuscripción persistente.
-        Espera 2 segundos para enviar correos, para no entrar al rate limit
-        """
-        time.sleep(2)
+@shared_task
+def send_exchange_rates_email(user_id):
+    """
+    Sends one email with exchange rates to a single user.
+    """
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return
 
-        # Generar token persistente si no existe
-        if not getattr(user, "unsubscribe_token", None):
-            user.unsubscribe_token = secrets.token_urlsafe(32)
-            user.save(update_fields=["unsubscribe_token"])
+    # generate persistent unsubscribe token
+    if not getattr(user, "unsubscribe_token", None):
+        user.unsubscribe_token = secrets.token_urlsafe(32)
+        user.save(update_fields=["unsubscribe_token"])
 
-        uidb64 = urlsafe_base64_encode(force_bytes(user.id))
-        unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/{user.unsubscribe_token}/"
+    uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+    unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/{user.unsubscribe_token}/"
 
-        # Obtener todos los ClienteUsuario relacionados con el usuario
-        cliente_usuarios = (
-            ClienteUsuario.objects.select_related("cliente__categoria")
-            .filter(usuario=user)
-        )
+    cliente_usuarios = (
+        ClienteUsuario.objects.select_related("cliente__categoria").filter(usuario=user)
+    )
+    if not cliente_usuarios.exists():
+        cliente_usuarios = [None]
 
-        # Si no hay clientes, se usa un descuento 0
-        if not cliente_usuarios.exists():
-            cliente_usuarios = [None]
+    currencies = Currency.objects.filter(is_active=True).exclude(code="PYG")
+    clientes_data = []
 
-        # Monedas activas
-        currencies = Currency.objects.filter(is_active=True).exclude(code="PYG")
+    for cu in cliente_usuarios:
+        if cu:
+            cliente = cu.cliente
+            descuento = getattr(getattr(cliente, "categoria", None), "descuento", None) or Decimal("0")
+        else:
+            cliente = None
+            descuento = Decimal("0")
 
-        # Preparar datos consolidados
-        clientes_data = []
-
-        for cu in cliente_usuarios:
-            if cu:
-                cliente = cu.cliente
-                descuento = getattr(getattr(cliente, "categoria", None), "descuento", None) or Decimal("0")
-            else:
-                cliente = None
-                descuento = Decimal("0")
-
-            # Calcular precios con descuento por moneda
-            monedas_info = []
-            for c in currencies:
-                precio_compra = c.base_price - (c.comision_compra * (Decimal("1") - descuento))
-                precio_venta  = c.base_price + (c.comision_venta * (Decimal("1") - descuento))
-                monedas_info.append({
-                    "name": c.name,
-                    "code": c.code,
-                    "precio_compra": f"{precio_compra:.2f}",
-                    "precio_venta":  f"{precio_venta:.2f}",
-                })
-
-            clientes_data.append({
-                "cliente": cliente,
-                "descuento": f"{(descuento * 100):.0f}%" if descuento else "0%",
-                "monedas": monedas_info,
+        monedas_info = []
+        for c in currencies:
+            precio_compra = c.base_price - (c.comision_compra * (Decimal("1") - descuento))
+            precio_venta = c.base_price + (c.comision_venta * (Decimal("1") - descuento))
+            monedas_info.append({
+                "name": c.name,
+                "code": c.code,
+                "precio_compra": f"{precio_compra:.2f}",
+                "precio_venta": f"{precio_venta:.2f}",
             })
 
-            # Contexto del email
-            context = {
-                "user": user,
-                "clientes_data": clientes_data,
-                "unsubscribe_url": unsubscribe_url,
-            }
+        clientes_data.append({
+            "cliente": cliente,
+            "descuento": f"{(descuento * 100):.0f}%" if descuento else "0%",
+            "monedas": monedas_info,
+        })
 
-            # Renderizar contenido
-            text_content = render_to_string("emails/exchange_rates.txt", context)
-            html_content = render_to_string("emails/exchange_rates.html", context)
+    context = {
+        "user": user,
+        "clientes_data": clientes_data,
+        "unsubscribe_url": unsubscribe_url,
+    }
 
-            # Enviar email único
-            subject = "Simulador - Tasas de cambio"
-            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
-            email = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
-            email.attach_alternative(html_content, "text/html")
-            email.send(fail_silently=False)
+    text_content = render_to_string("emails/exchange_rates.txt", context)
+    html_content = render_to_string("emails/exchange_rates.html", context)
+
+    subject = "Simulador - Tasas de cambio"
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
+    email = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
+    email.attach_alternative(html_content, "text/html")
+
+    try:
+        email.send(fail_silently=False)
+    except Exception as e:
+        print(f"Error sending email to {user.email}: {e}")
