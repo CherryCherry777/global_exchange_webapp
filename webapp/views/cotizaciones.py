@@ -1,7 +1,7 @@
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.utils.timezone import now, timedelta
@@ -19,7 +19,7 @@ from django.contrib.auth.tokens import default_token_generator
 # ---------------------------------
 
 @login_required
-@role_required("Administrador")
+@permission_required('webapp.view_currency', raise_exception=True)
 def manage_quotes(request):
     """Vista para administrar cotizaciones"""
     currencies = Currency.objects.all().order_by('name')
@@ -59,7 +59,7 @@ def manage_quotes(request):
 
 
 @login_required
-@role_required("Administrador")
+@permission_required('webapp.change_currency', raise_exception=True)
 def modify_quote(request, currency_id):
     """Vista para modificar una cotización"""
     try:

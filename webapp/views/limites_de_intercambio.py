@@ -1,7 +1,7 @@
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from ..models import Currency, LimiteIntercambio
 from decimal import ROUND_DOWN, Decimal
 
@@ -11,6 +11,7 @@ from decimal import ROUND_DOWN, Decimal
 
 # LISTADO DE LÍMITES
 @login_required
+@permission_required('webapp.view_limiteintercambio', raise_exception=True)
 def limites_intercambio_list(request):
     monedas = Currency.objects.all().order_by('code')
     tabla = []
@@ -33,6 +34,7 @@ def limites_intercambio_list(request):
 
 # EDITAR LÍMITES
 @login_required
+@permission_required('webapp.change_limiteintercambio', raise_exception=True)
 def limite_edit(request, moneda_id):
     moneda = get_object_or_404(Currency, id=moneda_id)
     limite, _ = LimiteIntercambio.objects.get_or_create(
