@@ -465,7 +465,7 @@ class TarjetaInternacional(models.Model):
     
     class Meta:
         db_table = "tarjetas_internacionales"
-        verbose_name = ""
+        verbose_name = "Tarjetas Internacionales"
         verbose_name_plural = "Tarjetas Internacionales"
 
     def __str__(self):
