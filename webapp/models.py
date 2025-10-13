@@ -382,8 +382,10 @@ class MedioPago(models.Model):
         Currency,
         on_delete=models.PROTECT,
         verbose_name="Moneda",
+        null=True,
+        blank=True,
         #editable=False,
-        default=1 #ID de la moneda por defecto
+        default=None #ID de la moneda por defecto
     )
     
 
@@ -460,15 +462,7 @@ class TarjetaInternacional(models.Model):
     # Fecha de vencimiento
     exp_month = models.PositiveSmallIntegerField(verbose_name="Mes de Vencimiento")
     exp_year = models.PositiveSmallIntegerField(verbose_name="Año de Vencimiento")
-
-    moneda = models.ForeignKey(
-        "Currency",
-        on_delete=models.PROTECT,
-        verbose_name="Moneda",
-        editable=False,
-        default=1
-    )
-
+    
     class Meta:
         db_table = "tarjetas_internacionales"
         verbose_name = "Tarjeta Internacional"

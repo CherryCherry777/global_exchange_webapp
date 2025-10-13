@@ -270,7 +270,7 @@ Agregar {{ tipo|capfirst }}
                     <p class="form-subtitle">Complete la información del {{ tipo|capfirst }}</p>
                 </div>
                 
-                <form method="post" class="payment-form">
+                <form method="post" id="payment-form" class="payment-form">
                     {% csrf_token %}
                     
                     <!-- Información General Section -->
@@ -291,48 +291,59 @@ Agregar {{ tipo|capfirst }}
                             {% endfor %}
                         </div>
 
-                        <!-- Dropdown de moneda solo al crear -->
-                        {% if not is_edit %}
-                        <div class="form-group">
-                            <label for="id_moneda" class="form-label">Moneda</label>
-                            <select name="moneda" id="id_moneda" class="form-control" required>
-                                <option value="">-- Seleccione una moneda --</option>
-                                {% for m in monedas %}
-                                    <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        {% endif %}
+                        {% if tipo|lower != "tarjeta_internacional" %}  <!-- Si es una tarjeta internacional se puede pagar cualquier divisa -->
+                            <!-- Dropdown de moneda solo al crear -->
+                            {% if not is_edit %}
+                            <div class="form-group">
+                                <label for="id_moneda" class="form-label">Moneda</label>
+                                <select name="moneda" id="id_moneda" class="form-control" required>
+                                    <option value="">-- Seleccione una moneda --</option>
+                                    {% for m in monedas %}
+                                        <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endif %}
 
-                        <!-- Mostrar moneda como campo deshabilitado al editar -->
-                        {% if is_edit and medio_pago and medio_pago.moneda %}
-                        <div class="form-group">
-                            <label class="form-label">Moneda</label>
-                            <input type="text" class="form-control" value="{{ medio_pago.moneda.code }} - {{ medio_pago.moneda.name }}" disabled>
-                        </div>
+                            <!-- Mostrar moneda como campo deshabilitado al editar -->
+                            {% if is_edit and medio_pago and medio_pago.moneda %}
+                            <div class="form-group">
+                                <label class="form-label">Moneda</label>
+                                <input type="text" class="form-control" value="{{ medio_pago.moneda.code }} - {{ medio_pago.moneda.name }}" disabled>
+                            </div>
+                            {% endif %}
                         {% endif %}
                     </div>
 
                     <!-- Datos Específicos Section -->
-                    <div class="form-section">
-                        <h3 class="section-title">Datos del {{ tipo|capfirst }}</h3>
-                        
-                        {% for field in form.visible_fields %}
+                    {% if tipo|lower != "tarjeta_internacional" %}
+                        <div class="form-section">
+                            <h3 class="section-title">Datos del {{ tipo|capfirst }}</h3>
+                            
+                            {% for field in form.visible_fields %}
+                                <div class="form-group">
+                                    <label for="{{ field.id_for_label }}" class="form-label">
+                                        {{ field.label }}
+                                    </label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="form-text">{{ field.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="form-section">
+                            <h3 class="section-title">Datos de la tarjeta</h3>
                             <div class="form-group">
-                                <label for="{{ field.id_for_label }}" class="form-label">
-                                    {{ field.label }}
-                                </label>
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <small class="form-text">{{ field.help_text }}</small>
-                                {% endif %}
-                                {% for error in field.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div id="card-element" class="form-control p-3"></div>
+                                <div id="card-errors" class="text-danger mt-2"></div>
                             </div>
-                        {% endfor %}
-                    </div>
-
+                        </div>
+                    {% endif %}
                     <!-- Form Actions -->
                     <div class="form-actions">
                         <a href="{% url 'my_payment_methods' %}" class="action-button cancel-button">Cancelar</a>
@@ -391,6 +402,70 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Stripe elements -->
+{% if tipo|lower == "tarjeta_internacional" %}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+            const elements = stripe.elements();
+
+            const style = {
+                base: {
+                    color: "#ffffff",
+                    fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                    fontSmoothing: "antialiased",
+                    fontSize: "16px",
+                    "::placeholder": { color: "#a0aec0" }
+                },
+                invalid: { color: "#fa755a", iconColor: "#fa755a" }
+            };
+
+            const card = elements.create("card", { style });
+            card.mount("#card-element");
+
+            const form = document.getElementById("payment-form");
+            const submitButton = form.querySelector('.submit-button');
+
+            card.on("change", function(event) {
+                const displayError = document.getElementById("card-errors");
+                displayError.textContent = event.error ? event.error.message : "";
+            });
+
+            form.addEventListener("submit", async function(event) {
+                event.preventDefault();
+
+                // Deshabilitar botón y poner texto de procesando
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span class="loading-spinner"></span> Procesando...';
+
+                const { paymentMethod, error } = await stripe.createPaymentMethod({
+                    type: "card",
+                    card: card,
+                });
+
+                if (error) {
+                    // Mostrar error
+                    document.getElementById("card-errors").textContent = error.message;
+
+                    // Volver a habilitar botón y restaurar texto
+                    submitButton.disabled = false;
+                    submitButton.textContent = "{% if is_edit %}Guardar Cambios{% else %}Agregar{% endif %}";
+                } else {
+                    // Agregar hidden input con payment_method_id y enviar
+                    const hiddenInput = document.createElement("input");
+                    hiddenInput.type = "hidden";
+                    hiddenInput.name = "payment_method_id";
+                    hiddenInput.value = paymentMethod.id;
+                    form.appendChild(hiddenInput);
+
+                    form.submit();
+                }
+            });
+        });
+    </script>
+{% endif %}
 
 <style>
 @keyframes slideOut {

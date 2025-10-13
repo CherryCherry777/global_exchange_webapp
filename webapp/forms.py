@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, TarjetaNacional, Billetera, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
+from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, TarjetaInternacional, TarjetaNacional, Billetera, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
@@ -305,7 +305,7 @@ class MonedaDisabledMixin:
 # ===========================================
 # FORMULARIOS PARA MEDIOS DE PAGO
 # ===========================================
-class TarjetaForm(forms.ModelForm):
+class TarjetaNacionalForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
         queryset=Entidad.objects.filter(tipo="banco", activo=True),
         label="Banco Emisor",
@@ -326,6 +326,15 @@ class TarjetaForm(forms.ModelForm):
         if ultimos_digitos and (not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4):
             raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
         return ultimos_digitos
+
+class TarjetaInternacionalForm(forms.ModelForm):
+    class Meta:
+        model = TarjetaInternacional
+        fields = []  # No se editan manualmente campos
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ""
 
 """
 class BilleteraForm(forms.ModelForm):
@@ -398,6 +407,20 @@ class MedioPagoForm(forms.ModelForm):
     class Meta:
         model = MedioPago
         fields = ['nombre', 'moneda']
+
+    def __init__(self, *args, **kwargs):
+        # Extrae tipo si viene en kwargs, sino None
+        self.tipo = kwargs.pop('tipo', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        moneda = cleaned_data.get("moneda")
+
+        if self.tipo != "tarjeta_internacional" and not moneda:
+            raise forms.ValidationError("Debe seleccionar una moneda para este tipo de medio de pago.")
+        
+        return cleaned_data
 
 
 class TipoPagoForm(forms.ModelForm):
