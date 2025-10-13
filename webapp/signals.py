@@ -4,7 +4,7 @@ from django.db.models.signals import post_migrate, post_save
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
-from .models import Currency, Entidad, Role, MedioPago, TipoPago
+from .models import Currency, Entidad, MedioCobro, Role, MedioPago, TipoCobro, TipoPago
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
 
@@ -131,6 +131,11 @@ def crear_limites_por_moneda(sender, instance, created, **kwargs):
 def sync_medios_pago(sender, instance, **kwargs):
     # Sincroniza el estado de todos los MedioPago vinculados
     MedioPago.objects.filter(tipo_pago=instance).update(activo=instance.activo)
+
+@receiver(post_save, sender=TipoCobro)
+def sync_medios_cobro(sender, instance, **kwargs):
+    # Sincroniza el estado de todos los MedioPago vinculados
+    MedioCobro.objects.filter(tipo_cobro=instance).update(activo=instance.activo)
 
 @receiver(post_migrate)
 def create_default_currency(sender, **kwargs):
