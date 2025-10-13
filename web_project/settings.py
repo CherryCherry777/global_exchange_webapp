@@ -107,7 +107,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internacionalización
 LANGUAGE_CODE = 'es'
-TIME_ZONE = 'UTC'
+#TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
@@ -134,3 +134,38 @@ CORREO_TASAS_LOGIN = env.bool('CORREO_TASAS_LOGIN', default=True)
 #Stripe
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+
+# Use timezone-aware datetimes
+USE_TZ = True
+TIME_ZONE = 'America/Asuncion'
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'America/Asuncion'
+CELERY_ENABLE_UTC = True  # recommended
+
+CELERY_BEAT_SCHEDULE = {
+    "check_exchange_email_schedule": {
+        "task": "webapp.tasks.check_and_send_exchange_rates",
+        "schedule": 60.0,  # every 60 seconds
+        # alternatively: "schedule": crontab(minute="*"), same thing
+    },
+}
+
+"""
+Nota: ejecutar estos comandos en la terminal de linux para  que funcionen los correos temporizados
+sudo apt install redis-server
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
+
+Y para empezar celery (el handler para tareas temporizadas)
+celery -A web_project worker -l info #En una terminal separada de manage.py
+celery -A web_project beat -l info #En OTRA terminal aparte de la del worker
+
+todos los cambios en las configuraciones de django requieren matar los procesos celery y reiniciar
+pkill -f 'celery'
+
+"""
