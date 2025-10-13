@@ -60,17 +60,23 @@
                     </div>
                     <span class="button-text">Agregar Billetera</span>
                 </a>
-                <a href="{% url 'add_payment_method' 'cuenta_bancaria' %}" class="add-button">
+                <!--<a href="{% url 'add_payment_method' 'cuenta_bancaria' %}" class="add-button">
                     <div class="button-icon">
                         <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="Cuenta Bancaria">
                     </div>
                     <span class="button-text">Agregar Cuenta Bancaria</span>
-                </a>
-                <a href="{% url 'add_payment_method' 'tarjeta' %}" class="add-button">
+                </a>-->
+                <a href="{% url 'add_payment_method' 'tarjeta_nacional' %}" class="add-button">
                     <div class="button-icon">
                         <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="Tarjeta">
                     </div>
-                    <span class="button-text">Agregar Tarjeta</span>
+                    <span class="button-text">Agregar Tarjeta Nacional</span>
+                </a>
+                <a href="{% url 'add_payment_method' 'tarjeta_internacional' %}" class="add-button">
+                    <div class="button-icon">
+                        <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="Tarjeta">
+                    </div>
+                    <span class="button-text">Agregar Tarjeta Internacional</span>
                 </a>
             </div>
         </div>
@@ -114,8 +120,10 @@
                                         Billetera
                                     {% elif medio.tipo == "cuenta_bancaria" %}
                                         Cuenta Bancaria
-                                    {% elif medio.tipo == "tarjeta" %}
-                                        Tarjeta
+                                    {% elif medio.tipo == "tarjeta_nacional" %}
+                                        Tarjeta Nacional
+                                    {% elif medio.tipo == "tarjeta_internacional" %}
+                                        Tarjeta Internacional
                                     {% else %}
                                         {{ medio.tipo|capfirst }}
                                     {% endif %}
@@ -145,14 +153,14 @@
                                             <span class="detail-label">Alias:</span>
                                             <span class="detail-value">{{ medio.cuenta_bancaria.alias_cbu }}</span>
                                         </div>
-                                    {% elif medio.tipo == "tarjeta" %}
+                                    {% elif medio.tipo == "tarjeta_nacional" %}
                                         <div class="detail-item">
                                             <span class="detail-label">Últimos 4 dígitos:</span>
-                                            <span class="detail-value">****{{ medio.tarjeta.ultimos_digitos }}</span>
+                                            <span class="detail-value">****{{ medio.tarjeta_nacional.ultimos_digitos }}</span>
                                         </div>
                                         <div class="detail-item">
                                             <span class="detail-label">Vencimiento:</span>
-                                            <span class="detail-value">{{ medio.tarjeta.fecha_vencimiento }}</span>
+                                            <span class="detail-value">{{ medio.tarjeta_nacional.fecha_vencimiento }}</span>
                                         </div>
                                     {% endif %}
                                 </div>

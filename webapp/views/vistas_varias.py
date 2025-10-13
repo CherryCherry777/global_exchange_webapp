@@ -1,9 +1,6 @@
 from .constants import *
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from ..forms import TarjetaForm, BilleteraForm, CuentaBancariaForm, MedioPagoForm
+from django.shortcuts import render
 from ..decorators import role_required
-from ..models import Cliente, MedioPago, Tarjeta, Billetera, CuentaBancaria
 
 # -----------------------
 # Dashboards

@@ -13,3 +13,4 @@ coverage
 Pillow
 celery
 redis
+stripe

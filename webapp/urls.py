@@ -18,8 +18,6 @@ urlpatterns = [
 
     # Cliente Management (Admin only)
     path("manage-clientes/", views.manage_clientes, name="manage_clientes"),
-    path("create-cliente/", views.create_cliente, name="create_cliente"),
-    path("update-cliente/<int:cliente_id>/", views.update_cliente, name="update_cliente"),
     path("modify-client/<int:client_id>/", views.modify_client, name="modify_client"),
     path("view-client/<int:client_id>/", views.view_client, name="view_client"),
     path("create-client/", views.create_client, name="create_client"),
@@ -32,7 +30,6 @@ urlpatterns = [
     path("manage-quotes/", views.manage_quotes, name="manage_quotes"),
     path("modify-quote/<int:currency_id>/", views.modify_quote, name="modify_quote"),
     path("delete-cliente/<int:cliente_id>/", views.delete_cliente, name="delete_cliente"),
-    path("view-cliente/<int:cliente_id>/", views.view_cliente, name="view_cliente"),
     path('clientes/asignar-usuario/', views.asignar_cliente_usuario, name='asignar_cliente_usuario'),
     path('clientes/desasignar/<int:asignacion_id>/', views.desasignar_cliente_usuario, name='desasignar_cliente_usuario'),
     path('inactivar-cliente/<int:pk>/', views.inactivar_cliente, name='inactivar_cliente'),

@@ -1,78 +1,36 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<style>
-    body { 
-        font-family: Arial, sans-serif; 
-        background-color: #f9f9f9;
-        margin: 0; 
-        padding: 20px; 
-    }
-    h2 { 
-        text-align: center; 
-        color: #333; 
-    }
-    table { 
-        width: 100%; 
-        border-collapse: collapse; 
-        margin-bottom: 20px;
-        background-color: #fff;
-    }
-    th, td { 
-        padding: 12px; 
-        text-align: center; 
-        border-bottom: 1px solid #ddd; 
-    }
-    th { 
-        background-color: #f0f0f0; 
-        font-weight: bold;
-    }
-    .btn { 
-        display: inline-block; 
-        padding: 10px 20px; 
-        background-color: #d9534f; 
-        color: white; 
-        text-decoration: none; 
-        border-radius: 5px; 
-        font-weight: bold;
-    }
-    .footer { 
-        text-align: center; 
-        font-size: 12px; 
-        color: #777; 
-        margin-top: 20px;
-    }
-</style>
-</head>
-<body>
-<h2>Tasas de cambio actuales</h2>
+<h2>Tasas de cambio</h2>
 
-<table>
+{% for entry in clientes_data %}
+  <h3>
+    {% if entry.cliente %}
+      {{ entry.cliente.nombre }} — Descuento: {{ entry.descuento }}
+    {% else %}
+      Sin cliente asociado
+    {% endif %}
+  </h3>
+
+  <table border="1" cellpadding="6" cellspacing="0">
     <thead>
-        <tr>
-            <th>Moneda</th>
-            <th>Compra</th>
-            <th>Venta</th>
-        </tr>
+      <tr>
+        <th>Moneda</th>
+        <th>Código</th>
+        <th>Precio Compra</th>
+        <th>Precio Venta</th>
+      </tr>
     </thead>
     <tbody>
-        {% for currency in currencies %}
+      {% for c in entry.monedas %}
         <tr>
-            <td>{{ currency.name }} ({{ currency.code }})</td>
-            <td>{{ currency.precio_compra }}</td>
-            <td>{{ currency.precio_venta }}</td>
+          <td>{{ c.name }}</td>
+          <td>{{ c.code }}</td>
+          <td>{{ c.precio_compra }}</td>
+          <td>{{ c.precio_venta }}</td>
         </tr>
-        {% endfor %}
+      {% endfor %}
     </tbody>
-</table>
+  </table>
 
-<p style="text-align:center;">
-    <a href="{{ unsubscribe_url }}" class="btn">Desuscribirse</a>
-</p>
+  <br>
+{% endfor %}
 
-<div class="footer">
-    © 2025 Global Exchange
-</div>
-</body>
-</html>
+<p><a href="{{ unsubscribe_url }}">Darse de baja</a></p>

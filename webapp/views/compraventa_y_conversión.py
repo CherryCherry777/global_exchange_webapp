@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import Transaccion, Tauser, Currency, Cliente, ClienteUsuario, Tarjeta, Billetera, CuentaBancaria, TipoCobro, TipoPago, TarjetaCobro, CuentaBancariaCobro, BilleteraCobro
+from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
 
 # ----------------------
@@ -77,8 +77,22 @@ def compraventa_view(request):
 
         request.session["form_data"] = data
         return render(request, "webapp/compraventa_y_conversion/confirmation_compraventa.html", {"data": data})
+    
+    # --- obtener tipos generales desde la base ---
+    tipos_pago = list(TipoPago.objects.order_by("-nombre").values("id", "nombre"))
+    tipos_cobro = list(TipoCobro.objects.order_by("-nombre").values("id", "nombre"))
 
-    return render(request, "webapp/compraventa_y_conversion/compraventa.html")
+    for tipo in tipos_pago:
+        nombre_normalizado = tipo["nombre"].replace(" ", "").replace("_", "").lower()
+        if nombre_normalizado == "cuentabancaria":
+            tipo["nombre"] = "Transferencia"""
+
+    context = {
+        "tipos_pago": tipos_pago,
+        "tipos_cobro": tipos_cobro,
+    }
+
+    return render(request, "webapp/compraventa_y_conversion/compraventa.html", context)
 
 
 def get_metodos_pago_cobro(request):
@@ -90,19 +104,17 @@ def get_metodos_pago_cobro(request):
     moneda_cobro = request.GET.get("to")
 
     # ---------------- ContentTypes ----------------
-    ct_tarjeta = ContentType.objects.get_for_model(Tarjeta)
+    ct_tarjeta = ContentType.objects.get_for_model(TarjetaNacional)
     ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
     ct_billetera = ContentType.objects.get_for_model(Billetera)
     ct_tauser = ContentType.objects.get_for_model(Tauser)
-
-    ct_tarjeta_cobro = ContentType.objects.get_for_model(TarjetaCobro)
     ct_transferencia_cobro = ContentType.objects.get_for_model(CuentaBancariaCobro)
     ct_billetera_cobro = ContentType.objects.get_for_model(BilleteraCobro)
 
     # ---------------- Métodos de Pago ----------------
     metodo_pago = []
 
-    tarjetas = Tarjeta.objects.filter(
+    tarjetas = TarjetaNacional.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
     for t in tarjetas:
@@ -110,7 +122,7 @@ def get_metodos_pago_cobro(request):
             continue
         metodo_pago.append({
             "id": t.id,
-            "tipo": "tarjeta",
+            "tipo": "tarjeta_nacional",
             "nombre": f"Tarjeta ****{t.ultimos_digitos}",
             "tipo_general_id": t.medio_pago.tipo_pago_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
@@ -118,6 +130,8 @@ def get_metodos_pago_cobro(request):
             "moneda_code": t.medio_pago.moneda.code
         })
 
+    """
+    Eliminado
     transferencias = CuentaBancaria.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
@@ -134,7 +148,8 @@ def get_metodos_pago_cobro(request):
             "moneda_code": t.medio_pago.moneda.code,
             "content_type_id": ct_transferencia.id
         })
-
+    """
+    
     billeteras = Billetera.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
@@ -166,6 +181,8 @@ def get_metodos_pago_cobro(request):
     # ---------------- Métodos de Cobro ----------------
     metodo_cobro = []
 
+    """
+    Eliminado
     tarjetas = TarjetaCobro.objects.filter(
         medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
     ).select_related("medio_cobro__tipo_cobro", "entidad")
@@ -181,6 +198,7 @@ def get_metodos_pago_cobro(request):
             "moneda_code": t.medio_cobro.moneda.code,
             "content_type_id": ct_tarjeta_cobro.id
         })
+    """
 
     transferencias = CuentaBancariaCobro.objects.filter(
         medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True

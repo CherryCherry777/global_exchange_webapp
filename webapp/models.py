@@ -182,6 +182,9 @@ class Cliente(models.Model):  # Definimos el modelo Cliente, que representa la t
         verbose_name="Fecha de Registro"
     )
 
+    # ID del cliente asociado en stripe a este
+    stripe_customer_id = models.CharField(max_length=255, null=True, blank=True)
+
     # Representación del objeto en formato de texto
     def __str__(self):
         return f"{self.nombre} ({self.tipoCliente})"
@@ -320,7 +323,8 @@ class Entidad(models.Model):
 class MedioPago(models.Model):
     # Opciones predefinidas para los medios de pago
     TIPO_CHOICES = [
-        ('tarjeta', 'Tarjeta de Débito/Crédito'),
+        ('tarjeta_nacional', 'Tarjeta de Débito/Crédito Nacional'),
+        ('tarjeta_internacional', 'Tarjeta de Débito/Crédito Internacional (Stripe)'),
         ('billetera', 'Billetera Electrónica'),
         ('cuenta_bancaria', 'Cuenta Bancaria'),
     ]
@@ -335,7 +339,7 @@ class MedioPago(models.Model):
     
     # Tipo de medio de pago
     tipo = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=TIPO_CHOICES,
         verbose_name="Tipo de Medio de Pago"
     )
@@ -364,12 +368,6 @@ class MedioPago(models.Model):
         verbose_name="Fecha de Actualización"
     )
     
-    tipo = models.CharField(
-        max_length=20,
-        choices=TIPO_CHOICES,
-        verbose_name="Tipo de Medio de Pago"
-    )
-    
     tipo_pago = models.ForeignKey(
         "TipoPago",
         on_delete=models.PROTECT,
@@ -384,8 +382,10 @@ class MedioPago(models.Model):
         Currency,
         on_delete=models.PROTECT,
         verbose_name="Moneda",
+        null=True,
+        blank=True,
         #editable=False,
-        default=1 #ID de la moneda por defecto
+        default=None #ID de la moneda por defecto
     )
     
 
@@ -403,11 +403,15 @@ class MedioPago(models.Model):
 # -------------------------------------
 # Modelos específicos por tipo de medio de pago
 # -------------------------------------
-class Tarjeta(models.Model):
+class TarjetaNacional(models.Model):
+    """
+    Representa una tarjeta nacional (emitida por un banco local).
+    Asociada a un MedioPago de tipo 'tarjeta_nacional'.
+    """
     medio_pago = models.OneToOneField(
         "MedioPago",
         on_delete=models.CASCADE,
-        related_name="tarjeta",
+        related_name="tarjeta_nacional",
         verbose_name="Medio de Pago"
     )
     numero_tokenizado = models.CharField(max_length=50, verbose_name="Número Tokenizado")
@@ -426,12 +430,46 @@ class Tarjeta(models.Model):
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
 
     class Meta:
-        db_table = "tarjetas"
-        verbose_name = "Tarjeta"
-        verbose_name_plural = "Tarjetas"
+        db_table = "tarjetas_nacionales"
+        verbose_name = "Tarjeta Nacional"
+        verbose_name_plural = "Tarjetas Nacionales"
 
     def __str__(self):
         return f"{self.medio_pago.nombre} - ****{self.ultimos_digitos} ({self.entidad.nombre})"
+
+
+class TarjetaInternacional(models.Model):
+    """
+    Representa una tarjeta internacional (emitida y tokenizada por Stripe).
+    Asociada a un MedioPago de tipo 'tarjeta_internacional'.
+    """
+    medio_pago = models.OneToOneField(
+        "MedioPago",
+        on_delete=models.CASCADE,
+        related_name="tarjeta_internacional",
+        verbose_name="Medio de Pago"
+    )
+
+    # ID del Payment Method en Stripe
+    stripe_payment_method_id = models.CharField(
+        max_length=100,
+        verbose_name="ID de Payment Method en Stripe"
+    )
+
+    # Últimos 4 dígitos de la tarjeta
+    ultimos_digitos = models.CharField(max_length=4, verbose_name="Últimos 4 Dígitos")
+
+    # Fecha de vencimiento
+    exp_month = models.PositiveSmallIntegerField(verbose_name="Mes de Vencimiento")
+    exp_year = models.PositiveSmallIntegerField(verbose_name="Año de Vencimiento")
+    
+    class Meta:
+        db_table = "tarjetas_internacionales"
+        verbose_name = "Tarjeta Internacional"
+        verbose_name_plural = "Tarjetas Internacionales"
+
+    def __str__(self):
+        return f"{self.medio_pago.nombre} - ****{self.ultimos_digitos} ({self.marca})"
 
 
 class Billetera(models.Model):
@@ -583,7 +621,7 @@ class LimiteIntercambio(models.Model):
 class MedioCobro(models.Model):
     # Opciones predefinidas para los métodos de cobro
     TIPO_CHOICES = [
-        ('tarjeta', 'Tarjeta de Débito/Crédito'),
+        ('tauser', 'Tauser'),
         ('billetera', 'Billetera Electrónica'),
         ('cuenta_bancaria', 'Cuenta Bancaria'),
     ]
@@ -628,12 +666,12 @@ class MedioCobro(models.Model):
     )
     
     tipo_cobro = models.ForeignKey(
-        "TipoPago",
+        "TipoCobro",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name="Tipo de Cobro Global",
-        help_text="Configuración global de activación y comisión"
+        help_text="Configuración global de activación y comisión",
     )
 
     moneda = models.ForeignKey(
@@ -658,7 +696,7 @@ class MedioCobro(models.Model):
 # Administración de métodos de cobro
 # -------------------------------------
 
-class TarjetaCobro(models.Model):
+"""class TarjetaCobro(models.Model):
     medio_cobro = models.OneToOneField(
         "MedioCobro",
         on_delete=models.CASCADE,
@@ -686,7 +724,7 @@ class TarjetaCobro(models.Model):
 
     def __str__(self):
         return f"{self.medio_cobro.nombre} - ****{self.ultimos_digitos} ({self.entidad.nombre})"
-
+"""
 
 class BilleteraCobro(models.Model):
     medio_cobro = models.OneToOneField(
