@@ -82,7 +82,15 @@
                                         <select id="simu-from" name="moneda_origen" class="currency-select"></select>
                                         <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
                                     </div>
-                                    <input id="simu-amount" name="monto_origen" type="number" step="0.01" min="0" class="amount-input">
+                                    <input
+                                        id="simu-amount"
+                                        name="monto_origen"
+                                        type="text"
+                                        inputmode="numeric"
+                                        pattern="\d*"
+                                        class="amount-input"
+                                        placeholder="0"
+                                    >
                                 </div>
                             </div>
 
@@ -497,7 +505,7 @@
                     opt.textContent = `${item.nombre} (${item.ubicacion || "Sin ubicación"})`;
                 } else if (item.tipo.toLowerCase() === "billetera") {
                     opt.textContent = `${item.nombre} - ${item.numero || ""} - ${item.entidad?.nombre || ""}`;
-                } else if (item.tipo.toLowerCase() === "tarjeta") {
+                } else if (item.tipo.toLowerCase() === "tarjeta_nacional") {
                     opt.textContent = `${item.nombre} - ${item.entidad?.nombre || ""}`;
                 } else if (item.tipo.toLowerCase() === "transferencia") {
                     opt.textContent = `${item.entidad?.nombre || ""} - ${item.numero_cuenta || ""}`;
@@ -644,6 +652,33 @@
             hiddenInputs.medio_cobro_type.value = metodoCobro.selectedOptions[0].dataset.contentTypeId;
         }
     });
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Conversor del input
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+document.addEventListener("DOMContentLoaded", function () {
+    const input = document.getElementById("simu-amount");
+
+    input.addEventListener("input", function (e) {
+        // Eliminar todo lo que no sea dígito
+        let value = e.target.value.replace(/\D/g, "");
+
+        // Formatear con separador de miles
+        if (value) {
+            value = new Intl.NumberFormat("es-ES").format(parseInt(value, 10));
+        }
+
+        e.target.value = value;
+    });
+
+    // Evita pegar texto con caracteres no numéricos
+    input.addEventListener("paste", function (e) {
+        const paste = (e.clipboardData || window.clipboardData).getData("text");
+        if (/\D/.test(paste)) e.preventDefault();
+    });
+});
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Lógica del Wizard
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

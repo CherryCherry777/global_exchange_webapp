@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
+from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
 
 # ----------------------
@@ -104,8 +104,8 @@ def get_metodos_pago_cobro(request):
     moneda_cobro = request.GET.get("to")
 
     # ---------------- ContentTypes ----------------
-    ct_tarjeta = ContentType.objects.get_for_model(TarjetaNacional)
-    ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
+    ct_tarjetaNacional = ContentType.objects.get_for_model(TarjetaNacional)
+    ct_tarjetaInternacional = ContentType.objects.get_for_model(TarjetaInternacional)
     ct_billetera = ContentType.objects.get_for_model(Billetera)
     ct_tauser = ContentType.objects.get_for_model(Tauser)
     ct_transferencia_cobro = ContentType.objects.get_for_model(CuentaBancariaCobro)
@@ -114,41 +114,38 @@ def get_metodos_pago_cobro(request):
     # ---------------- Métodos de Pago ----------------
     metodo_pago = []
 
-    tarjetas = TarjetaNacional.objects.filter(
+    tarjetasNacionales = TarjetaNacional.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
-    for t in tarjetas:
+    for t in tarjetasNacionales:
         if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
             continue
         metodo_pago.append({
             "id": t.id,
             "tipo": "tarjeta_nacional",
-            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
+            "nombre": f"{t.medio_pago.nombre} ****{t.ultimos_digitos}",
             "tipo_general_id": t.medio_pago.tipo_pago_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "content_type_id": ct_tarjeta.id,
+            "content_type_id": ct_tarjetaNacional.id,
             "moneda_code": t.medio_pago.moneda.code
         })
 
-    """
-    Eliminado
-    transferencias = CuentaBancaria.objects.filter(
-        medio_pago__cliente__id=cliente_id, medio_pago__activo=True
-    ).select_related("medio_pago__tipo_pago", "entidad")
-    for t in transferencias:
-        if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
-            continue
+    # 🔹 Tarjetas Internacionales
+    tarjetas_internacionales = (
+        TarjetaInternacional.objects
+        .filter(medio_pago__cliente_id=cliente_id, medio_pago__activo=True)
+        .select_related("medio_pago__tipo_pago")
+    )
+    for t in tarjetas_internacionales:
         metodo_pago.append({
             "id": t.id,
-            "tipo": "transferencia",
-            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
-            "numero_cuenta": t.numero_cuenta,
+            "tipo": "tarjeta_internacional",
+            "nombre": f"{t.medio_pago.nombre} ****{t.ultimos_digitos}",
             "tipo_general_id": t.medio_pago.tipo_pago_id,
-            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "moneda_code": t.medio_pago.moneda.code,
-            "content_type_id": ct_transferencia.id
+            "moneda_code": getattr(t.medio_pago.moneda, "code", None),
+            "content_type_id": ct_tarjetaInternacional.id,
         })
-    """
+
     
     billeteras = Billetera.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
@@ -180,25 +177,6 @@ def get_metodos_pago_cobro(request):
 
     # ---------------- Métodos de Cobro ----------------
     metodo_cobro = []
-
-    """
-    Eliminado
-    tarjetas = TarjetaCobro.objects.filter(
-        medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
-    ).select_related("medio_cobro__tipo_cobro", "entidad")
-    for t in tarjetas:
-        if moneda_cobro and t.medio_cobro.moneda.code != moneda_cobro:
-            continue
-        metodo_cobro.append({
-            "id": t.id,
-            "tipo": "tarjeta",
-            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
-            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
-            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "moneda_code": t.medio_cobro.moneda.code,
-            "content_type_id": ct_tarjeta_cobro.id
-        })
-    """
 
     transferencias = CuentaBancariaCobro.objects.filter(
         medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
