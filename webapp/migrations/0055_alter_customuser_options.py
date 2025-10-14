@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('webapp', '0053_remove_tarjetainternacional_moneda_and_more'),
+        ('webapp', '0054_alter_tarjetainternacional_options'),
     ]
 
     operations = [
