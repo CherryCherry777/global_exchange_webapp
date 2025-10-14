@@ -1,7 +1,7 @@
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from ..forms import TipoPagoForm
 from ..decorators import role_required
 from ..models import TipoPago
@@ -11,7 +11,7 @@ from ..models import TipoPago
 # -----------------------------------------
 
 @login_required
-@role_required("Administrador")
+@permission_required('webapp.view_mediopago', raise_exception=True)
 def manage_payment_methods(request):
     """
     Vista para administrar métodos de pago globales
@@ -30,7 +30,7 @@ def manage_payment_methods(request):
 
 
 @login_required
-@role_required("Administrador")
+@permission_required('webapp.change_mediopago', raise_exception=True)
 def modify_payment_method(request, payment_method_id):
     """
     Vista para modificar un método de pago global

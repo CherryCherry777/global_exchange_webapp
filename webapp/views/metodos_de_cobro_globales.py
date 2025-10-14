@@ -1,7 +1,7 @@
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from ..forms import TipoCobroForm
 from ..decorators import role_required
 from ..models import TipoCobro
@@ -11,7 +11,7 @@ from ..models import TipoCobro
 # ----------------------------------------
 
 @login_required
-@role_required("Administrador")
+@permission_required('webapp.view_mediocobro', raise_exception=True)
 def manage_cobro_methods(request):
     """
     Vista para administrar métodos de cobro globales
@@ -29,7 +29,7 @@ def manage_cobro_methods(request):
 
 
 @login_required
-@role_required("Administrador")
+@permission_required('webapp.view_mediocobro', raise_exception=True)
 def modify_cobro_method(request, cobro_method_id):
     """
     Vista para modificar un método de cobro global
