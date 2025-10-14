@@ -101,10 +101,9 @@ body .header-nav {
 /* Management Containers Grid */
 .admin-containers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, 333px);
+    grid-template-columns: repeat(4, 1fr);
     gap: 30px;
-    width: max-content;
-    max-width: 100px;
+    max-width: 1400px;
     margin: 0 auto;
     justify-content: center;
     justify-items: center;
