@@ -12,6 +12,31 @@
 
 /* Header Navigation styles moved to global.css for consistency across all pages */
 
+/* Create Sample Categories Button */
+.create-sample-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #E7CB3D 0%, #D2AF00 50%, #796503 100%);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.create-sample-btn:hover {
+    background: linear-gradient(135deg, #F0D94A 0%, #E0C200 50%, #8A7300 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 203, 61, 0.3);
+    color: #ffffff;
+    text-decoration: none;
+}
+
 .nav-menu {
     display: flex !important;
     gap: 30px !important;
