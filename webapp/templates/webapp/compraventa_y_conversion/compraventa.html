@@ -501,17 +501,8 @@
                 opt.dataset.tipoGeneral = item.tipo_general_id || ""; // guarda el tipo general en dataset
 
                 // Según el tipo de método, construye el texto visible en el select
-                if (item.tipo.toLowerCase() === "tauser") {
-                    opt.textContent = `${item.nombre} (${item.ubicacion || "Sin ubicación"})`;
-                } else if (item.tipo.toLowerCase() === "billetera") {
-                    opt.textContent = `${item.nombre} - ${item.numero || ""} - ${item.entidad?.nombre || ""}`;
-                } else if (item.tipo.toLowerCase() === "tarjeta_nacional") {
-                    opt.textContent = `${item.nombre} - ${item.entidad?.nombre || ""}`;
-                } else if (item.tipo.toLowerCase() === "transferencia") {
-                    opt.textContent = `${item.entidad?.nombre || ""} - ${item.numero_cuenta || ""}`;
-                } else {
-                    opt.textContent = item.nombre; // caso por defecto
-                }
+
+                opt.textContent = item.nombre; // caso por defecto
 
                 // Se guarda también el content_type_id (para identificar modelo origen en backend)
                 opt.dataset.contentTypeId = item.content_type_id || "";

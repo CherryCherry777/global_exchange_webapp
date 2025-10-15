@@ -869,6 +869,7 @@ class Transaccion(models.Model):
         PENDIENTE = "PENDIENTE", "Pendiente"
         PAGADA = "PAGADA", "Pagada por el cliente"
         COMPLETA = "COMPLETA", "Transacción finalizada"
+        AC_FALLIDA = "ac_fallida", "Error al acreditar"
         CANCELADA = "CANCELADA", "Cancelada"
         ANULADA = "ANULADA", "Anulada"
 

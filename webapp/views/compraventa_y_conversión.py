@@ -179,7 +179,7 @@ def compraventa_view(request):
                 pagar_al_cliente_task.delay(transaccion.id)
 
             # limpiar la sesión
-            messages.success(request, "Operación registrada correctamente.")
+            messages.success(request, "Transacción registrada.")
             return redirect("transaccion_list")
 
     for tipo in tipos_pago:
@@ -260,7 +260,7 @@ def get_metodos_pago_cobro(request):
         metodo_pago.append({
             "id": t.id,
             "tipo": "billetera",
-            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "nombre": f"{t.medio_pago.nombre} ({t.entidad.nombre}) {t.numero_celular}" if t.entidad else f"{t.nombre}",
             "tipo_general_id": t.medio_pago.tipo_pago_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
             "moneda_code": t.medio_pago.moneda.code,
@@ -272,7 +272,7 @@ def get_metodos_pago_cobro(request):
         metodo_pago.append({
             "id": t.id,
             "tipo": t.tipo,
-            "nombre": t.nombre,
+            "nombre": f"{t.nombre} ({t.ubicacion})",
             "ubicacion": t.ubicacion,
             "tipo_general_id": t.tipo_pago.id,
             "moneda_code": None,
@@ -291,7 +291,7 @@ def get_metodos_pago_cobro(request):
         metodo_cobro.append({
             "id": t.id,
             "tipo": "transferencia",
-            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
+            "nombre": f"{t.medio_cobro.nombre} ({t.entidad.nombre}) {t.numero_cuenta}" if t.entidad else "Transferencia",
             "numero_cuenta": t.numero_cuenta,
             "tipo_general_id": t.medio_cobro.tipo_cobro_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
@@ -308,7 +308,7 @@ def get_metodos_pago_cobro(request):
         metodo_cobro.append({
             "id": t.id,
             "tipo": "billetera",
-            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "nombre": f"{t.medio_cobro.nombre} ({t.entidad.nombre}) {t.numero_celular}" if t.entidad else f"{t.nombre}",
             "tipo_general_id": t.medio_cobro.tipo_cobro_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
             "moneda_code": t.medio_cobro.moneda.code,
@@ -320,7 +320,7 @@ def get_metodos_pago_cobro(request):
         metodo_cobro.append({
             "id": t.id,
             "tipo": t.tipo,
-            "nombre": t.nombre,
+            "nombre": f"{t.nombre} ({t.ubicacion})",
             "ubicacion": t.ubicacion,
             "tipo_general_id": t.tipo_cobro.id,
             "moneda_code": None,
