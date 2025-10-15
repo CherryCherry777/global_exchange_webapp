@@ -415,12 +415,13 @@ class MedioPagoForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        moneda = cleaned_data.get("moneda")
+        moneda = cleaned_data.get("moneda") or getattr(self.instance, "moneda", None)
 
         if self.tipo != "tarjeta_internacional" and not moneda:
             raise forms.ValidationError("Debe seleccionar una moneda para este tipo de medio de pago.")
         
         return cleaned_data
+        
 
 
 class TipoPagoForm(forms.ModelForm):

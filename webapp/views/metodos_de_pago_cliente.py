@@ -262,6 +262,10 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
                     medio_pago_form.save()
                     messages.success(request, "Nombre del método de pago actualizado correctamente")
                     return redirect("my_payment_methods")
+                else:
+                    messages.error(request, "Por favor corrija los errores en el formulario")
+                    print("MedioPagoForm errors:", medio_pago_form.errors)
+                    print(f"{tipo} form errors:", medio_pago.errors)
             else:
                 if not cliente.stripe_customer_id:
                     messages.error(request, "El cliente no tiene un ID de Stripe asociado.")
@@ -353,6 +357,9 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
                 messages.success(request, f"Método de pago '{mp.nombre}' agregado correctamente")
 
             return redirect('my_payment_methods')
+        else:
+            messages.error(request, "Por favor corrija los errores en el formulario")
+            print("MedioPagoForm errors:", medio_pago_form.errors)
 
     else:
         form = form_class(instance=pago_obj)
