@@ -22,14 +22,21 @@ FORM_MAP = {
 def my_cobro_methods(request):
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
-        raise Http404("No tienes un cliente asociado.")
+        messages.error(request, "No tiene un cliente seleccionado. Seleccione uno para poder administrar tus métodos de pago, o contacte con un administrador para que le asigne un cliente")
+        return redirect("landing")
     
     try:
         cliente = Cliente.objects.get(pk=cliente_id)
     except Cliente.DoesNotExist:
-        raise Http404("Cliente no encontrado.")
+        messages.error(request, "Cliente no encontrado")
+        return redirect("landing")
 
-    medios_cobro = MedioCobro.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+    try: 
+        medios_cobro = MedioCobro.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+    except:
+        messages.error(request, "No tiene un cliente seleccionado. Seleccione uno para poder administrar tus métodos de pago, o contacte con un administrador para que le asigne un cliente")
+        return redirect("landing")
+
 
     tipos_cobro = {tp.nombre.lower(): tp.activo for tp in TipoCobro.objects.all()}
     for medio in medios_cobro:
@@ -181,18 +188,21 @@ def manage_cobro_method(request, tipo, **kwargs):
 
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
-        raise Http404("No tienes un cliente asociado.")
+        messages.error(request, "No tienes un cliente asociado.")
+        return redirect("my_cobro_methods")
     
     try:
         cliente = Cliente.objects.get(pk=cliente_id)
     except Cliente.DoesNotExist:
-        raise Http404("Cliente no encontrado.")
+        messages.error(request, "Cliente no encontrado.")
+        return redirect("my_cobro_methods")
 
     medio_cobro_id = kwargs.get('medio_cobro_id')
 
     form_class = COBRO_FORM_MAP.get(tipo)
     if not form_class:
-        raise Http404("Tipo de método de cobro desconocido.")
+        messages.error(request, "Tipo de método de cobro desconocido.")
+        return redirect("my_cobro_methods")
 
     related_field_name = RELATED_MAP.get(tipo)
 
@@ -283,12 +293,14 @@ def manage_cobro_method(request, tipo, **kwargs):
 def confirm_delete_cobro_method(request, medio_cobro_id):
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
-        raise Http404("No tienes un cliente asociado.")
+        messages.error(request, "No tienes un cliente asociado.")
+        return redirect("my_cobro_methods")
     
     try:
         cliente = Cliente.objects.get(pk=cliente_id)
     except Cliente.DoesNotExist:
-        raise Http404("Cliente no encontrado.")
+        messages.error(request, "Cliente no encontrado.")
+        return redirect("my_cobro_methods")
 
     medio_cobro = get_object_or_404(MedioCobro, id=medio_cobro_id, cliente=cliente)
     tipo = medio_cobro.tipo

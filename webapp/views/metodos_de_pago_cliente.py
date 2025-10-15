@@ -28,14 +28,20 @@ FORM_MAP = {
 def my_payment_methods(request):
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
-        raise Http404("No tienes un cliente asociado.")
+        messages.error(request, "No tiene un cliente seleccionado. Seleccione uno para poder administrar sus métodos de pago, o contacte con un administrador para que le asigne un cliente")
+        return redirect("landing")
     
     try:
         cliente = Cliente.objects.get(pk=cliente_id)
     except Cliente.DoesNotExist:
-        raise Http404("Cliente no encontrado.")
+        messages.error(request, "Cliente no encontrado")
+        return redirect("landing")
 
-    medios_pago = MedioPago.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+    try: 
+        medios_pago = MedioPago.objects.filter(cliente=cliente).order_by('tipo', 'nombre')
+    except:
+        messages.error(request, "No tiene un cliente seleccionado. Seleccione uno para poder administrar sus métodos de pago, o contacte con un administrador para que le asigne un cliente")
+        return redirect("landing")
 
     # Adjuntar estado global desde TipoPago
     tipos_pago = {tp.nombre.lower(): tp.activo for tp in TipoPago.objects.all()}
@@ -228,16 +234,19 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
     """
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
-        raise Http404("No tienes un cliente asociado.")
+        messages.error(request, "No tienes un cliente asociado")
+        return redirect("my_payment_methods")
     
     try:
         cliente = Cliente.objects.get(pk=cliente_id)
     except Cliente.DoesNotExist:
-        raise Http404("Cliente no encontrado.")
+        messages.error(request, "Cliente no encontrado.")
+        return redirect("my_payment_methods")
 
     form_class = FORM_MAP.get(tipo)
     if not form_class:
-        raise Http404("Tipo de método de pago desconocido.")
+        messages.error(request, "Tipo de método de pago desconocido.")
+        return redirect("my_payment_methods")
 
     is_edit = False
     medio_pago = None
@@ -323,7 +332,8 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
                     except Exception as detach_error:
                         print(f"No se pudo eliminar el PaymentMethod de Stripe: {detach_error}")
 
-                    messages.error(request, f"Error al registrar la tarjeta: {str(e)}")
+                    messages.error(request, f"Error al registrar la tarjeta")
+                    print("Error:", e)
                     return redirect("my_payment_methods")
 
         # Validación y guardado normal
@@ -384,15 +394,21 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
 def confirm_delete_payment_method(request, medio_pago_id):
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
-        raise Http404("No tienes un cliente asociado.")
+        messages.error(request, "No tienes un cliente asociado.")
+        return redirect("my_payment_methods")
     
     try:
         cliente = Cliente.objects.get(pk=cliente_id)
     except Cliente.DoesNotExist:
-        raise Http404("Cliente no encontrado.")
+        messages.error(request, "Cliente no encontrado.")
+        return redirect("my_payment_methods")
 
-    medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente)
-    tipo = medio_pago.tipo
+    try:
+        medio_pago = get_object_or_404(MedioPago, id=medio_pago_id, cliente=cliente)
+        tipo = medio_pago.tipo
+    except:
+        messages.error(request, "No existe ese medio de pago")
+        return redirect("my_payment_methods")
 
     if request.method == "POST":
         try:
