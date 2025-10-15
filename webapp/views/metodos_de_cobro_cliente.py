@@ -58,15 +58,15 @@ TIPO_COBRO_MAP = {
     'cuenta_bancaria': 'Cuenta Bancaria',
     'tauser': 'Tauser'
 }
-
+"""
 @login_required
 def manage_cobro_method(request, tipo, **kwargs):
-    """
-    Gestiona la creación y edición de los medios de cobro de un cliente:
-    - tarjeta
-    - billetera
-    - cuenta_bancaria
-    """
+    
+    #Gestiona la creación y edición de los medios de cobro de un cliente:
+    #- tarjeta
+    #- billetera
+    #- cuenta_bancaria
+    
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
         raise Http404("No tienes un cliente asociado.")
@@ -169,8 +169,115 @@ def manage_cobro_method(request, tipo, **kwargs):
         "medio_cobro": medio_cobro,
         "monedas": monedas
     })
+"""
 
+@login_required
+def manage_cobro_method(request, tipo, **kwargs):
+    """
+    Crear o editar métodos de cobro de un cliente:
+    - billetera
+    - cuenta_bancaria
+    """
 
+    cliente_id = request.session.get("cliente_id")
+    if not cliente_id:
+        raise Http404("No tienes un cliente asociado.")
+    
+    try:
+        cliente = Cliente.objects.get(pk=cliente_id)
+    except Cliente.DoesNotExist:
+        raise Http404("Cliente no encontrado.")
+
+    medio_cobro_id = kwargs.get('medio_cobro_id')
+
+    form_class = COBRO_FORM_MAP.get(tipo)
+    if not form_class:
+        raise Http404("Tipo de método de cobro desconocido.")
+
+    related_field_name = RELATED_MAP.get(tipo)
+
+    # Obtener o crear instancias
+    medio_cobro = None
+    cobro_obj = None
+    is_edit = False
+
+    if medio_cobro_id:
+        medio_cobro = get_object_or_404(MedioCobro, id=medio_cobro_id, cliente=cliente, tipo=tipo)
+        cobro_obj = getattr(medio_cobro, related_field_name, None)
+
+        # Si no existe la relación, crear instancia vacía (pero sin guardar)
+        if cobro_obj is None:
+            ModelClass = form_class._meta.model
+            cobro_obj = ModelClass(medio_cobro=medio_cobro)
+
+        is_edit = True
+
+        # Manejar eliminación
+        if request.GET.get('delete') == "1":
+            medio_cobro.delete()
+            messages.success(request, f"Método de cobro '{medio_cobro.nombre}' eliminado correctamente")
+            return redirect(reverse_lazy('my_cobro_methods'))
+
+    monedas = Currency.objects.filter(is_active=True)
+
+    if request.method == "POST":
+        medio_cobro_form = MedioCobroForm(request.POST, instance=medio_cobro)
+        cobro_form = form_class(request.POST, instance=cobro_obj)
+
+        if medio_cobro_form.is_valid() and cobro_form.is_valid():
+            # Guardar MedioCobro
+            medio_cobro_instance = medio_cobro_form.save(commit=False)
+
+            if is_edit:
+                # Mantener moneda existente
+                medio_cobro_instance.moneda = medio_cobro.moneda
+            else:
+                # Crear nuevo MedioCobro: asignar cliente, tipo, tipo_cobro y moneda
+                medio_cobro_instance.cliente = cliente
+                medio_cobro_instance.tipo = tipo
+
+                tipo_cobro_nombre = TIPO_COBRO_MAP.get(tipo)
+                if tipo_cobro_nombre:
+                    tipo_cobro = TipoCobro.objects.filter(nombre__iexact=tipo_cobro_nombre).first()
+                    medio_cobro_instance.tipo_cobro = tipo_cobro
+
+                moneda_id = request.POST.get("moneda")
+                if moneda_id:
+                    medio_cobro_instance.moneda = get_object_or_404(Currency, id=moneda_id)
+                else:
+                    medio_cobro_instance.moneda = monedas.first()
+
+            medio_cobro_instance.save()
+
+            # Guardar objeto relacionado
+            cobro_instance = cobro_form.save(commit=False)
+            cobro_instance.medio_cobro = medio_cobro_instance
+            # Mantener moneda sincronizada
+            if hasattr(cobro_instance, 'moneda'):
+                cobro_instance.moneda = medio_cobro_instance.moneda
+            cobro_instance.save()
+
+            msg = "modificado" if is_edit else "agregado"
+            messages.success(request, f"Método de cobro '{medio_cobro_instance.nombre}' {msg} correctamente")
+            return redirect(reverse_lazy('my_cobro_methods'))
+        else:
+            # Mostrar errores si no validan
+            messages.error(request, "Por favor corrija los errores en el formulario")
+            print("MedioCobroForm errors:", medio_cobro_form.errors)
+            print(f"{tipo} form errors:", cobro_form.errors)
+
+    else:
+        medio_cobro_form = MedioCobroForm(instance=medio_cobro)
+        cobro_form = form_class(instance=cobro_obj)
+
+    return render(request, "webapp/metodos_cobro_cliente/manage_cobro_method_base.html", {
+        "tipo": tipo,
+        "form": cobro_form,
+        "medio_cobro_form": medio_cobro_form,
+        "is_edit": is_edit,
+        "medio_cobro": medio_cobro,
+        "monedas": monedas
+    })
 
 @login_required
 def confirm_delete_cobro_method(request, medio_cobro_id):

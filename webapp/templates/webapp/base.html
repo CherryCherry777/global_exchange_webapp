@@ -1,4 +1,5 @@
 {% load static %}
+{% load permissions_tags %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -46,11 +47,15 @@
                 <a href="#" class="nav-link">Acerca de</a>
                 {% if user.is_authenticated %}
                     <a href="{% url 'compraventa' %}" class="nav-link">Comprar/Vender</a>
-                    {% for group in user.groups.all %}
-                        {% if group.name == 'Administrador' %}
+                    {% has_perms user 'webapp.access_admin_panel' as can_admin %}
+                    {% has_perms user 'webapp.access_analyst_panel' as can_analyst %}
+
+                    {% if can_admin %}
                         <a href="{% url 'landing' %}" class="nav-link admin-nav-link">Ir a Gestiones</a>
-                        {% endif %}
-                    {% endfor %}
+                    {% elif can_analyst %}
+                        <a href="{% url 'analyst_dashboard' %}" class="nav-link admin-nav-link">Ir a Gestiones</a>
+                    {% endif %}
+
                 {% endif %}
             </div>
     

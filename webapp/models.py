@@ -30,7 +30,8 @@ class CustomUser(AbstractUser):
 
     class Meta:
         permissions = [
-            ("access_admin_panel", "Can access admin panel")
+            ("access_admin_panel", "Can access admin panel"),
+            ("access_analyst_panel", "Can access analyst panel"),
         ]
 
     def __str__(self):
