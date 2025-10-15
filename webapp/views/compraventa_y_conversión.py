@@ -7,10 +7,59 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
 from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
+from .payments.stripe_utils import procesar_pago_stripe
+from webapp.tasks import pagar_al_cliente_task
 
 # ----------------------
 # Vistas de compraventa
 # ----------------------
+
+def guardar_transaccion(cliente: Cliente, usuario, data: dict, estado: str, payment_intent_id = None) -> Transaccion:
+    """
+    Crea y guarda una transacción con el estado indicado.
+    """
+    transaccion = Transaccion(
+        cliente=cliente,
+        usuario=usuario,
+        tipo=data["tipo"],
+        estado=estado,
+        moneda_origen=Currency.objects.get(code=data["moneda_origen"]),
+        moneda_destino=Currency.objects.get(code=data["moneda_destino"]),
+        tasa_cambio=Decimal(data["tasa_cambio"]),
+        monto_origen=Decimal(data["monto_origen"]),
+        monto_destino=Decimal(data["monto_destino"]),
+        medio_pago_type=ContentType.objects.get_for_id(data["medio_pago_contenttype"]),
+        medio_pago_id=data["medio_pago"],
+        medio_cobro_type=ContentType.objects.get_for_id(data["medio_cobro_contenttype"]),
+        medio_cobro_id=data["medio_cobro"],
+        stripe_payment_intent_id=payment_intent_id
+    )
+    transaccion.save()
+    return transaccion
+
+
+MONEDAS_SIN_DECIMALES = {"PYG", "CLP", "JPY"}  # agregar otras si aplica
+
+def monto_stripe(monto_origen: Decimal, moneda: str) -> int:
+    """
+    Devuelve el monto en la unidad mínima que Stripe acepta
+    según la moneda.
+
+    Args:
+        monto_origen: monto en unidades normales (Decimal o float)
+        moneda: código de moneda, ej. 'PYG', 'USD'
+
+    Returns:
+        int: monto listo para enviar a Stripe
+    """
+    moneda = moneda.upper()
+    if moneda in MONEDAS_SIN_DECIMALES:
+        # Para monedas sin decimales, se envía entero
+        return int(monto_origen)
+    else:
+        # Para monedas con decimales, se envía en centavos
+        return int(monto_origen * 100)
+
 
 def compraventa_view(request):
     cliente_id = request.session.get("cliente_id")
@@ -22,13 +71,24 @@ def compraventa_view(request):
 
     cliente = get_object_or_404(Cliente, id=cliente_id)
 
+    # --- obtener tipos generales desde la base ---
+    tipos_pago = list(TipoPago.objects.order_by("-nombre").values("id", "nombre"))
+    tipos_cobro = list(TipoCobro.objects.order_by("-nombre").values("id", "nombre"))
+
     if request.method == "POST":
         # Confirmación final
         if "confirmar" in request.POST:
-            data = request.session.get("form_data")
+            data = request.POST.dict()  # todos los inputs del wizard
             if not data:
+                messages.error(request, "No se recibieron datos del formulario. Intenta nuevamente.")
                 return redirect("compraventa")
 
+            # --- Validar tipo de transacción ---
+            tipo = data.get("tipo")
+            if tipo not in Transaccion.Tipo.values:
+                messages.error(request, f"Tipo de transacción inválido: {tipo}")
+                return redirect("compraventa")
+            
             # Validación del monto
             try:
                 monto_origen = float(data["monto_origen"])
@@ -39,57 +99,101 @@ def compraventa_view(request):
                     raise ValueError
             except (TypeError, ValueError):
                 messages.error(request, "Debés ingresar un monto válido.")
-                return redirect('nombre_de_tu_vista')
-            # Construcción de transacción
-            transaccion = Transaccion(
-                cliente=cliente,
-                usuario=request.user,
-                tipo=data["tipo"],
-                moneda_origen=Currency.objects.get(code=data["moneda_origen"]),
-                moneda_destino=Currency.objects.get(code=data["moneda_destino"]),
-                tasa_cambio=data["tasa_cambio"],
-                monto_origen=monto_origen,
-                monto_destino=monto_destino,
-                medio_pago_type=ContentType.objects.get_for_id(data["medio_pago_type"]),
-                medio_pago_id=data["medio_pago_id"],
-                medio_cobro_type=ContentType.objects.get_for_id(data["medio_cobro_type"]),
-                medio_cobro_id=data["medio_cobro_id"],
-            )
-            transaccion.save()
+                return redirect('compraventa')
+            
+            #////////////////////////////////////////////////
+            # Cobrar al cliente
+            #////////////////////////////////////////////////
+
+            # Obtener tipo de pago
+            try:
+                tipo_pago_general = TipoPago.objects.get(pk=data["medio_pago_tipo"])
+                tipo_pago_nombre = tipo_pago_general.nombre.replace(" ", "").replace("_", "").lower()
+                print(tipo_pago_general)
+            except TipoPago.DoesNotExist:
+                messages.error(request, "Método de pago inválido.")
+                return redirect("compraventa")
+
+            # Inicializar el estado
+            estado = Transaccion.Estado.PENDIENTE
+            payment_intent_id = None
+
+            # Pagos con Stripe (Tarjeta Internacional) se procesa inmediatamente
+            if tipo_pago_nombre == "tarjetainternacional":
+                # Conseguir el id de la tarjeta generado por Stripe
+                tarjeta_internacional = TarjetaInternacional.objects.get(id=data["medio_pago"])
+                stripe_payment_method_id = tarjeta_internacional.stripe_payment_method_id
+
+                resultado = procesar_pago_stripe(
+                    cliente_stripe_id=cliente.stripe_customer_id,
+                    metodo_pago_id=stripe_payment_method_id,
+                    monto=monto_stripe(monto_origen, data["moneda_origen"]),
+                    moneda=data["moneda_origen"],
+                    descripcion=f"Compra/Venta de divisas ({data['tipo']})",
+                )
+
+                if not resultado.get("success"):
+                    # Pago falló: se renderiza el mismo formulario con mensaje y datos precargados
+                    messages.error(request, f"No se pudo procesar el pago: {resultado.get('message')}")
+                    return render(
+                        request,
+                        "webapp/compraventa_y_conversion/compraventa.html",
+                        {
+                            "tipos_pago": tipos_pago,
+                            "tipos_cobro": tipos_cobro,
+                            "categoria_cliente": cliente.categoria,
+                            "form_data": data,  # esto sirve para rellenar los campos
+                        }
+                    )
+
+                estado = Transaccion.Estado.PAGADA
+                payment_intent_id = resultado.get("payment_intent_id")
+
+            elif tipo_pago_nombre == "tarjetanacional":
+                if(data["moneda_destino"] == "PYG"):
+                    print("")
+            elif tipo_pago_nombre == "cuentabancaria":
+                print("")
+            elif tipo_pago_nombre == "billetera":
+                print("")
+            elif tipo_pago_nombre == "tauser":
+                print("")
+
+            #////////////////////////////////////////////////
+            # Pagar al cliente
+            #////////////////////////////////////////////////
+
+            # Obtener tipo de cobro
+            try:
+                tipo_cobro_general = TipoCobro.objects.get(id=data["medio_cobro_tipo"])
+                tipo_cobro_nombre = tipo_cobro_general.nombre.replace(" ", "").replace("_", "").lower()
+            except TipoPago.DoesNotExist:
+                messages.error(request, "Método de pago inválido.")
+                return redirect("compraventa")
+
+            # --- Guardar transacción ---
+            transaccion = guardar_transaccion(cliente, request.user, data, estado, payment_intent_id)
+
+            # --- Pago al cliente en background ---
+            if tipo_cobro_nombre != "tauser":
+                pagar_al_cliente_task.delay(transaccion.id)
 
             # limpiar la sesión
-            request.session.pop("form_data", None)
+            messages.success(request, "Operación registrada correctamente.")
             return redirect("transaccion_list")
-
-        # Paso previo: guardar en sesión y mostrar confirmación
-        data = {
-            "tipo": request.POST.get("tipo"),
-            "moneda_origen": request.POST.get("moneda_origen"),
-            "moneda_destino": request.POST.get("moneda_destino"),
-            "tasa_cambio": request.POST.get("tasa_cambio"),
-            "monto_origen": request.POST.get("monto_origen"),
-            "monto_destino": request.POST.get("monto_destino"),
-            "medio_pago_type": request.POST.get("medio_pago_type"),
-            "medio_pago_id": request.POST.get("medio_pago_id"),
-            "medio_cobro_type": request.POST.get("medio_cobro_type"),
-            "medio_cobro_id": request.POST.get("medio_cobro_id"),
-        }
-
-        request.session["form_data"] = data
-        return render(request, "webapp/compraventa_y_conversion/confirmation_compraventa.html", {"data": data})
-    
-    # --- obtener tipos generales desde la base ---
-    tipos_pago = list(TipoPago.objects.order_by("-nombre").values("id", "nombre"))
-    tipos_cobro = list(TipoCobro.objects.order_by("-nombre").values("id", "nombre"))
 
     for tipo in tipos_pago:
         nombre_normalizado = tipo["nombre"].replace(" ", "").replace("_", "").lower()
         if nombre_normalizado == "cuentabancaria":
             tipo["nombre"] = "Transferencia"""
 
+    # Obtener la categoría del cliente
+    categoria_cliente = cliente.categoria
+
     context = {
         "tipos_pago": tipos_pago,
         "tipos_cobro": tipos_cobro,
+        "categoria_cliente": categoria_cliente,
     }
 
     return render(request, "webapp/compraventa_y_conversion/compraventa.html", context)

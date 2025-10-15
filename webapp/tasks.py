@@ -6,7 +6,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
-from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig
+from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, Transaccion
+from .views.payments.pagos_simulados_a_clientes import procesar_pago_cliente
 
 from django.utils import timezone
 
@@ -128,3 +129,21 @@ def send_welcome_email(user_email):
         [user_email],
         fail_silently=False,
     )
+
+@shared_task(bind=True, max_retries=4, default_retry_delay=5)
+def pagar_al_cliente_task(self, transaccion_id):
+    transaccion = Transaccion.objects.get(pk=transaccion_id)
+    
+    try:
+        # Lógica de pago al cliente (transferencia, billetera, etc.)
+        exito = procesar_pago_cliente(transaccion)
+        
+        if exito:
+            transaccion.estado = Transaccion.Estado.COMPLETA
+            transaccion.save()
+        else:
+            raise Exception("No se pudo pagar al cliente")
+    
+    except Exception as e:
+        # Reintenta automáticamente
+        raise self.retry(exc=e)
