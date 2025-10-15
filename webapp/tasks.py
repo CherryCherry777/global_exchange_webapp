@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
 from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, Transaccion
-from .views.payments.pagos_simulados_a_clientes import procesar_pago_cliente
+from .views.payments.pagos_simulados_a_clientes import pagar_al_cliente
 
 from django.utils import timezone
 
@@ -136,7 +136,7 @@ def pagar_al_cliente_task(self, transaccion_id):
     
     try:
         # Lógica de pago al cliente (transferencia, billetera, etc.)
-        exito = procesar_pago_cliente(transaccion)
+        exito = pagar_al_cliente(transaccion)
         
         if exito:
             transaccion.estado = Transaccion.Estado.COMPLETA

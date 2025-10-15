@@ -48,7 +48,7 @@ def procesar_billetera(transaccion: Transaccion, metodo_cobro) -> bool:
 
 
 
-def procesar_pago_cliente(transaccion: Transaccion) -> bool:
+def pagar_al_cliente(transaccion: Transaccion) -> bool:
     """
     Procesa el pago de la casa al cliente, según el medio de cobro asociado.
     Retorna True si fue exitoso, False en caso contrario.
