@@ -453,7 +453,7 @@ class CuentaBancariaCobroForm(CuentaBancariaForm):
 class MedioCobroForm(forms.ModelForm):
     class Meta:
         model = MedioCobro
-        fields = ['nombre', 'moneda']
+        fields = ['nombre']
 
 
 class TipoCobroForm(forms.ModelForm):
@@ -553,11 +553,6 @@ class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
         self.fields['numero_cuenta'].widget.attrs.update({'class': 'form-control'})
         self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
 
-
-class MedioCobroForm(forms.ModelForm):
-    class Meta:
-        model = MedioCobro
-        fields = ['nombre', 'moneda']
 
 
 class TipoCobroForm(forms.ModelForm):
