@@ -82,7 +82,13 @@
                                         <select id="simu-from" name="moneda_origen" class="currency-select"></select>
                                         <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
                                     </div>
-                                    <input id="simu-amount" name="monto_origen" type="number" step="0.01" min="0" class="amount-input">
+                                    <input
+                                        id="simu-amount"
+                                        name="monto_origen"
+                                        type="text"
+                                        class="amount-input"
+                                        placeholder="0"
+                                    >
                                 </div>
                             </div>
 
@@ -150,12 +156,12 @@
 
                             <div class="converter-result">
                                 <p id="simu-result-detail" class="result-detail">Ingresá un monto para calcular</p>
+                                <p class="result-detail">Cotización exclusiva para la categoria: {{categoria_cliente.nombre}}</p>
                             </div>
 
                         </div>
                     </div>
                 </div>
-                <h5>Operación</h5>
 
                     <input type="hidden" id="input-tipo" name="tipo">
                     <input type="hidden" id="input-moneda-origen" name="moneda_origen">
@@ -163,13 +169,12 @@
                     <input type="hidden" id="input-monto-origen" name="monto_origen">
                     <input type="hidden" id="input-monto-destino" name="monto_destino">
                     <input type="hidden" id="input-tasa-cambio" name="tasa_cambio">
-                    <input type="hidden" id="input-medio-pago-id" name="medio_pago_id">
-                    <input type="hidden" id="input-medio-pago-type" name="medio_pago_type">
-                    <input type="hidden" id="input-medio-cobro-id" name="medio_cobro_id">
-                    <input type="hidden" id="input-medio-cobro-type" name="medio_cobro_type">
-
+                    <input type="hidden" id="input-medio-pago-contenttype" name="medio_pago_contenttype">
+                    <input type="hidden" id="input-medio-cobro-contenttype" name="medio_cobro_contenttype">
+                    <input type="hidden" id="input-medio-pago-tipo" name="medio_pago_tipo">
+                    <input type="hidden" id="input-medio-cobro-tipo" name="medio_cobro_tipo">
             </div>
-            <div class="converter-actions mt-4 text-end">
+            <div class="converter-actions mt-4 d-flex justify-content-end">
                 <button type="button" id="next-step" class="btn btn-primary">Continuar</button>
             </div>
         </div>
@@ -199,7 +204,7 @@
 
             <div class="converter-actions d-flex justify-content-between mt-3">
                 <button type="button" id="prev-step" class="btn btn-secondary">Atrás</button>
-                <button type="submit" class="btn btn-success">Confirmar operación</button>
+                <button name="confirmar" type="submit" class="btn btn-success">Confirmar operación</button>
             </div>
         </div>
 
@@ -308,8 +313,12 @@
     
     function compute() {
         // Convierte el valor ingresado en el campo "amount" a número decimal.
-        // Reemplaza coma por punto para asegurar compatibilidad.
-        const raw = parseFloat((amount.value || "").toString().replace(",", "."));
+        const rawText = amount.value || "";
+        const raw = parseFloat(
+            rawText
+                .replace(/\./g, "")   // elimina puntos de miles
+                .replace(",", ".")    // reemplaza coma decimal por punto
+        );
 
         // Si no es un número válido o es menor/igual a 0, muestra un mensaje de error.
         if (isNaN(raw) || raw <= 0) {
@@ -355,11 +364,15 @@
         // Se escucha tanto "input" (cuando el usuario escribe) como "change" (cuando cambia el valor).
         ["input","change"].forEach(evt => {
             // Cuando se modifica el monto, recalcula directamente
-            amount.addEventListener(evt, compute);
+            amount.addEventListener(evt, () => {
+                actualizarFiltros(); // 🔹 actualiza visibilidad de botones
+                compute();
+            });
 
             // Cuando cambia la moneda de origen (from)
             from.addEventListener(evt, async () => {
                 enforceDifferent(from,to);     // fuerza que origen y destino no sean iguales
+                actualizarFiltros();           // 🔹 antes de recargar métodos, actualiza botones
                 await recargarMetodos();       // recarga métodos de pago/cobro disponibles
                 compute();                     // recalcula el resultado
             });
@@ -367,6 +380,7 @@
             // Cuando cambia la moneda de destino (to)
             to.addEventListener(evt, async () => {
                 enforceDifferent(to,from);     // igual que arriba, pero para destino
+                actualizarFiltros();           // actualizar botones de filtros disponibles
                 await recargarMetodos();       // recarga métodos
                 compute();                     // recalcula
             });
@@ -380,6 +394,7 @@
             to.value = tmp;
 
             enforceDifferent(from,to);     // asegura que no queden iguales
+            actualizarFiltros();           // 🔹 tras intercambiar, recalcula visibilidad
             await recargarMetodos();       // recarga métodos acorde a la nueva selección
             compute();                     // recalcula conversión
         });
@@ -452,7 +467,7 @@
         }
     }
 
-    async function recargarMetodos() {
+    async function recargarMetodos(tipo = null) {
         // Si no existen los selectores de método de pago o cobro, no hace nada
         if (!metodoPago || !metodoCobro) return;
 
@@ -469,10 +484,6 @@
             const res = await fetch(`{% url 'get_metodos_pago_cobro' %}?from=${from.value}&to=${to.value}`);
             const data = await res.json(); // Parseo del JSON de respuesta
 
-            // Limpia las opciones actuales de ambos <select>
-            metodoPago.innerHTML = "";
-            metodoCobro.innerHTML = "";
-
             // 🆕 Opción inicial por defecto
             const agregarOpcionInicial = (selectEl) => {
                 const opt = document.createElement("option");
@@ -483,9 +494,6 @@
                 selectEl.appendChild(opt);
             };
 
-            agregarOpcionInicial(metodoPago);
-            agregarOpcionInicial(metodoCobro);
-
             // Función auxiliar para crear un <option> a partir de un item recibido
             const crearOption = (item) => {
                 const opt = document.createElement("option");
@@ -493,17 +501,8 @@
                 opt.dataset.tipoGeneral = item.tipo_general_id || ""; // guarda el tipo general en dataset
 
                 // Según el tipo de método, construye el texto visible en el select
-                if (item.tipo.toLowerCase() === "tauser") {
-                    opt.textContent = `${item.nombre} (${item.ubicacion || "Sin ubicación"})`;
-                } else if (item.tipo.toLowerCase() === "billetera") {
-                    opt.textContent = `${item.nombre} - ${item.numero || ""} - ${item.entidad?.nombre || ""}`;
-                } else if (item.tipo.toLowerCase() === "tarjeta") {
-                    opt.textContent = `${item.nombre} - ${item.entidad?.nombre || ""}`;
-                } else if (item.tipo.toLowerCase() === "transferencia") {
-                    opt.textContent = `${item.entidad?.nombre || ""} - ${item.numero_cuenta || ""}`;
-                } else {
-                    opt.textContent = item.nombre; // caso por defecto
-                }
+
+                opt.textContent = item.nombre; // caso por defecto
 
                 // Se guarda también el content_type_id (para identificar modelo origen en backend)
                 opt.dataset.contentTypeId = item.content_type_id || "";
@@ -511,21 +510,46 @@
                 return opt; // devuelve el <option> ya construido
             };
 
-            // === 🔍 Filtra los métodos según el tipo general activo ===
-            const metodosPagoFiltrados = data.metodo_pago.filter(
-                (m) => !tipoGeneralPago || m.tipo_general_id == tipoGeneralPago
-            );
-            const metodosCobroFiltrados = data.metodo_cobro.filter(
-                (m) => !tipoGeneralCobro || m.tipo_general_id == tipoGeneralCobro
-            );
+            // 🟩 === Filtro y actualización según el tipo recibido ===
+            if (tipo === null || tipo === "pago") {
+                // 🧹 Limpia completamente las opciones actuales del <select> de métodos de pago
+                metodoPago.innerHTML = "";
 
-            // Agrega las opciones filtradas a los <select>
-            metodosPagoFiltrados.forEach(item => metodoPago.appendChild(crearOption(item)));
-            metodosCobroFiltrados.forEach(item => metodoCobro.appendChild(crearOption(item)));
+                // 🔹 Agrega una opción inicial tipo placeholder ("---Seleccione una opción---")
+                agregarOpcionInicial(metodoPago);
 
-            // Selecciona por defecto la primera opción visible (si existen)
-            if (metodoPago.options.length) metodoPago.selectedIndex = 0;
-            if (metodoCobro.options.length) metodoCobro.selectedIndex = 0;
+                // 🧠 Filtra los métodos de pago según el tipo general activo (botón del tab seleccionado)
+                // Si no hay tipo activo, se incluyen todos los métodos.
+                const metodosPagoFiltrados = data.metodo_pago.filter(
+                    (m) => !tipoGeneralPago || m.tipo_general_id == tipoGeneralPago
+                );
+
+                // 🔧 Crea y agrega cada <option> correspondiente a los métodos filtrados
+                metodosPagoFiltrados.forEach(item => metodoPago.appendChild(crearOption(item)));
+
+                // 🎯 Selecciona la primera opción visible (la inicial)
+                if (metodoPago.options.length) metodoPago.selectedIndex = 0;
+            }
+
+            if (tipo === null || tipo === "cobro") {
+                // 🧹 Limpia las opciones actuales del <select> de métodos de cobro
+                metodoCobro.innerHTML = "";
+
+                // 🔹 Agrega la opción inicial vacía ("---Seleccione una opción---")
+                agregarOpcionInicial(metodoCobro);
+
+                // 🧠 Filtra los métodos de cobro según el tipo general activo (botón del tab seleccionado)
+                // Si no hay tipo activo, se incluyen todos los métodos.
+                const metodosCobroFiltrados = data.metodo_cobro.filter(
+                    (m) => !tipoGeneralCobro || m.tipo_general_id == tipoGeneralCobro
+                );
+
+                // 🔧 Crea y agrega cada <option> correspondiente a los métodos filtrados
+                metodosCobroFiltrados.forEach(item => metodoCobro.appendChild(crearOption(item)));
+
+                // 🎯 Selecciona la primera opción visible (la inicial)
+                if (metodoCobro.options.length) metodoCobro.selectedIndex = 0;
+            }
 
             // Luego de recargar métodos, actualiza las tasas de cambio
             await updateRatesForMetodo();
@@ -535,38 +559,19 @@
             console.error("Error al cargar métodos de pago/cobro:", error);
         }
     }
-    
-    function configurarTabsFiltro() {
-        const pagoTabs = document.getElementById("pago-tabs");
-        const cobroTabs = document.getElementById("cobro-tabs");
-
-        const activar = async (grupo, btn) => {
-            grupo.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-
-            await recargarMetodos();
-            await updateRatesForMetodo();
-            compute();
-        };
-
-        pagoTabs.querySelectorAll(".tab-btn").forEach(btn =>
-            btn.addEventListener("click", () => activar(pagoTabs, btn))
-        );
-
-        cobroTabs.querySelectorAll(".tab-btn").forEach(btn =>
-            btn.addEventListener("click", () => activar(cobroTabs, btn))
-        );
-    }
 
     async function boot() {
         try {
-            // Carga inicialmente las tasas de cambio según los métodos de pago/cobro seleccionados
-            await updateRatesForMetodo();
-
             // Construye las opciones de los selectores de monedas
             // Por defecto: "from" empieza con USD y "to" con PYG
             buildOptions(from, "USD");
             buildOptions(to, "PYG");
+
+            // Estado inicial de los botones de filto de los métodos
+            actualizarFiltros();
+
+            // Carga inicialmente las tasas de cambio según los métodos de pago/cobro seleccionados
+            await updateRatesForMetodo();
 
             // Asegura que origen y destino no sean iguales
             enforceDifferent(from, to);
@@ -597,6 +602,120 @@
         boot();
     });
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Conversor del input
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const input = document.getElementById("simu-amount");
+
+        input.addEventListener("input", function (e) {
+            // Eliminar todo lo que no sea dígito
+            let value = e.target.value.replace(/\D/g, "");
+
+            // Formatear con separador de miles
+            if (value) {
+                value = new Intl.NumberFormat("es-ES").format(parseInt(value, 10));
+            }
+
+            e.target.value = value;
+        });
+
+        // Evita pegar texto con caracteres no numéricos
+        input.addEventListener("paste", function (e) {
+            const paste = (e.clipboardData || window.clipboardData).getData("text");
+            if (/\D/.test(paste)) e.preventDefault();
+        });
+    });
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Lógica de comportamiento de los botones de filtro de los selects de métodos de pago y cobro
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Actualiza los botones de filtro de métodos de pago y cobro
+     * según las divisas seleccionadas y el monto ingresado.
+     *
+     * Reglas:
+     * 1. Pago: Si `from` ≠ PYG → solo "Tauser" y "Tarjeta Internacional".
+     * 2. Cobro: Si `to` ≠ PYG → solo "Tauser".
+     * 3. Si `to` = PYG y monto no es múltiplo de 100000 → ocultar "Tauser".
+     */
+    function actualizarFiltros() {
+        const amountEl = document.getElementById("simu-amount");
+        const fromEl = document.getElementById("simu-from");
+        const toEl = document.getElementById("simu-to");
+
+        const amount = parseFloat(amountEl?.value?.replace(/\./g, "")) || 0;
+        const from = fromEl?.value?.trim() || "";
+        const to = toEl?.value?.trim() || "";
+
+        const pagoTabs = document.querySelectorAll("#pago-tabs .tab-btn");
+        const cobroTabs = document.querySelectorAll("#cobro-tabs .tab-btn");
+
+        // === FILTRO DE PAGO ===
+        pagoTabs.forEach((btn) => {
+            const nombre = btn.textContent.trim();
+            const esPYG = from === "PYG";
+            const permitido = esPYG || ["Tauser", "Tarjeta Internacional"].includes(nombre);
+            btn.style.display = permitido ? "" : "none";
+        });
+
+        // === FILTRO DE COBRO ===
+        cobroTabs.forEach((btn) => {
+            const nombre = btn.textContent.trim();
+            const esPYG = to === "PYG";
+            const esTauser = nombre === "Tauser";
+
+            if (!esPYG) {
+                // Solo Tauser cuando to ≠ PYG
+                btn.style.display = esTauser ? "" : "none";
+            } else {
+                // to = PYG → ocultar Tauser si no es múltiplo de 100000
+                const esMultiplo = amount % 100000 === 0;
+                btn.style.display = esTauser && !esMultiplo ? "none" : "";
+            }
+        });
+
+        // Si el botón activo quedó oculto → activar el primero visible
+        [pagoTabs, cobroTabs].forEach((tabList) => {
+            const activo = Array.from(tabList).find((b) => b.classList.contains("active"));
+            if (activo && activo.style.display === "none") {
+                activo.classList.remove("active");
+                const visible = Array.from(tabList).find((b) => b.style.display !== "none");
+                if (visible) visible.classList.add("active");
+            }
+        });
+    }
+
+    function configurarTabsFiltro() {
+        const pagoTabs = document.getElementById("pago-tabs");
+        const cobroTabs = document.getElementById("cobro-tabs");
+
+        const activar = async (grupo, btn, tipo) => {
+            grupo.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            await recargarMetodos(tipo);
+            compute();
+        };
+
+        pagoTabs.querySelectorAll(".tab-btn").forEach(btn =>
+            btn.addEventListener("click", () => activar(pagoTabs, btn, "pago"))
+        );
+
+        cobroTabs.querySelectorAll(".tab-btn").forEach(btn =>
+            btn.addEventListener("click", () => activar(cobroTabs, btn, "cobro"))
+        );
+    }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Validaciones para envió de datos correctos al backend a modo de guardar la transacción
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
     const hiddenInputs = {
         tipo: document.getElementById("input-tipo"),
         moneda_origen: document.getElementById("input-moneda-origen"),
@@ -604,14 +723,16 @@
         tasa_cambio: document.getElementById("input-tasa-cambio"),
         monto_origen: document.getElementById("input-monto-origen"),
         monto_destino: document.getElementById("input-monto-destino"),
-        medio_pago_type: document.getElementById("input-medio-pago-type"),
-        medio_pago_id: document.getElementById("input-medio-pago-id"),
-        medio_cobro_type: document.getElementById("input-medio-cobro-type"),
-        medio_cobro_id: document.getElementById("input-medio-cobro-id"),
+        medio_pago_contenttype: document.getElementById("input-medio-pago-contenttype"),
+        medio_cobro_contenttype: document.getElementById("input-medio-cobro-contenttype"),
+        medio_pago_tipo: document.getElementById("input-medio-pago-tipo"),
+        medio_cobro_tipo: document.getElementById("input-medio-cobro-tipo")
     };
 
     document.querySelector("form").addEventListener("submit", function (e) {
-        const montoOrigen = parseFloat(amount.value || "0");
+        const montoOrigen = parseFloat(
+            (amount.value || "0").replace(/\./g, "").replace(",", ".")
+        );
 
         if (isNaN(montoOrigen) || montoOrigen <= 0) {
             e.preventDefault();  // Cancela el submit
@@ -620,30 +741,46 @@
             return;
         }
 
-        const montoDestino = parseFloat(out.value.replace(/[^\d.,-]/g,"").replace(",",".")) || 0;
+        // --- Monto destino ---
+        let rawDestino = out.value || "0";
+
+        // Quita todo lo que no sea dígito, coma o punto
+        rawDestino = rawDestino.replace(/[^\d.,-]/g, "");
+
+        // Si hay coma, asumimos formato europeo (coma = decimal)
+        if (rawDestino.includes(",")) {
+            rawDestino = rawDestino.replace(/\./g, "").replace(",", ".");
+        } else {
+            rawDestino = rawDestino.replace(/\./g, "");
+        }
+
+        const montoDestino = parseFloat(rawDestino) || 0;
+
         const a = from.value, b = to.value;
 
-        hiddenInputs.tipo.value = (a === "PYG" && b !== "PYG") ? "COMPRA" : "VENTA";
+        hiddenInputs.tipo.value = (a === "PYG" && b !== "PYG") ? "VENTA" : "COMPRA";
         hiddenInputs.moneda_origen.value = a;
         hiddenInputs.moneda_destino.value = b;
         hiddenInputs.monto_origen.value = montoOrigen;
         hiddenInputs.monto_destino.value = montoDestino;
 
         if (a === "PYG" && b !== "PYG") {
-            hiddenInputs.tasa_cambio.value = 1 / META[b].venta;
+            hiddenInputs.tasa_cambio.value = META[b].venta;
         } else if (a !== "PYG" && b === "PYG") {
             hiddenInputs.tasa_cambio.value = META[a].compra;
         }
 
         if (metodoPago.options.length > 0) {
-            hiddenInputs.medio_pago_id.value = metodoPago.value;
-            hiddenInputs.medio_pago_type.value = metodoPago.selectedOptions[0].dataset.contentTypeId;
+            hiddenInputs.medio_pago_contenttype.value = metodoPago.selectedOptions[0].dataset.contentTypeId;
+            hiddenInputs.medio_pago_tipo.value = metodoPago.selectedOptions[0].dataset.tipoGeneral;
         }
         if (metodoCobro.options.length > 0) {
-            hiddenInputs.medio_cobro_id.value = metodoCobro.value;
-            hiddenInputs.medio_cobro_type.value = metodoCobro.selectedOptions[0].dataset.contentTypeId;
+            hiddenInputs.medio_cobro_contenttype.value = metodoCobro.selectedOptions[0].dataset.contentTypeId;
+            hiddenInputs.medio_cobro_tipo.value = metodoCobro.selectedOptions[0].dataset.tipoGeneral;
         }
     });
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Lógica del Wizard
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -651,7 +788,6 @@
     function mostrarMensaje(texto, tipo="error", duracion=5000) {
         // Busca el contenedor; si no existe, lo crea y lo agrega al body
         let container = document.getElementById("toast-container");
-        console.log(container)
         if (!container) {
             container = document.createElement("div");
             container.id = "toast-container";
@@ -699,23 +835,29 @@
         const ind2 = document.getElementById("indicator-step2");
 
         next.addEventListener("click", () => {
+            const montoOrigen = parseFloat(
+                (amount.value || "0").replace(/\./g, "").replace(",", ".")
+            );
+
+            // 🟩 Determina tipo de operación: Venta si es PYG, Compra en otro caso
+            const tipoOperacion = from.value.includes("PYG") ? "Venta" : "Compra";
+
             // Actualiza los datos de resumen
-            document.getElementById("resumen-tipo").textContent =
-            document.getElementById("input-tipo")?.value || "";
+            document.getElementById("resumen-tipo").textContent = tipoOperacion;
 
             document.getElementById("resumen-origen").textContent =
-            `${document.getElementById("input-monto-origen")?.value || "-"} ${document.getElementById("input-moneda-origen")?.value || ""}`;
+                `${montoOrigen || "-"} ${from.value || ""}`;
 
             document.getElementById("resumen-destino").textContent =
-            `${document.getElementById("input-monto-destino")?.value || "-"} ${document.getElementById("input-moneda-destino")?.value || ""}`;
+                `${out.value || "-"}`;
 
             document.getElementById("resumen-pago").textContent =
-            document.getElementById("simu-metodo-pago")?.selectedOptions[0]?.text || "-";
+                metodoPago?.selectedOptions[0]?.text || "-";
 
             document.getElementById("resumen-cobro").textContent =
-            document.getElementById("simu-metodo-cobro")?.selectedOptions[0]?.text || "-";
+                metodoCobro?.selectedOptions[0]?.text || "-";
 
-            if (isNaN(amount.value) || amount.value <= 0) return mostrarMensaje("Monto inválido.", "error");
+            if (isNaN(montoOrigen) || montoOrigen <= 0) return mostrarMensaje("Monto inválido.", "error");
             if (metodoPago.value === "") return mostrarMensaje("Selecciona un método de pago.", "error");
             if (metodoCobro.value === "") return mostrarMensaje("Selecciona un método de cobro.", "error");
 
