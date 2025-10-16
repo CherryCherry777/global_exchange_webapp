@@ -139,4 +139,6 @@ urlpatterns = [
     path("unsubscribe/<uidb64>/<token>/", views.unsubscribe, name="unsubscribe"),
     path('unsubscribe/confirm/', views.unsubscribe_confirm, name='unsubscribe_confirm'),
     path('unsubscribe/error/', views.unsubscribe_error, name='unsubscribe_error'),
+    #path("verificar_mfa/", views.verificar_mfa, name="verificar_mfa"),
+
 ]

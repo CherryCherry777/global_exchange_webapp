@@ -1,6 +1,9 @@
 import os
 from celery import Celery
 from celery.schedules import crontab
+from django.utils import timezone
+from datetime import timedelta
+
 
 # Configura el entorno de Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "web_project.settings")
@@ -12,3 +15,4 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 
 # Auto-descubrir tareas en todas las apps
 app.autodiscover_tasks()
+
