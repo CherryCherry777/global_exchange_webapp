@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
 from .payments.stripe_utils import procesar_pago_stripe
+from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera
 from webapp.tasks import pagar_al_cliente_task
 
 # ----------------------
@@ -101,15 +102,14 @@ def compraventa_view(request):
                 messages.error(request, "Debés ingresar un monto válido.")
                 return redirect('compraventa')
             
-            #////////////////////////////////////////////////
-            # Cobrar al cliente
-            #////////////////////////////////////////////////
+#//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Cobrar al cliente
+#//////////////////////////////////////////////////////////////////////////////////////////////////////
 
             # Obtener tipo de pago
             try:
                 tipo_pago_general = TipoPago.objects.get(pk=data["medio_pago_tipo"])
                 tipo_pago_nombre = tipo_pago_general.nombre.replace(" ", "").replace("_", "").lower()
-                print(tipo_pago_general)
             except TipoPago.DoesNotExist:
                 messages.error(request, "Método de pago inválido.")
                 return redirect("compraventa")
@@ -118,6 +118,7 @@ def compraventa_view(request):
             estado = Transaccion.Estado.PENDIENTE
             payment_intent_id = None
 
+            # TARJETA INTERNACIONAL
             # Pagos con Stripe (Tarjeta Internacional) se procesa inmediatamente
             if tipo_pago_nombre == "tarjetainternacional":
                 # Conseguir el id de la tarjeta generado por Stripe
@@ -127,41 +128,78 @@ def compraventa_view(request):
                 resultado = procesar_pago_stripe(
                     cliente_stripe_id=cliente.stripe_customer_id,
                     metodo_pago_id=stripe_payment_method_id,
+                    # función que retorna el monto válido según las reglas de stripe
                     monto=monto_stripe(monto_origen, data["moneda_origen"]),
                     moneda=data["moneda_origen"],
                     descripcion=f"Compra/Venta de divisas ({data['tipo']})",
                 )
 
                 if not resultado.get("success"):
-                    # Pago falló: se renderiza el mismo formulario con mensaje y datos precargados
+                    # Pago falló
                     messages.error(request, f"No se pudo procesar el pago: {resultado.get('message')}")
-                    return render(
-                        request,
-                        "webapp/compraventa_y_conversion/compraventa.html",
-                        {
-                            "tipos_pago": tipos_pago,
-                            "tipos_cobro": tipos_cobro,
-                            "categoria_cliente": cliente.categoria,
-                            "form_data": data,  # esto sirve para rellenar los campos
-                        }
-                    )
+                    return redirect("compraventa")
 
                 estado = Transaccion.Estado.PAGADA
                 payment_intent_id = resultado.get("payment_intent_id")
 
+            # TARJETA NACIONAL
             elif tipo_pago_nombre == "tarjetanacional":
-                if(data["moneda_destino"] == "PYG"):
-                    print("")
+                tarjeta_nacional = TarjetaNacional.objects.get(id=data["medio_pago"])
+                # Validar que la el monto a cobrar(vista de la casa) esté en guaranies
+                if(data["moneda_origen"] == "PYG"):
+                    resultado = cobrar_al_cliente_tarjeta_nacional(monto_origen, tarjeta_nacional.numero_tokenizado)
+                    if not resultado.get("success"):
+                        # Pago falló
+                        messages.error(request, f"No se pudo procesar el pago: {resultado.get('message')}")
+                        return redirect("compraventa")
+                    
+                    estado = Transaccion.Estado.PAGADA
+                else:
+                    messages.error(request, f"No se puede seleccionar una tarjeta como medio de cobro")
+                    return redirect("compraventa")
+
+            # BILLETERA    
+            elif tipo_pago_nombre == "billetera":
+                billetera = Billetera.objects.get(id=data["medio_pago"])
+                pin = request.POST.get("pin")  # Puede venir vacío si es la primera vez
+                cancelar = request.POST.get("cancelar")
+
+                if cancelar:
+                    messages.info(request, "El pago con billetera fue cancelado.")
+                    return redirect("compraventa")
+
+                resultado = cobrar_al_cliente_billetera(billetera.numero_celular, pin)
+
+                if resultado.get("require_pin"):
+                    # Renderiza el formulario para ingresar o reintentar el PIN
+                    return render(
+                        request,
+                        "webapp/compraventa_y_conversion/ingresar_pin.html",
+                        {
+                            "numero_celular": billetera.numero_celular,
+                            "data": data,
+                            "mensaje": resultado.get("message"),
+                            "allow_retry": resultado.get("allow_retry", True),
+                        },
+                    )
+
+                if not resultado.get("success"):
+                    messages.error(request, f"No se pudo procesar el pago: {resultado.get('message')}")
+                    return redirect("compraventa")
+
+                estado = Transaccion.Estado.PAGADA
+
+            # TRANSFERENCIA    
             elif tipo_pago_nombre == "cuentabancaria":
                 print("")
-            elif tipo_pago_nombre == "billetera":
-                print("")
+
+            # TAUSER
             elif tipo_pago_nombre == "tauser":
                 print("")
 
-            #////////////////////////////////////////////////
-            # Pagar al cliente
-            #////////////////////////////////////////////////
+#//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Pagar al cliente
+#//////////////////////////////////////////////////////////////////////////////////////////////////////
 
             # Obtener tipo de cobro
             try:

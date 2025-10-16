@@ -1,0 +1,28 @@
+{% extends "webapp/base.html" %}
+{% block content %}
+<div class="container py-4 text-center">
+    <h4>Autorización de pago con billetera</h4>
+    <p>Se enviará una solicitud de cobro a tu billetera <strong>{{ numero_celular }}</strong>.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for key, value in data.items %}
+            {% if key != 'pin' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+
+        <!-- ...otros campos que necesites conservar -->
+
+        <label for="pin">Ingresá tu PIN:</label>
+        <input type="password" name="pin" id="pin" maxlength="4" required>
+
+        <button type="submit" name="confirmar" value="1">Confirmar</button>
+
+        {% if allow_retry %}
+            <button type="submit" name="cancelar" value="1">Cancelar</button>
+        {% endif %}
+
+    </form>
+</div>
+{% endblock %}
