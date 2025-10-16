@@ -92,8 +92,8 @@ def compraventa_view(request):
             
             # Validación del monto
             try:
-                monto_origen = float(data["monto_origen"])
-                monto_destino=float(data["monto_destino"])
+                monto_origen = Decimal(data["monto_origen"])
+                monto_destino=Decimal(data["monto_destino"])
                 if monto_origen <= 0:
                     raise ValueError
                 if monto_destino <= 0:
