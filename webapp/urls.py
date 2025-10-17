@@ -76,6 +76,7 @@ urlpatterns = [
 
     # Categories management
     path('manage-categories/', views.manage_categories, name='manage_categories'),
+    path('create-sample-categories/', views.create_sample_categories_view, name='create_sample_categories'),
 
     # Mis métodos de pago (cliente)
     path('mis-medios/', views.my_payment_methods, name='my_payment_methods'),
