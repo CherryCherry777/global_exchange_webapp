@@ -17,3 +17,4 @@ from .roles_de_usuarios import *
 from .roles import *
 from .usuarios import *
 from .vistas_varias import *
+from .tauser import *

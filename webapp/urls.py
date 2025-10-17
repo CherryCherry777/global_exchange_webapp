@@ -143,4 +143,11 @@ urlpatterns = [
     path('unsubscribe/error/', views.unsubscribe_error, name='unsubscribe_error'),
     #path("verificar_mfa/", views.verificar_mfa, name="verificar_mfa"),
 
+    # Tauser
+    path("tauser/", views.tauser_home, name="tauser_home"),
+    path("tauser/login/", views.tauser_login, name="tauser_login"),
+    path("tauser/pagar/<int:pk>/", views.tauser_pagar, name="tauser_pagar"),
+    path("tauser/cobrar/<int:pk>/", views.tauser_cobrar, name="tauser_cobrar"),
+
+
 ]

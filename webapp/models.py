@@ -1011,6 +1011,15 @@ class Transaccion(models.Model):
 
     def __str__(self):
         return f"{self.tipo} {self.monto_origen} {self.moneda_origen} → {self.moneda_destino} ({self.estado})"
+        
+    @property
+    def tauser_display(self):
+        if isinstance(self.medio_pago, Tauser):
+            return f"{self.medio_pago.nombre} ({self.medio_pago.ubicacion})"
+        elif isinstance(self.medio_cobro, Tauser):
+            return f"{self.medio_cobro.nombre} ({self.medio_cobro.ubicacion})"
+        return ""
+
     
 # --------------------------------------------
 # Modelos para facturación y notas de crédito

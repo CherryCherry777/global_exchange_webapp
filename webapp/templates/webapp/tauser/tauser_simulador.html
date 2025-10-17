@@ -1,0 +1,57 @@
+{% load custom_filters %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tauser - Simulador</title>
+    <link rel="stylesheet" href="{% static 'webapp/css/tauser/tauser_simulador.css' %}?v=1.0">
+</head>
+<body>
+    <div class="tauser-sim-container">
+        <div class="tauser-card">
+            <img src="{% static 'webapp/logo.png' %}" class="tauser-logo" alt="Logo">
+            <h2>
+                {% if modo == 'pagar' %}
+                    Simulación de Pago
+                {% else %}
+                    Simulación de Cobro
+                {% endif %}
+            </h2>
+            <p class="info">
+                Transacción #{{ transaccion.id }} – 
+                <strong>{{ transaccion.get_tipo_display }}</strong> 
+                ({{ transaccion.get_estado_display }})
+            </p>
+
+            <div class="tauser-info-box">
+                <p><strong>Cliente:</strong> {{ transaccion.cliente.nombre }}</p>
+
+                {% if modo == 'pagar' %}
+                    <p><strong>Moneda a pagar:</strong> {{ transaccion.moneda_origen.code }}</p>
+                    <p><strong>Monto a pagar:</strong> 
+                        {{ transaccion.monto_origen|format_decimals:transaccion.moneda_origen }}
+                    </p>
+                {% elif modo == 'cobrar' %}
+                    <p><strong>Moneda a cobrar:</strong> {{ transaccion.moneda_destino.code }}</p>
+                    <p><strong>Monto a cobrar:</strong> 
+                        {{ transaccion.monto_destino|format_decimals:transaccion.moneda_destino }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="button-group">
+                    <button type="submit" name="accion" value="confirmar" class="btn-confirm">
+                        {% if modo == 'pagar' %}Confirmar Pago{% else %}Confirmar Cobro{% endif %}
+                    </button>
+                    <button type="submit" name="accion" value="cancelar" class="btn-cancel">Cancelar</button>
+                </div>
+            </form>
+
+            <a href="{% url 'tauser_home' %}" class="back-link">← Volver</a>
+        </div>
+    </div>
+</body>
+</html>

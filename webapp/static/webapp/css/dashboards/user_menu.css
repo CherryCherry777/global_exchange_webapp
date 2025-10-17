@@ -48,7 +48,9 @@
     top: 100% !important;
     right: 0 !important;
     width: 318px !important;
-    height: 530px !important;
+    height: auto !important;  /* 👈 en lugar de 530px */
+    max-height: none !important;
+    overflow-y: visible !important; 
     background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
     border-radius: 27px !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
