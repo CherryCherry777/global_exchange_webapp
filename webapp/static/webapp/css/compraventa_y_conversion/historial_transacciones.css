@@ -117,7 +117,7 @@ body {
     font-weight: 500;
     font-style: italic;
     color: #ffffff;
-    padding: 15px 8px;
+    padding: 20px 8px;
     text-align: center;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
     height: 50px;
@@ -130,7 +130,7 @@ body {
     font-weight: 300;
     font-style: italic;
     color: #ffffff;
-    padding: 15px 8px;
+    padding: 35px 8px;
 
     height: 50px;
     vertical-align: middle;
@@ -191,6 +191,10 @@ body {
     border-radius: 50%;
     flex-shrink: 0;
     background: #666666; /* Color por defecto */
+}
+
+.status-indicator.completa {
+    background: linear-gradient(180deg, #00b341 0%, #006b1f 100%);
 }
 
 .status-indicator.pagada {
@@ -258,6 +262,38 @@ body {
 .anular-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
+}
+
+/* Enlaces con apariencia de botón */
+.action-button,
+.action-button:link,
+.action-button:visited {
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+/* Ingresar ID de Transacción */
+.ingresar-id-btn {
+    background: linear-gradient(90deg, #08052A 0%, #381194 50%, #6B5CF5 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 70px;
+    white-space: nowrap;
+}
+
+.ingresar-id-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(107, 92, 245, 0.4);
+    background: linear-gradient(90deg, #100B3C 0%, #5B15C2 50%, #8E7CFF 100%);
 }
 
 

@@ -969,6 +969,13 @@ class Transaccion(models.Model):
         verbose_name="ID de PaymentIntent en Stripe"
     )
 
+    id_transferencia = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name="ID de transferencia"
+    )
+
     factura_asociada = models.ForeignKey(
         "Factura",
         on_delete=models.SET_NULL,

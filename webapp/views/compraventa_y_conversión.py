@@ -1,3 +1,4 @@
+from django.utils import timezone
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -8,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from ..models import CuentaBancaria, MFACode, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
 from .payments.stripe_utils import procesar_pago_stripe
-from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera
+from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera, validar_id_transferencia
 from webapp.tasks import pagar_al_cliente_task
 
 # ----------------------
@@ -422,17 +423,87 @@ def get_metodos_pago_cobro(request):
     return JsonResponse({"metodo_pago": metodo_pago, "metodo_cobro": metodo_cobro})
 
 
+# ----------------------------------
+# Vistas de historial de transacción
+# ----------------------------------
+
 def transaccion_list(request):
+    """
+    Muestra el historial de transacciones del cliente actual.
+    Si alguna transacción tiene un medio de pago del tipo CuentaBancariaNegocio,
+    se marcará con una propiedad adicional 'es_pago_cuenta_bancaria' para usar en el template.
+    """
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
         messages.error(request, "No hay cliente seleccionado")
-        return redirect("change_client")  # O la vista que corresponda
+        return redirect("change_client")
 
-    transacciones = Transaccion.objects.select_related(
-        "cliente", "usuario", "moneda_origen", "moneda_destino", "factura_asociada"
-    ).filter(cliente_id=cliente_id)  # Filtramos por el cliente de la sesión
+    transacciones = (
+        Transaccion.objects.select_related(
+            "cliente", "usuario", "moneda_origen", "moneda_destino", "factura_asociada"
+        )
+        .filter(cliente_id=cliente_id)
+        .order_by("-fecha_creacion")
+    )
 
-    return render(request, "webapp/compraventa_y_conversion/historial_transacciones.html", {"transacciones": transacciones})
+    # 🔹 Agregamos un atributo dinámico para cada transacción
+    for t in transacciones:
+        t.es_pago_cuenta_bancaria = isinstance(t.medio_pago, CuentaBancariaNegocio)
+
+    context = {"transacciones": transacciones}
+    return render(request, "webapp/compraventa_y_conversion/historial_transacciones.html", context)
+
+
+@login_required
+def ingresar_idTransferencia(request, transaccion_id: int):
+    """
+    Permite al usuario ingresar el ID de referencia de una transferencia.
+    Valida el ID y, si es correcto, marca la transacción como PAGADA,
+    registrando también la fecha de pago y dejando que se actualice
+    la fecha_actualizacion automáticamente.
+    """
+    transaccion = get_object_or_404(Transaccion, pk=transaccion_id)
+
+    if request.method == "POST":
+        id_ingresado = request.POST.get("id_transferencia", "").strip()
+
+        if not id_ingresado:
+            messages.error(request, "Debes ingresar un ID de transferencia válido.")
+            return render(
+                request,
+                "webapp/compraventa_y_conversion/ingresar_idTransferencia.html",
+                {"transaccion": transaccion},
+            )
+
+        # ✅ Validar el ID ingresado
+        resultado = validar_id_transferencia(id_ingresado)
+
+        if not resultado.get("success"):
+            messages.error(request, f"No se pudo validar la transferencia: {resultado.get('message')}")
+            return render(
+                request,
+                "webapp/compraventa_y_conversion/ingresar_idTransferencia.html",
+                {"transaccion": transaccion},
+            )
+
+        # ✅ Si pasa la validación, actualizar transacción
+        transaccion.id_transferencia = id_ingresado
+        transaccion.estado = Transaccion.Estado.PAGADA
+        transaccion.fecha_pago = timezone.now().date()  # registra la fecha de pago (solo día)
+        transaccion.save(update_fields=["id_transferencia", "estado", "fecha_pago", "fecha_actualizacion"])
+
+        messages.success(
+            request,
+            "Transferencia validada correctamente. "
+            "La transacción fue marcada como PAGADA y se registró la fecha de pago."
+        )
+        return redirect("transaccion_list")
+
+    return render(
+        request,
+        "webapp/compraventa_y_conversion/ingresar_idTransferencia.html",
+        {"transaccion": transaccion},
+    )
 
 
 # ----------------------

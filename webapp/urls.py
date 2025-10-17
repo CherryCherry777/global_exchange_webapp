@@ -134,6 +134,7 @@ urlpatterns = [
 
     # Transacciones
     path("historial-transacciones/", views.transaccion_list, name="transaccion_list"),
+    path("transaccion/<int:transaccion_id>/ingresar-id/", views.ingresar_idTransferencia, name="ingresar_idTransferencia"),
 
     #Configuracion de notificaciones de correo
     path("schedule/", views.manage_schedule, name="manage_schedule"),

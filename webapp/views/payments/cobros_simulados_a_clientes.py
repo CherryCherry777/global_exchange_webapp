@@ -129,3 +129,53 @@ def cobrar_al_cliente_billetera(numero_celular: str, pin: str | None = None) -> 
         "require_pin": not exito,
         "allow_retry": not exito,
     }
+
+
+def validar_id_transferencia(id_transferencia: str) -> Dict[str, Any]:
+    """
+    Simula la validación de un ID de transferencia bancaria.
+
+    Reglas:
+      - Termina en '0' → éxito garantizado.
+      - Termina en '1' → fallo garantizado.
+      - Otro dígito     → resultado aleatorio.
+
+    Args:
+        id_transferencia (str): ID ingresado por el usuario.
+
+    Returns:
+        dict: {
+            "success" (bool): True si es válido, False si falla.
+            "message" (str): Mensaje descriptivo.
+        }
+    """
+    if not id_transferencia or not id_transferencia[-1].isdigit():
+        return {
+            "success": False,
+            "message": "El ID de transferencia es inválido o no contiene un dígito final válido.",
+        }
+
+    ultimo_digito = int(id_transferencia[-1])
+
+    if ultimo_digito == 0:
+        return {
+            "success": True,
+            "message": "Transferencia validada exitosamente.",
+        }
+
+    elif ultimo_digito == 1:
+        return {
+            "success": False,
+            "message": "El ID de transferencia fue rechazado por el sistema bancario.",
+        }
+
+    else:
+        exito = random.choice([True, False])
+        return {
+            "success": exito,
+            "message": (
+                "Transferencia validada correctamente (modo simulación)."
+                if exito else
+                "La transferencia no pudo ser validada (resultado aleatorio)."
+            ),
+        }

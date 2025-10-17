@@ -1,0 +1,137 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/compraventa/ingresar_pin.css' %}">
+<style>
+.idtransferencia-header {
+    background: linear-gradient(90deg, #000000 0%, #100724 50%, #000000 100%);
+    width: 100%;
+    padding: 40px 0;
+    margin-bottom: 30px;
+    border-bottom: 2px solid rgba(91, 21, 194, 0.3);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Back Button */
+.back-button {
+    background: rgba(238, 233, 210, 0.1);
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px; /* 🔹 un poco más grande y legible */
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex; /* 🔹 inline-flex permite adaptarse al texto */
+    align-items: center;
+    justify-content: center;
+    padding: 10px 25px; /* 🔹 reemplaza width fijo */
+    white-space: nowrap; /* 🔹 evita saltos de línea */
+    transition: all 0.3s ease;
+    min-width: 160px; /* 🔹 ancho mínimo para consistencia visual */
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Evitar que el botón ocupe todo el ancho del contenedor */
+.header-content .back-button {
+    align-self: flex-start; /* 🔹 Alinea el botón a la izquierda */
+    width: auto;            /* 🔹 Deja que el ancho se ajuste al texto */
+    padding: 10px 25px;     /* 🔹 Espaciado visual consistente */
+    min-width: 160px;       /* 🔹 Mantiene una base visual mínima */
+}
+
+/* Title and Subtitle */
+.transactions-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+}
+
+.transactions-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .idtransferencia-header {
+        padding: 25px 0;
+    }
+
+    .header-content {
+        padding: 0 15px;
+        gap: 15px;
+    }
+
+    .back-button {
+        font-size: 16px;
+        padding: 8px 18px;
+    }
+
+    .transactions-title {
+        font-size: 22px;
+    }
+
+    .transactions-subtitle {
+        font-size: 22px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="idtransferencia-header">
+    <div class="header-content">
+        <a href="{% url 'transaccion_list' %}" class="back-button">← Volver al Historial de Transacciones</a>
+        <h1 class="transactions-title">Continuar Pago</h1>
+    </div>
+</div>
+
+<div class="pin-page-container">
+  <h4>Verificación de transferencia</h4>
+  <form method="post">
+    {% csrf_token %}
+    <p>Por favor, ingresá el número de la transferencia para completar el pago.</p>
+    <div class="pin-form-wrapper">
+      <label for="id_transferencia" class="form-label">N° de transferencia</label>
+      <input
+        type="text"
+        name="id_transferencia"
+        id="id_transferencia"
+        maxlength="20"
+        class="form-control"
+        required
+        autofocus
+        placeholder="Ej: 4857720692"
+        inputmode="numeric"
+        pattern="\d+"
+        title="Solo se permiten números."
+      />
+      <div class="button-container">
+        <button type="submit" class="btn btn-primary">Validar transferencia</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

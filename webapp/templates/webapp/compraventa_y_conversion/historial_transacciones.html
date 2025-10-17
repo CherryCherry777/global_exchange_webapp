@@ -4,7 +4,7 @@
 {% block title %}Transacciones - Global Exchange{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'webapp/css/compraventa_y_conversion/historial_transacciones.css' %}?v=5.2">
+<link rel="stylesheet" href="{% static 'webapp/css/compraventa_y_conversion/historial_transacciones.css' %}?v=5.3">
 {% endblock %}
 
 {% block content %}
@@ -76,6 +76,13 @@
                         </td>
                         <td class="client-name">{{ transaccion.cliente.nombre }}</td>
                         <td class="actions-cell">
+                            {% if transaccion.estado == 'PENDIENTE' %}
+                                {% if transaccion.es_pago_cuenta_bancaria %}
+                                    <a href="{% url 'ingresar_idTransferencia' transaccion.id %}" class="action-button ingresar-id-btn">
+                                        Continuar Pago
+                                    </a>
+                                {% endif %}
+                            {% endif %}
                             <button class="action-button view-data-btn" data-transaction-id="{{ transaccion.id }}">
                                 Ver Datos
                             </button>
