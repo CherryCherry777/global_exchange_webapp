@@ -82,6 +82,14 @@ def compraventa_view(request):
         # ------------------------------
         data = request.POST.dict()
 
+        # Pasos previo antes del MFA
+        # --- Si venimos desde el flujo de PIN, no regenerar MFA ---
+        if "from_pin" in data:
+            data.pop("from_pin", None)  # eliminamos la marca
+            skip_mfa = True
+        else:
+            skip_mfa = False
+
         # === Paso 1: Generar MFA y solicitar código ===
         if "confirmar" in data and "mfa_code" not in data:
             MFACode.generate_for_user(request.user)
@@ -93,17 +101,17 @@ def compraventa_view(request):
             code = data.get("mfa_code")
             mfa_entry = MFACode.objects.filter(user=request.user, code=code, used=False).order_by("-created_at").first()
 
-            if not mfa_entry or not mfa_entry.is_valid():
+            if not skip_mfa and (not mfa_entry or not mfa_entry.is_valid()):
                 messages.error(request, "El código de verificación no es válido o ha expirado. Intente de nuevo.")
                 return render(request, "webapp/compraventa_y_conversion/verificar_mfa.html", {"data": data})
 
-            # marcar MFA como usado
-            mfa_entry.used = True
-            mfa_entry.save()
+            if not skip_mfa:
+                # marcar MFA como usado
+                mfa_entry.used = True
+                mfa_entry.save()
 
             # Confirmación final
             if "confirmar" in request.POST:
-                data = request.POST.dict()  # todos los inputs del wizard
                 if not data:
                     messages.error(request, "No se recibieron datos del formulario. Intenta nuevamente.")
                     return redirect("compraventa")

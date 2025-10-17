@@ -94,6 +94,14 @@ def cobrar_al_cliente_billetera(numero_celular: str, pin: str | None = None) -> 
             "allow_retry": True,
         }
 
+    # Validar longitud del PIN
+    if len(pin) != 4:
+        return {
+            "success": False,
+            "message": "PIN inválido: debe tener exactamente 4 dígitos.",
+            "require_pin": True,
+            "allow_retry": True,
+        }
 
     ultimo = int(pin[-1])
 

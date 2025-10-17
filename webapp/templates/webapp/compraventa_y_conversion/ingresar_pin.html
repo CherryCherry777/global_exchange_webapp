@@ -7,6 +7,23 @@
 
 {% block content %}
 <div class="pin-page-container">
+    <!-- Messages -->
+    {% if mensaje or messages %}
+        {% if mensaje %}
+            <div class="alert alert-error">{{ mensaje }}</div>
+        {% endif %}
+
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+
+        <script>
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(el => el.remove());
+            }, 5000); // desaparecen en 5 segundos
+        </script>
+    {% endif %}
+
     <h4>Autorización de pago con billetera</h4>
 
     <form method="post">
@@ -18,6 +35,7 @@
                 <input type="hidden" name="{{ key }}" value="{{ value }}">
             {% endif %}
         {% endfor %}
+        <input type="hidden" name="from_pin" value="1">
 
         <!-- Ícono de billetera -->
         <div class="wallet-icon">

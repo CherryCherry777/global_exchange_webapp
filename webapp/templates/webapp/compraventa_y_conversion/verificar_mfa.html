@@ -1,19 +1,44 @@
 {% extends "webapp/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/compraventa/ingresar_pin.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-  <h2>Verificación en dos pasos (MFA)</h2>
-  <p>Hemos enviado un código de verificación a tu correo electrónico.</p>
+<div class="pin-page-container">
+  <!-- Messages -->
+<!--{% if mensaje or messages %}
+      {% if mensaje %}
+          <div class="alert alert-error">{{ mensaje }}</div>
+      {% endif %}
+
+      {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+
+      <script>
+          setTimeout(() => {
+              document.querySelectorAll('.alert').forEach(el => el.remove());
+          }, 5000); // desaparecen en 5 segundos
+      </script>
+  {% endif %} -->
+  <h4>Verificación en dos pasos (MFA)</h4>
   <form method="post">
     {% csrf_token %}
+    <p>Hemos enviado un código de verificación a tu correo electrónico.</p>
     <input type="hidden" name="confirmar" value="1">
     {% for key, value in data.items %}
       <input type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
-    <div class="mb-3">
+    <div class="pin-form-wrapper">
       <label for="mfa_code" class="form-label">Código de verificación</label>
       <input type="text" name="mfa_code" id="mfa_code" maxlength="6" class="form-control" required autofocus>
+      <!-- Botones -->
+      <div class="button-container">
+        <button type="submit" class="btn btn-primary">Verificar y continuar</button>
+      </div>
     </div>
-    <button type="submit" class="btn btn-primary">Verificar y continuar</button>
   </form>
 </div>
 {% endblock %}
