@@ -650,6 +650,29 @@ class LimiteIntercambio(models.Model):
                 self.limite_mes = Decimal(self.limite_mes).quantize(factor, rounding=ROUND_DOWN)
         super().save(*args, **kwargs)
 
+    def descontar(self, monto: Decimal):
+        """
+        Descuenta un monto del límite diario y mensual (por ejemplo, después de una transacción).
+        Si el monto supera el límite actual, lanza ValidationError.
+        """
+        if monto is None or monto <= 0:
+            return
+
+        # Validar que haya suficiente límite disponible
+        if monto > self.limite_dia:
+            raise ValidationError(f"El monto {monto} supera el límite diario disponible ({self.limite_dia}).")
+
+        if monto > self.limite_mes:
+            raise ValidationError(f"El monto {monto} supera el límite mensual disponible ({self.limite_mes}).")
+
+        # Restar y normalizar según los decimales de la moneda
+        dec = int(self.moneda.decimales_cotizacion)
+        factor = Decimal('1').scaleb(-dec)
+
+        self.limite_dia = (self.limite_dia - monto).quantize(factor, rounding=ROUND_DOWN)
+        self.limite_mes = (self.limite_mes - monto).quantize(factor, rounding=ROUND_DOWN)
+        self.save(update_fields=["limite_dia", "limite_mes"])
+
     def __str__(self):
         return f"{self.moneda.code}"
 

@@ -4,7 +4,7 @@ from django.db.models.signals import post_migrate, post_save
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
-from .models import Currency, Entidad, MedioCobro, Role, MedioPago, TipoCobro, TipoPago, CuentaBancariaNegocio
+from .models import Currency, Entidad, LimiteIntercambio, MedioCobro, Role, MedioPago, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
 from django.db import transaction
@@ -260,3 +260,10 @@ def crear_cuenta_bancaria_negocio(sender, **kwargs):
             print(f"❌ Error al crear cuenta bancaria del negocio: {e}")
 
     transaction.on_commit(crear_si_corresponde)
+
+@receiver(post_save, sender=Transaccion)
+def actualizar_limite_post_transaccion(sender, instance, **kwargs):
+    if instance.estado in [Transaccion.Estado.PAGADA, Transaccion.Estado.COMPLETA] and instance.moneda_origen.code == "PYG":
+        limite = LimiteIntercambio.objects.filter(moneda=instance.moneda_destino).first()
+        if limite:
+            limite.descontar(instance.monto_destino)

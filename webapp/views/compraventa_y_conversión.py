@@ -1,4 +1,6 @@
 from django.utils import timezone
+from django.core.serializers.json import DjangoJSONEncoder
+import json
 from datetime import timedelta
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
@@ -7,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CuentaBancaria, MFACode, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
+from ..models import CuentaBancaria, LimiteIntercambio, MFACode, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
 from .payments.stripe_utils import procesar_pago_stripe
 from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera, validar_id_transferencia
@@ -311,6 +313,19 @@ def compraventa_view(request):
         if nombre_normalizado == "cuentabancaria":
             tipo["nombre"] = "Transferencia"""
 
+    limites = LimiteIntercambio.objects.select_related("moneda").values(
+        "moneda__code", "limite_dia", "limite_mes"
+    )
+
+    # Convertimos a un diccionario simple para el template
+    limites_dict = {
+        item["moneda__code"]: {
+            "dia": float(item["limite_dia"]),
+            "mes": float(item["limite_mes"]),
+        }
+        for item in limites
+    }
+
     # Obtener la categoría del cliente
     categoria_cliente = cliente.categoria
 
@@ -322,6 +337,7 @@ def compraventa_view(request):
         "tipos_cobro": tipos_cobro,
         "categoria_cliente": categoria_cliente,
         "cuenta_negocio": cuenta_negocio,
+        "limites_intercambio": json.dumps(limites_dict, cls=DjangoJSONEncoder),
     }
 
     return render(request, "webapp/compraventa_y_conversion/compraventa.html", context)

@@ -204,6 +204,7 @@
     const detail = document.getElementById("simu-result-detail");
     const metodoPago = document.getElementById("simu-metodo-pago");
     const metodoCobro = document.getElementById("simu-metodo-cobro");
+    const LIMITES_INTERCAMBIO = JSON.parse('{{ limites_intercambio|safe }}');
 
     let CODES = [];
     const META = Object.create(null);
@@ -886,6 +887,35 @@
                 (amount.value || "0").replace(/\./g, "").replace(",", ".")
             );
 
+            const codigoMonedaOrigen = from.value; // Ej: "PYG"
+            const codigoMonedaDestino = to.value;  // Ej: "USD"
+
+            // ⚠️ Solo validar si el usuario tiene PYG como origen
+            if (codigoMonedaOrigen === "PYG" && LIMITES_INTERCAMBIO[codigoMonedaDestino]) {
+                // Tomar monto destino
+                const montoDestinoText = document.getElementById("simu-result-main").value;
+                const montoDestino = parseFloat(
+                    (montoDestinoText || "0").replace(/\./g, "").replace(",", ".")
+                );
+
+                const limiteDia = LIMITES_INTERCAMBIO[codigoMonedaDestino].dia;
+                const limiteMes = LIMITES_INTERCAMBIO[codigoMonedaDestino].mes;
+
+                if (montoDestino > limiteDia) {
+                    return mostrarMensaje(
+                        `El monto en ${codigoMonedaDestino} (${montoDestino.toLocaleString()}) supera el límite diario (${limiteDia.toLocaleString()} ${codigoMonedaDestino}).`,
+                        "error"
+                    );
+                }
+
+                if (montoDestino > limiteMes) {
+                    return mostrarMensaje(
+                        `El monto en ${codigoMonedaDestino} (${montoDestino.toLocaleString()}) supera el límite mensual (${limiteMes.toLocaleString()} ${codigoMonedaDestino}).`,
+                        "error"
+                    );
+                }
+            }
+                    
             // 🟩 Determina tipo de operación: Venta si es PYG, Compra en otro caso
             const tipoOperacion = from.value.includes("PYG") ? "Venta" : "Compra";
 
@@ -898,20 +928,37 @@
             document.getElementById("resumen-destino").textContent =
                 `${out.value || "-"}`;
 
-            document.getElementById("resumen-pago").textContent =
-                metodoPago?.selectedOptions[0]?.text || "-";
-
             document.getElementById("resumen-cobro").textContent =
                 metodoCobro?.selectedOptions[0]?.text || "-";
-
-            // Validaciones para pasar de pestaña en el wizard
-            if (isNaN(montoOrigen) || montoOrigen <= 0) return mostrarMensaje("Monto inválido.", "error");
 
             // Detecta tipo general de pago activo
             const btnActivo = document.querySelector(".tab-btn.active");
             const tipoGeneral = btnActivo?.textContent?.trim().toLowerCase() || "";
 
             const esTransferencia = tipoGeneral.includes("transferencia");
+
+            // Si es transferencia, cargar datos de cuenta_negocio
+            if (esTransferencia) {
+                // 🏦 Buscar dentro del bloque visible de transferencia
+                const transferenciaInfo = document.querySelector("#transferencia-info .transferencia-datos");
+                if (transferenciaInfo) {
+                    // Buscar el texto exacto en los <p>
+                    const banco = transferenciaInfo.querySelector("p:nth-child(3)")?.textContent?.replace("Banco:", "").trim() || "";
+                    const cuenta = transferenciaInfo.querySelector("p:nth-child(4)")?.textContent?.replace("Cuenta:", "").trim() || "";
+                    const alias = transferenciaInfo.querySelector("p:nth-child(5)")?.textContent?.replace("Alias:", "").trim() || "";
+
+                    const resumen = `${banco} (${alias}) - ${cuenta}`;
+                    document.getElementById("resumen-pago").textContent = resumen;
+                } else {
+                    document.getElementById("resumen-pago").textContent = "-";
+                }
+            } else {
+                document.getElementById("resumen-pago").textContent =
+                    metodoPago?.selectedOptions[0]?.text || "-";
+            }
+
+            // Validaciones para pasar de pestaña en el wizard
+            if (isNaN(montoOrigen) || montoOrigen <= 0) return mostrarMensaje("Monto inválido.", "error");
 
             // Solo exige metodoPago si NO es transferencia
             if (!esTransferencia && metodoPago.value === "")
