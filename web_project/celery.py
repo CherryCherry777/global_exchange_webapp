@@ -1,9 +1,6 @@
 import os
 from celery import Celery
 from celery.schedules import crontab
-from django.utils import timezone
-from datetime import timedelta
-
 
 # Configura el entorno de Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "web_project.settings")

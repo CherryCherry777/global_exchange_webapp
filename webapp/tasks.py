@@ -7,8 +7,9 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
+from django.contrib.contenttypes.models import ContentType
 
-from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, MFACode, Transaccion
+from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, MFACode, Transaccion, CuentaBancariaNegocio
 from .views.payments.pagos_simulados_a_clientes import pagar_al_cliente
 
 from django.utils import timezone
@@ -133,6 +134,34 @@ def send_welcome_email(user_email):
     )
 
 
+@shared_task
+def cleanup_expired_mfa_codes():
+    """Elimina códigos MFA vencidos (más de 1 hora de antigüedad)."""
+    MFACode.objects.filter(created_at__lt=timezone.now() - timedelta(hours=1)).delete()
+
+
+@shared_task
+def cancelar_transacciones_vencidas():
+    """
+    Cancela automáticamente las transacciones pendientes que usan una CuentaBancariaNegocio
+    y que excedieron el tiempo límite.
+    """
+    limite_tiempo = timezone.now() - timedelta(minutes=2)
+
+    # Obtener ContentType de CuentaBancariaNegocio
+    tipo_cuenta_bancaria = ContentType.objects.get_for_model(CuentaBancariaNegocio)
+
+    # Filtrar solo las transacciones PENDIENTES y con ese tipo de medio de pago
+    vencidas = Transaccion.objects.filter(
+        estado=Transaccion.Estado.PENDIENTE,
+        medio_pago_type=tipo_cuenta_bancaria,
+        fecha_creacion__lt=limite_tiempo,
+    )
+
+    cantidad = vencidas.update(estado=Transaccion.Estado.CANCELADA)
+    print(f"[INFO] {cantidad} transacciones con CuentaBancariaNegocio canceladas automáticamente por vencimiento.")
+
+
 @shared_task(bind=True, max_retries=4, default_retry_delay=5)
 def pagar_al_cliente_task(self, transaccion_id: int) -> None:
     transaccion = Transaccion.objects.get(pk=transaccion_id)
@@ -219,9 +248,3 @@ def pagar_al_cliente_task(self, transaccion_id: int) -> None:
             print(f"[WARN] Error enviando notificación de fallo: {mail_error}")
 
         print(f"[ACREDITACION_FALLIDA] Transacción {transaccion.id}: {e}")
-
-
-@shared_task
-def cleanup_expired_mfa_codes():
-    """Elimina códigos MFA vencidos (más de 1 hora de antigüedad)."""
-    MFACode.objects.filter(created_at__lt=timezone.now() - timedelta(hours=1)).delete()

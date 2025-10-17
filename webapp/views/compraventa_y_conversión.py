@@ -1,4 +1,5 @@
 from django.utils import timezone
+from datetime import timedelta
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -463,6 +464,14 @@ def ingresar_idTransferencia(request, transaccion_id: int):
     la fecha_actualizacion automáticamente.
     """
     transaccion = get_object_or_404(Transaccion, pk=transaccion_id)
+
+    if transaccion.estado == Transaccion.Estado.PENDIENTE:
+        tiempo_limite = transaccion.fecha_creacion + timedelta(minutes=2)
+        if timezone.now() > tiempo_limite:
+            transaccion.estado = Transaccion.Estado.CANCELADA
+            transaccion.save(update_fields=["estado"])
+            messages.error(request, "Esta transacción expiró automáticamente.")
+            return redirect("transaccion_list")
 
     if request.method == "POST":
         id_ingresado = request.POST.get("id_transferencia", "").strip()

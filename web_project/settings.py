@@ -151,8 +151,15 @@ CELERY_ENABLE_UTC = True  # recommended
 CELERY_BEAT_SCHEDULE = {
     "check_exchange_email_schedule": {
         "task": "webapp.tasks.check_and_send_exchange_rates",
-        "schedule": 60.0,  # every 60 seconds
-        # alternatively: "schedule": crontab(minute="*"), same thing
+        "schedule": 60.0,  # cada 60 segundos
+    },
+    "cancelar_transacciones_vencidas_cada_2min": {
+        "task": "webapp.tasks.cancelar_transacciones_vencidas",
+        "schedule": crontab(minute="*/2"),  # cada 2 minutos
+    },
+    "limpiar_codigos_mfa_cada_hora": {
+        "task": "webapp.tasks.cleanup_expired_mfa_codes",
+        "schedule": crontab(minute=0, hour="*/1"),  # cada hora
     },
 }
 

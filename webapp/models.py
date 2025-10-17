@@ -926,9 +926,9 @@ class Transaccion(models.Model):
         choices=Estado.choices,
         default=Estado.PENDIENTE
     )
-    fecha_creacion = models.DateField(auto_now_add=True)
-    fecha_pago = models.DateField(null=True, blank=True)
-    fecha_actualizacion = models.DateField(auto_now=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_pago = models.DateTimeField(null=True, blank=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     moneda_origen = models.ForeignKey(
         "Currency",
