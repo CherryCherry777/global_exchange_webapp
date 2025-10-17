@@ -1,0 +1,500 @@
+/* ===========================
+   ESTILOS PARA COMPRAVENTA
+   ========================== */
+
+/* IMPORTANTE: Asegúrate de que este archivo esté en:
+   webapp/static/webapp/css/compraventa/compraventa.css */
+
+/* Fondo negro para toda la página */
+body {
+  background-color: #000000 !important;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Ocultar el título original si existe */
+.converter-title {
+  display: none;
+}
+
+/* ===========================
+   PROGRESS TRACKER (Indicador de Progreso)
+   ========================== */
+
+.wizard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 3rem;
+  margin-top: 2rem;
+  position: relative;
+  width: 736px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Línea de progreso (conecta los pasos) */
+.wizard-header::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #8d8d8d;
+  z-index: 0;
+}
+
+/* Cada indicador de paso */
+.wizard-step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items:center;
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 18px;
+  color: #ffffff;
+  position: relative;
+  z-index: 1;
+}
+
+/* Círculo del paso */
+.wizard-step-indicator span {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #391196 0%, #08052a 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  font-size: 0;
+  border: 3px solid #8d8d8d;
+}
+
+/* Círculo activo (paso actual) */
+.wizard-step-indicator.active span {
+  background: linear-gradient(180deg, #391196 0%, #08052a 100%);
+  border: 3px solid #391196;
+  box-shadow: 0 0 12px rgba(57, 17, 150, 0.8);
+}
+
+/* ===========================
+   CONTENEDOR PRINCIPAL DE SELECCIÓN
+   ========================== */
+
+.converter-section {
+  background-color: transparent !important;
+}
+
+.converter-container {
+  width: 900px;
+  min-height: 724px;
+  margin: 0 auto;
+  padding: 2.5rem;
+  border-radius: 20px;
+  background-color: rgba(238, 233, 210, 0.1);
+}
+
+/* Título principal del contenedor */
+.converter-subtitle {
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 18px;
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.converter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ===========================
+   SECCIONES DE MONEDAS
+   ========================== */
+
+.converter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* Labels de las secciones */
+.field-label {
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.field-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* ===========================
+   SELECTORES DE MONEDA (Botones dorados)
+   ========================== */
+
+.select-wrapper {
+  position: relative;
+  width: 266px;
+  height: 57px;
+}
+
+.currency-select {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #b59702 6%, #d2af00 50%, #ffd400 100%);
+  border: none;
+  padding: 0 60px 0 20px;
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 24px;
+  color: #000000;
+  appearance: none;
+  cursor: pointer;
+}
+
+/* Flecha desplegable (tick.png) */
+.select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 45px;
+  height: 45px;
+  pointer-events: none;
+}
+
+/* ===========================
+   INPUTS DE MONTO
+   ========================== */
+
+.amount-input,
+.result-input {
+  width: 327px;
+  height: 57px;
+  border-radius: 5px;
+  background-color: #d9d9d9;
+  border: none;
+  padding: 0 20px;
+  font-family: "Roboto", sans-serif;
+  font-size: 20px;
+  color: #000000;
+}
+
+.result-input {
+  background-color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+/* ===========================
+   BOTÓN INTERCAMBIAR
+   ========================== */
+
+.converter-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.intercambiar-button {
+  width: 623px;
+  height: 57px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #b59702 6%, #d2af00 50%, #ffd400 100%);
+  border: none;
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 24px;
+  color: #000000;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.intercambiar-button:hover {
+  transform: scale(1.02);
+}
+
+/* Texto de conversión debajo del botón intercambiar */
+.result-detail {
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+  color: #ffffff;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.converter-result {
+  text-align: center;
+}
+
+/* ===========================
+   SECCIÓN PAGAR CON / RECIBIR EN
+   ========================== */
+
+/* Estructura: Label arriba, luego tabs + select en la misma fila */
+.converter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* Container que agrupa tabs y select horizontalmente */
+.converter-field-content {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+/* Changed from grid to flexbox for natural button flow */
+/* Contenedor de tabs (botones de tipo de pago/cobro) */
+.tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0;
+  max-width: 520px;
+}
+
+/* Removed grid positioning, buttons now flow naturally */
+/* Botones de tipo (Tauser, Tarjeta Nacional, etc.) */
+.tab-btn {
+  height: 57px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #0a052f 6%, #381194 50%, #5b15c1 100%);
+  border: none;
+  padding: 0 1rem;
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 15px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Simplified button sizing - removed grid-specific positioning */
+.tab-row .tab-btn:nth-child(1) {
+  width: 100px;
+}
+
+.tab-row .tab-btn:nth-child(2) {
+  width: 200px;
+}
+
+.tab-row .tab-btn:nth-child(3) {
+  width: 200px;
+}
+
+.tab-row .tab-btn:nth-child(4) {
+  width: 280px;
+}
+
+.tab-row .tab-btn:nth-child(5) {
+  width: 230px;
+}
+
+.tab-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.tab-btn.active {
+  box-shadow: 0 0 15px rgba(91, 21, 193, 0.6);
+  border: 2px solid #5b15c1;
+}
+
+/* Select de "Seleccione una opción" - al lado derecho de los tabs */
+#simu-metodo-pago,
+#simu-metodo-cobro {
+  width: 190px;
+  height: 72px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #b59702 6%, #d2af00 50%, #ffd400 100%);
+  border: none;
+  padding: 0 60px 0 15px;
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+  color: #000000;
+  appearance: none;
+  cursor: pointer;
+}
+
+/* Wrapper del select cuando está al lado de los tabs */
+.select-wrapper-inline {
+  width: 190px;
+  height: 72px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ===========================
+   BOTÓN CONTINUAR
+   ========================== */
+
+#next-step {
+  width: 200px;
+  height: 60px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #0a052f 6%, #381194 50%, #5b15c1 100%);
+  border: none;
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 24px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+#next-step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(91, 21, 193, 0.4);
+}
+
+/* ===========================
+   PASO 2: REVISIÓN
+   ========================== */
+
+#step-2 {
+  background-color: rgba(238, 233, 210, 0.1);
+  padding: 2rem;
+  border-radius: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+#step-2 h4 {
+  color: #ffffff;
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 24px;
+  margin-bottom: 1rem;
+}
+
+#step-2 p {
+  color: #ffffff;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+}
+
+#step-2 hr {
+  border-color: #8d8d8d;
+  margin: 1.5rem 0;
+}
+
+.list-group-item {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  font-family: "Roboto", sans-serif;
+}
+
+/* Botones del paso 2 */
+#prev-step,
+#step-2 button[type="submit"] {
+  height: 60px;
+  border-radius: 5px;
+  border: none;
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+  padding: 0 2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+#prev-step {
+  background: linear-gradient(90deg, #6c757d 0%, #495057 100%);
+  color: #ffffff;
+}
+
+#step-2 button[type="submit"] {
+  background: linear-gradient(90deg, #0a052f 6%, #381194 50%, #5b15c1 100%);
+  color: #ffffff;
+}
+
+#prev-step:hover,
+#step-2 button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* ===========================
+   OCULTAR ELEMENTOS NO NECESARIOS
+   ========================== */
+
+#step-1 h5 {
+  display: none;
+}
+
+/* ===========================
+   RESPONSIVE (Opcional)
+   ========================== */
+
+@media (max-width: 992px) {
+  .converter-container {
+    width: 100%;
+    max-width: 900px;
+  }
+
+  .wizard-header {
+    width: 100%;
+    max-width: 736px;
+  }
+
+  .wizard-header::before {
+    width: 100%;
+    max-width: 736px;
+  }
+}
+
+@media (max-width: 768px) {
+  .field-row {
+    flex-direction: column;
+  }
+
+  .select-wrapper,
+  .amount-input,
+  .result-input {
+    width: 100%;
+  }
+
+  .intercambiar-button {
+    width: 100%;
+  }
+
+  .tab-row {
+    max-width: 100%;
+  }
+
+  .tab-btn {
+    width: 100% !important;
+  }
+
+  .converter-field .field-row {
+    flex-direction: column;
+  }
+
+  .converter-field .field-row > .select-wrapper {
+    width: 100%;
+  }
+}

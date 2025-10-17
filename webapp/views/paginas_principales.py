@@ -17,7 +17,8 @@ def public_home(request):
         if "Administrador" in user_groups or "Analista" in user_groups:
             can_access_gestiones = True
 
-    currencies = Currency.objects.filter(is_active=True)
+    # Obtener todas las monedas activas excepto la moneda base (Guaraní paraguayo)
+    currencies = Currency.objects.filter(is_active=True).exclude(code='PYG')
     
     # Agregar atributo dinámico "total" a cada moneda
     for currency in currencies:
