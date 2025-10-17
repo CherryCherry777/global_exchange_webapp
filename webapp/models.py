@@ -984,6 +984,31 @@ class Transaccion(models.Model):
         related_name="transacciones"
     )
 
+    # ----------------------------------------------------------------------
+    # 🔹 Control automático de fechas según estado
+    # ----------------------------------------------------------------------
+    def save(self, *args, **kwargs):
+        """
+        Controla automáticamente las fechas de pago y actualización.
+        """
+        estado_anterior = None
+        if self.pk:
+            estado_anterior = (
+                Transaccion.objects.filter(pk=self.pk)
+                .values_list("estado", flat=True)
+                .first()
+            )
+
+        # 🔸 1. Si el estado es PAGADA y aún no tiene fecha de pago → se setea ahora
+        if self.estado == self.Estado.PAGADA and not self.fecha_pago:
+            self.fecha_pago = timezone.now()
+
+        # 🔸 2. Si el estado cambió (a COMPLETA, CANCELADA, etc.) → se actualiza la fecha de actualización
+        if not self.pk or self.estado != estado_anterior:
+            self.fecha_actualizacion = timezone.now()
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.tipo} {self.monto_origen} {self.moneda_origen} → {self.moneda_destino} ({self.estado})"
     

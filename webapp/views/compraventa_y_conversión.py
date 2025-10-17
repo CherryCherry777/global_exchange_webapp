@@ -74,9 +74,18 @@ def compraventa_view(request):
 
     cliente = get_object_or_404(Cliente, id=cliente_id)
 
-    # --- obtener tipos generales desde la base ---
-    tipos_pago = list(TipoPago.objects.order_by("-nombre").values("id", "nombre"))
-    tipos_cobro = list(TipoCobro.objects.order_by("-nombre").values("id", "nombre"))
+    # --- obtener tipos generales activos desde la base ---
+    tipos_pago = list(
+        TipoPago.objects.filter(activo=True)
+        .order_by("-nombre")
+        .values("id", "nombre")
+    )
+
+    tipos_cobro = list(
+        TipoCobro.objects.filter(activo=True)
+        .order_by("-nombre")
+        .values("id", "nombre")
+    )
 
     if request.method == "POST":
         # ------------------------------
@@ -85,6 +94,31 @@ def compraventa_view(request):
         data = request.POST.dict()
 
         # Pasos previo antes del MFA
+        # Para metodos inactivos
+        tipo_pago_id = data.get("medio_pago_tipo")
+        
+        try:
+            tipo_pago_obj = TipoPago.objects.get(pk=tipo_pago_id)
+            if not tipo_pago_obj.activo:
+                messages.error(request, "El tipo de pago seleccionado ya no está disponible. Actualizá la página.")
+                return redirect("compraventa")
+        except TipoPago.DoesNotExist:
+            messages.error(request, "Tipo de pago inválido.")
+            return redirect("compraventa")
+        
+        tipo_cobro_id = data.get("medio_cobro_tipo")
+
+        try:
+            tipo_cobro_obj = TipoCobro.objects.get(pk=tipo_cobro_id)
+            if not tipo_cobro_obj.activo:
+                messages.error(
+                    request,
+                    "El tipo de cobro seleccionado ya no está disponible. Actualizá la página."
+                )
+                return redirect("compraventa")
+        except TipoCobro.DoesNotExist:
+            messages.error(request, "Tipo de cobro inválido.")
+            return redirect("compraventa")
         # --- Si venimos desde el flujo de PIN, no regenerar MFA ---
         if "from_pin" in data:
             data.pop("from_pin", None)  # eliminamos la marca
@@ -253,6 +287,9 @@ def compraventa_view(request):
     # Pagar al cliente
     #//////////////////////////////////////////////////////////////////////////////////////////////////////
 
+                # --- Guardar transacción ---
+                transaccion = guardar_transaccion(cliente, request.user, data, estado, payment_intent_id)
+
                 # Obtener tipo de cobro
                 try:
                     tipo_cobro_general = TipoCobro.objects.get(id=data["medio_cobro_tipo"])
@@ -260,9 +297,6 @@ def compraventa_view(request):
                 except TipoPago.DoesNotExist:
                     messages.error(request, "Método de pago inválido.")
                     return redirect("compraventa")
-
-                # --- Guardar transacción ---
-                transaccion = guardar_transaccion(cliente, request.user, data, estado, payment_intent_id)
 
                 # --- Pago al cliente en background ---
                 if tipo_cobro_nombre != "tauser":

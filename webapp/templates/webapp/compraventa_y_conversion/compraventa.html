@@ -378,12 +378,40 @@
 
         // Si existen selectores de métodos de pago y cobro, agrega listeners
         if (metodoPago && metodoCobro) {
-            [metodoPago, metodoCobro].forEach(el => 
-                el.addEventListener("change", async () => {
-                    await updateRatesForMetodo(); // actualiza las tasas según el método elegido
-                    compute();                    // recalcula conversión
-                })
-            );
+            [metodoPago, metodoCobro].forEach(selectEl => {
+                selectEl.addEventListener("change", async () => {
+
+                    // 🟣 Detectar botones activos
+                    const activoPago = document.querySelector("#pago-tabs .tab-btn.active");
+                    const activoCobro = document.querySelector("#cobro-tabs .tab-btn.active");
+
+                    const textoPago = activoPago?.textContent?.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    const textoCobro = activoCobro?.textContent?.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+                    const ambosTauser = textoPago === "tauser" && textoCobro === "tauser";
+
+                    // Solo sincroniza si ambos tabs activos son "Tauser"
+                    if (ambosTauser) {
+                        const origen = selectEl;
+                        const destino = selectEl === metodoPago ? metodoCobro : metodoPago;
+
+                        const valorSeleccionado = origen.value;
+
+                        // Aplica el mismo valor al otro select si existe esa opción
+                        const match = [...destino.options].find(opt => opt.value === valorSeleccionado);
+                        if (match) {
+                            destino.value = match.value;
+
+                            // (opcional) Efecto visual para notificar cambio
+                            destino.classList.add("highlight-sync");
+                            setTimeout(() => destino.classList.remove("highlight-sync"), 800);
+                        }
+                    }
+
+                    await updateRatesForMetodo();
+                    compute();
+                });
+            });
         }
     }
 
@@ -776,11 +804,26 @@
 
         if (metodoPago.options.length > 0) {
             hiddenInputs.medio_pago_contenttype.value = metodoPago.selectedOptions[0].dataset.contentTypeId;
-            hiddenInputs.medio_pago_tipo.value = metodoPago.selectedOptions[0].dataset.tipoGeneral;
         }
         if (metodoCobro.options.length > 0) {
             hiddenInputs.medio_cobro_contenttype.value = metodoCobro.selectedOptions[0].dataset.contentTypeId;
-            hiddenInputs.medio_cobro_tipo.value = metodoCobro.selectedOptions[0].dataset.tipoGeneral;
+        }
+
+        const btnPagoActivo = document.querySelector("#pago-tabs .tab-btn.active");
+        const btnCobroActivo = document.querySelector("#cobro-tabs .tab-btn.active");
+
+        if (btnPagoActivo) {
+            hiddenInputs.medio_pago_tipo.value = btnPagoActivo.dataset.tipoGeneral;
+        }
+        if (btnCobroActivo) {
+            hiddenInputs.medio_cobro_tipo.value = btnCobroActivo.dataset.tipoGeneral;
+        }
+
+        // --- Validar selección ---
+        if (!btnPagoActivo || !btnCobroActivo) {
+            e.preventDefault();
+            alert("Debes seleccionar un método de pago y cobro antes de continuar");
+            return;
         }
     });
 
