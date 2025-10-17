@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
+from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
 from .payments.stripe_utils import procesar_pago_stripe
 from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera
@@ -107,12 +107,18 @@ def compraventa_view(request):
 #//////////////////////////////////////////////////////////////////////////////////////////////////////
 
             # Obtener tipo de pago
-            try:
-                tipo_pago_general = TipoPago.objects.get(pk=data["medio_pago_tipo"])
-                tipo_pago_nombre = tipo_pago_general.nombre.replace(" ", "").replace("_", "").lower()
-            except TipoPago.DoesNotExist:
-                messages.error(request, "Método de pago inválido.")
-                return redirect("compraventa")
+            tipo_pago_raw = data.get("medio_pago_tipo")
+
+            # Si el valor viene vacío o como 'undefined', lo tratamos como transferencia (cuentabancaria)
+            if not tipo_pago_raw or tipo_pago_raw == "undefined":
+                tipo_pago_nombre = "cuentabancaria"  # nombre normalizado que usás internamente
+            else:
+                try:
+                    tipo_pago_general = TipoPago.objects.get(pk=tipo_pago_raw)
+                    tipo_pago_nombre = tipo_pago_general.nombre.replace(" ", "").replace("_", "").lower()
+                except (TipoPago.DoesNotExist, ValueError):
+                    messages.error(request, "Método de pago inválido.")
+                    return redirect("compraventa")
 
             # Inicializar el estado
             estado = Transaccion.Estado.PENDIENTE
@@ -191,8 +197,20 @@ def compraventa_view(request):
 
             # TRANSFERENCIA    
             elif tipo_pago_nombre == "cuentabancaria":
-                print("")
+                # Como no hay medio de pago seleccionado, prevenimos errores
+                try:
+                    cuenta_defecto = CuentaBancariaNegocio.objects.first()
+                    if not cuenta_defecto:
+                        raise Exception("No existe ninguna cuenta bancaria de negocio configurada.")
 
+                    data["medio_pago"] = cuenta_defecto.id
+                    data["medio_pago_contenttype"] = ContentType.objects.get_for_model(CuentaBancariaNegocio).id
+                    data["medio_pago_tipo"] = TipoPago.objects.get(nombre__iexact="Cuenta Bancaria").pk
+
+                except Exception as e:
+                    messages.error(request, f"No se pudo vincular la cuenta bancaria del negocio: {e}")
+                    return redirect("compraventa")
+                
             # TAUSER
             elif tipo_pago_nombre == "tauser":
                 print("")

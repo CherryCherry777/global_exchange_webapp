@@ -857,8 +857,19 @@
             document.getElementById("resumen-cobro").textContent =
                 metodoCobro?.selectedOptions[0]?.text || "-";
 
+            // Validaciones para pasar de pestaña en el wizard
             if (isNaN(montoOrigen) || montoOrigen <= 0) return mostrarMensaje("Monto inválido.", "error");
-            if (metodoPago.value === "") return mostrarMensaje("Selecciona un método de pago.", "error");
+
+            // Detecta tipo general de pago activo
+            const btnActivo = document.querySelector(".tab-btn.active");
+            const tipoGeneral = btnActivo?.textContent?.trim().toLowerCase() || "";
+
+            const esTransferencia = tipoGeneral.includes("transferencia");
+
+            // Solo exige metodoPago si NO es transferencia
+            if (!esTransferencia && metodoPago.value === "")
+                return mostrarMensaje("Selecciona un método de pago.", "error");
+
             if (metodoCobro.value === "") return mostrarMensaje("Selecciona un método de cobro.", "error");
 
             // Cambia la vista

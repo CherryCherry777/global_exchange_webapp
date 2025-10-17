@@ -529,6 +529,42 @@ class CuentaBancaria(models.Model):
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.entidad.nombre}"
 
+class CuentaBancariaNegocio(models.Model):
+    """
+    Representa una cuenta bancaria asociada a un negocio.
+    Tiene los mismos atributos que la cuenta bancaria tradicional,
+    pero se mantiene separada para manejar pagos empresariales.
+    """
+    numero_cuenta: str = models.CharField(
+        max_length=50,
+        verbose_name="Número de Cuenta"
+    )
+    alias_cbu: str = models.CharField(
+        max_length=50,
+        verbose_name="Alias/CBU"
+    )
+    entidad: Entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "banco"},
+        verbose_name="Banco",
+        null=False
+    )
+    moneda: Currency = models.ForeignKey(
+        "Currency",
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1
+    )
+
+    class Meta:
+        db_table = "cuentas_bancarias_negocios"
+        verbose_name = "Cuenta Bancaria de Negocio"
+        verbose_name_plural = "Cuentas Bancarias de Negocios"
+
+    def __str__(self) -> str:
+        return f"{self.entidad.nombre} ({self.alias_cbu}) {self.numero_cuenta}"
 
 # Administracion de metodo de pago global (para admin)
 

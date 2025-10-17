@@ -4,9 +4,10 @@ from django.db.models.signals import post_migrate, post_save
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
-from .models import Currency, Entidad, MedioCobro, Role, MedioPago, TipoCobro, TipoPago
+from .models import Currency, Entidad, MedioCobro, Role, MedioPago, TipoCobro, TipoPago, CuentaBancariaNegocio
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
+from django.db import transaction
 
 
 User = get_user_model()
@@ -218,3 +219,44 @@ def asignar_tipos_tauser(sender, **kwargs):
     # Actualizar solo los Tauser que aún no tienen asignado el tipo
     Tauser.objects.filter(tipo_pago__isnull=True).update(tipo_pago=tipo_pago)
     Tauser.objects.filter(tipo_cobro__isnull=True).update(tipo_cobro=tipo_cobro)
+
+@receiver(post_migrate)
+def crear_cuenta_bancaria_negocio(sender, **kwargs):
+    """
+    Crea una cuenta bancaria por defecto para el negocio
+    solo si no existe aún, y después de que la moneda PYG esté disponible.
+    """
+    if sender.name != "webapp":
+        return
+
+    # Usamos transaction.on_commit para asegurar que se ejecute
+    # después de todas las migraciones y commits
+    def crear_si_corresponde():
+        try:
+            moneda = Currency.objects.filter(code="PYG").first()
+            if not moneda:
+                print("⚠️ No se creó la cuenta bancaria del negocio porque la moneda PYG aún no existe.")
+                return
+
+            banco, _ = Entidad.objects.get_or_create(
+                nombre="Banco Continental",
+                tipo="banco",
+            )
+
+            cuenta_existente = CuentaBancariaNegocio.objects.first()
+            if cuenta_existente:
+                print("ℹ️ Ya existe una cuenta bancaria del negocio, no se creó otra.")
+                return
+
+            CuentaBancariaNegocio.objects.create(
+                numero_cuenta="000100000001",
+                alias_cbu="CUENTA_NEGOCIO_DEFECTO",
+                entidad=banco,
+                moneda=moneda,
+            )
+            print("✅ Se creó la cuenta bancaria del negocio por defecto.")
+
+        except Exception as e:
+            print(f"❌ Error al crear cuenta bancaria del negocio: {e}")
+
+    transaction.on_commit(crear_si_corresponde)
