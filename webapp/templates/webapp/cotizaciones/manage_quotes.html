@@ -1,0 +1,191 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Administrar Cotizaciones{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/cotizaciones/manage_quotes.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="manage-quotes-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="manage-quotes-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-quotes-title">Administrar Cotizaciones</h1>
+                    <p class="manage-quotes-subtitle">Visualizar y editar cotizaciones</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Cotizaciones</div>
+                        <div class="metric-number">{{ total_quotes }}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Cotizaciones Activas</div>
+                        <div class="metric-number">{{ active_quotes }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Create New Currency Button -->
+        <div class="create-currency-section">
+            <a href="{% url 'create_currency' %}" class="create-currency-button">Crear Nueva Moneda</a>
+        </div>
+
+        <!-- Quotes List Container -->
+        <div class="quotes-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de Cotizaciones</h2>
+                <div class="search-input-container">
+                    <input type="text" id="quote-search" placeholder="Buscar monedas..." class="search-input">
+                </div>
+            </div>
+
+            <!-- Quotes Table -->
+            <div class="quotes-table-container">
+                <table class="quotes-table">
+                    <thead>
+                        <tr>
+                            <th>Bandera</th>
+                            <th>Nombre</th>
+                            <th>Código y Símbolo</th>
+                            <th>Precio Base</th>
+                            <th>Comisión Venta</th>
+                            <th>Comisión Compra</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for currency in currencies %}
+                        <tr class="quote-row">
+                            <td class="flag-cell">
+                                <div class="flag-container">
+                                    {% if currency.flag_image %}
+                                        <img src="{{ currency.flag_image.url }}" alt="{{ currency.name }} Flag" class="currency-flag">
+                                    {% else %}
+                                        <div class="no-flag">--</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="name-cell">
+                                <span class="currency-name">{{ currency.name }}</span>
+                            </td>
+                            <td class="code-cell">
+                                <span class="currency-code">{{ currency.code }} {{ currency.symbol }}</span>
+                            </td>
+                            <td class="price-cell">
+                                <span class="base-price">{{ currency.base_price }}</span>
+                            </td>
+                            <td class="commission-cell">
+                                <span class="sale-commission">{{ currency.comision_venta }}</span>
+                            </td>
+                            <td class="commission-cell">
+                                <span class="buy-commission">{{ currency.comision_compra }}</span>
+                            </td>
+                            <td class="status-cell">
+                                <div class="status-container">
+                                    {% if currency.is_active %}
+                                        <div class="status-dot active"></div>
+                                        <span class="status-text">Activo</span>
+                                    {% else %}
+                                        <div class="status-dot inactive"></div>
+                                        <span class="status-text">Inactivo</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="actions-cell">
+                                <div class="actions-container">
+                                    <a href="{% url 'modify_quote' currency.id %}" class="action-button modify-button">Modificar</a>
+                                    {% if currency.is_active %}
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que quieres desactivar esta cotización?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="deactivate">
+                                            <input type="hidden" name="currency_id" value="{{ currency.id }}">
+                                            <button type="submit" class="action-button deactivate-button">Desactivar</button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que quieres activar esta cotización?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="activate">
+                                            <input type="hidden" name="currency_id" value="{{ currency.id }}">
+                                            <button type="submit" class="action-button activate-button">Activar</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('quote-search').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll('.quotes-table tbody .quote-row');
+
+    rows.forEach(row => {
+        let currencyName = row.querySelector('.currency-name').textContent.toLowerCase();
+        let currencyCode = row.querySelector('.currency-code').textContent.toLowerCase();
+
+        if (currencyName.includes(filter) || currencyCode.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

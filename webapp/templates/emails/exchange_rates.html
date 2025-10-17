@@ -1,0 +1,36 @@
+<h2>Tasas de cambio</h2>
+
+{% for entry in clientes_data %}
+  <h3>
+    {% if entry.cliente %}
+      {{ entry.cliente.nombre }} — Descuento: {{ entry.descuento }}
+    {% else %}
+      Sin cliente asociado
+    {% endif %}
+  </h3>
+
+  <table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Moneda</th>
+        <th>Código</th>
+        <th>Precio Compra</th>
+        <th>Precio Venta</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in entry.monedas %}
+        <tr>
+          <td>{{ c.name }}</td>
+          <td>{{ c.code }}</td>
+          <td>{{ c.precio_compra }}</td>
+          <td>{{ c.precio_venta }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <br>
+{% endfor %}
+
+<p><a href="{{ unsubscribe_url }}">Darse de baja</a></p>

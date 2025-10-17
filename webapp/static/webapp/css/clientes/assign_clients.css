@@ -1,0 +1,709 @@
+/* Assign Clients Page Styles */
+
+/* Container */
+.assign-clients-container {
+    min-height: 100vh;
+    background: #000000;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+/* Header Navigation styles moved to global.css for consistency across all pages */
+
+.nav-menu {
+    display: flex !important;
+    gap: 30px !important;
+    align-items: center !important;
+}
+
+.nav-link {
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    transition: color 0.3s ease !important;
+    position: relative !important;
+}
+
+.nav-link:hover {
+    color: #FCD34D !important;
+}
+
+.nav-link::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -5px !important;
+    left: 0 !important;
+    width: 0 !important;
+    height: 2px !important;
+    background: #FCD34D !important;
+    transition: width 0.3s ease !important;
+}
+
+.nav-link:hover::after {
+    width: 100% !important;
+}
+
+.nav-auth {
+    display: flex !important;
+    gap: 20px !important;
+    align-items: center !important;
+}
+
+.btn-register {
+    background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%) !important;
+    color: white !important;
+    padding: 10px 20px !important;
+    border-radius: 5px !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-register:hover {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Admin Navigation Link - Same style as other nav links */
+.admin-nav-link {
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    transition: color 0.3s ease !important;
+    position: relative !important;
+    background: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin-left: 0 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    box-shadow: none !important;
+}
+
+.admin-nav-link:hover {
+    color: #FCD34D !important;
+    background: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.admin-nav-link::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -5px !important;
+    left: 0 !important;
+    width: 0 !important;
+    height: 2px !important;
+    background: #FCD34D !important;
+    transition: width 0.3s ease !important;
+    display: block !important;
+}
+
+.admin-nav-link:hover::after {
+    width: 100% !important;
+}
+
+/* Main Content */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header Section */
+.assign-clients-header {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%);
+    padding: 20px 0;
+    margin-bottom: 30px;
+}
+
+.header-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    order: 1;
+}
+
+.header-metrics {
+    display: flex;
+    gap: 20px;
+    order: 2;
+}
+
+/* Back Button */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(238, 233, 210, 0.1);
+    color: white;
+    text-decoration: none;
+    width: 347px;
+    height: 64px;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Titles */
+.assign-clients-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    text-align: left;
+}
+
+.assign-clients-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    margin: 0;
+    text-align: left;
+}
+
+/* Metric Cards */
+.metric-card {
+    width: 177px;
+    height: 149px;
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+}
+
+.metric-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    font-style: italic;
+    color: white;
+    text-align: center;
+}
+
+.metric-number {
+    font-family: 'Roboto', sans-serif;
+    font-size: 96px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    text-align: center;
+    line-height: 1;
+}
+
+/* New Assignment Container */
+.new-assignment-container {
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    margin: 0 auto 30px auto;
+    width: 500px;
+    min-height: 239px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.new-assignment-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    text-align: center;
+}
+
+/* Assignment Form */
+.assignment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    width: 100%;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.field-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    text-align: center;
+}
+
+/* Select Container */
+.select-container {
+    position: relative;
+    display: inline-block;
+}
+
+.form-select {
+    background: #646464;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 40px 12px 12px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    width: 222px;
+    height: 40px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+}
+
+.form-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(91, 21, 194, 0.5);
+}
+
+.select-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.select-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Assign Button */
+.assign-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 94%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 134px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.assign-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
+}
+
+/* Assignments List Container */
+.assignments-list-container {
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+/* Search Section */
+.search-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.search-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+}
+
+.search-input-container {
+    flex: 1;
+    max-width: 300px;
+}
+
+.search-input {
+    width: 100%;
+    background: rgba(238, 233, 210, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 10px 15px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: rgba(91, 21, 194, 0.5);
+    box-shadow: 0 0 0 2px rgba(91, 21, 194, 0.2);
+}
+
+/* Assignments Table */
+.assignments-table-container {
+    overflow-x: auto;
+}
+
+.assignments-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.assignments-table th {
+    background: transparent;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 15px;
+    text-align: left;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.assignments-table td {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    vertical-align: middle;
+}
+
+.assignment-row:hover {
+    background: rgba(91, 21, 194, 0.05);
+}
+
+/* User and Client Info */
+.user-info,
+.client-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-icon-circle,
+.client-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.user-icon,
+.client-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.user-name,
+.client-name {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+}
+
+/* Date Cell */
+.assignment-date {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+}
+
+/* Actions */
+.actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-button {
+    border: none;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.unassign-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 94%);
+    width: 125px;
+    height: 36px;
+}
+
+.action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
+}
+
+/* Messages */
+.messages-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    max-width: 300px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    color: white;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    color: white;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1);
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    
+    .header-text {
+        order: 1;
+    }
+    
+    .header-metrics {
+        order: 2;
+        align-self: flex-end;
+    }
+    
+    .new-assignment-container {
+        width: 90%;
+        max-width: 500px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-field {
+        width: 100%;
+    }
+    
+    .form-select {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 0 15px;
+    }
+    
+    .assign-clients-title {
+        font-size: 28px;
+    }
+    
+    .assign-clients-subtitle {
+        font-size: 18px;
+    }
+    
+    .new-assignment-title {
+        font-size: 28px;
+    }
+    
+    .metric-card {
+        width: 150px;
+        height: 120px;
+    }
+    
+    .metric-label {
+        font-size: 14px;
+    }
+    
+    .metric-number {
+        font-size: 72px;
+    }
+    
+    .search-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .search-input-container {
+        max-width: none;
+    }
+    
+    .assignments-table {
+        font-size: 14px;
+    }
+    
+    .assignments-table th,
+    .assignments-table td {
+        padding: 10px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .assign-clients-title {
+        font-size: 24px;
+    }
+    
+    .assign-clients-subtitle {
+        font-size: 16px;
+    }
+    
+    .new-assignment-title {
+        font-size: 24px;
+    }
+    
+    .metric-card {
+        width: 120px;
+        height: 100px;
+    }
+    
+    .metric-label {
+        font-size: 12px;
+    }
+    
+    .metric-number {
+        font-size: 60px;
+    }
+    
+    .user-icon-circle,
+    .client-icon-circle {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .user-icon,
+    .client-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .user-name,
+    .client-name {
+        font-size: 14px;
+    }
+    
+    .assignment-date {
+        font-size: 16px;
+    }
+    
+    .action-button {
+        font-size: 14px;
+        padding: 6px 12px;
+    }
+    
+    .unassign-button {
+        width: 100px;
+        height: 32px;
+    }
+}

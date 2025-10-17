@@ -1,0 +1,99 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+
+{% block title %}Perfil de Usuario{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/paginas_principales/profile.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Header Section -->
+    <div class="profile-header">
+        <a href="{% url 'public_home' %}" class="back-button">
+            ← Volver a inicio
+        </a>
+        <p class="welcome-message">¡Bienvenido {{ user.username }}!</p>
+        <a href="{% url 'edit_profile' %}" class="button">
+            Editar Perfil
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="profile-content">
+        <!-- User Display Name -->
+        <h1 class="user-display-name">{{ user.username }}</h1>
+
+        <!-- Profile Icon Circle -->
+        <div class="profile-icon-circle">
+            <img src="{% static 'webapp/pantalla_perfil/1.usuario.png' %}" 
+                 alt="Usuario" 
+                 class="profile-icon">
+        </div>
+
+        <!-- Profile Details Container -->
+        <div class="profile-details-container">
+            <!-- Nombre -->
+            <div class="profile-detail-item">
+                <img src="{% static 'webapp/pantalla_perfil/1.usuario.png' %}" 
+                     alt="Persona" 
+                     class="detail-icon">
+                <div class="detail-content">
+                    <div class="detail-label">Nombre</div>
+                    <div class="detail-value">{{ user.get_full_name|default:user.username }}</div>
+                </div>
+            </div>
+
+            <!-- Nombre de Usuario -->
+            <div class="profile-detail-item">
+                <img src="{% static 'webapp/pantalla_perfil/1.usuario.png' %}" 
+                     alt="Usuario" 
+                     class="detail-icon">
+                <div class="detail-content">
+                    <div class="detail-label">Nombre de Usuario</div>
+                    <div class="detail-value">{{ user.username }}</div>
+                </div>
+            </div>
+
+            <!-- Correo -->
+            <div class="profile-detail-item">
+                <img src="{% static 'webapp/pantalla_perfil/2.correo.png' %}" 
+                     alt="Email" 
+                     class="detail-icon">
+                <div class="detail-content">
+                    <div class="detail-label">Correo</div>
+                    <div class="detail-value">{{ user.email|default:"No especificado" }}</div>
+                </div>
+            </div>
+            <!-- Notificaciones de correo -->
+            <div class="profile-detail-item">
+                <img src="{% static 'webapp/pantalla_perfil/4.checkmark.png' %}" 
+                     alt="Notificaciones" 
+                     class="detail-icon">
+                <div class="detail-content">
+                    <div class="detail-label">Notificaciones de correo</div>
+                    {% if user.receive_exchange_emails%}
+                        <div class="detail-value">Activadas</div>
+                    {% else %}
+                    <div class="detail-value">Desactivadas</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Fecha de Registro -->
+            <div class="profile-detail-item">
+                <img src="{% static 'webapp/pantalla_perfil/3.fecha.png' %}" 
+                     alt="Calendario" 
+                     class="detail-icon">
+                <div class="detail-content">
+                    <div class="detail-label">Fecha de Registro</div>
+                    <div class="detail-value">{{ user.date_joined|date:"d-m-Y H:i" }}</div>
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

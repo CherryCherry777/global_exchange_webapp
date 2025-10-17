@@ -1,0 +1,131 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Modificar Límites - {{ moneda.code }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/limites/limite_edit.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="limite-edit-container">
+    <!-- Header Section -->
+    <div class="limite-edit-header">
+        <a href="{% url 'limites_list' %}" class="back-button">
+            ← Volver a Administrar Límites de Intercambio
+        </a>
+        <h1 class="limite-edit-title">Modificar Límites de Intercambio</h1>
+        <p class="limite-edit-subtitle">Edita la información y parámetros de un limite de intercambio</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="limite-edit-content">
+        <!-- Currency Title -->
+        <h2 class="currency-title">{{ moneda.name }}</h2>
+
+        <!-- Form Container -->
+        <div class="limite-edit-form-container">
+            <!-- Flag Circle -->
+            <div class="flag-circle">
+                {% if moneda.flag_image %}
+                    <img src="{{ moneda.flag_image.url }}" 
+                         alt="{{ moneda.name }}" 
+                         class="flag-image">
+                {% else %}
+                    <div class="flag-placeholder"></div>
+                {% endif %}
+            </div>
+
+            <!-- Form -->
+            <form method="post" id="limites-form" class="form-fields-container">
+                {% csrf_token %}
+                
+                <!-- Daily Limit -->
+                <div class="form-group">
+                    <label for="limite_dia" class="form-label">Limite diario</label>
+                    <input type="number"
+                           id="limite_dia"
+                           name="limite_dia"
+                           class="form-input"
+                           step="{{ moneda.decimales_cotizacion|decimal_step }}"
+                           value="{{ limite.limite_dia }}"
+                           placeholder="Valor actual: {{ limite.limite_dia }}"
+                           required>
+                </div>
+
+                <!-- Monthly Limit -->
+                <div class="form-group">
+                    <label for="limite_mes" class="form-label">Limite mensual</label>
+                    <input type="number"
+                           id="limite_mes"
+                           name="limite_mes"
+                           class="form-input"
+                           step="{{ moneda.decimales_cotizacion|decimal_step }}"
+                           value="{{ limite.limite_mes }}"
+                           placeholder="Valor actual: {{ limite.limite_mes }}"
+                           required>
+                </div>
+
+                <!-- Buttons Container -->
+                <div class="buttons-container">
+                    <button type="submit" class="save-button">
+                        Guardar
+                    </button>
+                    <a href="{% url 'limites_list' %}" class="discard-button">
+                        Descartar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("limites-form");
+
+    form.addEventListener("submit", function (e) {
+        const limiteDia = parseFloat(form["limite_dia"].value);
+        const limiteMes = parseFloat(form["limite_mes"].value);
+
+        if (!isNaN(limiteDia) && !isNaN(limiteMes)) {
+            if (limiteDia > limiteMes) {
+                e.preventDefault();
+                alert("El límite diario no puede ser mayor que el límite mensual.");
+                return false;
+            }
+        }
+
+        // Validar que los valores sean positivos
+        if (limiteDia < 0 || limiteMes < 0) {
+            e.preventDefault();
+            alert("Los límites deben ser valores positivos.");
+            return false;
+        }
+    });
+
+    // Agregar validación en tiempo real
+    const limiteDiaInput = document.getElementById("limite_dia");
+    const limiteMesInput = document.getElementById("limite_mes");
+
+    function validateLimits() {
+        const limiteDia = parseFloat(limiteDiaInput.value);
+        const limiteMes = parseFloat(limiteMesInput.value);
+
+        if (!isNaN(limiteDia) && !isNaN(limiteMes)) {
+            if (limiteDia > limiteMes) {
+                limiteDiaInput.style.borderColor = "#ff4444";
+                limiteMesInput.style.borderColor = "#ff4444";
+            } else {
+                limiteDiaInput.style.borderColor = "transparent";
+                limiteMesInput.style.borderColor = "transparent";
+            }
+        }
+    }
+
+    limiteDiaInput.addEventListener("input", validateLimits);
+    limiteMesInput.addEventListener("input", validateLimits);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,337 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% load permissions_tags %}
+{% block title %}Global Exchange - Inicio{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/paginas_principales/home.css' %}?v=2.1">
+{% endblock %}
+
+{% block content %}
+
+<!-- Welcome Message - Solo para usuarios autenticados -->
+{% if user.is_authenticated %}
+<div class="welcome-section">
+    <div class="welcome-container">
+        <h1 class="welcome-title">
+            ¡BIENVENIDO/A <span class="user-name">{{ user.get_full_name|default:user.username|upper }}</span>!
+        </h1>
+        {% if current_client %}
+            <p class="client-info">
+                Actualmente está operando con <span class="client-name">{{ current_client.nombre|upper }}</span>
+            </p>
+        {% else %}
+            <p class="client-info">
+                <span class="no-client">No hay cliente seleccionado</span>
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="main-home-container">
+    <div class="main-content-row">
+
+        <!-- Left: Rates Table -->
+        <div class="rates-section">
+            <div class="rates-container">
+                <div class="rates-header">
+                    <div class="date-display">
+                        {% if last_update %}
+                            Fecha: {{ last_update|date:"d/m/Y H:i" }}
+                        {% else %}
+                            Fecha: No disponible
+                        {% endif %}
+                    </div>
+                    <button id="refresh-btn" onclick="refreshRates()" class="refresh-button" title="Actualizar cotizaciones">
+                        <img src="{% static 'webapp/home/actualizar.png' %}" alt="Actualizar" class="refresh-icon">
+                    </button>
+                </div>
+                <div class="rates-table-container">
+                    <table class="rates-table">
+                        <thead>
+                            <tr>
+                                <th>Moneda</th>
+                                <th>Compra</th>
+                                <th>Venta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for currency in currencies %}
+                                {% if currency.code != 'PYG' %}
+                                    <tr>
+                                        <td class="currency-cell">
+                                            {% if currency.flag_image %}
+                                                <img src="{{ currency.flag_image.url }}" alt="{{ currency.name }}" class="currency-flag">
+                                            {% endif %}
+                                            <span class="currency-name">{{ currency.name }}</span>
+                                        </td>
+                                        <td class="rate-cell">{{ currency.totalCompra|floatformat:currency.decimales_monto }}</td>
+                                        <td class="rate-cell">{{ currency.totalVenta|floatformat:currency.decimales_monto }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Currency Converter -->
+        <div class="converter-section">
+            <div class="converter-container">
+                <h2 class="converter-title">
+                    <span class="yellow-text">Conversor de</span> <span class="white-text">moneda</span>
+                </h2>
+                <p class="converter-subtitle">Selecciona la moneda y el monto de cotización</p>
+                
+                <div class="converter-form">
+                    <!-- From Currency -->
+                    <div class="converter-field">
+                        <label class="field-label">Tengo esta moneda</label>
+                        <div class="field-row">
+                            <div class="select-wrapper">
+                                <select id="simu-from" class="currency-select"></select>
+                                <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                            </div>
+                            <input id="simu-amount" type="number" step="0.01" min="0" class="amount-input">
+                        </div>
+                    </div>
+
+                    <!-- To Currency -->
+                    <div class="converter-field">
+                        <label class="field-label">Quiero esta moneda</label>
+                        <div class="field-row">
+                            <div class="select-wrapper">
+                                <select id="simu-to" class="currency-select"></select>
+                                <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                            </div>
+                            <input type="text" readonly class="result-input" id="simu-result-main">
+                        </div>
+                    </div>
+                    
+                    <div class="converter-actions">
+                        <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>
+                    </div>
+
+                    <div class="converter-result">
+                        <p id="simu-result-detail" class="result-detail">Ingresá un monto para calcular</p>
+                    </div>
+
+                    <div class="reference-text">
+                        <p>*Última actualización: 12/09/2025 - 01:49 - Cotizaciones meramente de referencia.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+function refreshRates() {
+    const btn = document.getElementById('refresh-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = '⏳';
+    btn.disabled = true;
+    setTimeout(() => location.reload(), 500);
+}
+
+(async function() {
+    const amount = document.getElementById("simu-amount");
+    const from = document.getElementById("simu-from");
+    const to = document.getElementById("simu-to");
+    const intercambiar = document.getElementById("simu-intercambiar");
+    const out = document.getElementById("simu-result-main");
+    const detail = document.getElementById("simu-result-detail");
+    const metodoPago = document.getElementById("simu-metodo-pago");
+    const metodoCobro = document.getElementById("simu-metodo-cobro");
+
+    let CODES = [];
+    const META = Object.create(null);
+
+    function nf(value, currencyCode) {
+        const decimals = currencyCode === "PYG" ? 0 : (META[currencyCode]?.decimals ?? 2);
+        return new Intl.NumberFormat("es-ES", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }).format(value);
+    }
+
+    function buildOptions(selectEl, preferCode) {
+        selectEl.innerHTML = "";
+        CODES.forEach(code => {
+            const opt = document.createElement("option");
+            opt.value = code;
+            const name = META[code]?.name || code;
+            if (code === "USD") opt.textContent = "DÓLAR";
+            else if (code === "PYG") opt.textContent = "GUARANÍ";
+            else if (code === "EUR") opt.textContent = "EURO";
+            else opt.textContent = name.toUpperCase();
+            selectEl.appendChild(opt);
+        });
+        if (preferCode && CODES.includes(preferCode)) selectEl.value = preferCode;
+        else if (CODES.length) selectEl.value = CODES[0];
+    }
+
+    function enforceDifferent(changed, other) {
+        // Caso 1: si el usuario pone PYG en ambos
+        if (from.value === "PYG" && to.value === "PYG") {
+            // fijamos que el "otro" se quede en USD (si existe) en vez de tomar el primero al azar
+            const fallback = CODES.includes("USD") ? "USD" : CODES.find(c => c !== "PYG");
+            if (changed === from) to.value = fallback;
+            else from.value = fallback;
+        }
+
+        // Caso 2: si el usuario pone la misma moneda en ambos (pero no es PYG)
+        else if (from.value === to.value) {
+            // el otro se fuerza a PYG
+            if (changed === from) to.value = "PYG";
+            else from.value = "PYG";
+        }
+
+        // Caso 3: si ninguno es PYG
+        if (from.value !== "PYG" && to.value !== "PYG") {
+            // el que no cambió se fuerza a PYG
+            if (changed === from) to.value = "PYG";
+            else from.value = "PYG";
+        }
+    }
+
+    function compute() {
+        const raw = parseFloat((amount.value || "").toString().replace(",", "."));
+        if (isNaN(raw) || raw <= 0) {
+            out.value = "";
+            detail.textContent = "Ingresá un monto para calcular";
+            return;
+        }
+        const a = from.value, b = to.value;
+        if (!META[a] || !META[b]) return;
+
+        let val, rateAB;
+
+        if (a === "PYG" && b !== "PYG") {
+            val = raw / META[b].venta;
+            rateAB = 1 / META[b].venta;
+            detail.innerHTML = `1 ${a} = ${nf(rateAB, b)} ${b}`;
+        } 
+        else if (a !== "PYG" && b === "PYG") {
+            val = raw * META[a].compra;
+            rateAB = META[a].compra;
+            detail.innerHTML = `1 ${a} = ${nf(rateAB, "PYG")} ${b}`;
+        } 
+        else {
+            out.value = "";
+            detail.textContent = "Sólo se permiten conversiones con Guaraníes";
+            return;
+        }
+
+        out.value = `${nf(val, b)} ${b}`;
+    }
+
+    function attachListeners() {
+        ["input","change"].forEach(evt => {
+            amount.addEventListener(evt, compute);
+            from.addEventListener(evt, () => { enforceDifferent(from,to); compute(); });
+            to.addEventListener(evt, () => { enforceDifferent(to,from); compute(); });
+        });
+
+        intercambiar.addEventListener("click", () => {
+            const tmp = from.value; from.value = to.value; to.value = tmp;
+            enforceDifferent(from,to); compute();
+        });
+
+        if (metodoPago && metodoCobro) {
+            [metodoPago, metodoCobro].forEach(el => el.addEventListener("change", updateRatesForMetodo));
+        }
+    }
+
+    async function updateRatesForMetodo() {
+        try {
+            if (!metodoPago || !metodoCobro) return;
+            const url = `{% url 'api_currencies' %}?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;
+            const res = await fetch(url, { cache:"no-store" });
+            const payload = await res.json();
+            const items = payload.items || [];
+            const byCode = {};
+            items.forEach(it => byCode[it.code] = it);
+            if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
+            CODES = Object.keys(byCode).sort((a,b)=> a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));
+            CODES.forEach(code=>META[code]=byCode[code]);
+            // Solo recalcula, no reconstruye select de monedas
+            compute();
+        } catch(e) {
+            console.error("Error al actualizar tasas:", e);
+        }
+    }
+
+    async function recargarMetodos() {
+        if (!metodoPago || !metodoCobro) return; // no existen selects
+
+        try {
+            const res = await fetch("{% url 'get_metodos_pago_cobro' %}");
+            const data = await res.json();
+
+            if (metodoPago.options.length === 0) {
+                data.tipos_pago.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.id;
+                    opt.textContent = item.nombre;
+                    if (item.nombre.toLowerCase() === "tauser") opt.selected = true;
+                    metodoPago.appendChild(opt);
+                });
+            }
+
+            if (metodoCobro.options.length === 0) {
+                data.tipos_cobro.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.id;
+                    opt.textContent = item.nombre;
+                    if (item.nombre.toLowerCase() === "tauser") opt.selected = true;
+                    metodoCobro.appendChild(opt);
+                });
+            }
+        } catch(error) {
+            console.error("Error al cargar métodos de pago/cobro:", error);
+        }
+    }
+
+    async function boot() {
+        try {
+            let url = "{% url 'api_currencies' %}";
+            if (metodoPago && metodoCobro) {
+                url += `?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;
+            }
+
+            const res = await fetch(url, { cache:"no-store" });
+            const payload = await res.json();
+            const items = payload.items || [];
+            const byCode = {};
+            items.forEach(it => { byCode[it.code] = it; });
+
+            if (!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
+
+            CODES = Object.keys(byCode).sort((a,b)=> a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));
+            CODES.forEach(code=>META[code]=byCode[code]);
+
+            buildOptions(from,"USD");
+            buildOptions(to,"PYG");
+            enforceDifferent(from,to);
+            compute();
+        } catch(e) {
+            console.error("No se pudieron cargar monedas:", e);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        await recargarMetodos();
+        attachListeners();
+        boot();
+    });
+
+})();
+
+</script>
+
+{% endblock %}

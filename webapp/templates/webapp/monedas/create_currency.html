@@ -1,0 +1,155 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Crear Moneda{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/monedas/create_currency.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="create-currency-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="create-currency-header">
+        <div class="main-content">
+            <a href="{% url 'manage_currencies' %}" class="back-button">← Volver a Administrar Monedas</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="create-currency-title">Crear Moneda</h1>
+                    <p class="create-currency-subtitle">Crea una nueva moneda</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Create Currency Section -->
+        <div class="create-section">
+            <h2 class="section-title">Crear Moneda</h2>
+            
+            <div class="create-content">
+                <!-- Currency Profile Section - Inside the gradient container -->
+                <div class="currency-profile-section">
+                    <div class="currency-icon-circle">
+                        <img src="{% static 'webapp/pantalla_moneda/1.Moneda.png' %}" alt="Currency Icon" class="currency-profile-icon">
+                    </div>
+                </div>
+                
+                <!-- Form Container -->
+                <div class="form-container">
+                    <form method="post" enctype="multipart/form-data" class="create-form" id="create-form">
+                        {% csrf_token %}
+                        
+                        <!-- First Row: Código, Nombre, Símbolo -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Código</label>
+                                <input type="text" name="code" class="form-input" placeholder="USD" maxlength="3" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Nombre</label>
+                                <input type="text" name="name" class="form-input" placeholder="Dólar Estadounidense" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Símbolo</label>
+                                <input type="text" name="symbol" class="form-input" placeholder="$" maxlength="5" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Second Row: Decimales Tasa, Decimales Monto, Bandera -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Decimales Tasa</label>
+                                <input type="number" name="decimales_cotizacion" class="form-input" placeholder="0-8" min="0" max="8" value="4" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Decimales Monto</label>
+                                <input type="number" name="decimales_monto" class="form-input" placeholder="0-8" min="0" max="8" value="2" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Bandera</label>
+                                <div class="file-upload-container">
+                                    <input type="file" name="flag_image" id="flag_image" accept="image/*" class="file-input" onchange="updateFileName(this)">
+                                    <label for="flag_image" class="file-upload-button">
+                                        Añadir Archivo
+                                    </label>
+                                    <div class="file-info">
+                                        <div class="file-status" id="file-status">No se ha seleccionado ningún archivo</div>
+                                        <div class="file-dimensions">Dimensión sugerida: 255x135 px</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Third Row: Activo -->
+                        <div class="form-row single-field-row">
+                            <div class="form-field">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="is_active" class="checkbox-input" checked>
+                                    <span class="checkbox-text">Activo</span>
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Action Buttons - Inside gradient container -->
+                <div class="action-buttons">
+                    <button type="submit" form="create-form" class="create-button">Crear</button>
+                    <a href="{% url 'manage_currencies' %}" class="discard-button">Descartar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateFileName(input) {
+    const fileStatus = document.getElementById('file-status');
+    if (input.files && input.files[0]) {
+        fileStatus.textContent = input.files[0].name;
+    } else {
+        fileStatus.textContent = 'No se ha seleccionado ningún archivo';
+    }
+}
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

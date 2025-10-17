@@ -1,0 +1,254 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Mis Métodos de Pago{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/metodos_pago/my_payment_methods.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="my-payment-methods-container">
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Header Section -->
+    <div class="my-payment-methods-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="my-payment-methods-title">Mis Métodos de Pago</h1>
+                    <p class="my-payment-methods-subtitle">Gestiona tus métodos de pago personales</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Métodos</div>
+                        <div class="metric-number">{{ medios_pago|length }}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Métodos Activos</div>
+                        <div class="metric-number">
+                            {% for medio in medios_pago %}
+                                {% if medio.activo_global %}{{ forloop.counter0|add:1 }}{% endif %}
+                            {% empty %}0{% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Add Payment Methods Section -->
+        <div class="add-payment-methods-section">
+            <h2 class="section-title">Agregar Nuevo Método de Pago</h2>
+            <div class="add-buttons-container">
+                <a href="{% url 'add_payment_method' 'billetera' %}" class="add-button">
+                    <div class="button-icon">
+                        <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="Billetera">
+                    </div>
+                    <span class="button-text">Agregar Billetera</span>
+                </a>
+                <!--<a href="{% url 'add_payment_method' 'cuenta_bancaria' %}" class="add-button">
+                    <div class="button-icon">
+                        <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="Cuenta Bancaria">
+                    </div>
+                    <span class="button-text">Agregar Cuenta Bancaria</span>
+                </a>-->
+                <a href="{% url 'add_payment_method' 'tarjeta_nacional' %}" class="add-button">
+                    <div class="button-icon">
+                        <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="Tarjeta">
+                    </div>
+                    <span class="button-text">Agregar Tarjeta Nacional</span>
+                </a>
+                <a href="{% url 'add_payment_method' 'tarjeta_internacional' %}" class="add-button">
+                    <div class="button-icon">
+                        <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="Tarjeta">
+                    </div>
+                    <span class="button-text">Agregar Tarjeta Internacional</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Payment Methods List Container -->
+        <div class="payment-methods-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Mis Métodos de Pago</h2>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Buscar método de pago..." class="search-input">
+                </div>
+            </div>
+
+            <!-- Payment Methods Table -->
+            <div class="payment-methods-table-container">
+                <table class="payment-methods-table" id="paymentMethodsTable">
+                    <thead>
+                        <tr>
+                            <th>Método</th>
+                            <th>Tipo</th>
+                            <th>Detalles</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for medio in medios_pago %}
+                        <tr class="payment-method-row" data-name="{{ medio.nombre|lower }}" data-type="{{ medio.tipo|lower }}">
+                            <td class="method-cell">
+                                <div class="payment-method-info">
+                                    <div class="payment-method-icon-circle">
+                                        <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="Payment Method Icon" class="payment-method-icon">
+                                    </div>
+                                    <span class="payment-method-name">{{ medio.nombre }}</span>
+                                </div>
+                            </td>
+                            <td class="type-cell">
+                                <span class="type-badge type-{{ medio.tipo }}">
+                                    {% if medio.tipo == "billetera" %}
+                                        Billetera
+                                    {% elif medio.tipo == "cuenta_bancaria" %}
+                                        Cuenta Bancaria
+                                    {% elif medio.tipo == "tarjeta_nacional" %}
+                                        Tarjeta Nacional
+                                    {% elif medio.tipo == "tarjeta_internacional" %}
+                                        Tarjeta Internacional
+                                    {% else %}
+                                        {{ medio.tipo|capfirst }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="details-cell">
+                                <div class="details-content">
+                                    {% if medio.tipo == "billetera" %}
+                                        <div class="detail-item">
+                                            <span class="detail-label">Celular:</span>
+                                            <span class="detail-value">{{ medio.billetera.numero_celular }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Proveedor:</span>
+                                            <span class="detail-value">{{ medio.billetera.proveedor }}</span>
+                                        </div>
+                                    {% elif medio.tipo == "cuenta_bancaria" %}
+                                        <div class="detail-item">
+                                            <span class="detail-label">Número:</span>
+                                            <span class="detail-value">{{ medio.cuenta_bancaria.numero_cuenta }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Banco:</span>
+                                            <span class="detail-value">{{ medio.cuenta_bancaria.banco }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Alias:</span>
+                                            <span class="detail-value">{{ medio.cuenta_bancaria.alias_cbu }}</span>
+                                        </div>
+                                    {% elif medio.tipo == "tarjeta_nacional" %}
+                                        <div class="detail-item">
+                                            <span class="detail-label">Últimos 4 dígitos:</span>
+                                            <span class="detail-value">****{{ medio.tarjeta_nacional.ultimos_digitos }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Vencimiento:</span>
+                                            <span class="detail-value">{{ medio.tarjeta_nacional.fecha_vencimiento }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="status-cell">
+                                <div class="status-container">
+                                    {% if medio.activo_global %}
+                                        <div class="status-dot active"></div>
+                                        <span class="status-text">Activo</span>
+                                    {% else %}
+                                        <div class="status-dot inactive"></div>
+                                        <span class="status-text">Inactivo</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="actions-cell">
+                                <div class="actions-container">
+                                    <a href="{% url 'manage_payment_method' medio.tipo medio.id %}" class="action-button edit-button">Editar</a>
+                                    <a href="{% url 'confirm_delete_payment_method' medio.id %}" class="action-button delete-button">Eliminar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="empty-row">
+                            <td colspan="5" class="empty-message">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="No hay métodos">
+                                    </div>
+                                    <h3>No tienes métodos de pago registrados</h3>
+                                    <p>Agrega tu primer método de pago para comenzar</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const tableRows = document.querySelectorAll('.payment-method-row');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        tableRows.forEach(row => {
+            const name = row.dataset.name;
+            const type = row.dataset.type;
+            
+            if (name.includes(searchTerm) || type.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% load permission_tags %}
+{% block title %}Administrar Roles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/roles/manage_roles.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="manage-roles-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <!-- Header Section -->
+    <div class="manage-roles-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-roles-title">Administrar Roles</h1>
+                    <p class="manage-roles-subtitle">Visualizar, crear, eliminar, activar/desactivar roles y permisos</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Roles</div>
+                        <div class="metric-number">{{ total_roles }}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Roles Activos</div>
+                        <div class="metric-number">{{ active_roles }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Create Role Button -->
+        <div class="create-role-section">
+            <a href="{% url 'create_role' %}" class="create-role-button">Crear Nuevo Rol</a>
+        </div>
+
+        <!-- Roles List Container -->
+        <div class="roles-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de Roles</h2>
+                <div class="search-input-container">
+                    <input type="text" id="role-search" placeholder="Buscar Rol..." class="search-input">
+                </div>
+            </div>
+
+            <!-- Roles Table -->
+            <div class="roles-table-container">
+                <table class="roles-table">
+                    <thead>
+                        <tr>
+                            <th>Rol</th>
+                            <th>Permisos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for role in roles %}
+                        <tr class="role-row">
+                            <td class="role-cell">
+                                <div class="role-info">
+                                    <div class="role-icon-circle">
+                                        <img src="{% static 'webapp/pantalla_roles/2.Administrar_Roles.png' %}" alt="Role Icon" class="role-icon">
+                                    </div>
+                                    <span class="role-name">{{ role.name }}</span>
+                                </div>
+                            </td>
+                            <td class="permissions-cell">
+                                <div class="permissions-list" data-role-id="{{ role.id }}">
+                                    {% for permission in role.permissions.all %}
+                                    <div class="permission-item {% if forloop.counter > 6 %}permission-hidden{% endif %}">
+                                        <span class="permission-x" onclick="removePermission({{ role.id }}, {{ permission.id }})">×</span>
+                                        <span class="permission-name">{{ permission.name|translate_permission }}</span>
+                                    </div>
+                                    {% empty %}
+                                    <div class="no-permissions">Sin permisos</div>
+                                    {% endfor %}
+                                    {% if role.permissions.count > 6 %}
+                                    <button class="show-more-btn" onclick="togglePermissions({{ role.id }})">Ver más</button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="status-cell">
+                                <div class="status-container">
+                                    <div class="status-item">
+                                        {% if role.is_active %}
+                                        <div class="status-indicator active"></div>
+                                        <span class="status-text">Activo</span>
+                                        {% else %}
+                                        <div class="status-indicator inactive"></div>
+                                        <span class="status-text">Inactivo</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if role.name == 'Administrador' %}
+                                    <div class="status-item">
+                                        <div class="status-indicator protected"></div>
+                                        <span class="status-text">Protegido</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="actions-cell">
+                                <a href="{% url 'modify_role' role.id %}" class="action-button modify-button">Modificar</a>
+                                {% if role.name != 'Administrador' %}
+                                    {% if role.is_active %}
+                                    <a href="#" class="action-button deactivate-button" onclick="toggleRoleStatus({{ role.id }}, '{{ role.name }}')">Desactivar</a>
+                                    {% else %}
+                                    <a href="#" class="action-button activate-button" onclick="toggleRoleStatus({{ role.id }}, '{{ role.name }}')">Activar</a>
+                                    {% endif %}
+                                {% else %}
+                                <span class="action-button disabled-button">Protegido</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('role-search').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll('.roles-table tbody .role-row');
+
+    rows.forEach(row => {
+        let roleName = row.querySelector('.role-name').textContent.toLowerCase();
+
+        if (roleName.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Función para mostrar/ocultar permisos adicionales
+function togglePermissions(roleId) {
+    const permissionsList = document.querySelector(`[data-role-id="${roleId}"]`);
+    const hiddenPermissions = permissionsList.querySelectorAll('.permission-hidden');
+    const showMoreBtn = permissionsList.querySelector('.show-more-btn');
+    
+    if (hiddenPermissions.length > 0) {
+        // Mostrar permisos ocultos
+        hiddenPermissions.forEach(permission => {
+            permission.classList.remove('permission-hidden');
+        });
+        showMoreBtn.textContent = 'Ver menos';
+    } else {
+        // Ocultar permisos adicionales (mantener solo los primeros 6)
+        const allPermissions = permissionsList.querySelectorAll('.permission-item');
+        allPermissions.forEach((permission, index) => {
+            if (index >= 6) {
+                permission.classList.add('permission-hidden');
+            }
+        });
+        showMoreBtn.textContent = 'Ver más';
+    }
+}
+
+// Función para eliminar un permiso de un rol
+function removePermission(roleId, permissionId) {
+    // Crear un formulario temporal para enviar la solicitud
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "manage_roles" %}';
+    
+    // Agregar token CSRF
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Agregar datos de la acción
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'remove_permission';
+    form.appendChild(actionInput);
+    
+    const roleInput = document.createElement('input');
+    roleInput.type = 'hidden';
+    roleInput.name = 'role_id';
+    roleInput.value = roleId;
+    form.appendChild(roleInput);
+    
+    const permissionInput = document.createElement('input');
+    permissionInput.type = 'hidden';
+    permissionInput.name = 'permission_id';
+    permissionInput.value = permissionId;
+    form.appendChild(permissionInput);
+    
+    // Enviar formulario
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Función para cambiar el estado de un rol (activar/desactivar)
+function toggleRoleStatus(roleId, roleName) {
+    // Crear un formulario temporal para enviar la solicitud
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "manage_roles" %}';
+    
+    // Agregar token CSRF
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Agregar datos de la acción
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'toggle_role_status';
+    form.appendChild(actionInput);
+    
+    const roleInput = document.createElement('input');
+    roleInput.type = 'hidden';
+    roleInput.name = 'role_id';
+    roleInput.value = roleId;
+    form.appendChild(roleInput);
+    
+    // Enviar formulario
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

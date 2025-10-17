@@ -1,0 +1,373 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% load permission_tags %}
+{% block title %}Crear Nuevo Rol{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/roles/create_role.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="create-role-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="create-role-header">
+        <div class="main-content">
+            <a href="{% url 'manage_roles' %}" class="back-button">← Volver a administrar roles</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="create-role-title">Crear Nuevo Rol</h1>
+                    <p class="create-role-subtitle">Crear un nuevo rol con permisos específicos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Create Role Section -->
+        <div class="create-section">
+            <h2 class="section-title">Crear Rol</h2>
+            
+            <div class="create-content">
+                <!-- Role Profile Section - Inside the gradient container -->
+                <div class="role-profile-section">
+                    <div class="role-icon-circle">
+                        <img src="{% static 'webapp/pantalla_roles/2.Administrar_Roles.png' %}" alt="Role Icon" class="role-profile-icon">
+                    </div>
+                    <div class="role-name-display">Nuevo Rol</div>
+                </div>
+                
+                <!-- Form Section -->
+                <div class="form-section">
+                    <form method="post" class="create-form" id="create-form">
+                        {% csrf_token %}
+                        
+                        <!-- Role Name Field -->
+                        <div class="form-field">
+                            <label class="field-label">Nombre del Rol</label>
+                            <input type="text" name="role_name" value="" class="form-input full-input" placeholder="Ingrese el nombre del rol" required>
+                        </div>
+
+                        <!-- Protected Role Field -->
+                        <div class="form-field">
+                            <label class="field-label">Rol Protegido</label>
+                            <div class="status-checkbox">
+                                <input type="checkbox" name="is_protected" id="is_protected">
+                                <label for="is_protected" class="checkbox-label">Marcar como rol protegido</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Permissions Management Section -->
+                <div class="permissions-management-section">
+                    <h3 class="permissions-subtitle">Arrastra para añadir permisos al rol</h3>
+                    
+                    <div class="permissions-containers">
+                        <!-- Assigned Permissions Container -->
+                        <div class="permissions-container assigned-permissions" id="assignedPermissions">
+                            <h4 class="container-title">Permisos Asignados</h4>
+                            <div class="permissions-list" id="assignedPermissionsList">
+                                <div class="no-permissions">No hay permisos asignados</div>
+                            </div>
+                            <div class="container-actions">
+                                <button type="button" class="action-btn assign-all-btn" onclick="assignAllPermissions()">Asignar todo</button>
+                                <button type="button" class="action-btn remove-all-btn" onclick="removeAllPermissions()">Quitar todo</button>
+                            </div>
+                        </div>
+
+                        <!-- Unassigned Permissions Container -->
+                        <div class="permissions-container unassigned-permissions" id="unassignedPermissions">
+                            <h4 class="container-title">Permisos Disponibles</h4>
+                            <div class="permissions-list" id="unassignedPermissionsList">
+                                {% for permission in all_permissions %}
+                                <div class="permission-item draggable" draggable="true" data-permission-id="{{ permission.id }}">
+                                    <span class="permission-name">{{ permission.name|translate_permission }}</span>
+                                </div>
+                                {% empty %}
+                                <div class="no-permissions">No hay permisos disponibles</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons - Inside gradient container -->
+                <div class="action-buttons">
+                    <button type="submit" form="create-form" class="save-button">Guardar</button>
+                    <a href="{% url 'manage_roles' %}" class="discard-button">Descartar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form submission handling
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.create-form');
+    const saveButton = document.querySelector('.save-button');
+    
+    saveButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Get assigned permissions
+        const assignedPermissions = document.querySelectorAll('#assignedPermissionsList .permission-item.draggable');
+        const permissionIds = Array.from(assignedPermissions).map(item => item.dataset.permissionId);
+        
+        // Add permission IDs to form
+        permissionIds.forEach(permissionId => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'permissions';
+            input.value = permissionId;
+            form.appendChild(input);
+        });
+        
+        form.submit();
+    });
+    
+    // Initialize drag and drop functionality
+    initializeDragAndDrop();
+});
+
+// Drag and Drop functionality
+function initializeDragAndDrop() {
+    const assignedContainer = document.getElementById('assignedPermissionsList');
+    const unassignedContainer = document.getElementById('unassignedPermissionsList');
+    
+    // Make all permission items draggable
+    const draggableItems = document.querySelectorAll('.permission-item.draggable');
+    draggableItems.forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+    });
+    
+    // Make containers droppable
+    [assignedContainer, unassignedContainer].forEach(container => {
+        container.addEventListener('dragover', handleDragOver);
+        container.addEventListener('drop', handleDrop);
+        container.addEventListener('dragenter', handleDragEnter);
+        container.addEventListener('dragleave', handleDragLeave);
+    });
+    
+    // Re-initialize drag and drop when permissions are moved
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                // Re-add event listeners to new permission items
+                const newItems = document.querySelectorAll('.permission-item.draggable:not([data-drag-initialized])');
+                newItems.forEach(item => {
+                    item.addEventListener('dragstart', handleDragStart);
+                    item.addEventListener('dragend', handleDragEnd);
+                    item.setAttribute('data-drag-initialized', 'true');
+                });
+            }
+        });
+    });
+    
+    // Observe both containers for changes
+    observer.observe(assignedContainer, { childList: true });
+    observer.observe(unassignedContainer, { childList: true });
+}
+
+let draggedElement = null;
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.outerHTML);
+}
+
+function handleDragEnd(e) {
+    this.style.opacity = '1';
+    draggedElement = null;
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    this.style.backgroundColor = 'rgba(91, 21, 194, 0.1)';
+}
+
+function handleDragLeave(e) {
+    this.style.backgroundColor = '';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    this.style.backgroundColor = '';
+    
+    if (draggedElement && this !== draggedElement.parentNode) {
+        const permissionId = draggedElement.dataset.permissionId;
+        const isMovingToAssigned = this.id === 'assignedPermissionsList';
+        
+        // Move the element visually
+        this.appendChild(draggedElement);
+        
+        // Update the remove button if moving to assigned
+        if (isMovingToAssigned) {
+            const removeBtn = draggedElement.querySelector('.remove-permission');
+            if (!removeBtn) {
+                const removeSpan = document.createElement('span');
+                removeSpan.className = 'remove-permission';
+                removeSpan.innerHTML = '×';
+                removeSpan.onclick = () => removePermissionFromAssigned(permissionId);
+                draggedElement.insertBefore(removeSpan, draggedElement.firstChild);
+            }
+        } else {
+            // Remove the X button if moving to unassigned
+            const removeBtn = draggedElement.querySelector('.remove-permission');
+            if (removeBtn) {
+                removeBtn.remove();
+            }
+        }
+        
+        // Update no-permissions message
+        updateNoPermissionsMessage();
+    }
+}
+
+// Function to assign all permissions
+function assignAllPermissions() {
+    const unassignedItems = document.querySelectorAll('#unassignedPermissionsList .permission-item.draggable');
+    const assignedContainer = document.getElementById('assignedPermissionsList');
+    
+    unassignedItems.forEach(item => {
+        const permissionId = item.dataset.permissionId;
+        
+        // Add remove button
+        const removeSpan = document.createElement('span');
+        removeSpan.className = 'remove-permission';
+        removeSpan.innerHTML = '×';
+        removeSpan.onclick = () => removePermissionFromAssigned(permissionId);
+        item.insertBefore(removeSpan, item.firstChild);
+        
+        // Mark as initialized for drag and drop
+        item.setAttribute('data-drag-initialized', 'true');
+        
+        assignedContainer.appendChild(item);
+    });
+    
+    updateNoPermissionsMessage();
+}
+
+// Function to remove all permissions
+function removeAllPermissions() {
+    const assignedItems = document.querySelectorAll('#assignedPermissionsList .permission-item.draggable');
+    const unassignedContainer = document.getElementById('unassignedPermissionsList');
+    
+    assignedItems.forEach(item => {
+        const permissionId = item.dataset.permissionId;
+        
+        // Remove the X button
+        const removeBtn = item.querySelector('.remove-permission');
+        if (removeBtn) {
+            removeBtn.remove();
+        }
+        
+        // Mark as initialized for drag and drop
+        item.setAttribute('data-drag-initialized', 'true');
+        
+        unassignedContainer.appendChild(item);
+    });
+    
+    updateNoPermissionsMessage();
+}
+
+// Function to remove individual permission
+function removePermissionFromAssigned(permissionId) {
+    const permissionItem = document.querySelector(`[data-permission-id="${permissionId}"]`);
+    const unassignedContainer = document.getElementById('unassignedPermissionsList');
+    
+    if (permissionItem) {
+        // Remove the X button
+        const removeBtn = permissionItem.querySelector('.remove-permission');
+        if (removeBtn) {
+            removeBtn.remove();
+        }
+        
+        // Mark as initialized for drag and drop
+        permissionItem.setAttribute('data-drag-initialized', 'true');
+        
+        unassignedContainer.appendChild(permissionItem);
+        updateNoPermissionsMessage();
+    }
+}
+
+// Function to update no-permissions message
+function updateNoPermissionsMessage() {
+    const assignedContainer = document.getElementById('assignedPermissionsList');
+    const unassignedContainer = document.getElementById('unassignedPermissionsList');
+    
+    const assignedItems = assignedContainer.querySelectorAll('.permission-item.draggable');
+    const unassignedItems = unassignedContainer.querySelectorAll('.permission-item.draggable');
+    
+    // Update assigned container message
+    let assignedMessage = assignedContainer.querySelector('.no-permissions');
+    if (assignedItems.length === 0 && !assignedMessage) {
+        assignedMessage = document.createElement('div');
+        assignedMessage.className = 'no-permissions';
+        assignedMessage.textContent = 'No hay permisos asignados';
+        assignedContainer.appendChild(assignedMessage);
+    } else if (assignedItems.length > 0 && assignedMessage) {
+        assignedMessage.remove();
+    }
+    
+    // Update unassigned container message
+    let unassignedMessage = unassignedContainer.querySelector('.no-permissions');
+    if (unassignedItems.length === 0 && !unassignedMessage) {
+        unassignedMessage = document.createElement('div');
+        unassignedMessage.className = 'no-permissions';
+        unassignedMessage.textContent = 'No hay permisos disponibles';
+        unassignedContainer.appendChild(unassignedMessage);
+    } else if (unassignedItems.length > 0 && unassignedMessage) {
+        unassignedMessage.remove();
+    }
+}
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

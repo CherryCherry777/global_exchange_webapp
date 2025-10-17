@@ -1,3 +1,4 @@
+import secrets
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -11,10 +12,7 @@ from decimal import Decimal, ROUND_DOWN
 #Las clases van aqui
 #Los usuarios heredan AbstractUser
 class CustomUser(AbstractUser):
-<<<<<<< HEAD
     
-=======
->>>>>>> release/v1.2
     """
     CustomUser model extends Django's AbstractUser to enforce unique email addresses.
     Attributes:
@@ -24,17 +22,22 @@ class CustomUser(AbstractUser):
     """
     email = models.EmailField(unique=True)
 
+    receive_exchange_emails = models.BooleanField(
+        default=True,
+        verbose_name="Recibir notificaciones de tasas de cambio"
+    )
+
+    unsubscribe_token = models.CharField(max_length=64, blank=True, null=True)
+
     class Meta:
         permissions = [
-            ("access_admin_panel", "Can access admin panel")
+            ("access_admin_panel", "Can access admin panel"),
+            ("access_analyst_panel", "Can access analyst panel"),
         ]
 
     def __str__(self):
         return self.username
-<<<<<<< HEAD
 
-=======
->>>>>>> release/v1.2
 
 class Role(models.Model):
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="role")
@@ -181,6 +184,9 @@ class Cliente(models.Model):  # Definimos el modelo Cliente, que representa la t
         verbose_name="Fecha de Registro"
     )
 
+    # ID del cliente asociado en stripe a este
+    stripe_customer_id = models.CharField(max_length=255, null=True, blank=True)
+
     # Representación del objeto en formato de texto
     def __str__(self):
         return f"{self.nombre} ({self.tipoCliente})"
@@ -319,7 +325,8 @@ class Entidad(models.Model):
 class MedioPago(models.Model):
     # Opciones predefinidas para los medios de pago
     TIPO_CHOICES = [
-        ('tarjeta', 'Tarjeta de Débito/Crédito'),
+        ('tarjeta_nacional', 'Tarjeta de Débito/Crédito Nacional'),
+        ('tarjeta_internacional', 'Tarjeta de Débito/Crédito Internacional (Stripe)'),
         ('billetera', 'Billetera Electrónica'),
         ('cuenta_bancaria', 'Cuenta Bancaria'),
     ]
@@ -334,7 +341,7 @@ class MedioPago(models.Model):
     
     # Tipo de medio de pago
     tipo = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=TIPO_CHOICES,
         verbose_name="Tipo de Medio de Pago"
     )
@@ -363,12 +370,6 @@ class MedioPago(models.Model):
         verbose_name="Fecha de Actualización"
     )
     
-    tipo = models.CharField(
-        max_length=20,
-        choices=TIPO_CHOICES,
-        verbose_name="Tipo de Medio de Pago"
-    )
-    
     tipo_pago = models.ForeignKey(
         "TipoPago",
         on_delete=models.PROTECT,
@@ -383,8 +384,10 @@ class MedioPago(models.Model):
         Currency,
         on_delete=models.PROTECT,
         verbose_name="Moneda",
+        null=True,
+        blank=True,
         #editable=False,
-        default=1 #ID de la moneda por defecto
+        default=None #ID de la moneda por defecto
     )
     
 
@@ -402,11 +405,15 @@ class MedioPago(models.Model):
 # -------------------------------------
 # Modelos específicos por tipo de medio de pago
 # -------------------------------------
-class Tarjeta(models.Model):
+class TarjetaNacional(models.Model):
+    """
+    Representa una tarjeta nacional (emitida por un banco local).
+    Asociada a un MedioPago de tipo 'tarjeta_nacional'.
+    """
     medio_pago = models.OneToOneField(
         "MedioPago",
         on_delete=models.CASCADE,
-        related_name="tarjeta",
+        related_name="tarjeta_nacional",
         verbose_name="Medio de Pago"
     )
     numero_tokenizado = models.CharField(max_length=50, verbose_name="Número Tokenizado")
@@ -425,12 +432,46 @@ class Tarjeta(models.Model):
     moneda = models.ForeignKey("Currency", on_delete=models.PROTECT, verbose_name="Moneda", editable=False, default=1)
 
     class Meta:
-        db_table = "tarjetas"
-        verbose_name = "Tarjeta"
-        verbose_name_plural = "Tarjetas"
+        db_table = "tarjetas_nacionales"
+        verbose_name = "Tarjeta Nacional"
+        verbose_name_plural = "Tarjetas Nacionales"
 
     def __str__(self):
         return f"{self.medio_pago.nombre} - ****{self.ultimos_digitos} ({self.entidad.nombre})"
+
+
+class TarjetaInternacional(models.Model):
+    """
+    Representa una tarjeta internacional (emitida y tokenizada por Stripe).
+    Asociada a un MedioPago de tipo 'tarjeta_internacional'.
+    """
+    medio_pago = models.OneToOneField(
+        "MedioPago",
+        on_delete=models.CASCADE,
+        related_name="tarjeta_internacional",
+        verbose_name="Medio de Pago"
+    )
+
+    # ID del Payment Method en Stripe
+    stripe_payment_method_id = models.CharField(
+        max_length=100,
+        verbose_name="ID de Payment Method en Stripe"
+    )
+
+    # Últimos 4 dígitos de la tarjeta
+    ultimos_digitos = models.CharField(max_length=4, verbose_name="Últimos 4 Dígitos")
+
+    # Fecha de vencimiento
+    exp_month = models.PositiveSmallIntegerField(verbose_name="Mes de Vencimiento")
+    exp_year = models.PositiveSmallIntegerField(verbose_name="Año de Vencimiento")
+    
+    class Meta:
+        db_table = "tarjetas_internacionales"
+        verbose_name = "Tarjetas Internacionales"
+        verbose_name_plural = "Tarjetas Internacionales"
+
+    def __str__(self):
+        return f"{self.medio_pago.nombre} - ****{self.ultimos_digitos}"
 
 
 class Billetera(models.Model):
@@ -489,6 +530,42 @@ class CuentaBancaria(models.Model):
     def __str__(self):
         return f"{self.medio_pago.nombre} - {self.entidad.nombre}"
 
+class CuentaBancariaNegocio(models.Model):
+    """
+    Representa una cuenta bancaria asociada a un negocio.
+    Tiene los mismos atributos que la cuenta bancaria tradicional,
+    pero se mantiene separada para manejar pagos empresariales.
+    """
+    numero_cuenta: str = models.CharField(
+        max_length=50,
+        verbose_name="Número de Cuenta"
+    )
+    alias_cbu: str = models.CharField(
+        max_length=50,
+        verbose_name="Alias/CBU"
+    )
+    entidad: Entidad = models.ForeignKey(
+        Entidad,
+        on_delete=models.PROTECT,
+        limit_choices_to={"tipo": "banco"},
+        verbose_name="Banco",
+        null=False
+    )
+    moneda: Currency = models.ForeignKey(
+        "Currency",
+        on_delete=models.PROTECT,
+        verbose_name="Moneda",
+        editable=False,
+        default=1
+    )
+
+    class Meta:
+        db_table = "cuentas_bancarias_negocios"
+        verbose_name = "Cuenta Bancaria de Negocio"
+        verbose_name_plural = "Cuentas Bancarias de Negocios"
+
+    def __str__(self) -> str:
+        return f"{self.entidad.nombre} ({self.alias_cbu}) {self.numero_cuenta}"
 
 # Administracion de metodo de pago global (para admin)
 
@@ -573,6 +650,29 @@ class LimiteIntercambio(models.Model):
                 self.limite_mes = Decimal(self.limite_mes).quantize(factor, rounding=ROUND_DOWN)
         super().save(*args, **kwargs)
 
+    def descontar(self, monto: Decimal):
+        """
+        Descuenta un monto del límite diario y mensual (por ejemplo, después de una transacción).
+        Si el monto supera el límite actual, lanza ValidationError.
+        """
+        if monto is None or monto <= 0:
+            return
+
+        # Validar que haya suficiente límite disponible
+        if monto > self.limite_dia:
+            raise ValidationError(f"El monto {monto} supera el límite diario disponible ({self.limite_dia}).")
+
+        if monto > self.limite_mes:
+            raise ValidationError(f"El monto {monto} supera el límite mensual disponible ({self.limite_mes}).")
+
+        # Restar y normalizar según los decimales de la moneda
+        dec = int(self.moneda.decimales_cotizacion)
+        factor = Decimal('1').scaleb(-dec)
+
+        self.limite_dia = (self.limite_dia - monto).quantize(factor, rounding=ROUND_DOWN)
+        self.limite_mes = (self.limite_mes - monto).quantize(factor, rounding=ROUND_DOWN)
+        self.save(update_fields=["limite_dia", "limite_mes"])
+
     def __str__(self):
         return f"{self.moneda.code}"
 
@@ -582,7 +682,7 @@ class LimiteIntercambio(models.Model):
 class MedioCobro(models.Model):
     # Opciones predefinidas para los métodos de cobro
     TIPO_CHOICES = [
-        ('tarjeta', 'Tarjeta de Débito/Crédito'),
+        ('tauser', 'Tauser'),
         ('billetera', 'Billetera Electrónica'),
         ('cuenta_bancaria', 'Cuenta Bancaria'),
     ]
@@ -627,12 +727,12 @@ class MedioCobro(models.Model):
     )
     
     tipo_cobro = models.ForeignKey(
-        "TipoPago",
+        "TipoCobro",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name="Tipo de Cobro Global",
-        help_text="Configuración global de activación y comisión"
+        help_text="Configuración global de activación y comisión",
     )
 
     moneda = models.ForeignKey(
@@ -650,9 +750,6 @@ class MedioCobro(models.Model):
         unique_together = ("cliente", "tipo", "nombre")
     
     def __str__(self):
-<<<<<<< HEAD
-        return f"{self.medio_pago.nombre} - {self.numero_cheque}"
-=======
         return f"{self.cliente.nombre} - {self.get_tipo_display()} - {self.nombre}"
 
 
@@ -660,7 +757,7 @@ class MedioCobro(models.Model):
 # Administración de métodos de cobro
 # -------------------------------------
 
-class TarjetaCobro(models.Model):
+"""class TarjetaCobro(models.Model):
     medio_cobro = models.OneToOneField(
         "MedioCobro",
         on_delete=models.CASCADE,
@@ -688,7 +785,7 @@ class TarjetaCobro(models.Model):
 
     def __str__(self):
         return f"{self.medio_cobro.nombre} - ****{self.ultimos_digitos} ({self.entidad.nombre})"
-
+"""
 
 class BilleteraCobro(models.Model):
     medio_cobro = models.OneToOneField(
@@ -830,7 +927,9 @@ class Transaccion(models.Model):
 
     class Estado(models.TextChoices):
         PENDIENTE = "PENDIENTE", "Pendiente"
-        PAGADA = "PAGADA", "Pagada"
+        PAGADA = "PAGADA", "Pagada por el cliente"
+        COMPLETA = "COMPLETA", "Transacción finalizada"
+        AC_FALLIDA = "ac_fallida", "Error al acreditar"
         CANCELADA = "CANCELADA", "Cancelada"
         ANULADA = "ANULADA", "Anulada"
 
@@ -850,9 +949,9 @@ class Transaccion(models.Model):
         choices=Estado.choices,
         default=Estado.PENDIENTE
     )
-    fecha_creacion = models.DateField(auto_now_add=True)
-    fecha_pago = models.DateField(null=True, blank=True)
-    fecha_actualizacion = models.DateField(auto_now=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_pago = models.DateTimeField(null=True, blank=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     moneda_origen = models.ForeignKey(
         "Currency",
@@ -865,9 +964,9 @@ class Transaccion(models.Model):
         related_name="transacciones_destino"
     )
     
-    tasa_cambio = models.DecimalField(max_digits=12, decimal_places=8)
-    monto_origen = models.DecimalField(max_digits=15, decimal_places=8)
-    monto_destino = models.DecimalField(max_digits=15, decimal_places=8)
+    tasa_cambio = models.DecimalField(max_digits=16, decimal_places=8)
+    monto_origen = models.DecimalField(max_digits=20, decimal_places=8)
+    monto_destino = models.DecimalField(max_digits=20, decimal_places=8)
 
     # Generic Foreign Key para medio de pago
     medio_pago_type = models.ForeignKey(
@@ -886,6 +985,20 @@ class Transaccion(models.Model):
     medio_cobro_id = models.PositiveIntegerField()
     medio_cobro = GenericForeignKey("medio_cobro_type", "medio_cobro_id")
 
+    stripe_payment_intent_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name="ID de PaymentIntent en Stripe"
+    )
+
+    id_transferencia = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name="ID de transferencia"
+    )
+
     factura_asociada = models.ForeignKey(
         "Factura",
         on_delete=models.SET_NULL,
@@ -894,8 +1007,42 @@ class Transaccion(models.Model):
         related_name="transacciones"
     )
 
+    # ----------------------------------------------------------------------
+    # 🔹 Control automático de fechas según estado
+    # ----------------------------------------------------------------------
+    def save(self, *args, **kwargs):
+        """
+        Controla automáticamente las fechas de pago y actualización.
+        """
+        estado_anterior = None
+        if self.pk:
+            estado_anterior = (
+                Transaccion.objects.filter(pk=self.pk)
+                .values_list("estado", flat=True)
+                .first()
+            )
+
+        # 🔸 1. Si el estado es PAGADA y aún no tiene fecha de pago → se setea ahora
+        if self.estado == self.Estado.PAGADA and not self.fecha_pago:
+            self.fecha_pago = timezone.now()
+
+        # 🔸 2. Si el estado cambió (a COMPLETA, CANCELADA, etc.) → se actualiza la fecha de actualización
+        if not self.pk or self.estado != estado_anterior:
+            self.fecha_actualizacion = timezone.now()
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.tipo} {self.monto_origen} {self.moneda_origen} → {self.moneda_destino} ({self.estado})"
+        
+    @property
+    def tauser_display(self):
+        if isinstance(self.medio_pago, Tauser):
+            return f"{self.medio_pago.nombre} ({self.medio_pago.ubicacion})"
+        elif isinstance(self.medio_cobro, Tauser):
+            return f"{self.medio_cobro.nombre} ({self.medio_cobro.ubicacion})"
+        return ""
+
     
 # --------------------------------------------
 # Modelos para facturación y notas de crédito
@@ -932,4 +1079,46 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"Detalle {self.id} - {self.descripcion}"
->>>>>>> release/v1.2
+
+
+# Configuracion de frecuencia de correos electronicos
+class EmailScheduleConfig(models.Model):
+    """
+    Configuración para la frecuencia de envío de correos con tasas de cambio.
+    """
+    frequency = models.CharField(
+        max_length=20,
+        choices=[
+            ("daily", "Diario"),
+            ("weekly", "Semanal"),
+            ("custom", "Personalizado"),
+        ],
+        default="daily"
+    )
+    hour = models.IntegerField(default=8)  # hora del día (0–23)
+    minute = models.IntegerField(default=0)  # minuto del día
+    interval_minutes = models.IntegerField(null=True, blank=True)  # solo si es "custom"
+
+    def __str__(self):
+        return f"Envío {self.frequency} a las {self.hour:02d}:{self.minute:02d}"
+
+class MFACode(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(default=timezone.now)
+    used = models.BooleanField(default=False)
+
+    def is_valid(self):
+        """Verifica que el código no esté expirado (5 minutos) ni usado."""
+        return not self.used and (timezone.now() - self.created_at).total_seconds() < 300
+
+    @staticmethod
+    def generate_for_user(user):
+        """Genera y envía un nuevo código MFA al correo del usuario."""
+        code = str(secrets.randbelow(1000000)).zfill(6)
+        mfa = MFACode.objects.create(user=user, code=code)
+        user.email_user(
+            subject="Tu código de verificación (MFA)",
+            message=f"Tu código de verificación para completar la transacción es: {code}\n\nExpira en 5 minutos.",
+        )
+        return mfa

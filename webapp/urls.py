@@ -9,6 +9,7 @@ urlpatterns = [
     path("verify-email/<uidb64>/<token>/", views.verify_email, name="verify-email"),
     path("resend-verification/", views.resend_verification_email, name="resend_verification"),
     path("login/", views.CustomLoginView.as_view(), name="login"),
+    path("mfa-verify/", views.MFAVerifyView.as_view(), name="mfa_verify"),
     path("logout/", views.custom_logout, name="logout"),
 
     # Profile
@@ -17,8 +18,6 @@ urlpatterns = [
 
     # Cliente Management (Admin only)
     path("manage-clientes/", views.manage_clientes, name="manage_clientes"),
-    path("create-cliente/", views.create_cliente, name="create_cliente"),
-    path("update-cliente/<int:cliente_id>/", views.update_cliente, name="update_cliente"),
     path("modify-client/<int:client_id>/", views.modify_client, name="modify_client"),
     path("view-client/<int:client_id>/", views.view_client, name="view_client"),
     path("create-client/", views.create_client, name="create_client"),
@@ -31,7 +30,6 @@ urlpatterns = [
     path("manage-quotes/", views.manage_quotes, name="manage_quotes"),
     path("modify-quote/<int:currency_id>/", views.modify_quote, name="modify_quote"),
     path("delete-cliente/<int:cliente_id>/", views.delete_cliente, name="delete_cliente"),
-    path("view-cliente/<int:cliente_id>/", views.view_cliente, name="view_cliente"),
     path('clientes/asignar-usuario/', views.asignar_cliente_usuario, name='asignar_cliente_usuario'),
     path('clientes/desasignar/<int:asignacion_id>/', views.desasignar_cliente_usuario, name='desasignar_cliente_usuario'),
     path('inactivar-cliente/<int:pk>/', views.inactivar_cliente, name='inactivar_cliente'),
@@ -41,6 +39,7 @@ urlpatterns = [
     path("landing/", views.landing_page, name="landing"),
     path("admin-dashboard/", views.admin_dash, name="admin_dashboard"),
     path("employee-dashboard/", views.employee_dash, name="employee_dashboard"),
+    path("analyst-dashboard/", views.analyst_dash, name="analyst_dashboard"),
 
     # User roles management
     path('manage-user-roles/', views.manage_user_roles, name='manage_user_roles'),
@@ -71,13 +70,13 @@ urlpatterns = [
     path('manage-user-roles/', views.manage_user_roles, name='manage_user_roles'),
 
     # Currency Manager
-    path('currency/', views.currency_list, name='currency_list'),
     path('currency/crear/', views.create_currency, name='create_currency'),
     path('currency/editar/<int:currency_id>/', views.edit_currency, name='edit_currency'),
     path('currency/toggle/', views.toggle_currency, name='toggle_currency'),
 
     # Categories management
     path('manage-categories/', views.manage_categories, name='manage_categories'),
+    path('create-sample-categories/', views.create_sample_categories_view, name='create_sample_categories'),
 
     # Mis métodos de pago (cliente)
     path('mis-medios/', views.my_payment_methods, name='my_payment_methods'),
@@ -135,4 +134,19 @@ urlpatterns = [
 
     # Transacciones
     path("historial-transacciones/", views.transaccion_list, name="transaccion_list"),
+    path("transaccion/<int:transaccion_id>/ingresar-id/", views.ingresar_idTransferencia, name="ingresar_idTransferencia"),
+
+    #Configuracion de notificaciones de correo
+    path("schedule/", views.manage_schedule, name="manage_schedule"),
+    path("unsubscribe/<uidb64>/<token>/", views.unsubscribe, name="unsubscribe"),
+    path('unsubscribe/confirm/', views.unsubscribe_confirm, name='unsubscribe_confirm'),
+    path('unsubscribe/error/', views.unsubscribe_error, name='unsubscribe_error'),
+    #path("verificar_mfa/", views.verificar_mfa, name="verificar_mfa"),
+
+    # Tauser
+    path("tauser/", views.tauser_home, name="tauser_home"),
+    path("tauser/login/", views.tauser_login, name="tauser_login"),
+    path("tauser/pagar/<int:pk>/", views.tauser_pagar, name="tauser_pagar"),
+    path("tauser/cobrar/<int:pk>/", views.tauser_cobrar, name="tauser_cobrar"),
+
 ]

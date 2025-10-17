@@ -1,0 +1,131 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block title %}Administrar Categorías{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/categorias/manage_categories.css' %}?v=1.3">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="manage-categories-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="manage-categories-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-categories-title">Administrar Categorías</h1>
+                    <p class="manage-categories-subtitle">Visualizar, crear, editar categorías de clientes</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Categorías</div>
+                        <div class="metric-number">{{ total_categories|default:"0" }}</div>
+                    </div>
+                    {% if total_categories == 0 %}
+                    <div class="metric-card">
+                        <a href="{% url 'create_sample_categories' %}" class="create-sample-btn">
+                            Crear Categorías de Ejemplo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Categories List Container -->
+        <div class="categories-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de Categorías</h2>
+            </div>
+
+            <!-- Categories Table -->
+            <div class="categories-table-container">
+    <table class="categories-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+                            <th>Fecha de Creación</th>
+                            <th>Descuento</th>
+                            <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for categoria in categorias %}
+                        <tr class="category-row">
+                            <td class="category-cell">
+                                <div class="category-info">
+                                    <div class="category-icon-circle">
+                                        <img src="{% static 'webapp/pantalla_categorias/1.Categorias.png' %}" alt="Category Icon" class="category-icon">
+                                    </div>
+                                    <span class="category-name">{{ categoria.nombre }}</span>
+                                </div>
+                            </td>
+                            <td class="date-cell">
+                                <span class="creation-date">{{ categoria.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                            </td>
+                            <td class="discount-cell">
+                                <span class="discount-value">{{ categoria.descuento|porcentaje }}%</span>
+                            </td>
+                            <td class="actions-cell">
+                                <div class="actions-container">
+                                    <a href="{% url 'modify_category' categoria.id %}" class="action-button modify-button">Modificar</a>
+                                </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+        </div>
+  </div>
+</div>
+
+<script>
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,988 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+{% load permissions_tags %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/paginas_principales/home.css' %}">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'webapp/css/compraventa/compraventa.css' %}">
+{% endblock %}
+
+{% block title %}Compra y Venta de Divisas{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="converter-title">
+        <span class="yellow-text">Compra</span> <span class="black-text">venta</span>
+    </h2>
+
+    <!-- 🆕 Indicador superior de pasos -->
+    <div class="wizard-header">
+        <div id="indicator-step1" class="wizard-step-indicator active">
+            <span>1</span> Selección
+        </div>
+        <div id="indicator-step2" class="wizard-step-indicator">
+            <span>2</span> Revisión
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- 🆕 PASO 1: Selección -->
+        <div id="step-1" class="wizard-step active">
+            <div class="converter-section mb-4">
+                <!-- Select Compra/Venta -->
+                <div class="converter-section">
+                    <div class="converter-container">
+                        <p class="converter-subtitle">Selecciona la moneda e ingresa el monto de cotización</p>
+                        
+                        <div class="converter-form">
+                            <!-- From Currency -->
+                            <div class="converter-field">
+                                <label class="field-label">Tengo esta moneda</label>
+                                <div class="field-row">
+                                    <div class="select-wrapper">
+                                        <select id="simu-from" name="moneda_origen" class="currency-select"></select>
+                                        <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                    </div>
+                                    <input
+                                        id="simu-amount"
+                                        name="monto_origen"
+                                        type="text"
+                                        class="amount-input"
+                                        placeholder="0"
+                                    >
+                                </div>
+                            </div>
+
+                            <!-- To Currency -->
+                            <div class="converter-field">
+                                <label class="field-label">Quiero esta moneda</label>
+                                <div class="field-row">
+                                    <div class="select-wrapper">
+                                        <select id="simu-to" name="moneda_destino" class="currency-select"></select>
+                                        <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                    </div>
+                                    <input name="monto_destino" type="text" readonly class="result-input" id="simu-result-main">
+                                </div>
+                            </div>
+
+                            <div class="converter-actions">
+                                <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>
+                            </div>
+
+                            {% is_usuario_asociado request.user as usuario_asociado %}
+                            {% if usuario_asociado %}
+                                <!-- Método de Pago perspectiva del cliente -->
+                                <div class="converter-field">
+                                    <label class="field-label">Pagar con:</label>
+                                    
+                                    <div class="converter-field-content">
+                                        <div class="tab-row" id="pago-tabs">
+                                        {% for tipo in tipos_pago %}
+                                            <button type="button" class="tab-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}">
+                                            {{ tipo.nombre }}
+                                            </button>
+                                        {% endfor %}
+                                        </div>
+
+                                        <div class="select-wrapper select-wrapper-inline">
+                                            <select id="simu-metodo-pago" name="medio_pago" class="currency-select">
+                                            </select>
+                                            <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                        </div>
+                                    </div>
+                                    <!-- Datos de cuenta bancaria para transferencia -->
+                                    <div id="transferencia-info" class="transferencia-info d-none mt-3">
+                                        <div class="transferencia-card">
+                                            <h6 class="transferencia-titulo">Datos para transferencia</h6>
+                                            <div class="transferencia-datos">
+                                                <p class="mb-1"><strong>Titular:</strong> Global Exchange </p>
+                                                <p class="mb-1"><strong>RUC:</strong> 80012345-6 </p>
+                                                <p class="mb-1"><strong>Banco:</strong> {{cuenta_negocio.entidad.nombre}}</p>
+                                                <p class="mb-1"><strong>Cuenta:</strong> {{cuenta_negocio.numero_cuenta}}</p>
+                                                <p class="mb-1"><strong>Alias:</strong> {{cuenta_negocio.alias_cbu}}</p>
+                                            </div>
+                                            <p class="transferencia-nota">Por favor, una vez registrada la operación selecciona "Continuar Pago".</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Método de Cobro perspectiva del cliente -->
+                                <div class="converter-field">
+                                    <label class="field-label">Recibir en:</label>
+
+                                    <div class="converter-field-content">
+                                        <div class="tab-row" id="cobro-tabs">
+                                        {% for tipo in tipos_cobro %}
+                                            <button type="button" class="tab-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}">
+                                            {{ tipo.nombre }}
+                                            </button>
+                                        {% endfor %}
+                                        </div>
+                                        
+                                        <div class="select-wrapper select-wrapper-inline">
+                                            <select id="simu-metodo-cobro" name="medio_cobro" class="currency-select">
+                                            </select>
+                                            <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                        </div>
+                                    </div>
+                                </div>
+
+                            {% endif %}
+
+                            <div class="converter-result">
+                                <p id="simu-result-detail" class="result-detail">Ingresá un monto para calcular</p>
+                                <p class="result-detail">Cotización exclusiva para la categoria: {{categoria_cliente.nombre}}</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                    <input type="hidden" id="input-tipo" name="tipo">
+                    <input type="hidden" id="input-moneda-origen" name="moneda_origen">
+                    <input type="hidden" id="input-moneda-destino" name="moneda_destino">
+                    <input type="hidden" id="input-monto-origen" name="monto_origen">
+                    <input type="hidden" id="input-monto-destino" name="monto_destino">
+                    <input type="hidden" id="input-tasa-cambio" name="tasa_cambio">
+                    <input type="hidden" id="input-medio-pago-contenttype" name="medio_pago_contenttype">
+                    <input type="hidden" id="input-medio-cobro-contenttype" name="medio_cobro_contenttype">
+                    <input type="hidden" id="input-medio-pago-tipo" name="medio_pago_tipo">
+                    <input type="hidden" id="input-medio-cobro-tipo" name="medio_cobro_tipo">
+            </div>
+            <div class="converter-actions mt-4 d-flex justify-content-end">
+                <button type="button" id="next-step" class="btn btn-primary">Continuar</button>
+            </div>
+        </div>
+         <!-- 🆕 PASO 2: Revisión -->
+        <div id="step-2" class="wizard-step d-none">
+            <h4>Revisión y Confirmación</h4>
+            <p>Verificá los detalles antes de confirmar tu operación.</p>
+            <hr>
+
+            <ul class="list-group mb-3">
+                <li class="list-group-item d-flex justify-content-between">
+                <strong>Tipo de operación:</strong> <span id="resumen-tipo"></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                <strong>Monto origen:</strong> <span id="resumen-origen"></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                <strong>Monto destino:</strong> <span id="resumen-destino"></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                <strong>Método de pago:</strong> <span id="resumen-pago"></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                <strong>Método de cobro:</strong> <span id="resumen-cobro"></span>
+                </li>
+            </ul>
+
+            <div class="converter-actions d-flex justify-content-between mt-3">
+                <button type="button" id="prev-step" class="btn btn-secondary">Atrás</button>
+                <button name="confirmar" type="submit" class="btn btn-success">Confirmar operación</button>
+            </div>
+        </div>
+
+    </form>
+
+    {% if resultado %}
+        <div class="alert alert-success mt-4">
+            <strong>Resultado:</strong> {{ resultado }}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+(async function() {
+    const amount = document.getElementById("simu-amount");
+    const from = document.getElementById("simu-from");
+    const to = document.getElementById("simu-to");
+    const intercambiar = document.getElementById("simu-intercambiar");
+    const out = document.getElementById("simu-result-main");
+    const detail = document.getElementById("simu-result-detail");
+    const metodoPago = document.getElementById("simu-metodo-pago");
+    const metodoCobro = document.getElementById("simu-metodo-cobro");
+    const LIMITES_INTERCAMBIO = JSON.parse('{{ limites_intercambio|safe }}');
+
+    let CODES = [];
+    const META = Object.create(null);
+
+    function nf(value, currencyCode) {
+        // Determina cuántos decimales mostrar según la moneda
+        // Si es "PYG" (guaraní paraguayo), se usan 0 decimales
+        // Si no, busca en el objeto META[currencyCode] la propiedad "decimals"
+        // y si no existe, usa por defecto 2 decimales
+        const decimals = currencyCode === "PYG" ? 0 : (META[currencyCode]?.decimals ?? 2);
+
+        // Crea un formateador numérico con configuración regional "es-ES"
+        // y fija la cantidad de decimales al valor calculado arriba
+        return new Intl.NumberFormat("es-ES", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }).format(value); // Aplica el formateador al número recibido
+    }
+
+    function buildOptions(selectEl, preferCode) {
+        // Limpia el contenido actual del <select>
+        selectEl.innerHTML = "";
+
+        // Recorre la lista de códigos de moneda definida en CODES
+        CODES.forEach(code => {
+            // Crea una opción <option> para el select
+            const opt = document.createElement("option");
+            opt.value = code; // el valor de la opción será el código de moneda
+
+            // Obtiene el nombre de la moneda desde META, o usa el código si no existe
+            const name = META[code]?.name || code;
+
+            // Define el texto visible de la opción, con casos especiales
+            if (code === "USD") opt.textContent = "DÓLAR";
+            else if (code === "PYG") opt.textContent = "GUARANÍ";
+            else if (code === "EUR") opt.textContent = "EURO";
+            else opt.textContent = name.toUpperCase(); // para el resto, usa el nombre en mayúsculas
+
+            // Agrega la opción al <select>
+            selectEl.appendChild(opt);
+        });
+
+        // Selecciona por defecto el código preferido si existe y está en CODES
+        if (preferCode && CODES.includes(preferCode)) 
+            selectEl.value = preferCode;
+        // Si no hay preferencia válida, selecciona el primer código disponible
+        else if (CODES.length) 
+            selectEl.value = CODES[0];
+    }
+
+    // variables y listeners utilizados en enforceDifferent()
+    let lastFrom = from.value;
+    let lastTo = to.value;
+
+    from.addEventListener("focus", () => lastFrom = from.value);
+    to.addEventListener("focus", () => lastTo = to.value);
+
+    function enforceDifferent(changed, other) {
+        // Caso 1: si el usuario pone PYG en ambos
+        if (from.value === "PYG" && to.value === "PYG") {
+            const prev = (changed === from ? lastFrom : lastTo);
+            const fallback = prev && prev !== "PYG"
+                ? prev
+                : (CODES.includes("USD") ? "USD" : CODES.find(c => c !== "PYG"));
+
+            if (changed === from) to.value = fallback;
+            else from.value = fallback;
+        }
+
+        // Caso 2: si el usuario pone la misma moneda en ambos (pero no es PYG)
+        else if (from.value === to.value) {
+            // el otro se fuerza a PYG
+            if (changed === from) to.value = "PYG";
+            else from.value = "PYG";
+        }
+
+        // Caso 3: si ninguno es PYG
+        if (from.value !== "PYG" && to.value !== "PYG") {
+            // el que no cambió se fuerza a PYG
+            if (changed === from) to.value = "PYG";
+            else from.value = "PYG";
+        }
+    }
+    
+    function compute() {
+        // Convierte el valor ingresado en el campo "amount" a número decimal.
+        const rawText = amount.value || "";
+        const raw = parseFloat(
+            rawText
+                .replace(/\./g, "")   // elimina puntos de miles
+                .replace(",", ".")    // reemplaza coma decimal por punto
+        );
+
+        // Si no es un número válido o es menor/igual a 0, muestra un mensaje de error.
+        if (isNaN(raw) || raw <= 0) {
+            out.value = "—"; // salida vacía con guion
+            detail.textContent = "Ingresá un monto para calcular"; // mensaje para el usuario
+            return; // corta la ejecución
+        }
+
+        // Obtiene las monedas seleccionadas (desde y hacia)
+        const a = from.value, b = to.value;
+
+        // Verifica que ambas monedas existan en META (tabla con cotizaciones/definiciones)
+        if (!META[a] || !META[b]) return;
+
+        // Variables donde se guardarán el resultado y la tasa de cambio usada
+        let val, rateAB;
+
+        // Caso 1: convertir de Guaraníes (PYG) a otra moneda
+        if (a === "PYG" && b !== "PYG") {
+            val = raw / META[b].venta;   // Divide el monto en PYG por la tasa de venta de la moneda destino
+            rateAB = META[b].venta;  // Calcula el tipo de cambio unitario
+            detail.innerHTML = `1 ${b} = ${nf(rateAB, "PYG")} ${a}`; // Muestra el detalle de la tasa usada
+        } 
+        // Caso 2: convertir de otra moneda hacia Guaraníes
+        else if (a !== "PYG" && b === "PYG") {
+            val = raw * META[a].compra;  // Multiplica el monto por la tasa de compra de la moneda origen
+            rateAB = META[a].compra;     // Guarda la tasa usada
+            detail.innerHTML = `1 ${a} = ${nf(rateAB, "PYG")} ${b}`; // Muestra el detalle de la tasa
+        } 
+        // Caso inválido: cuando se intenta convertir entre dos monedas que no son PYG
+        else {
+            out.value = "—"; 
+            detail.textContent = "Sólo se permiten conversiones con Guaraníes"; 
+            return;
+        }
+
+        // Muestra el resultado formateado en el campo de salida
+        out.value = `${nf(val, b)} ${b}`;
+    }
+
+    function attachListeners() {
+        // Agrega listeners a los campos de monto, moneda origen y moneda destino.
+        // Se escucha tanto "input" (cuando el usuario escribe) como "change" (cuando cambia el valor).
+        ["input","change"].forEach(evt => {
+            // Cuando se modifica el monto, recalcula directamente
+            amount.addEventListener(evt, () => {
+                actualizarFiltros(); // 🔹 actualiza visibilidad de botones
+                compute();
+            });
+
+            // Cuando cambia la moneda de origen (from)
+            from.addEventListener(evt, async () => {
+                enforceDifferent(from,to);     // fuerza que origen y destino no sean iguales
+                actualizarFiltros();           // 🔹 antes de recargar métodos, actualiza botones
+                await recargarMetodos();       // recarga métodos de pago/cobro disponibles
+                compute();                     // recalcula el resultado
+            });
+
+            // Cuando cambia la moneda de destino (to)
+            to.addEventListener(evt, async () => {
+                enforceDifferent(to,from);     // igual que arriba, pero para destino
+                actualizarFiltros();           // actualizar botones de filtros disponibles
+                await recargarMetodos();       // recarga métodos
+                compute();                     // recalcula
+            });
+        });
+
+        // Listener para el botón de "intercambiar" monedas
+        intercambiar.addEventListener("click", async () => {
+            // Intercambia los valores de las monedas
+            const tmp = from.value; 
+            from.value = to.value; 
+            to.value = tmp;
+
+            enforceDifferent(from,to);     // asegura que no queden iguales
+            actualizarFiltros();           // 🔹 tras intercambiar, recalcula visibilidad
+            await recargarMetodos();       // recarga métodos acorde a la nueva selección
+            compute();                     // recalcula conversión
+        });
+
+        // Si existen selectores de métodos de pago y cobro, agrega listeners
+        if (metodoPago && metodoCobro) {
+            [metodoPago, metodoCobro].forEach(selectEl => {
+                selectEl.addEventListener("change", async () => {
+
+                    // 🟣 Detectar botones activos
+                    const activoPago = document.querySelector("#pago-tabs .tab-btn.active");
+                    const activoCobro = document.querySelector("#cobro-tabs .tab-btn.active");
+
+                    const textoPago = activoPago?.textContent?.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    const textoCobro = activoCobro?.textContent?.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+                    const ambosTauser = textoPago === "tauser" && textoCobro === "tauser";
+
+                    // Solo sincroniza si ambos tabs activos son "Tauser"
+                    if (ambosTauser) {
+                        const origen = selectEl;
+                        const destino = selectEl === metodoPago ? metodoCobro : metodoPago;
+
+                        const valorSeleccionado = origen.value;
+
+                        // Aplica el mismo valor al otro select si existe esa opción
+                        const match = [...destino.options].find(opt => opt.value === valorSeleccionado);
+                        if (match) {
+                            destino.value = match.value;
+
+                            // (opcional) Efecto visual para notificar cambio
+                            destino.classList.add("highlight-sync");
+                            setTimeout(() => destino.classList.remove("highlight-sync"), 800);
+                        }
+                    }
+
+                    await updateRatesForMetodo();
+                    compute();
+                });
+            });
+        }
+    }
+
+    async function updateRatesForMetodo() {
+        try {
+            // Si no existen los selectores de método de pago o cobro, no hace nada
+            if (!metodoPago || !metodoCobro) return;
+
+            // Función auxiliar: obtiene el tipo general desde el atributo data-* de la opción seleccionada
+            const getTipoGeneral = (select) => {
+                // Obtiene el índice de la opción actualmente seleccionada en el <select>
+                const idx = select.selectedIndex;
+
+                // Si no hay ninguna opción seleccionada (índice < 0), devuelve cadena vacía
+                if (idx < 0) return "";
+
+                // Devuelve el valor del atributo data-tipo-general de la opción seleccionada
+                // Si no existe, devuelve cadena vacía
+                return select.options[idx].dataset.tipoGeneral || "";
+            };
+
+            // Obtiene los IDs (tipoGeneral o value) para pago y cobro
+            const pagoId = getTipoGeneral(metodoPago);
+            const cobroId = getTipoGeneral(metodoCobro);
+
+            // Construye la URL hacia la API de monedas, pasando los IDs como query params
+            const url = `{% url 'api_currencies' %}?tipo_metodo_pago_id=${pagoId}&tipo_metodo_cobro_id=${cobroId}`;
+            
+            // Llama a la API (sin cachear) para obtener las tasas actualizadas
+            const res = await fetch(url, { cache:"no-store" });
+            const payload = await res.json();
+
+            // Extrae los items del JSON, o lista vacía si no existe
+            const items = payload.items || [];
+            const byCode = {};
+
+            // Convierte la lista de items en un diccionario indexado por el código de moneda
+            items.forEach(it => byCode[it.code] = it);
+
+            // Si la API no incluyó PYG, se asegura de añadirlo manualmente con valores neutros
+            if (!byCode["PYG"]) 
+                byCode["PYG"] = { code:"PYG", name:"Guaraní", decimals:0, venta:1.0, compra:1.0 };
+
+            // Ordena los códigos: PYG siempre primero, luego orden alfabético
+            CODES = Object.keys(byCode).sort((a,b)=> 
+                a==="PYG"?-1 : b==="PYG"?1 : a.localeCompare(b)
+            );
+
+            // Actualiza el diccionario global META con la info por cada código
+            CODES.forEach(code => META[code] = byCode[code]);
+
+            // Recalcula inmediatamente la conversión con las tasas nuevas
+            compute();
+
+        } catch(e) {
+            // Si algo falla, loguea el error en consola
+            console.error("Error al actualizar tasas:", e);
+        }
+    }
+
+    async function recargarMetodos(tipo = null) {
+        // Si no existen los selectores de método de pago o cobro, no hace nada
+        if (!metodoPago || !metodoCobro) return;
+
+        try {
+            // Obtiene las referencias de los grupos de botones de tipo general
+            const pagoTabs = document.getElementById("pago-tabs");
+            const cobroTabs = document.getElementById("cobro-tabs");
+
+            // Detecta qué botón está activo en cada grupo
+            const tipoGeneralPago = pagoTabs?.querySelector(".tab-btn.active")?.dataset.tipoGeneral || null;
+            const tipoGeneralCobro = cobroTabs?.querySelector(".tab-btn.active")?.dataset.tipoGeneral || null;
+
+            // Llama a la API que devuelve los métodos disponibles según la conversión seleccionada
+            const res = await fetch(`{% url 'get_metodos_pago_cobro' %}?from=${from.value}&to=${to.value}`);
+            const data = await res.json(); // Parseo del JSON de respuesta
+
+            // 🆕 Opción inicial por defecto
+            const agregarOpcionInicial = (selectEl) => {
+                const opt = document.createElement("option");
+                opt.value = "";
+                opt.textContent = "---Seleccione una opción---";
+                opt.disabled = true;
+                opt.selected = true;
+                selectEl.appendChild(opt);
+            };
+
+            // Función auxiliar para crear un <option> a partir de un item recibido
+            const crearOption = (item) => {
+                const opt = document.createElement("option");
+                opt.value = item.id; // el valor será el id del método
+                opt.dataset.tipoGeneral = item.tipo_general_id || ""; // guarda el tipo general en dataset
+
+                // Según el tipo de método, construye el texto visible en el select
+
+                opt.textContent = item.nombre; // caso por defecto
+
+                // Se guarda también el content_type_id (para identificar modelo origen en backend)
+                opt.dataset.contentTypeId = item.content_type_id || "";
+
+                return opt; // devuelve el <option> ya construido
+            };
+
+            // 🟩 === Filtro y actualización según el tipo recibido ===
+            if (tipo === null || tipo === "pago") {
+                // 🧹 Limpia completamente las opciones actuales del <select> de métodos de pago
+                metodoPago.innerHTML = "";
+
+                // 🔹 Agrega una opción inicial tipo placeholder ("---Seleccione una opción---")
+                agregarOpcionInicial(metodoPago);
+
+                // 🧠 Filtra los métodos de pago según el tipo general activo (botón del tab seleccionado)
+                // Si no hay tipo activo, se incluyen todos los métodos.
+                const metodosPagoFiltrados = data.metodo_pago.filter(
+                    (m) => !tipoGeneralPago || m.tipo_general_id == tipoGeneralPago
+                );
+
+                // 🔧 Crea y agrega cada <option> correspondiente a los métodos filtrados
+                metodosPagoFiltrados.forEach(item => metodoPago.appendChild(crearOption(item)));
+
+                // 🎯 Selecciona la primera opción visible (la inicial)
+                if (metodoPago.options.length) metodoPago.selectedIndex = 0;
+            }
+
+            if (tipo === null || tipo === "cobro") {
+                // 🧹 Limpia las opciones actuales del <select> de métodos de cobro
+                metodoCobro.innerHTML = "";
+
+                // 🔹 Agrega la opción inicial vacía ("---Seleccione una opción---")
+                agregarOpcionInicial(metodoCobro);
+
+                // 🧠 Filtra los métodos de cobro según el tipo general activo (botón del tab seleccionado)
+                // Si no hay tipo activo, se incluyen todos los métodos.
+                const metodosCobroFiltrados = data.metodo_cobro.filter(
+                    (m) => !tipoGeneralCobro || m.tipo_general_id == tipoGeneralCobro
+                );
+
+                // 🔧 Crea y agrega cada <option> correspondiente a los métodos filtrados
+                metodosCobroFiltrados.forEach(item => metodoCobro.appendChild(crearOption(item)));
+
+                // 🎯 Selecciona la primera opción visible (la inicial)
+                if (metodoCobro.options.length) metodoCobro.selectedIndex = 0;
+            }
+
+            // Luego de recargar métodos, actualiza las tasas de cambio
+            await updateRatesForMetodo();
+
+        } catch (error) {
+            // Si algo falla (error de red o API), lo muestra en consola
+            console.error("Error al cargar métodos de pago/cobro:", error);
+        }
+    }
+
+    async function boot() {
+        try {
+            // Construye las opciones de los selectores de monedas
+            // Por defecto: "from" empieza con USD y "to" con PYG
+            buildOptions(from, "USD");
+            buildOptions(to, "PYG");
+
+            // Estado inicial de los botones de filto de los métodos
+            actualizarFiltros();
+
+            // Carga inicialmente las tasas de cambio según los métodos de pago/cobro seleccionados
+            await updateRatesForMetodo();
+
+            // Asegura que origen y destino no sean iguales
+            enforceDifferent(from, to);
+
+            // Calcula inmediatamente la conversión con esos valores iniciales
+            compute();
+        } catch(e) {
+            // Si algo falla (API, construcción de selects, etc.), muestra un error en consola
+            console.error("No se pudieron cargar monedas:", e);
+        }
+
+        // Finalmente, recarga la lista de métodos de pago/cobro disponibles
+        await recargarMetodos();
+    }
+
+    // Cuando el DOM está listo...
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Conecta todos los listeners (inputs, selects, botones)
+        attachListeners();
+
+        // Primero carga los métodos de pago/cobro iniciales desde el backend
+        await recargarMetodos();
+
+        // Filtra los métodos de cobro y pago según el tipo general seleccionado
+        configurarTabsFiltro()
+
+        // Ejecuta el arranque inicial (boot) para dejar todo preparado
+        boot();
+    });
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Conversor del input
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const input = document.getElementById("simu-amount");
+
+        input.addEventListener("input", function (e) {
+            // Eliminar todo lo que no sea dígito
+            let value = e.target.value.replace(/\D/g, "");
+
+            // Formatear con separador de miles
+            if (value) {
+                value = new Intl.NumberFormat("es-ES").format(parseInt(value, 10));
+            }
+
+            e.target.value = value;
+        });
+
+        // Evita pegar texto con caracteres no numéricos
+        input.addEventListener("paste", function (e) {
+            const paste = (e.clipboardData || window.clipboardData).getData("text");
+            if (/\D/.test(paste)) e.preventDefault();
+        });
+    });
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Lógica de comportamiento de los botones de filtro de los selects de métodos de pago y cobro
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Actualiza los botones de filtro de métodos de pago y cobro
+     * según las divisas seleccionadas y el monto ingresado.
+     *
+     * Reglas:
+     * 1. Pago: Si `from` ≠ PYG → solo "Tauser" y "Tarjeta Internacional".
+     * 2. Cobro: Si `to` ≠ PYG → solo "Tauser".
+     * 3. Si `to` = PYG y monto no es múltiplo de 100000 → ocultar "Tauser".
+     */
+    function actualizarFiltros() {
+        const amountEl = document.getElementById("simu-amount");
+        const fromEl = document.getElementById("simu-from");
+        const toEl = document.getElementById("simu-to");
+
+        const amount = parseFloat(amountEl?.value?.replace(/\./g, "")) || 0;
+        const from = fromEl?.value?.trim() || "";
+        const to = toEl?.value?.trim() || "";
+
+        const pagoTabs = document.querySelectorAll("#pago-tabs .tab-btn");
+        const cobroTabs = document.querySelectorAll("#cobro-tabs .tab-btn");
+
+        // === FILTRO DE PAGO ===
+        pagoTabs.forEach((btn) => {
+            const nombre = btn.textContent.trim();
+            const esPYG = from === "PYG";
+            const esTauser = nombre === "Tauser";
+            const permitidoBase = esPYG || ["Tauser", "Tarjeta Internacional"].includes(nombre);
+
+            // 🔹 Regla adicional para Tauser (método de PAGO)
+            // Solo se muestra si el monto termina en 000 (sin decenas, centenas ni unidades)
+            let permitido = permitidoBase;
+            if (esTauser && permitidoBase) {
+                permitido = (amount % 1000 === 0);  // múltiplo de 1000 exacto
+            }
+
+            btn.style.display = permitido ? "" : "none";
+        });
+
+        // === FILTRO DE COBRO ===
+        cobroTabs.forEach((btn) => {
+            const nombre = btn.textContent.trim();
+            const esPYG = to === "PYG";
+            const esTauser = nombre === "Tauser";
+
+            if (!esPYG) {
+                // Solo Tauser cuando to ≠ PYG
+                btn.style.display = esTauser ? "" : "none";
+            } else {
+                // to = PYG → ocultar Tauser si no es múltiplo de 100000
+                const esMultiplo = amount % 100000 === 0;
+                btn.style.display = esTauser && !esMultiplo ? "none" : "";
+            }
+        });
+
+        // Si el botón activo quedó oculto → activar el primero visible
+        [pagoTabs, cobroTabs].forEach((tabList) => {
+            const activo = Array.from(tabList).find((b) => b.classList.contains("active"));
+            if (activo && activo.style.display === "none") {
+                activo.classList.remove("active");
+                const visible = Array.from(tabList).find((b) => b.style.display !== "none");
+                if (visible) visible.classList.add("active");
+            }
+        });
+    }
+
+    function configurarTabsFiltro() {
+        const pagoTabs = document.getElementById("pago-tabs");
+        const cobroTabs = document.getElementById("cobro-tabs");
+        const selectPago = document.getElementById("simu-metodo-pago");
+        const infoTransferencia = document.getElementById("transferencia-info");
+
+        const activar = async (grupo, btn, tipo) => {
+            grupo.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            // 🔹 Si es un botón de pago, controlamos la visibilidad del select y la tarjeta de cuenta
+            if (tipo === "pago") {
+                const nombre = btn.textContent.trim().toLowerCase();
+                const esTransferencia = nombre.includes("transferencia");
+
+                if (esTransferencia) {
+                    // Oculta el select y muestra los datos bancarios
+                    selectPago.classList.add("d-none");
+                    infoTransferencia.classList.remove("d-none");
+                } else {
+                    // Restaura el select normal y oculta los datos bancarios
+                    selectPago.classList.remove("d-none");
+                    infoTransferencia.classList.add("d-none");
+                }
+            }
+
+            await recargarMetodos(tipo);
+            compute();
+        };
+
+        pagoTabs.querySelectorAll(".tab-btn").forEach(btn =>
+            btn.addEventListener("click", () => activar(pagoTabs, btn, "pago"))
+        );
+
+        cobroTabs.querySelectorAll(".tab-btn").forEach(btn =>
+            btn.addEventListener("click", () => activar(cobroTabs, btn, "cobro"))
+        );
+    }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Validaciones para envió de datos correctos al backend a modo de guardar la transacción
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    const hiddenInputs = {
+        tipo: document.getElementById("input-tipo"),
+        moneda_origen: document.getElementById("input-moneda-origen"),
+        moneda_destino: document.getElementById("input-moneda-destino"),
+        tasa_cambio: document.getElementById("input-tasa-cambio"),
+        monto_origen: document.getElementById("input-monto-origen"),
+        monto_destino: document.getElementById("input-monto-destino"),
+        medio_pago_contenttype: document.getElementById("input-medio-pago-contenttype"),
+        medio_cobro_contenttype: document.getElementById("input-medio-cobro-contenttype"),
+        medio_pago_tipo: document.getElementById("input-medio-pago-tipo"),
+        medio_cobro_tipo: document.getElementById("input-medio-cobro-tipo")
+    };
+
+    document.querySelector("form").addEventListener("submit", function (e) {
+        const montoOrigen = parseFloat(
+            (amount.value || "0").replace(/\./g, "").replace(",", ".")
+        );
+
+        if (isNaN(montoOrigen) || montoOrigen <= 0) {
+            e.preventDefault();  // Cancela el submit
+            alert("Debes ingresar un monto válido antes de confirmar la operación");
+            amount.focus();
+            return;
+        }
+
+        // --- Monto destino ---
+        let rawDestino = out.value || "0";
+
+        // Quita todo lo que no sea dígito, coma o punto
+        rawDestino = rawDestino.replace(/[^\d.,-]/g, "");
+
+        // Si hay coma, asumimos formato europeo (coma = decimal)
+        if (rawDestino.includes(",")) {
+            rawDestino = rawDestino.replace(/\./g, "").replace(",", ".");
+        } else {
+            rawDestino = rawDestino.replace(/\./g, "");
+        }
+
+        const montoDestino = parseFloat(rawDestino) || 0;
+
+        const a = from.value, b = to.value;
+
+        hiddenInputs.tipo.value = (a === "PYG" && b !== "PYG") ? "VENTA" : "COMPRA";
+        hiddenInputs.moneda_origen.value = a;
+        hiddenInputs.moneda_destino.value = b;
+        hiddenInputs.monto_origen.value = montoOrigen;
+        hiddenInputs.monto_destino.value = montoDestino;
+
+        if (a === "PYG" && b !== "PYG") {
+            hiddenInputs.tasa_cambio.value = META[b].venta;
+        } else if (a !== "PYG" && b === "PYG") {
+            hiddenInputs.tasa_cambio.value = META[a].compra;
+        }
+
+        if (metodoPago.options.length > 0) {
+            hiddenInputs.medio_pago_contenttype.value = metodoPago.selectedOptions[0].dataset.contentTypeId;
+        }
+        if (metodoCobro.options.length > 0) {
+            hiddenInputs.medio_cobro_contenttype.value = metodoCobro.selectedOptions[0].dataset.contentTypeId;
+        }
+
+        const btnPagoActivo = document.querySelector("#pago-tabs .tab-btn.active");
+        const btnCobroActivo = document.querySelector("#cobro-tabs .tab-btn.active");
+
+        if (btnPagoActivo) {
+            hiddenInputs.medio_pago_tipo.value = btnPagoActivo.dataset.tipoGeneral;
+        }
+        if (btnCobroActivo) {
+            hiddenInputs.medio_cobro_tipo.value = btnCobroActivo.dataset.tipoGeneral;
+        }
+
+        // --- Validar selección ---
+        if (!btnPagoActivo || !btnCobroActivo) {
+            e.preventDefault();
+            alert("Debes seleccionar un método de pago y cobro antes de continuar");
+            return;
+        }
+    });
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Lógica del Wizard
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function mostrarMensaje(texto, tipo="error", duracion=5000) {
+        // Busca el contenedor; si no existe, lo crea y lo agrega al body
+        let container = document.getElementById("toast-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "toast-container";
+            container.style.position = "fixed";
+            container.style.top = "1rem";
+            container.style.right = "1rem";
+            container.style.zIndex = 9999;
+            container.style.display = "flex";
+            container.style.flexDirection = "column";
+            container.style.gap = "0.5rem";
+            document.body.appendChild(container);
+        }
+
+        // Crear el mensaje
+        const msg = document.createElement("div");
+        msg.className = `toast-message ${tipo}`;
+        msg.textContent = texto;
+        msg.style.padding = "0.8rem 1rem";
+        msg.style.borderRadius = "0.5rem";
+        msg.style.color = "#fff";
+        msg.style.backgroundColor = tipo === "error" ? "#e74c3c" : "#2ecc71";
+        msg.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+        msg.style.opacity = 0;
+        msg.style.transition = "opacity 0.3s";
+
+        container.appendChild(msg);
+
+        // Animación de aparición
+        requestAnimationFrame(() => { msg.style.opacity = 1; });
+
+        // Desaparece después de 'duracion' ms
+        setTimeout(() => {
+            msg.style.opacity = 0;
+            msg.addEventListener("transitionend", () => msg.remove());
+        }, duracion);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const step1 = document.getElementById("step-1");
+        const step2 = document.getElementById("step-2");
+        const next = document.getElementById("next-step");
+        const prev = document.getElementById("prev-step");
+
+        const ind1 = document.getElementById("indicator-step1");
+        const ind2 = document.getElementById("indicator-step2");
+
+        next.addEventListener("click", () => {
+            const montoOrigen = parseFloat(
+                (amount.value || "0").replace(/\./g, "").replace(",", ".")
+            );
+
+            const codigoMonedaOrigen = from.value; // Ej: "PYG"
+            const codigoMonedaDestino = to.value;  // Ej: "USD"
+
+            // ⚠️ Solo validar si el usuario tiene PYG como origen
+            if (codigoMonedaOrigen === "PYG" && LIMITES_INTERCAMBIO[codigoMonedaDestino]) {
+                // Tomar monto destino
+                const montoDestinoText = document.getElementById("simu-result-main").value;
+                const montoDestino = parseFloat(
+                    (montoDestinoText || "0").replace(/\./g, "").replace(",", ".")
+                );
+
+                const limiteDia = LIMITES_INTERCAMBIO[codigoMonedaDestino].dia;
+                const limiteMes = LIMITES_INTERCAMBIO[codigoMonedaDestino].mes;
+
+                if (montoDestino > limiteDia) {
+                    return mostrarMensaje(
+                        `El monto en ${codigoMonedaDestino} (${montoDestino.toLocaleString()}) supera el límite diario (${limiteDia.toLocaleString()} ${codigoMonedaDestino}).`,
+                        "error"
+                    );
+                }
+
+                if (montoDestino > limiteMes) {
+                    return mostrarMensaje(
+                        `El monto en ${codigoMonedaDestino} (${montoDestino.toLocaleString()}) supera el límite mensual (${limiteMes.toLocaleString()} ${codigoMonedaDestino}).`,
+                        "error"
+                    );
+                }
+            }
+                    
+            // 🟩 Determina tipo de operación: Venta si es PYG, Compra en otro caso
+            const tipoOperacion = from.value.includes("PYG") ? "Venta" : "Compra";
+
+            // Actualiza los datos de resumen
+            document.getElementById("resumen-tipo").textContent = tipoOperacion;
+
+            document.getElementById("resumen-origen").textContent =
+                `${montoOrigen || "-"} ${from.value || ""}`;
+
+            document.getElementById("resumen-destino").textContent =
+                `${out.value || "-"}`;
+
+            document.getElementById("resumen-cobro").textContent =
+                metodoCobro?.selectedOptions[0]?.text || "-";
+
+            // Detecta tipo general de pago activo
+            const btnActivo = document.querySelector(".tab-btn.active");
+            const tipoGeneral = btnActivo?.textContent?.trim().toLowerCase() || "";
+
+            const esTransferencia = tipoGeneral.includes("transferencia");
+
+            // Si es transferencia, cargar datos de cuenta_negocio
+            if (esTransferencia) {
+                // 🏦 Buscar dentro del bloque visible de transferencia
+                const transferenciaInfo = document.querySelector("#transferencia-info .transferencia-datos");
+                if (transferenciaInfo) {
+                    // Buscar el texto exacto en los <p>
+                    const banco = transferenciaInfo.querySelector("p:nth-child(3)")?.textContent?.replace("Banco:", "").trim() || "";
+                    const cuenta = transferenciaInfo.querySelector("p:nth-child(4)")?.textContent?.replace("Cuenta:", "").trim() || "";
+                    const alias = transferenciaInfo.querySelector("p:nth-child(5)")?.textContent?.replace("Alias:", "").trim() || "";
+
+                    const resumen = `${banco} (${alias}) - ${cuenta}`;
+                    document.getElementById("resumen-pago").textContent = resumen;
+                } else {
+                    document.getElementById("resumen-pago").textContent = "-";
+                }
+            } else {
+                document.getElementById("resumen-pago").textContent =
+                    metodoPago?.selectedOptions[0]?.text || "-";
+            }
+
+            // Validaciones para pasar de pestaña en el wizard
+            if (isNaN(montoOrigen) || montoOrigen <= 0) return mostrarMensaje("Monto inválido.", "error");
+
+            // Solo exige metodoPago si NO es transferencia
+            if (!esTransferencia && metodoPago.value === "")
+                return mostrarMensaje("Selecciona un método de pago.", "error");
+
+            if (metodoCobro.value === "") return mostrarMensaje("Selecciona un método de cobro.", "error");
+
+            // Cambia la vista
+            step1.classList.add("d-none");
+            step2.classList.remove("d-none");
+            ind1.classList.remove("active");
+            ind2.classList.add("active");
+        });
+
+        prev.addEventListener("click", () => {
+            // Volver al paso anterior
+            step2.classList.add("d-none");
+            step1.classList.remove("d-none");
+            ind2.classList.remove("active");
+            ind1.classList.add("active");
+        });
+    });
+
+})();
+
+</script>
+{% endblock %}

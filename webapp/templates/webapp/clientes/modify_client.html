@@ -1,0 +1,182 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Modificar Cliente{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/clientes/modify_client.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="modify-client-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="modify-client-header">
+        <div class="main-content">
+            <a href="{% url 'manage_clientes' %}" class="back-button">← Volver a administrar clientes</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="modify-client-title">Modificar Cliente</h1>
+                    <p class="modify-client-subtitle">Modificar datos de un cliente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Modify Client Section -->
+        <div class="modify-section">
+            <h2 class="section-title">Modificar Cliente</h2>
+            
+            <div class="modify-content">
+                <!-- Client Profile Section - Inside the gradient container -->
+                <div class="client-profile-section">
+                    <div class="client-icon-circle">
+                        <img src="{% static 'webapp/pantalla_administar_clientes/1.Administar_Clientes.png' %}" alt="Client Icon" class="client-profile-icon">
+                    </div>
+                    <div class="client-name-display">{{ client.nombre }}</div>
+                </div>
+                
+                <!-- Form Section -->
+                <div class="form-section">
+                    <form method="post" class="modify-form" id="modify-form">
+                        {% csrf_token %}
+                        
+                        <!-- First Row: Nombre, Razón Social, Dirección -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Nombre</label>
+                                <input type="text" name="nombre" value="{{ client.nombre }}" class="form-input">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Razón Social</label>
+                                <input type="text" name="razon_social" value="{{ client.razonSocial|default:'' }}" class="form-input">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Dirección</label>
+                                <input type="text" name="direccion" value="{{ client.direccion }}" class="form-input">
+                            </div>
+                        </div>
+
+                        <!-- Second Row: Tipo, Documento, RUC -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">Tipo</label>
+                                <div class="select-container">
+                                    <select name="tipo_cliente" class="form-select">
+                                        <option value="persona_fisica" {% if client.tipoCliente == 'persona_fisica' %}selected{% endif %}>Persona Física</option>
+                                        <option value="persona_juridica" {% if client.tipoCliente == 'persona_juridica' %}selected{% endif %}>Persona Jurídica</option>
+                                    </select>
+                                    <div class="select-icon">
+                                        <img src="{% static 'webapp/pantalla_administar_clientes/tick.png' %}" alt="Dropdown">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Documento</label>
+                                <input type="text" name="documento" value="{{ client.documento }}" class="form-input">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">RUC</label>
+                                <input type="text" name="ruc" value="{{ client.ruc|default:'' }}" class="form-input">
+                            </div>
+                        </div>
+
+                        <!-- Third Row: Email, Teléfono, Categoría -->
+                        <div class="form-row">
+                            <div class="form-field email-field">
+                                <label class="field-label">Email</label>
+                                <input type="email" name="correo" value="{{ client.correo }}" class="form-input email-input">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Teléfono</label>
+                                <input type="text" name="telefono" value="{{ client.telefono }}" class="form-input">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">Categoría</label>
+                                <div class="select-container">
+                                    <select name="categoria" class="form-select">
+                                        {% for categoria in categorias %}
+                                        <option value="{{ categoria.id }}" {% if client.categoria.id == categoria.id %}selected{% endif %}>{{ categoria.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="select-icon">
+                                        <img src="{% static 'webapp/pantalla_administar_clientes/tick.png' %}" alt="Dropdown">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fourth Row: Activo -->
+                        <div class="form-row single-field-row">
+                            <div class="form-field">
+                                <label class="field-label">Estado</label>
+                                <div class="status-checkbox">
+                                    <input type="checkbox" name="estado" id="estado" {% if client.estado %}checked{% endif %}>
+                                    <label for="estado" class="checkbox-label">Activo</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Action Buttons - Inside gradient container -->
+                <div class="action-buttons">
+                    <button type="submit" form="modify-form" class="save-button">Guardar</button>
+                    <a href="{% url 'manage_clientes' %}" class="discard-button">Descartar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form submission handling
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.modify-form');
+    const saveButton = document.querySelector('.save-button');
+    
+    saveButton.addEventListener('click', function() {
+        form.submit();
+    });
+});
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

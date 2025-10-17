@@ -1,0 +1,63 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/compraventa/ingresar_pin.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="pin-page-container">
+    <!-- Messages -->
+    {% if mensaje or messages %}
+        {% if mensaje %}
+            <div class="alert alert-error">{{ mensaje }}</div>
+        {% endif %}
+
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+
+        <script>
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(el => el.remove());
+            }, 5000); // desaparecen en 5 segundos
+        </script>
+    {% endif %}
+
+    <h4>Autorización de pago con billetera</h4>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Inputs hidden -->
+        {% for key, value in data.items %}
+            {% if key != 'pin' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+        <input type="hidden" name="from_pin" value="1">
+
+        <!-- Ícono de billetera -->
+        <div class="wallet-icon">
+            <img src="{% static 'webapp/pantalla_autorizar_billetera/autorizar_billetera.png' %}" alt="Wallet Icon">
+        </div>
+
+        <!-- Texto descriptivo -->
+        <p>Se enviará una solicitud de cobro a tu billetera <strong>{{ numero_celular }}</strong>.</p>
+
+        <!-- Formulario de PIN -->
+        <div class="pin-form-wrapper">
+            <label for="pin">Ingresá tu PIN:</label>
+            <input type="password" name="pin" id="pin" maxlength="4" required placeholder="••••">
+
+            <!-- Botones -->
+            <div class="button-container">
+                <button type="submit" name="confirmar" value="1">Confirmar</button>
+                {% if allow_retry %}
+                    <button type="submit" name="cancelar" value="1" formnovalidate>Cancelar</button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

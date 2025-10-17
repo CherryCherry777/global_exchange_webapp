@@ -41,19 +41,33 @@ def porcentaje(value):
 @register.filter
 def format_decimals(value, num_decimals=2):
     """
-    Formatea un número con la cantidad de decimales especificada.
-    Ejemplo: {{ 123.4567|format_decimals:4 }} -> 123.4567
+    Formatea un número con una cantidad de decimales específica y separador de miles.
+    Acepta tanto un número de decimales como una instancia de Currency (para leer decimales_monto).
+    
+    Ejemplos:
+        {{ 1234.5678|format_decimals:4 }}        -> 1.234,5678
+        {{ 1234.5678|format_decimals:moneda }}   -> 1.234,57   (usa moneda.decimales_monto)
     """
-    try:
-        num_decimals = int(num_decimals)
-    except (ValueError, TypeError):
-        num_decimals = 2
-
     if value is None:
         return ""
 
-    format_str = f"{{:.{num_decimals}f}}"
-    return format_str.format(value)
+    # Si se pasa un objeto Currency, usa sus decimales
+    if hasattr(num_decimals, "decimales_monto"):
+        num_decimals = getattr(num_decimals, "decimales_monto", 2)
+    else:
+        try:
+            num_decimals = int(num_decimals)
+        except (ValueError, TypeError):
+            num_decimals = 2
+
+    try:
+        num = float(value)
+    except (ValueError, TypeError):
+        return value
+
+    formatted = f"{num:,.{num_decimals}f}"
+    formatted = formatted.replace(",", "X").replace(".", ",").replace("X", ".")
+    return formatted
 
 @register.filter
 def decimal_step(value):

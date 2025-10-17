@@ -2,6 +2,9 @@ from pathlib import Path
 import environ
 import os
 from django.urls import reverse_lazy
+from celery.schedules import crontab
+#from .celery import app
+from django.conf import settings
 
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -17,6 +20,8 @@ else:
 
 #print("DB_NAME", env("DB_NAME", default="not set"))
 
+SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000')
+
 # Usuario custom
 AUTH_USER_MODEL = 'webapp.CustomUser'
 
@@ -31,6 +36,7 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 DEFAULT_FROM_EMAIL = "Global Exchange <noreply@mailtrap.io>"
+SUPPORT_EMAIL = "soporte@tuempresa.com"
 
 
 # Seguridad
@@ -102,20 +108,72 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internacionalización
 LANGUAGE_CODE = 'es'
-TIME_ZONE = 'UTC'
+#TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
 # Archivos estáticos
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-#el archivo statics no se encuentra en la raíz del directorio del proyecto. 
-#comento para que pueda configurar los test, ya que esta línea hace que busque en la raíz, pero esta en otra carpeta
-#STATICFILES_DIRS = [BASE_DIR / "static"]
-
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'webapp/static'),
+]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+#Para activar/desactivar MFA en login
+MFA_LOGIN = env.bool('MFA_LOGIN', default=True)
+
+#Para activar/desactivar el envio de correo de tasas al hacer login
+CORREO_TASAS_LOGIN = env.bool('CORREO_TASAS_LOGIN', default=True)
+
+#Stripe
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+
+# Use timezone-aware datetimes
+USE_TZ = True
+TIME_ZONE = 'America/Asuncion'
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'America/Asuncion'
+CELERY_ENABLE_UTC = True  # recommended
+
+CELERY_BEAT_SCHEDULE = {
+    "check_exchange_email_schedule": {
+        "task": "webapp.tasks.check_and_send_exchange_rates",
+        "schedule": 60.0,  # cada 60 segundos
+    },
+    "cancelar_transacciones_vencidas_cada_2min": {
+        "task": "webapp.tasks.cancelar_transacciones_vencidas",
+        "schedule": crontab(minute="*/2"),  # cada 2 minutos
+    },
+    "limpiar_codigos_mfa_cada_hora": {
+        "task": "webapp.tasks.cleanup_expired_mfa_codes",
+        "schedule": crontab(minute=0, hour="*/1"),  # cada hora
+    },
+}
+
+"""
+Nota: ejecutar estos comandos en la terminal de linux para  que funcionen los correos temporizados
+sudo apt install redis-server
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
+
+Y para empezar celery (el handler para tareas temporizadas)
+celery -A web_project worker -l info #En una terminal separada de manage.py
+celery -A web_project beat -l info #En OTRA terminal aparte de la del worker
+
+todos los cambios en las configuraciones de django requieren matar los procesos celery y reiniciar
+pkill -f 'celery'
+
+"""

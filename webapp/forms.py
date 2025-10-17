@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, Tarjeta, Billetera, CuentaBancaria, TarjetaCobro, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
+from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, TarjetaInternacional, TarjetaNacional, Billetera, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
@@ -305,7 +305,7 @@ class MonedaDisabledMixin:
 # ===========================================
 # FORMULARIOS PARA MEDIOS DE PAGO
 # ===========================================
-class TarjetaForm(forms.ModelForm):
+class TarjetaNacionalForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
         queryset=Entidad.objects.filter(tipo="banco", activo=True),
         label="Banco Emisor",
@@ -313,7 +313,7 @@ class TarjetaForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Tarjeta
+        model = TarjetaNacional
         fields = ['numero_tokenizado', 'entidad', 'fecha_vencimiento', 'ultimos_digitos']
         widgets = {
             'numero_tokenizado': forms.TextInput(attrs={'class': 'form-control'}),
@@ -326,6 +326,15 @@ class TarjetaForm(forms.ModelForm):
         if ultimos_digitos and (not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4):
             raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
         return ultimos_digitos
+
+class TarjetaInternacionalForm(forms.ModelForm):
+    class Meta:
+        model = TarjetaInternacional
+        fields = []  # No se editan manualmente campos
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ""
 
 """
 class BilleteraForm(forms.ModelForm):
@@ -377,6 +386,7 @@ class BilleteraForm(forms.ModelForm):
             raise ValidationError("El número de celular debe contener entre 8 y 15 dígitos.")
         return numero_celular
 
+# Dejo esto porque CuentaBancariaCobroForm depende de esto
 class CuentaBancariaForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
         queryset=Entidad.objects.filter(tipo="banco", activo=True),
@@ -398,6 +408,21 @@ class MedioPagoForm(forms.ModelForm):
         model = MedioPago
         fields = ['nombre', 'moneda']
 
+    def __init__(self, *args, **kwargs):
+        # Extrae tipo si viene en kwargs, sino None
+        self.tipo = kwargs.pop('tipo', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        moneda = cleaned_data.get("moneda") or getattr(self.instance, "moneda", None)
+
+        if self.tipo != "tarjeta_internacional" and not moneda:
+            raise forms.ValidationError("Debe seleccionar una moneda para este tipo de medio de pago.")
+        
+        return cleaned_data
+        
+
 
 class TipoPagoForm(forms.ModelForm):
     class Meta:
@@ -411,9 +436,9 @@ class TipoPagoForm(forms.ModelForm):
 # ===========================================
 # FORMULARIOS PARA MEDIOS DE COBRO
 # ===========================================
-class TarjetaCobroForm(TarjetaForm):
+"""class TarjetaCobroForm(TarjetaForm):
     class Meta(TarjetaForm.Meta):
-        model = TarjetaCobro
+        model = TarjetaCobro"""
 
 
 class BilleteraCobroForm(BilleteraForm):
@@ -429,7 +454,7 @@ class CuentaBancariaCobroForm(CuentaBancariaForm):
 class MedioCobroForm(forms.ModelForm):
     class Meta:
         model = MedioCobro
-        fields = ['nombre', 'moneda']
+        fields = ['nombre']
 
 
 class TipoCobroForm(forms.ModelForm):
@@ -466,7 +491,7 @@ class TransaccionForm(forms.ModelForm):
 # -------------------------
 # Edit forms - MÉTODOS DE COBRO
 # -------------------------
-class TarjetaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+"""class TarjetaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
     entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
                                      label="Banco Emisor",
                                      widget=forms.Select(attrs={'class': 'form-control'}))
@@ -488,7 +513,7 @@ class TarjetaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
         if not ultimos_digitos.isdigit() or len(ultimos_digitos) != 4:
             raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
         return ultimos_digitos
-
+"""
 
 class BilleteraCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
     entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
@@ -530,11 +555,6 @@ class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
         self.fields['alias_cbu'].widget.attrs.update({'class': 'form-control'})
 
 
-class MedioCobroForm(forms.ModelForm):
-    class Meta:
-        model = MedioCobro
-        fields = ['nombre', 'moneda']
-
 
 class TipoCobroForm(forms.ModelForm):
     class Meta:
@@ -554,7 +574,7 @@ class TarjetaEditForm(MonedaDisabledMixin, forms.ModelForm):
                                      widget=forms.Select(attrs={'class': 'form-control'}))
 
     class Meta:
-        model = Tarjeta
+        model = TarjetaNacional
         fields = ['numero_tokenizado', 'entidad', 'fecha_vencimiento', 'ultimos_digitos']
 
     def __init__(self, *args, **kwargs):
@@ -619,7 +639,7 @@ class CuentaBancariaEditForm(MonedaDisabledMixin, forms.ModelForm):
 # -------------------------
 # Edit forms - MÉTODOS DE COBRO
 # -------------------------
-class TarjetaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
+"""class TarjetaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
     entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
                                      label="Banco Emisor",
                                      widget=forms.Select(attrs={'class': 'form-control'}))
@@ -642,7 +662,7 @@ class TarjetaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
             raise ValidationError("Debe ingresar exactamente 4 dígitos numéricos.")
         return ultimos_digitos
 
-
+"""
 class BilleteraCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
     entidad = forms.ModelChoiceField(queryset=Entidad.objects.none(),
                                      label="Proveedor",

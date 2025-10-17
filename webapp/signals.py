@@ -4,9 +4,10 @@ from django.db.models.signals import post_migrate, post_save
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
-from .models import Billetera, Entidad, Role, MedioPago, TipoPago
+from .models import Currency, Entidad, LimiteIntercambio, MedioCobro, Role, MedioPago, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
+from django.db import transaction
 
 
 User = get_user_model()
@@ -75,7 +76,7 @@ def create_default_payment_types(sender, **kwargs):
     defaults = {"activo": True, "comision": 0.0}
     
     # Lista de tipos de pago fijos
-    tipos = ["Billetera", "Cuenta Bancaria", "Tauser"]
+    tipos = ["Billetera", "Cuenta Bancaria", "Tauser", "Tarjeta Nacional", "Tarjeta Internacional"]
     
     for nombre in tipos:
         TipoPago.objects.get_or_create(nombre=nombre, defaults=defaults)
@@ -83,7 +84,8 @@ def create_default_payment_types(sender, **kwargs):
 @receiver(post_save, sender=MedioPago)
 def asignar_tipo_pago(sender, instance, created, **kwargs):
     if created and not instance.tipo_pago:
-        tipo_pago, _ = TipoPago.objects.get_or_create(nombre=instance.tipo.capitalize())
+        nombre_tipo_pago = " ".join([palabra.capitalize() for palabra in instance.tipo.split("_")])
+        tipo_pago, _ = TipoPago.objects.get_or_create(nombre=nombre_tipo_pago)
         instance.tipo_pago = tipo_pago
         instance.save()
 
@@ -131,11 +133,10 @@ def sync_medios_pago(sender, instance, **kwargs):
     # Sincroniza el estado de todos los MedioPago vinculados
     MedioPago.objects.filter(tipo_pago=instance).update(activo=instance.activo)
 
-
-# signals.py
-from django.db.models.signals import post_migrate
-from django.dispatch import receiver
-from .models import Currency
+@receiver(post_save, sender=TipoCobro)
+def sync_medios_cobro(sender, instance, **kwargs):
+    # Sincroniza el estado de todos los MedioPago vinculados
+    MedioCobro.objects.filter(tipo_cobro=instance).update(activo=instance.activo)
 
 @receiver(post_migrate)
 def create_default_currency(sender, **kwargs):
@@ -167,7 +168,7 @@ def create_default_cobro_types(sender, **kwargs):
     defaults = {"activo": True, "comision": 0.0}
     
     # Lista de tipos de pago fijos
-    tipos = ["Billetera", "Cuenta Bancaria", "Tarjeta", "Tauser"]
+    tipos = ["Billetera", "Cuenta Bancaria", "Tauser"]
     
     for nombre in tipos:
         TipoCobro.objects.get_or_create(nombre=nombre, defaults=defaults)
@@ -200,3 +201,69 @@ def crear_entidades_genericas(sender, **kwargs):
 
     for nombre in billeteras:
         Entidad.objects.get_or_create(nombre=nombre, defaults={"tipo": "telefono", "activo": True})
+
+@receiver(post_migrate)
+def asignar_tipos_tauser(sender, **kwargs):
+    Tauser = apps.get_model("webapp", "Tauser")
+    TipoPago = apps.get_model("webapp", "TipoPago")
+    TipoCobro = apps.get_model("webapp", "TipoCobro")
+
+    # Obtener los tipos "Tauser" existentes
+    tipo_pago = TipoPago.objects.filter(nombre__icontains="tauser", activo=True).first()
+    tipo_cobro = TipoCobro.objects.filter(nombre__icontains="tauser", activo=True).first()
+
+    if not tipo_pago or not tipo_cobro:
+        # Si no existen, no hacemos nada
+        return
+
+    # Actualizar solo los Tauser que aún no tienen asignado el tipo
+    Tauser.objects.filter(tipo_pago__isnull=True).update(tipo_pago=tipo_pago)
+    Tauser.objects.filter(tipo_cobro__isnull=True).update(tipo_cobro=tipo_cobro)
+
+@receiver(post_migrate)
+def crear_cuenta_bancaria_negocio(sender, **kwargs):
+    """
+    Crea una cuenta bancaria por defecto para el negocio
+    solo si no existe aún, y después de que la moneda PYG esté disponible.
+    """
+    if sender.name != "webapp":
+        return
+
+    # Usamos transaction.on_commit para asegurar que se ejecute
+    # después de todas las migraciones y commits
+    def crear_si_corresponde():
+        try:
+            moneda = Currency.objects.filter(code="PYG").first()
+            if not moneda:
+                print("⚠️ No se creó la cuenta bancaria del negocio porque la moneda PYG aún no existe.")
+                return
+
+            banco, _ = Entidad.objects.get_or_create(
+                nombre="Banco Continental",
+                tipo="banco",
+            )
+
+            cuenta_existente = CuentaBancariaNegocio.objects.first()
+            if cuenta_existente:
+                print("ℹ️ Ya existe una cuenta bancaria del negocio, no se creó otra.")
+                return
+
+            CuentaBancariaNegocio.objects.create(
+                numero_cuenta="000100000001",
+                alias_cbu="CUENTA_NEGOCIO_DEFECTO",
+                entidad=banco,
+                moneda=moneda,
+            )
+            print("✅ Se creó la cuenta bancaria del negocio por defecto.")
+
+        except Exception as e:
+            print(f"❌ Error al crear cuenta bancaria del negocio: {e}")
+
+    transaction.on_commit(crear_si_corresponde)
+
+@receiver(post_save, sender=Transaccion)
+def actualizar_limite_post_transaccion(sender, instance, **kwargs):
+    if instance.estado in [Transaccion.Estado.PAGADA, Transaccion.Estado.COMPLETA] and instance.moneda_origen.code == "PYG":
+        limite = LimiteIntercambio.objects.filter(moneda=instance.moneda_destino).first()
+        if limite:
+            limite.descontar(instance.monto_destino)

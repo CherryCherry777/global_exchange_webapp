@@ -38,7 +38,7 @@ class CurrencyTests(TestCase):
         """Prueba la vista de gestión de monedas"""
         self.client.login(username='admin', password='testpass123')
         
-        response = self.client.get(reverse('currency_list'))
+        response = self.client.get(reverse('manage_currencies'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Dólar Americano')
 

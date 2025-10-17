@@ -1,0 +1,252 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Administrar Roles de Usuario{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/usuarios/manage_user_roles.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="manage-user-roles-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="manage-user-roles-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-user-roles-title">Administrar Roles de Usuario</h1>
+                    <p class="manage-user-roles-subtitle">Añadir/eliminar rol asociado a un usuario</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Usuarios</div>
+                        <div class="metric-number">{{ total_users }}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Roles</div>
+                        <div class="metric-number">{{ total_roles }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Users List Container -->
+        <div class="users-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de Usuarios con sus roles</h2>
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar Usuario" id="searchInput">
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="users-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Roles Asignados</th>
+                            <th>Añadir Rol</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr class="user-row">
+                            <td>
+                                <div class="user-info">
+                                    <div class="user-icon">
+                                        <img src="{% static 'webapp/pantalla_administar_usuarios/1.Administar_Usuarios.png' %}" alt="Usuario">
+                                    </div>
+                                    <span class="username">{{ user.username }}</span>
+                                </div>
+                            </td>
+                            <td class="roles-cell">
+                                <div class="roles-list" data-user-id="{{ user.id }}">
+                                    {% for group in user.groups.all %}
+                                    <div class="role-item">
+                                        <span class="role-x" onclick="removeRoleFromUser({{ user.id }}, '{{ group.name }}')">×</span>
+                                        <span class="role-name">{{ group.name }}</span>
+                                    </div>
+                                    {% empty %}
+                                    <div class="no-roles">Sin roles asignados</div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="add-role-cell">
+                                <div class="add-role-container">
+                                    <div class="role-select-container">
+                                        <select class="role-select" id="roleSelect{{ user.id }}">
+                                            <option value="">Seleccionar rol...</option>
+                                            {% for role in all_roles %}
+                                                {% if role not in user.groups.all %}
+                                                <option value="{{ role.id }}">{{ role.name }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <div class="select-icon">
+                                            <img src="{% static 'webapp/pantalla_roles_de_usuario/tick.png' %}" alt="Dropdown">
+                                        </div>
+                                    </div>
+                                    <button class="add-role-button" onclick="addRoleToUser({{ user.id }})">Añadir Rol</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll('.users-table tbody .user-row');
+
+    rows.forEach(row => {
+        let username = row.querySelector('.username').textContent.toLowerCase();
+
+        if (username.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Function to add role to user
+function addRoleToUser(userId) {
+    const roleSelect = document.getElementById(`roleSelect${userId}`);
+    const roleId = roleSelect.value;
+    
+    if (!roleId) {
+        alert('Por favor selecciona un rol para añadir.');
+        return;
+    }
+    
+    // Create a form to submit the request
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "manage_user_roles" %}';
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Add action data
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'add_role';
+    form.appendChild(actionInput);
+    
+    const userInput = document.createElement('input');
+    userInput.type = 'hidden';
+    userInput.name = 'user_id';
+    userInput.value = userId;
+    form.appendChild(userInput);
+    
+    const roleInput = document.createElement('input');
+    roleInput.type = 'hidden';
+    roleInput.name = 'role_id';
+    roleInput.value = roleId;
+    form.appendChild(roleInput);
+    
+    // Submit form
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Function to remove role from user
+function removeRoleFromUser(userId, roleName) {
+    if (confirm(`¿Estás seguro de que quieres quitar el rol "${roleName}" de este usuario?`)) {
+        // Create a form to submit the request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "manage_user_roles" %}';
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Add action data
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'remove_role';
+        form.appendChild(actionInput);
+        
+        const userInput = document.createElement('input');
+        userInput.type = 'hidden';
+        userInput.name = 'user_id';
+        userInput.value = userId;
+        form.appendChild(userInput);
+        
+        const roleInput = document.createElement('input');
+        roleInput.type = 'hidden';
+        roleInput.name = 'role_name';
+        roleInput.value = roleName;
+        form.appendChild(roleInput);
+        
+        // Submit form
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

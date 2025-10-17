@@ -1,0 +1,4 @@
+<p>Hola {{ user.get_full_name|default:user.username }},</p>
+<p>Ingresa el código de autenticación para ingresar a tu cuenta en <strong>{{ project_name }}</strong>:</p>
+<p>Tu código es: <b>{{ code }}</b></p>
+<p>Si no intentaste ingresar, ignora este mensaje.</p>

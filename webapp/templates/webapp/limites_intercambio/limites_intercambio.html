@@ -1,0 +1,93 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Administrar Límites de Intercambio{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/limites/limites_intercambio.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="limites-container">
+    <!-- Header Section -->
+    <div class="limites-header">
+        <a href="{% url 'landing' %}" class="back-button">
+            ← Volver al Panel
+        </a>
+        <h1 class="limites-title">Administrar Límites de Intercambio</h1>
+        <p class="limites-subtitle">Administra los límites de intercambio del sistema</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="limites-content">
+        <!-- List Container -->
+        <div class="limites-list-container">
+            <h2 class="limites-list-title">Lista de Límites de Intercambio</h2>
+            
+            <!-- Search Container -->
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Buscar límites de Intercambio" id="searchInput">
+            </div>
+
+            <!-- Table Container -->
+            <div class="limites-table-container">
+                <table class="limites-table">
+                    <thead>
+                        <tr>
+                            <th>Moneda</th>
+                            <th>Límite Diario</th>
+                            <th>Límite Mensual</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fila in tabla %}
+                        <tr class="limite-row" data-currency="{{ fila.moneda.name|lower }}">
+                            <td class="currency-cell">
+                                {% if fila.moneda.flag_image %}
+                                    <img src="{{ fila.moneda.flag_image.url }}" 
+                                         alt="{{ fila.moneda.name }}" 
+                                         class="currency-flag">
+                                {% else %}
+                                    <div class="currency-flag-placeholder"></div>
+                                {% endif %}
+                                <span class="currency-name">{{ fila.moneda.name }}</span>
+                            </td>
+                            {% with dec=fila.moneda.decimales_cotizacion %}
+                                <td class="limit-value">{{ fila.limite_dia|floatformat:dec }}</td>
+                                <td class="limit-value">{{ fila.limite_mes|floatformat:dec }}</td>
+                            {% endwith %}
+                            <td class="actions-cell">
+                                <a href="{% url 'limite_edit' fila.moneda.id %}" class="modify-button">
+                                    Modificar
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const rows = document.querySelectorAll('.limite-row');
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        rows.forEach(row => {
+            const currencyName = row.getAttribute('data-currency');
+            if (currencyName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

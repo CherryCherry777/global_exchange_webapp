@@ -1,0 +1,1000 @@
+/* ===========================================
+   TRANSACTIONS PAGE STYLES
+   =========================================== */
+
+/* Main Container */
+body {
+    background: #000000;
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Header Section */
+.transactions-header {
+    background: linear-gradient(90deg, #000000 0%, #100724 50%, #000000 100%);
+    width: 100%;
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Back Button */
+.back-button {
+    width: 188px;
+    height: 48px;
+    background: rgba(238, 233, 210, 0.1);
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Title and Subtitle */
+.transactions-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+}
+
+.transactions-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    margin: 0;
+}
+
+/* Main Content */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Transactions List Container */
+.transactions-list-container {
+    background: rgba(238, 233, 210, 0.1);
+    border-radius: 15px;
+    padding: 22px;
+}
+
+/* List Header */
+.transactions-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.list-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+}
+
+/* Transactions Table */
+.transactions-table-container {
+    overflow-x: auto;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+    table-layout: auto;
+    min-width: 100%;
+}
+
+.transactions-table thead th {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    padding: 20px 8px;
+    text-align: center;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    height: 50px;
+    vertical-align: middle;
+}
+
+.transactions-table tbody td {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    font-style: italic;
+    color: #ffffff;
+    padding: 35px 8px;
+
+    height: 50px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* Column widths - 6 columns */
+.transactions-table th:nth-child(1),
+.transactions-table td:nth-child(1) {
+    width: 15%;
+}
+
+.transactions-table th:nth-child(2),
+.transactions-table td:nth-child(2) {
+    width: 15%;
+}
+
+.transactions-table th:nth-child(3),
+.transactions-table td:nth-child(3) {
+    width: 15%;
+}
+
+.transactions-table th:nth-child(4),
+.transactions-table td:nth-child(4) {
+    width: 15%;
+}
+
+.transactions-table th:nth-child(5),
+.transactions-table td:nth-child(5) {
+    width: 15%;
+}
+
+.transactions-table th:nth-child(6),
+.transactions-table td:nth-child(6) {
+    width: 100%;
+    text-align: center;
+}
+
+/* Estado column centering (column 2) */
+.transactions-table th:nth-child(2),
+.transactions-table td:nth-child(2) {
+    text-align: center;
+}
+
+/* Status Indicators */
+.status-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.status-indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #666666; /* Color por defecto */
+}
+
+.status-indicator.completa {
+    background: linear-gradient(180deg, #00b341 0%, #006b1f 100%);
+}
+
+.status-indicator.pagada {
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
+}
+
+.status-indicator.pendiente {
+    background: linear-gradient(180deg, #909090 0%, #535353 100%);
+}
+
+.status-indicator.cancelada,
+.status-indicator.anulada {
+    background: #ff0000;
+}
+
+/* Action Buttons */
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-button {
+    border: none;
+    border-radius: 20px;
+    padding: 6px 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 70px;
+    white-space: nowrap;
+}
+
+/* Ver Datos Button */
+.view-data-btn {
+    background: linear-gradient(90deg, #796503 0%, #D2AF00 50%, #E7CB3D 100%);
+}
+
+.view-data-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(231, 203, 61, 0.3);
+}
+
+/* Cancelar Button */
+.cancel-btn {
+    background: linear-gradient(180deg, #C3C3C3 0%, #828281 20%, #2F2F2F 94%);
+}
+
+.cancel-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(195, 195, 195, 0.3);
+}
+
+/* Anular Button */
+.anular-btn {
+    background: linear-gradient(180deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+}
+
+.anular-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
+}
+
+/* Enlaces con apariencia de botón */
+.action-button,
+.action-button:link,
+.action-button:visited {
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+/* Ingresar ID de Transacción */
+.ingresar-id-btn {
+    background: linear-gradient(90deg, #08052A 0%, #381194 50%, #6B5CF5 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 70px;
+    white-space: nowrap;
+}
+
+.ingresar-id-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(107, 92, 245, 0.4);
+    background: linear-gradient(90deg, #100B3C 0%, #5B15C2 50%, #8E7CFF 100%);
+}
+
+
+/* Search Container */
+.search-container {
+    position: relative;
+}
+
+.search-input {
+    background: rgba(238, 233, 210, 0.1);
+    border: none;
+    border-radius: 15px;
+    padding: 9px 15px;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    font-style: italic;
+    width: 188px;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: #ffffff;
+    opacity: 0.7;
+}
+
+/* No Transactions Message */
+.no-transactions {
+    text-align: center;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .transactions-header {
+        padding: 20px 0;
+    }
+    
+    .header-content {
+        padding: 0 15px;
+    }
+    
+    .back-button {
+        width: 200px;
+        height: 50px;
+        font-size: 14px;
+    }
+    
+    .transactions-title {
+        font-size: 24px;
+    }
+    
+    .transactions-subtitle {
+        font-size: 16px;
+    }
+    
+    .main-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .transactions-list-container {
+        padding: 20px;
+    }
+    
+    .list-title {
+        font-size: 24px;
+    }
+    
+    .transactions-list-header {
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+    }
+    
+    .search-container {
+        width: 100%;
+    }
+    
+    .transactions-table thead th,
+    .transactions-table tbody td {
+        font-size: 16px;
+        padding: 15px 10px;
+    }
+    
+    .action-button {
+        font-size: 14px;
+        padding: 6px 12px;
+        min-width: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .transactions-title {
+        font-size: 20px;
+    }
+    
+    .transactions-subtitle {
+        font-size: 14px;
+    }
+    
+    .list-title {
+        font-size: 20px;
+    }
+    
+    .transactions-table thead th,
+    .transactions-table tbody td {
+        font-size: 14px;
+        padding: 12px 8px;
+    }
+    
+    .actions-cell {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .action-button {
+        width: 100%;
+        font-size: 12px;
+    }
+}
+
+/* ===========================================
+   MODAL STYLES
+   =========================================== */
+
+/* Modal Overlay */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Container */
+.modal-container {
+    width: 750px;
+    height: 600px;
+    background: #36342F;
+    border-radius: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Modal Header */
+.modal-header {
+    position: relative;
+    padding: 20px 30px 15px 30px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+/* Modal Logo */
+.modal-logo {
+    width: 70px;
+    height: 42px;
+    object-fit: contain;
+}
+
+/* Modal Title */
+.modal-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    margin: 0;
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    transform: translateX(-50%);
+}
+
+/* Modal Separator */
+.modal-separator {
+    width: 690px;
+    height: 1px;
+    background: #8D8D8D;
+    margin: 0 auto 10px auto;
+}
+
+/* Modal Content */
+.modal-content {
+    flex: 1;
+    padding: 0 30px 20px 30px;
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar for Modal */
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: #2A2824;
+    border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #8D8D8D 0%, #757575 50%, #5A5A5A 100%);
+    border-radius: 4px;
+    border: 1px solid #36342F;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #A0A0A0 0%, #8D8D8D 50%, #6B6B6B 100%);
+}
+
+/* Firefox scrollbar */
+.modal-content {
+    scrollbar-width: thin;
+    scrollbar-color: #8D8D8D #2A2824;
+}
+
+/* ===========================================
+   INFORMATION SECTION STYLES
+   =========================================== */
+
+/* Info Section */
+.info-section {
+    margin-bottom: 12px;
+}
+
+/* Section Title */
+.section-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 800; /* ExtraBold */
+    color: #ffffff;
+    text-align: center;
+    margin: 8px 0 12px 0;
+}
+
+/* Info Grid Layout */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 80px;
+    gap: 6px;
+    align-items: start;
+}
+
+/* Info Columns */
+.info-left,
+.info-center {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-right {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* Info Items */
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Info Labels */
+.info-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500; /* Medium */
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+/* Info Values */
+.info-value {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 300; /* Light */
+    font-style: italic;
+    color: #ffffff;
+}
+
+/* Status Box */
+.status-box {
+    width: 80px;
+    height: 60px;
+    background: #36342F;
+    border: 1px solid #757575;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    padding: 4px;
+}
+
+/* Status Label */
+.status-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500; /* Medium */
+    color: #ffffff;
+    text-align: center;
+}
+
+/* Status Value */
+.status-value {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 300; /* Light */
+    font-style: italic;
+    color: #ffffff;
+    text-align: center;
+}
+
+/* Section Separator */
+.section-separator {
+    width: 690px;
+    height: 1px;
+    background: #8D8D8D;
+    margin: 8px auto 0 auto;
+}
+
+/* ===========================================
+   EXCHANGE OPERATION STYLES
+   =========================================== */
+
+/* Exchange Grid Layout */
+.exchange-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    align-items: start;
+}
+
+/* Exchange Columns */
+.exchange-left,
+.exchange-right {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Exchange Items */
+.exchange-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Exchange Labels */
+.exchange-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500; /* Medium */
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+/* Exchange Values */
+.exchange-value {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 300; /* Light */
+    font-style: italic;
+    color: #ffffff;
+}
+
+/* Currency Info Container */
+.currency-info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Currency Flag */
+.currency-flag {
+    width: 20px;
+    height: 15px;
+    object-fit: cover;
+    border-radius: 2px;
+    display: block; /* Asegurar que se muestre por defecto */
+}
+
+/* Ocultar bandera cuando no existe */
+.currency-flag[style*="display: none"] {
+    display: none !important;
+}
+
+/* Responsive Modal */
+@media (max-width: 800px) {
+    .modal-container {
+        width: 90%;
+        height: 90%;
+        max-width: 750px;
+        max-height: 700px;
+    }
+    
+    .modal-separator {
+        width: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-container {
+        width: 95%;
+        height: 95%;
+    }
+    
+    .modal-header {
+        padding: 20px 20px 15px 20px;
+    }
+    
+    .modal-logo {
+        width: 70px;
+        height: 42px;
+    }
+    
+    .modal-title {
+        font-size: 18px;
+        top: 20px;
+    }
+    
+    .modal-separator {
+        width: 95%;
+        margin-bottom: 20px;
+    }
+    
+    .modal-content {
+        padding: 0 20px 20px 20px;
+    }
+    
+    /* Responsive Info Section */
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .info-right {
+        justify-content: flex-start;
+    }
+    
+    .status-box {
+        width: 80px;
+        height: 65px;
+    }
+    
+    .section-separator {
+        width: 95%;
+    }
+    
+    /* Responsive Exchange Section */
+    .exchange-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .currency-flag {
+        width: 18px;
+        height: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-container {
+        width: 98%;
+        height: 98%;
+    }
+    
+    .modal-header {
+        padding: 15px 15px 10px 15px;
+    }
+    
+    .modal-logo {
+        width: 60px;
+        height: 36px;
+    }
+    
+    .modal-title {
+        font-size: 16px;
+        top: 15px;
+    }
+    
+    .modal-separator {
+        width: 98%;
+        margin-bottom: 15px;
+    }
+    
+    .modal-content {
+        padding: 0 15px 15px 15px;
+    }
+    
+    /* Responsive Info Section - Mobile */
+    .section-title {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+    
+    .info-label,
+    .info-value {
+        font-size: 14px;
+    }
+    
+    .status-box {
+        width: 75px;
+        height: 60px;
+    }
+    
+    .status-label,
+    .status-value {
+        font-size: 14px;
+    }
+    
+    .section-separator {
+        width: 98%;
+    }
+    
+    /* Responsive Exchange Section - Mobile */
+    .exchange-label,
+    .exchange-value {
+        font-size: 13px;
+    }
+    
+    .currency-flag {
+        width: 16px;
+        height: 12px;
+    }
+}
+
+/* ===========================================
+   PAYMENT AND COLLECTION STYLES
+   =========================================== */
+
+/* Payment Grid Layout */
+.payment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    align-items: start;
+}
+
+/* Payment Items */
+.payment-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Payment Labels */
+.payment-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500; /* Medium */
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+/* Payment Values */
+.payment-value {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 300; /* Light */
+    font-style: italic;
+    color: #ffffff;
+}
+
+/* ===========================================
+   BILLING STYLES
+   =========================================== */
+
+/* Billing Grid Layout */
+.billing-grid {
+    display: grid;
+    grid-template-columns: 1fr 80px;
+    gap: 6px;
+    align-items: start;
+}
+
+/* Billing Columns */
+.billing-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.billing-right {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* Billing Items */
+.billing-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Billing Labels */
+.billing-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500; /* Medium */
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+/* Billing Values */
+.billing-value {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 300; /* Light */
+    font-style: italic;
+    color: #ffffff;
+}
+
+/* Billing Status Box */
+.billing-status-box {
+    width: 80px;
+    height: 60px;
+    background: #36342F;
+    border: 1px solid #757575;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    padding: 4px;
+}
+
+/* Billing Status Label */
+.billing-status-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500; /* Medium */
+    color: #ffffff;
+    text-align: center;
+}
+
+/* Billing Status Value */
+.billing-status-value {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 300; /* Light */
+    font-style: italic;
+    color: #ffffff;
+    text-align: center;
+}
+
+/* ===========================================
+   AUDIT AND CONTROL STYLES
+   =========================================== */
+
+/* Audit Grid Layout */
+.audit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    align-items: start;
+}
+
+/* Audit Columns */
+.audit-left,
+.audit-right {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Audit Items */
+.audit-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Audit Labels */
+.audit-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500; /* Medium */
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+/* Audit Values */
+.audit-value {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 300; /* Light */
+    font-style: italic;
+    color: #ffffff;
+}

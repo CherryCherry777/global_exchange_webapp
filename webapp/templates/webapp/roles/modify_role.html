@@ -1,0 +1,447 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% load permission_tags %}
+{% block title %}Modificar Rol{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/roles/modify_role.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="modify-role-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <!-- Header Section -->
+    <div class="modify-role-header">
+        <div class="main-content">
+            <a href="{% url 'manage_roles' %}" class="back-button">← Volver a administrar roles</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="modify-role-title">Modificar Rol</h1>
+                    <p class="modify-role-subtitle">Modificar datos de un rol</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Modify Role Section -->
+        <div class="modify-section">
+            <h2 class="section-title">Modificar Rol</h2>
+            
+            <div class="modify-content">
+                <!-- Role Profile Section - Inside the gradient container -->
+                <div class="role-profile-section">
+                    <div class="role-icon-circle">
+                        <img src="{% static 'webapp/pantalla_roles/2.Administrar_Roles.png' %}" alt="Role Icon" class="role-profile-icon">
+                    </div>
+                    <div class="role-name-display">{{ role.name }}</div>
+                </div>
+                
+                <!-- Form Section -->
+                <div class="form-section">
+                    <form method="post" class="modify-form" id="modify-form">
+                        {% csrf_token %}
+                        
+                        <!-- Role Name Field -->
+                        <div class="form-field">
+                            <label class="field-label">Nombre del Rol</label>
+                            <input type="text" name="role_name" value="{{ role.name }}" class="form-input full-input">
+                        </div>
+
+                        <!-- Status Field - Only show for non-protected roles -->
+                        {% if role.name != 'Administrador' %}
+                        <div class="form-field">
+                            <label class="field-label">Estado</label>
+                            <div class="status-checkbox">
+                                <input type="checkbox" name="is_active" id="is_active" {% if role.is_active %}checked{% endif %}>
+                                <label for="is_active" class="checkbox-label">Activo</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <!-- Permissions Management Section -->
+                <div class="permissions-management-section">
+                    <h3 class="permissions-subtitle">Arrastra para añadir o eliminar el permiso</h3>
+                    
+                    <div class="permissions-containers">
+                        <!-- Assigned Permissions Container -->
+                        <div class="permissions-container assigned-permissions" id="assignedPermissions">
+                            <h4 class="container-title">Permisos Asignados</h4>
+                            <div class="permissions-list" id="assignedPermissionsList">
+                                {% for permission in role.permissions.all %}
+                                <div class="permission-item draggable" draggable="true" data-permission-id="{{ permission.id }}">
+                                    <span class="remove-permission" onclick="confirmRemovePermission({{ permission.id }}, '{{ permission.name|translate_permission }}', {{ role.id }}, '{{ role.name }}')">×</span>
+                                    <span class="permission-name">{{ permission.name|translate_permission }}</span>
+                                </div>
+                                {% empty %}
+                                <div class="no-permissions">No hay permisos asignados</div>
+                                {% endfor %}
+                            </div>
+                            <div class="container-actions">
+                                <button type="button" class="action-btn assign-all-btn" onclick="assignAllPermissions()">Asignar todo</button>
+                                <button type="button" class="action-btn remove-all-btn" onclick="removeAllPermissions()">Quitar todo</button>
+                            </div>
+                        </div>
+
+                        <!-- Unassigned Permissions Container -->
+                        <div class="permissions-container unassigned-permissions" id="unassignedPermissions">
+                            <h4 class="container-title">Permisos No Asignados</h4>
+                            <div class="permissions-list" id="unassignedPermissionsList">
+                                {% for permission in all_permissions %}
+                                    {% if permission not in role.permissions.all %}
+                                    <div class="permission-item draggable" draggable="true" data-permission-id="{{ permission.id }}">
+                                        <span class="permission-name">{{ permission.name|translate_permission }}</span>
+                                    </div>
+                                    {% endif %}
+                                {% empty %}
+                                <div class="no-permissions">No hay permisos disponibles</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons - Inside gradient container -->
+                <div class="action-buttons">
+                    <button type="submit" form="modify-form" class="save-button">Guardar</button>
+                    <a href="{% url 'manage_roles' %}" class="discard-button">Descartar</a>
+                    {% if role.name != 'Administrador' %}
+                    <button type="button" class="delete-button" onclick="confirmDeleteRole()">Eliminar</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirmar Eliminación</h3>
+        </div>
+        <div class="modal-body">
+            <p class="modal-message">¿Estás seguro de que quieres quitar el permiso <strong id="permissionName"></strong> del rol <strong id="roleName"></strong>?</p>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-button confirm-button" onclick="removePermission()">Sí, Eliminar</button>
+            <button class="modal-button cancel-button" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales para el modal
+let currentPermissionId = null;
+let currentRoleId = null;
+
+// Form submission handling
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.modify-form');
+    const saveButton = document.querySelector('.save-button');
+    
+    saveButton.addEventListener('click', function() {
+        form.submit();
+    });
+});
+
+// Función para mostrar el modal de confirmación
+function confirmRemovePermission(permissionId, permissionName, roleId, roleName) {
+    currentPermissionId = permissionId;
+    currentRoleId = roleId;
+    
+    document.getElementById('permissionName').textContent = permissionName;
+    document.getElementById('roleName').textContent = roleName;
+    document.getElementById('confirmModal').style.display = 'flex';
+}
+
+// Función para cerrar el modal
+function closeModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+    currentPermissionId = null;
+    currentRoleId = null;
+}
+
+// Función para eliminar el permiso
+function removePermission() {
+    if (currentPermissionId && currentRoleId) {
+        // Crear un formulario temporal para enviar la solicitud
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "modify_role" role.id %}';
+        
+        // Agregar token CSRF
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Agregar ID del permiso
+        const permissionInput = document.createElement('input');
+        permissionInput.type = 'hidden';
+        permissionInput.name = 'permission_id';
+        permissionInput.value = currentPermissionId;
+        form.appendChild(permissionInput);
+        
+        // Enviar formulario
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Cerrar modal al hacer clic fuera de él
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+    
+    // Initialize drag and drop functionality
+    initializeDragAndDrop();
+});
+
+// Drag and Drop functionality
+function initializeDragAndDrop() {
+    const assignedContainer = document.getElementById('assignedPermissionsList');
+    const unassignedContainer = document.getElementById('unassignedPermissionsList');
+    
+    // Make all permission items draggable
+    const draggableItems = document.querySelectorAll('.permission-item.draggable');
+    draggableItems.forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+    });
+    
+    // Make containers droppable
+    [assignedContainer, unassignedContainer].forEach(container => {
+        container.addEventListener('dragover', handleDragOver);
+        container.addEventListener('drop', handleDrop);
+        container.addEventListener('dragenter', handleDragEnter);
+        container.addEventListener('dragleave', handleDragLeave);
+    });
+    
+    // Re-initialize drag and drop when permissions are moved
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                // Re-add event listeners to new permission items
+                const newItems = document.querySelectorAll('.permission-item.draggable:not([data-drag-initialized])');
+                newItems.forEach(item => {
+                    item.addEventListener('dragstart', handleDragStart);
+                    item.addEventListener('dragend', handleDragEnd);
+                    item.setAttribute('data-drag-initialized', 'true');
+                });
+            }
+        });
+    });
+    
+    // Observe both containers for changes
+    observer.observe(assignedContainer, { childList: true });
+    observer.observe(unassignedContainer, { childList: true });
+}
+
+let draggedElement = null;
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.outerHTML);
+}
+
+function handleDragEnd(e) {
+    this.style.opacity = '1';
+    draggedElement = null;
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    this.style.backgroundColor = 'rgba(91, 21, 194, 0.1)';
+}
+
+function handleDragLeave(e) {
+    this.style.backgroundColor = '';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    this.style.backgroundColor = '';
+    
+    if (draggedElement && this !== draggedElement.parentNode) {
+        const permissionId = draggedElement.dataset.permissionId;
+        const isMovingToAssigned = this.id === 'assignedPermissionsList';
+        
+        if (isMovingToAssigned) {
+            // Moving to assigned permissions
+            addPermissionToRole(permissionId);
+        } else {
+            // Moving to unassigned permissions
+            removePermissionFromRole(permissionId);
+        }
+        
+        // Move the element visually
+        this.appendChild(draggedElement);
+        
+        // Update the remove button if moving to assigned
+        if (isMovingToAssigned) {
+            const removeBtn = draggedElement.querySelector('.remove-permission');
+            if (!removeBtn) {
+                const removeSpan = document.createElement('span');
+                removeSpan.className = 'remove-permission';
+                removeSpan.innerHTML = '×';
+                removeSpan.onclick = () => confirmRemovePermission(permissionId, draggedElement.querySelector('.permission-name').textContent, {{ role.id }}, '{{ role.name }}');
+                draggedElement.insertBefore(removeSpan, draggedElement.firstChild);
+            }
+        } else {
+            // Remove the X button if moving to unassigned
+            const removeBtn = draggedElement.querySelector('.remove-permission');
+            if (removeBtn) {
+                removeBtn.remove();
+            }
+        }
+    }
+}
+
+// Function to assign all permissions
+function assignAllPermissions() {
+    const unassignedItems = document.querySelectorAll('#unassignedPermissionsList .permission-item.draggable');
+    const assignedContainer = document.getElementById('assignedPermissionsList');
+    
+    unassignedItems.forEach(item => {
+        const permissionId = item.dataset.permissionId;
+        addPermissionToRole(permissionId);
+        
+        // Add remove button
+        const removeSpan = document.createElement('span');
+        removeSpan.className = 'remove-permission';
+        removeSpan.innerHTML = '×';
+        removeSpan.onclick = () => confirmRemovePermission(permissionId, item.querySelector('.permission-name').textContent, {{ role.id }}, '{{ role.name }}');
+        item.insertBefore(removeSpan, item.firstChild);
+        
+        // Mark as initialized for drag and drop
+        item.setAttribute('data-drag-initialized', 'true');
+        
+        assignedContainer.appendChild(item);
+    });
+}
+
+// Function to remove all permissions
+function removeAllPermissions() {
+    const assignedItems = document.querySelectorAll('#assignedPermissionsList .permission-item.draggable');
+    const unassignedContainer = document.getElementById('unassignedPermissionsList');
+    
+    assignedItems.forEach(item => {
+        const permissionId = item.dataset.permissionId;
+        removePermissionFromRole(permissionId);
+        
+        // Remove the X button
+        const removeBtn = item.querySelector('.remove-permission');
+        if (removeBtn) {
+            removeBtn.remove();
+        }
+        
+        // Mark as initialized for drag and drop
+        item.setAttribute('data-drag-initialized', 'true');
+        
+        unassignedContainer.appendChild(item);
+    });
+}
+
+// Function to add permission to role (AJAX call)
+function addPermissionToRole(permissionId) {
+    // This would make an AJAX call to add the permission
+    // For now, we'll just update the UI
+    console.log('Adding permission:', permissionId);
+}
+
+// Function to remove permission from role (AJAX call)
+function removePermissionFromRole(permissionId) {
+    // This would make an AJAX call to remove the permission
+    // For now, we'll just update the UI
+    console.log('Removing permission:', permissionId);
+}
+
+// Function to confirm role deletion
+function confirmDeleteRole() {
+    const roleName = '{{ role.name }}';
+    
+    // Check if it's a protected role
+    if (roleName === 'Administrador') {
+        alert('No se puede eliminar el rol "Administrador" ya que es un rol protegido.');
+        return;
+    }
+    
+    if (confirm('¿Estás seguro de que quieres eliminar este rol? Esta acción no se puede deshacer.')) {
+        // Create a form to delete the role
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "modify_role" role.id %}';
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Add delete action
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'delete_role';
+        form.appendChild(actionInput);
+        
+        // Submit form
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

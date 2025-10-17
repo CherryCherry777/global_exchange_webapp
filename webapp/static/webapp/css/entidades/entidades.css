@@ -1,0 +1,466 @@
+/* ===========================================
+   ADMINISTRAR ENTIDADES STYLES
+   =========================================== */
+
+/* Main Container */
+body main .manage-entidades-container,
+.manage-entidades-container {
+    min-height: 100vh !important;
+    background: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    font-family: 'Roboto', sans-serif !important;
+}
+
+/* Header Section */
+.manage-entidades-header {
+    background: linear-gradient(90deg, #000000 0%, #100724 50%, #000000 100%) !important;
+    width: 100% !important;
+    padding: 36px 18px !important;
+    position: relative !important;
+    margin-bottom: 36px !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+}
+
+/* Header Content */
+.header-content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    flex: 1 !important;
+}
+
+/* Header Text */
+.header-text {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+/* Header Metrics */
+.header-metrics {
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+}
+
+/* Back Button */
+.back-button {
+    background: rgba(238, 233, 210, 0.1) !important;
+    border: none !important;
+    border-radius: 18px !important;
+    width: 226px !important;
+    height: 58px !important;
+    color: #ffffff !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    font-size: 18px !important;
+    cursor: pointer !important;
+    margin-bottom: 27px !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.15) !important;
+    transform: translateY(-2px) !important;
+    text-decoration: none !important;
+    color: #ffffff !important;
+}
+
+/* Header Title */
+.manage-entidades-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 29px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 0 9px 0 !important;
+    text-align: left !important;
+}
+
+/* Header Subtitle */
+.manage-entidades-subtitle {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    text-align: left !important;
+}
+
+/* Metric Card */
+.metric-card {
+    background: rgba(238, 233, 210, 0.1) !important;
+    border-radius: 18px !important;
+    width: 159px !important;
+    height: 134px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 18px !important;
+    box-sizing: border-box !important;
+}
+
+.metric-label {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+    text-align: center !important;
+    margin-bottom: 9px !important;
+}
+
+.metric-number {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 86px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+    text-align: center !important;
+    line-height: 1 !important;
+}
+
+/* Create Button Container */
+.create-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    margin-bottom: 36px !important;
+}
+
+/* Create Button */
+.create-entidad-button {
+    background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
+    border: none !important;
+    border-radius: 18px !important;
+    padding: 11px 27px !important;
+    color: #ffffff !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.create-entidad-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(91, 21, 194, 0.4) !important;
+    text-decoration: none !important;
+    color: #ffffff !important;
+}
+
+.create-entidad-button:active {
+    transform: translateY(0) !important;
+}
+
+/* Main Content */
+.manage-entidades-content {
+    max-width: 1080px !important;
+    margin: 0 auto !important;
+    padding: 0 18px !important;
+}
+
+/* List Container */
+.entidades-list-container {
+    background: rgba(238, 233, 210, 0.1) !important;
+    border-radius: 18px !important;
+    padding: 36px !important;
+    margin-bottom: 36px !important;
+}
+
+/* List Title */
+.entidades-list-title {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 29px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 0 27px 0 !important;
+    text-align: left !important;
+}
+
+/* Table Container */
+.entidades-table-container {
+    overflow-x: auto !important;
+    margin-top: 18px !important;
+}
+
+.entidades-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    background: transparent !important;
+}
+
+.entidades-table th,
+.entidades-table td {
+    padding: 18px 14px !important;
+    text-align: left !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    vertical-align: middle !important;
+}
+
+.entidades-table th {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+    background: transparent !important;
+}
+
+.entidades-table td {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+}
+
+/* Entity Row Hover */
+.entidad-row:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Entity Info */
+.entidad-info {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+}
+
+/* Entity Icon Circle */
+.entidad-icon-circle {
+    width: 39px !important;
+    height: 39px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+}
+
+.entidad-icon {
+    width: 25px !important;
+    height: 23px !important;
+    object-fit: contain !important;
+}
+
+/* Entity Name */
+.entidad-name {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+}
+
+/* Type Value */
+.type-value {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+}
+
+/* Status Circle */
+.status-circle {
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 50% !important;
+    display: inline-block !important;
+    margin-right: 7px !important;
+    vertical-align: middle !important;
+}
+
+.status-circle.active {
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%) !important;
+}
+
+.status-circle.inactive {
+    background: linear-gradient(180deg, #909090 0%, #535353 100%) !important;
+}
+
+/* Actions Container */
+.actions-container {
+    display: flex !important;
+    gap: 9px !important;
+    align-items: center !important;
+}
+
+/* Action Button */
+.action-button {
+    border: none !important;
+    border-radius: 18px !important;
+    padding: 7px 14px !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Modify Button */
+.modify-button {
+    background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
+}
+
+.modify-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(91, 21, 194, 0.4) !important;
+    text-decoration: none !important;
+    color: #ffffff !important;
+}
+
+.modify-button:active {
+    transform: translateY(0) !important;
+}
+
+/* Deactivate Button */
+.deactivate-button {
+    background: linear-gradient(90deg, #2F2F2F 0%, #828281 50%, #C3C3C3 100%) !important;
+}
+
+.deactivate-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(194, 194, 194, 0.3) !important;
+    text-decoration: none !important;
+    color: #ffffff !important;
+}
+
+.deactivate-button:active {
+    transform: translateY(0) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .manage-entidades-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 18px 14px !important;
+    }
+    
+    .header-metrics {
+        margin-top: 18px !important;
+        align-self: flex-end !important;
+    }
+    
+    .back-button {
+        width: 180px !important;
+        height: 45px !important;
+        font-size: 14px !important;
+    }
+    
+    .manage-entidades-title {
+        font-size: 22px !important;
+    }
+    
+    .manage-entidades-subtitle {
+        font-size: 14px !important;
+    }
+    
+    .metric-card {
+        width: 135px !important;
+        height: 108px !important;
+    }
+    
+    .metric-label {
+        font-size: 13px !important;
+    }
+    
+    .metric-number {
+        font-size: 65px !important;
+    }
+    
+    .entidades-list-container {
+        padding: 18px !important;
+    }
+    
+    .entidades-list-title {
+        font-size: 22px !important;
+    }
+    
+    .entidades-table th,
+    .entidades-table td {
+        padding: 14px 9px !important;
+        font-size: 14px !important;
+    }
+    
+    .entidad-icon-circle {
+        width: 32px !important;
+        height: 32px !important;
+    }
+    
+    .entidad-icon {
+        width: 20px !important;
+        height: 18px !important;
+    }
+    
+    .actions-container {
+        flex-direction: column !important;
+        gap: 7px !important;
+    }
+    
+    .action-button {
+        width: 100% !important;
+        font-size: 13px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .manage-entidades-content {
+        padding: 0 9px !important;
+    }
+    
+    .entidades-list-container {
+        padding: 14px !important;
+    }
+    
+    .entidades-table-container {
+        overflow-x: scroll !important;
+    }
+    
+    .entidades-table {
+        min-width: 540px !important;
+    }
+}
+
+/* Animation for table rows */
+.entidad-row {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.entidad-row:nth-child(1) { animation-delay: 0.1s; }
+.entidad-row:nth-child(2) { animation-delay: 0.2s; }
+.entidad-row:nth-child(3) { animation-delay: 0.3s; }
+.entidad-row:nth-child(4) { animation-delay: 0.4s; }
+.entidad-row:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

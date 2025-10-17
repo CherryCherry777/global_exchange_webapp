@@ -1,0 +1,291 @@
+/* ===========================
+   ESTILOS PARA AUTORIZACIÓN DE BILLETERA
+   ========================== */
+
+/* Solo aplicar fondo negro al contenido principal, no a todo el body */
+#content-wrapper {
+    background-color: #000000 !important;
+    min-height: calc(100vh - 150px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Contenedor principal - más específico */
+.pin-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    width: 100%;
+}
+
+/* Título principal */
+.pin-page-container h4 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: bold;
+    font-size: 32px;
+    color: #FFFFFF;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+/* Contenedor del formulario */
+.pin-page-container form {
+    width: 1242px;
+    min-height: 577px;
+    background: linear-gradient(90deg, #000000 0%, #100724 50%, #000000 100%);
+    border-radius: 20px;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Ícono de billetera */
+.wallet-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    box-shadow: 0 5px 20px rgba(57, 17, 150, 0.5);
+}
+
+.wallet-icon img {
+    width: 45px;
+    height: 45px;
+}
+
+/* Texto descriptivo */
+.pin-page-container p {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 20px;
+    color: #FFFFFF;
+    text-align: center;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.pin-page-container p strong {
+    font-weight: bold;
+}
+
+/* Label del PIN */
+.pin-page-container label {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 20px;
+    color: #FFFFFF;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    display: block;
+    text-align: center;
+}
+
+/* Input del PIN */
+.pin-page-container input[type="password"],
+.pin-page-container input[type="text"] {
+    width: 286px;
+    height: 46px;
+    border-radius: 5px;
+    background-color: #646464;
+    border: none;
+    padding: 0 1rem;
+    font-family: 'Roboto', sans-serif;
+    font-size: 18px;
+    color: #FFFFFF;
+    text-align: center;
+    letter-spacing: 8px;
+    font-weight: bold;
+}
+
+.pin-page-container input[type="password"]::placeholder,
+.pin-page-container input[type="text"]::placeholder {
+    letter-spacing: normal;
+    color: #AAAAAA;
+}
+
+.pin-page-container input[type="password"]:focus,
+.pin-page-container input[type="text"]:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(91, 21, 194, 0.5);
+}
+
+/* Ocultar inputs hidden del DOM visual */
+.pin-page-container input[type="hidden"] {
+    display: none;
+}
+
+/* Contenedor de botones */
+.button-container {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* Estilos base de botones */
+.pin-page-container button {
+    width: 150px;
+    height: 50px;
+    border-radius: 25px;
+    border: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 16px;
+    color: #FFFFFF;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Botón Confirmar */
+.pin-page-container button[name="confirmar"],
+.pin-page-container button[type="submit"]:not([name="cancelar"]) {
+    background: linear-gradient(90deg, #08052A 6%, #391196 50%, #5B15C2 94%);
+}
+
+.pin-page-container button[name="confirmar"]:hover,
+.pin-page-container button[type="submit"]:not([name="cancelar"]):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(91, 21, 194, 0.5);
+}
+
+/* Botón Cancelar */
+.pin-page-container button[name="cancelar"] {
+    background: linear-gradient(90deg, #C3C3C3 6%, #828281 50%, #2F2F2F 94%);
+}
+
+.pin-page-container button[name="cancelar"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(130, 130, 129, 0.5);
+}
+
+/* Wrapper del formulario */
+.pin-form-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+/* Alerts */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
+}
+
+.alert-error {
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid #F44336;
+    color: #F44336;
+}
+
+.alert-warning {
+    background: rgba(255, 152, 0, 0.2);
+    border: 1px solid #FF9800;
+    color: #FF9800;
+}
+
+.alert-info {
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196F3;
+    color: #2196F3;
+}
+
+/* ===========================
+   RESPONSIVE
+   ========================== */
+
+@media (max-width: 1300px) {
+    .pin-page-container form {
+        width: 95%;
+        max-width: 1242px;
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .pin-page-container h4 {
+        font-size: 24px;
+    }
+
+    .pin-page-container form {
+        width: 100%;
+        min-height: auto;
+        padding: 2rem 1.5rem;
+    }
+
+    .wallet-icon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .wallet-icon img {
+        width: 35px;
+        height: 35px;
+    }
+
+    .pin-page-container p,
+    .pin-page-container label {
+        font-size: 18px;
+    }
+
+    .pin-page-container input[type="password"],
+    .pin-page-container input[type="text"] {
+        width: 100%;
+        max-width: 286px;
+    }
+
+    .button-container {
+        flex-direction: column;
+        width: 100%;
+        max-width: 286px;
+    }
+
+    .pin-page-container button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .pin-page-container h4 {
+        font-size: 20px;
+    }
+
+    .pin-page-container p,
+    .pin-page-container label {
+        font-size: 16px;
+    }
+
+    .wallet-icon {
+        width: 60px;
+        height: 60px;
+    }
+
+    .wallet-icon img {
+        width: 30px;
+        height: 30px;
+    }
+}

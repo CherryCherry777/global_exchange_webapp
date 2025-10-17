@@ -1,0 +1,229 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Asignar Clientes a Usuarios{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/clientes/assign_clients.css' %}">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="assign-clients-container">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="assign-clients-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="assign-clients-title">Asignar Clientes a Usuarios</h1>
+                    <p class="assign-clients-subtitle">Realizar la asignación cliente a usuario</p>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Usuarios</div>
+                        <div class="metric-number">{{ total_users }}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Clientes</div>
+                        <div class="metric-number">{{ total_clients }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- New Assignment Container -->
+        <div class="new-assignment-container">
+            <h2 class="new-assignment-title">Nueva Asignación</h2>
+            
+            <form method="post" class="assignment-form" id="assignment-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="assign">
+                
+                <div class="form-row">
+                    <div class="form-field">
+                        <label class="field-label">Seleccione un Cliente</label>
+                        <div class="select-container">
+                            <select name="cliente_id" class="form-select" required>
+                                <option value="">Seleccionar Cliente</option>
+                                {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="select-icon">
+                                <img src="{% static 'webapp/pantalla_administar_asignaciones/tick.png' %}" alt="Dropdown">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label class="field-label">Seleccione un Usuario</label>
+                        <div class="select-container">
+                            <select name="usuario_id" class="form-select" required>
+                                <option value="">Seleccionar Usuario</option>
+                                {% for usuario in usuarios %}
+                                <option value="{{ usuario.id }}">{{ usuario.username }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="select-icon">
+                                <img src="{% static 'webapp/pantalla_administar_asignaciones/tick.png' %}" alt="Dropdown">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-field">
+                        <button type="submit" class="assign-button">Asignar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Assignments List Container -->
+        <div class="assignments-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de Asignaciones</h2>
+                <div class="search-input-container">
+                    <input type="text" id="assignment-search" placeholder="Buscar Usuario o Cliente..." class="search-input">
+                </div>
+            </div>
+
+            <!-- Assignments Table -->
+            <div class="assignments-table-container">
+                <table class="assignments-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Cliente</th>
+                            <th>Fecha de Asignación</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for asignacion in asignaciones %}
+                        <tr class="assignment-row">
+                            <td class="user-cell">
+                                <div class="user-info">
+                                    <div class="user-icon-circle">
+                                        <img src="{% static 'webapp/pantalla_administar_asignaciones/1.Administar_Asignaciones.png' %}" alt="User Icon" class="user-icon">
+                                    </div>
+                                    <span class="user-name">{{ asignacion.usuario.username }}</span>
+                                </div>
+                            </td>
+                            <td class="client-cell">
+                                <div class="client-info">
+                                    <div class="client-icon-circle">
+                                        <img src="{% static 'webapp/pantalla_administar_asignaciones/1.Administar_Asignaciones.png' %}" alt="Client Icon" class="client-icon">
+                                    </div>
+                                    <span class="client-name">{{ asignacion.cliente.nombre }}</span>
+                                </div>
+                            </td>
+                            <td class="date-cell">
+                                <span class="assignment-date">{{ asignacion.fecha_asignacion|date:"d/m/Y H:i" }}</span>
+                            </td>
+                            <td class="actions-cell">
+                                <div class="actions-container">
+                                    <button class="action-button unassign-button" onclick="unassignClient({{ asignacion.id }})">Desasignar</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Search functionality
+document.getElementById('assignment-search').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll('.assignments-table tbody .assignment-row');
+
+    rows.forEach(row => {
+        let userName = row.querySelector('.user-name').textContent.toLowerCase();
+        let clientName = row.querySelector('.client-name').textContent.toLowerCase();
+
+        if (userName.includes(filter) || clientName.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Unassign client function
+function unassignClient(asignacionId) {
+    if (confirm('¿Estás seguro de que quieres desasignar este cliente de este usuario?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "assign_clients" %}';
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'unassign';
+        form.appendChild(actionInput);
+        
+        const asignacionInput = document.createElement('input');
+        asignacionInput.type = 'hidden';
+        asignacionInput.name = 'asignacion_id';
+        asignacionInput.value = asignacionId;
+        form.appendChild(asignacionInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Auto-hide messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<style>
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}

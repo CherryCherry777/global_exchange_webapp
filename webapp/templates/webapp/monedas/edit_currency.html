@@ -1,0 +1,75 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Editar Moneda{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Editar Moneda: {{ currency.code }}</h1>
+
+    <div class="back-container">
+        <a href="{% url 'manage_currencies' %}" class="btn-back">← Volver al listado</a>
+    </div>
+
+    <div class="cliente-form-container">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-container">
+
+                <!-- Código y nombre -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_code">Código:</label>
+                        <input type="text" value="{{ currency.code }}" disabled>
+                        <small>El código de moneda no puede modificarse</small>
+                    </p>
+                    <p>
+                        <label for="id_name">Nombre:</label>
+                        <input type="text" name="name" id="id_name" value="{{ currency.name }}" required>
+                    </p>
+                </div>
+
+                <!-- Símbolo y precio base -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_symbol">Símbolo:</label>
+                        <input type="text" name="symbol" id="id_symbol" value="{{ currency.symbol }}" required>
+                    </p>
+                </div>
+                </div>
+
+                <!-- Decimales -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_decimales_cotizacion">Decimales para tasa de cambio:</label>
+                        <input type="number" name="decimales_cotizacion" id="id_decimales_cotizacion" min="0" max="8" value="{{ currency.decimales_cotizacion }}" required>
+                        <small>Valor entre 0 y 8</small>
+                    </p>
+                    <p>
+                        <label for="id_decimales_monto">Decimales para montos:</label>
+                        <input type="number" name="decimales_monto" id="id_decimales_monto" min="0" max="8" value="{{ currency.decimales_monto }}" required>
+                        <small>Valor entre 0 y 8</small>
+                    </p>
+                </div>
+
+                <!-- Bandera y activo -->
+                <div class="form-container-row">
+                    <p>
+                        <label for="id_flag_image">Bandera:</label><br>
+                        {% if currency.flag_image %}
+                            <img src="{{ currency.flag_image.url }}" alt="Bandera actual" style="height: 40px; margin-bottom: 5px;"><br>
+                        {% endif %}
+                        <input type="file" name="flag_image" id="id_flag_image">
+                    </p>
+                    <p>
+                        <label for="id_is_active">Activo:</label>
+                        <input type="checkbox" name="is_active" id="id_is_active" {% if currency.is_active %}checked{% endif %}>
+                    </p>
+                </div>
+
+            </div>
+            <button type="submit" class="add-btn">Actualizar Moneda</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

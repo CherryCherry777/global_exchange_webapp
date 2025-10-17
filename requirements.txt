@@ -11,3 +11,6 @@ sphinx-autobuild
 sphinx-rtd-theme
 coverage
 Pillow
+celery
+redis
+stripe

@@ -1,0 +1,502 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Transacciones - Global Exchange{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/compraventa_y_conversion/historial_transacciones.css' %}?v=5.3">
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="transactions-header">
+    <div class="header-content">
+        <a href="{% url 'public_home' %}" class="back-button">← Volver al Inicio</a>
+        <h1 class="transactions-title">Transacciones</h1>
+        <p class="transactions-subtitle">Visualiza el listado de transacciones</p>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Transactions List Container -->
+    <div class="transactions-list-container">
+        <div class="transactions-list-header">
+            <h2 class="list-title">Lista de Transacciones</h2>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Buscar Transacción" id="searchInput">
+            </div>
+        </div>
+        
+        <!-- Transactions Table -->
+        <div class="transactions-table-container">
+            <table class="transactions-table">
+                <thead>
+                    <tr>
+                        <th>Transacción</th>
+                        <th>Estado</th>
+                        <th>Fecha de creación</th>
+                        <th>Fecha de pago</th>
+                        <th>Cliente</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaccion in transacciones %}
+                    <tr data-user-name="{{ transaccion.usuario.username }}" 
+                        data-user-fullname="{{ transaccion.usuario.get_full_name }}" 
+                        data-client-document="{{ transaccion.cliente.documento }}"
+                        data-origin-currency="{{ transaccion.moneda_origen.code }}"
+                        data-dest-currency="{{ transaccion.moneda_destino.code }}"
+                        data-origin-currency-name="{{ transaccion.moneda_origen.name }}"
+                        data-dest-currency-name="{{ transaccion.moneda_destino.name }}"
+                        data-exchange-rate="{{ transaccion.tasa_cambio }}"
+                        data-origin-amount="{{ transaccion.monto_origen }}"
+                        data-dest-amount="{{ transaccion.monto_destino }}"
+                        data-payment-method="{{ transaccion.medio_pago }}"
+                        data-collection-method="{{ transaccion.medio_cobro }}">
+                        <td class="transaction-type">
+                            {% if transaccion.tipo == 'COMPRA' %}
+                                Compra {{ transaccion.moneda_destino.code }}
+                            {% else %}
+                                Venta {{ transaccion.moneda_origen.code }}
+                            {% endif %}
+                        </td>
+                        <td class="status-cell">
+                            <div class="status-indicator {{ transaccion.estado|lower }}"></div>
+                            <span class="status-text">{{ transaccion.get_estado_display }}</span>
+                        </td>
+                        <td class="creation-date">{{ transaccion.fecha_creacion|date:"d-m-y" }}</td>
+                        <td class="payment-date">
+                            {% if transaccion.fecha_pago %}
+                                {{ transaccion.fecha_pago|date:"d-m-y" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="client-name">{{ transaccion.cliente.nombre }}</td>
+                        <td class="actions-cell">
+                            {% if transaccion.estado == 'PENDIENTE' %}
+                                {% if transaccion.es_pago_cuenta_bancaria %}
+                                    <a href="{% url 'ingresar_idTransferencia' transaccion.id %}" class="action-button ingresar-id-btn">
+                                        Continuar Pago
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                            <button class="action-button view-data-btn" data-transaction-id="{{ transaccion.id }}">
+                                Ver Datos
+                            </button>
+                            {% if transaccion.estado == 'PENDIENTE' %}
+                                <button class="action-button cancel-btn" data-transaction-id="{{ transaccion.id }}">
+                                    Cancelar
+                                </button>
+                            {% elif transaccion.estado == 'PAGADA' %}
+                                <button class="action-button anular-btn" data-transaction-id="{{ transaccion.id }}">
+                                    Anular
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="no-transactions">No hay transacciones registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Ver Datos de Transacción -->
+<div id="transactionModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <img src="{% static 'webapp/logo.png' %}" alt="Logo" class="modal-logo">
+            <h2 class="modal-title">Datos de Transacción</h2>
+        </div>
+        <div class="modal-separator"></div>
+        <div class="modal-content">
+            <!-- Sección Información General -->
+            <div class="info-section">
+                <h3 class="section-title">Información General</h3>
+                
+                <div class="info-grid">
+                    <div class="info-left">
+                        <div class="info-item">
+                            <span class="info-label">ID de la transacción:</span>
+                            <span class="info-value" id="transaction-id">5155</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tipo:</span>
+                            <span class="info-value" id="transaction-type">Compra</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-center">
+                        <div class="info-item">
+                            <span class="info-label">Fecha de creación:</span>
+                            <span class="info-value" id="creation-date">30-05-25 15:30</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Fecha de pago:</span>
+                            <span class="info-value" id="payment-date">No se ha registrado pago</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-right">
+                        <div class="status-box">
+                            <div class="status-label">Estado:</div>
+                            <div class="status-value" id="transaction-status">Pendiente</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Cliente y Usuario -->
+            <div class="info-section">
+                <h3 class="section-title">Cliente y Usuario</h3>
+                
+                <div class="info-grid">
+                    <div class="info-left">
+                        <div class="info-item">
+                            <span class="info-label">Cliente:</span>
+                            <span class="info-value" id="client-name">cliente1</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Documento:</span>
+                            <span class="info-value" id="client-document">12345678</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-center">
+                        <div class="info-item">
+                            <span class="info-label">Usuario:</span>
+                            <span class="info-value" id="user-name">admin</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Nombre y Apellido:</span>
+                            <span class="info-value" id="user-fullname">Administrador Sistema</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-right">
+                        <!-- Espacio vacío para mantener el layout -->
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Operación de Cambio -->
+            <div class="info-section">
+                <h3 class="section-title">Operación de Cambio</h3>
+                
+                <div class="exchange-grid">
+                    <div class="exchange-left">
+                        <div class="exchange-item">
+                            <span class="exchange-label">Moneda Origen:</span>
+                            <div class="currency-info">
+                                <img src="/media/currency_flags/3._Argentina_-_Peso_Argentino.png" alt="ARS" class="currency-flag">
+                                <span class="exchange-value" id="origin-currency">ARS - Peso Argentino</span>
+                            </div>
+                        </div>
+                        <div class="exchange-item">
+                            <span class="exchange-label">Moneda Destino:</span>
+                            <div class="currency-info">
+                                <img src="/media/currency_flags/1._USA_-_Dólar_Americano.png" alt="USD" class="currency-flag">
+                                <span class="exchange-value" id="dest-currency">USD - Dólar Estadounidense</span>
+                            </div>
+                        </div>
+                        <div class="exchange-item">
+                            <span class="exchange-label">Tasa de cambio:</span>
+                            <span class="exchange-value" id="exchange-rate">1 USD - 544224 ARS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="exchange-right">
+                        <div class="exchange-item">
+                            <span class="exchange-label">Monto Origen:</span>
+                            <span class="exchange-value" id="origin-amount">7250 $</span>
+                        </div>
+                        <div class="exchange-item">
+                            <span class="exchange-label">Monto Destino:</span>
+                            <span class="exchange-value" id="dest-amount">15223500 $</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Medio de Pago y Cobro -->
+            <div class="info-section">
+                <h3 class="section-title">Medio de Pago y Cobro</h3>
+                
+                <div class="payment-grid">
+                    <div class="payment-item">
+                        <span class="payment-label">Medio de Pago:</span>
+                        <span class="payment-value" id="payment-method">Tauser 1</span>
+                    </div>
+                    <div class="payment-item">
+                        <span class="payment-label">Medio de Cobro:</span>
+                        <span class="payment-value" id="collection-method">Tauser 2</span>
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Facturación -->
+            <div class="info-section">
+                <h3 class="section-title">Facturación</h3>
+                
+                <div class="billing-grid">
+                    <div class="billing-left">
+                        <div class="billing-item">
+                            <span class="billing-label">Número de factura:</span>
+                            <span class="billing-value" id="invoice-number">No emitida</span>
+                        </div>
+                        <div class="billing-item">
+                            <span class="billing-label">Fecha de emisión:</span>
+                            <span class="billing-value" id="invoice-date">No emitida</span>
+                        </div>
+                    </div>
+                    
+                    <div class="billing-right">
+                        <div class="billing-status-box">
+                            <div class="billing-status-label">Estado:</div>
+                            <div class="billing-status-value" id="invoice-status">No emitida</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Auditoría y Control -->
+            <div class="info-section">
+                <h3 class="section-title">Auditoría y Control</h3>
+                
+                <div class="audit-grid">
+                    <div class="audit-left">
+                        <div class="audit-item">
+                            <span class="audit-label">Fecha de cancelación:</span>
+                            <span class="audit-value" id="cancellation-date">No aplica</span>
+                        </div>
+                        <div class="audit-item">
+                            <span class="audit-label">Motivo de cancelación:</span>
+                            <span class="audit-value" id="cancellation-reason">No aplica</span>
+                        </div>
+                    </div>
+                    
+                    <div class="audit-right">
+                        <div class="audit-item">
+                            <span class="audit-label">Fecha de anulación:</span>
+                            <span class="audit-value" id="annulment-date">No aplica</span>
+                        </div>
+                        <div class="audit-item">
+                            <span class="audit-label">Motivo de anulación:</span>
+                            <span class="audit-value" id="annulment-reason">No aplica</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.transactions-table tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Action button handlers
+document.querySelectorAll('.action-button').forEach(button => {
+    button.addEventListener('click', function() {
+        const transactionId = this.getAttribute('data-transaction-id');
+        const action = this.classList.contains('view-data-btn') ? 'Ver Datos' : 
+                      this.classList.contains('cancel-btn') ? 'Cancelar' : 'Anular';
+        
+        if (action === 'Ver Datos') {
+            openTransactionModal(transactionId);
+        } else {
+            console.log(`${action} transacción ID: ${transactionId}`);
+            // Aquí se implementará la funcionalidad específica para Cancelar/Anular
+        }
+    });
+});
+
+// Modal functionality
+function openTransactionModal(transactionId) {
+    // Obtener los datos de la transacción desde la fila de la tabla
+    const button = document.querySelector(`[data-transaction-id="${transactionId}"]`);
+    const row = button.closest('tr');
+    
+    if (row) {
+        // Extraer datos de la fila
+        const transactionType = row.querySelector('.transaction-type').textContent.trim();
+        const statusText = row.querySelector('.status-text').textContent.trim();
+        const creationDate = row.querySelector('.creation-date').textContent.trim();
+        const paymentDate = row.querySelector('.payment-date').textContent.trim();
+        const clientName = row.querySelector('.client-name').textContent.trim();
+        
+        
+        // Actualizar el modal con los datos reales
+        document.getElementById('transaction-id').textContent = transactionId;
+        document.getElementById('transaction-type').textContent = transactionType;
+        document.getElementById('creation-date').textContent = creationDate;
+        document.getElementById('payment-date').textContent = paymentDate === '-' ? 'No se ha registrado pago' : paymentDate;
+        document.getElementById('transaction-status').textContent = statusText;
+        
+        // Actualizar datos de cliente y usuario desde los atributos de la fila
+        document.getElementById('client-name').textContent = clientName;
+        document.getElementById('client-document').textContent = row.getAttribute('data-client-document') || 'No disponible';
+        document.getElementById('user-name').textContent = row.getAttribute('data-user-name') || 'No disponible';
+        document.getElementById('user-fullname').textContent = row.getAttribute('data-user-fullname') || 'No disponible';
+        
+        // Actualizar datos de operación de cambio con datos reales de la base de datos
+        updateExchangeDataFromDB(row);
+        
+        // Actualizar datos de medio de pago y cobro con datos reales
+        updatePaymentDataFromDB(row);
+        
+        // Actualizar datos de facturación basados en el estado
+        updateBillingData(transactionId, statusText);
+        
+        // Actualizar datos de auditoría y control basados en el estado
+        updateAuditData(transactionId, statusText);
+    }
+    
+    const modal = document.getElementById('transactionModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Prevenir scroll del fondo
+}
+
+// Función para actualizar datos de operación de cambio con datos reales de la base de datos
+function updateExchangeDataFromDB(row) {
+    // Extraer datos reales de la fila
+    const originCurrency = row.getAttribute('data-origin-currency') || 'N/A';
+    const destCurrency = row.getAttribute('data-dest-currency') || 'N/A';
+    const originCurrencyName = row.getAttribute('data-origin-currency-name') || 'N/A';
+    const destCurrencyName = row.getAttribute('data-dest-currency-name') || 'N/A';
+    const exchangeRate = row.getAttribute('data-exchange-rate') || 'N/A';
+    const originAmount = row.getAttribute('data-origin-amount') || 'N/A';
+    const destAmount = row.getAttribute('data-dest-amount') || 'N/A';
+    
+    // Construir rutas de banderas basadas en los códigos de moneda
+    const originFlag = `/media/currency_flags/${originCurrency}_flag.png`;
+    const destFlag = `/media/currency_flags/${destCurrency}_flag.png`;
+    
+    // Actualizar las imágenes de las banderas con verificación de seguridad
+    const originFlagImg = document.querySelector('#origin-currency').previousElementSibling;
+    const destFlagImg = document.querySelector('#dest-currency').previousElementSibling;
+    
+    // Función para verificar y cargar bandera de forma segura
+    function loadFlagSafely(imgElement, flagPath) {
+        if (!imgElement) return;
+        
+        // Crear una nueva imagen para verificar si existe
+        const testImg = new Image();
+        testImg.onload = function() {
+            // Si la imagen se carga correctamente, actualizar el src
+            imgElement.src = flagPath;
+            imgElement.style.display = 'block';
+        };
+        testImg.onerror = function() {
+            // Si la imagen no existe, ocultar el elemento
+            imgElement.style.display = 'none';
+            console.warn(`Bandera no encontrada: ${flagPath}`);
+        };
+        testImg.src = flagPath;
+    }
+    
+    // Cargar banderas de forma segura
+    loadFlagSafely(originFlagImg, originFlag);
+    loadFlagSafely(destFlagImg, destFlag);
+    
+    // Actualizar los textos con datos reales
+    document.getElementById('origin-currency').textContent = `${originCurrency} - ${originCurrencyName}`;
+    document.getElementById('dest-currency').textContent = `${destCurrency} - ${destCurrencyName}`;
+    document.getElementById('exchange-rate').textContent = `1 ${destCurrency} = ${exchangeRate} ${originCurrency}`;
+    document.getElementById('origin-amount').textContent = `${originAmount} ${originCurrency}`;
+    document.getElementById('dest-amount').textContent = `${destAmount} ${destCurrency}`;
+}
+
+// Función para actualizar datos de medio de pago y cobro con datos reales
+function updatePaymentDataFromDB(row) {
+    const paymentMethod = row.getAttribute('data-payment-method') || 'No disponible';
+    const collectionMethod = row.getAttribute('data-collection-method') || 'No disponible';
+    
+    document.getElementById('payment-method').textContent = paymentMethod;
+    document.getElementById('collection-method').textContent = collectionMethod;
+}
+
+// Función para actualizar datos de facturación
+function updateBillingData(transactionId, status) {
+    if (status === 'Pagada') {
+        document.getElementById('invoice-number').textContent = `FAC-${transactionId.toString().padStart(4, '0')}`;
+        document.getElementById('invoice-date').textContent = '08-10-25';
+        document.getElementById('invoice-status').textContent = 'Emitida';
+    } else {
+        document.getElementById('invoice-number').textContent = 'No emitida';
+        document.getElementById('invoice-date').textContent = 'No emitida';
+        document.getElementById('invoice-status').textContent = 'No emitida';
+    }
+}
+
+// Función para actualizar datos de auditoría y control
+function updateAuditData(transactionId, status) {
+    if (status === 'Cancelada') {
+        document.getElementById('cancellation-date').textContent = '07-10-25';
+        document.getElementById('cancellation-reason').textContent = 'Solicitud del cliente';
+        document.getElementById('annulment-date').textContent = 'No aplica';
+        document.getElementById('annulment-reason').textContent = 'No aplica';
+    } else if (status === 'Anulada') {
+        document.getElementById('cancellation-date').textContent = 'No aplica';
+        document.getElementById('cancellation-reason').textContent = 'No aplica';
+        document.getElementById('annulment-date').textContent = '07-10-25';
+        document.getElementById('annulment-reason').textContent = 'Error en el sistema';
+    } else {
+        document.getElementById('cancellation-date').textContent = 'No aplica';
+        document.getElementById('cancellation-reason').textContent = 'No aplica';
+        document.getElementById('annulment-date').textContent = 'No aplica';
+        document.getElementById('annulment-reason').textContent = 'No aplica';
+    }
+}
+
+function closeTransactionModal() {
+    const modal = document.getElementById('transactionModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto'; // Restaurar scroll
+}
+
+// Cerrar modal al hacer clic en el overlay
+document.getElementById('transactionModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeTransactionModal();
+    }
+});
+
+// Cerrar modal con tecla Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeTransactionModal();
+    }
+});
+
+</script>
+{% endblock %}
