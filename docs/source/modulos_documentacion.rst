@@ -1,7 +1,7 @@
 Documentación de Módulos - Global Exchange Webapp
 ==================================================
 
-Esta documentación describe los 12 módulos principales del sistema Global Exchange Webapp, incluyendo su funcionalidad, métodos principales y características técnicas.
+Esta documentación describe los 23 módulos principales del sistema Global Exchange Webapp, incluyendo su funcionalidad, métodos principales y características técnicas.
 
 .. contents::
    :depth: 2
@@ -353,6 +353,266 @@ Funcionalidades Principales
 - Validación de asignaciones duplicadas
 - Historial de asignaciones
 - Control de permisos por rol
+
+========================================
+11. MÓDULO DE MÉTODOS DE COBRO
+========================================
+
+**Script Principal:** ``views.py``
+**Métodos:** ``manage_cobro_methods``, ``modify_cobro_method``
+
+Descripción
+-----------
+Administra los métodos de cobro disponibles en el sistema para procesar pagos de clientes.
+
+Funcionalidades Principales
+----------------------------
+
+**11.1 Gestión de Métodos de Cobro (manage_cobro_methods)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Lista métodos de cobro del sistema
+- Configuración de comisiones por método
+- Estado activo/inactivo
+- Gestión centralizada de configuración
+
+**Características:**
+- Interfaz administrativa moderna
+- Configuración granular por moneda
+- Estadísticas de uso por método
+- Validación de configuración
+
+**11.2 Modificación de Métodos de Cobro (modify_cobro_method)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Edición de configuración de cobro
+- Ajuste de comisiones y tarifas
+- Cambio de parámetros operativos
+- Validación de cambios
+
+**Características:**
+- Formulario pre-poblado con datos actuales
+- Validación en tiempo real
+- Registro de historial de cambios
+- Notificación de impactos
+
+========================================
+12. MÓDULO DE PÁGINAS PÚBLICAS
+========================================
+
+**Script Principal:** ``views.py``
+**Métodos:** ``public_home``, ``api_active_currencies``
+
+Descripción
+-----------
+Gestiona las páginas públicas del sistema accesibles sin autenticación.
+
+Funcionalidades Principales
+----------------------------
+
+**12.1 Página Principal Pública (public_home)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Muestra información general del servicio
+- Lista monedas activas y cotizaciones actuales
+- Acceso para usuarios no registrados
+- Enlaces de navegación principales
+
+**Características:**
+- Diseño responsivo y moderno
+- Información actualizada en tiempo real
+- Integración con API de cotizaciones
+- Optimización para SEO
+
+**12.2 API de Monedas Activas (api_active_currencies)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Proporciona datos de monedas en formato JSON
+- Filtros por estado y disponibilidad
+- Cálculo automático de comisiones
+- Cache para mejorar rendimiento
+
+**Características:**
+- Respuesta JSON estructurada
+- Documentación automática con Swagger
+- Control de rate limiting
+- Seguridad de endpoints públicos
+
+========================================
+13. MÓDULO DE UTILIDADES
+========================================
+
+**Script Principal:** ``views.py``
+**Métodos:** ``change_client``, ``set_cliente_seleccionado``
+
+Descripción
+-----------
+Proporciona funciones utilitarias para mejorar la experiencia del usuario.
+
+Funcionalidades Principales
+----------------------------
+
+**13.1 Cambio de Cliente (change_client)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Permite cambiar cliente seleccionado en sesión
+- Lista clientes asignados al usuario
+- Actualización de contexto de aplicación
+- Redirección automática al dashboard apropiado
+
+**Características:**
+- Interfaz intuitiva de selección
+- Validación de permisos de acceso
+- Actualización automática de menú
+- Preservación de estado de navegación
+
+**13.2 Establecer Cliente Seleccionado (set_cliente_seleccionado)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Actualización vía AJAX del cliente seleccionado
+- Validación de permisos de acceso
+- Respuesta JSON inmediata
+- Actualización de interfaz sin recarga
+
+**Características:**
+- Comunicación asíncrona eficiente
+- Validación del lado del servidor
+- Actualización en tiempo real
+- Manejo de errores robusto
+
+========================================
+14. MÓDULO DE COMPRA Y VENTA
+========================================
+
+**Script Principal:** ``views.py``
+**Métodos:** ``compraventa``, ``ingresar_pin``, ``historial_transacciones``
+
+Descripción
+-----------
+Gestiona las operaciones de compra y venta de divisas, incluyendo la conversión entre diferentes monedas y el historial de transacciones.
+
+Funcionalidades Principales
+----------------------------
+
+**14.1 Operaciones de Compra y Venta (compraventa)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Procesa operaciones de compra y venta de divisas
+- Calcula tasas de cambio en tiempo real
+- Valida límites de intercambio por cliente
+- Gestiona diferentes métodos de pago y cobro
+- Aplica comisiones según configuración
+
+**Características:**
+- Interfaz intuitiva para operaciones
+- Cálculo automático de montos
+- Validación de fondos disponibles
+- Confirmación de operaciones
+- Integración con Stripe para pagos
+
+**Tipos de Operación:**
+- **Compra:** Cliente compra divisas extranjeras
+- **Venta:** Cliente vende divisas extranjeras
+- **Conversión:** Cambio entre diferentes monedas
+
+**14.2 Validación de PIN (ingresar_pin)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Valida PIN de seguridad para operaciones sensibles
+- Protege transacciones de alto valor
+- Limita intentos de PIN por seguridad
+- Registra intentos fallidos
+
+**Características:**
+- Sistema de seguridad adicional
+- Bloqueo temporal por intentos fallidos
+- Registro de auditoría de validaciones
+- Notificación de seguridad
+
+**14.3 Historial de Transacciones (historial_transacciones)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Muestra historial completo de operaciones
+- Filtros por fecha, tipo, moneda y estado
+- Detalle completo de cada transacción
+- Exportación de reportes
+
+**Características:**
+- Interfaz moderna con filtros avanzados
+- Paginación para grandes volúmenes
+- Búsqueda por número de operación
+- Estados de transacción claros
+
+**Estados de Transacción:**
+- **Pendiente:** Operación iniciada pero no completada
+- **Procesando:** Validación y procesamiento en curso
+- **Completada:** Operación exitosa
+- **Cancelada:** Operación cancelada por usuario o sistema
+- **Fallida:** Error en el procesamiento
+
+========================================
+15. MÓDULO DE VERIFICACIÓN DE IDENTIDAD
+========================================
+
+**Script Principal:** ``views.py``
+**Métodos:** ``resend_verification_email``, ``custom_logout``
+
+Descripción
+-----------
+Proporciona funcionalidades avanzadas de autenticación y gestión de sesiones.
+
+Funcionalidades Principales
+----------------------------
+
+**15.1 Reenvío de Email de Verificación (resend_verification_email)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Reenvía email de verificación
+- Genera nuevo token seguro
+- Controla límites de reenvío
+- Valida usuario existente
+
+**Características:**
+- Sistema de límites por seguridad
+- Tokens únicos por solicitud
+- Registro de reenvíos realizados
+- Notificación clara al usuario
+
+**15.2 Cierre de Sesión Personalizado (custom_logout)**
+
+**Ubicación:** ``webapp/views.py``
+
+**Funcionalidad:**
+- Cierra sesión del usuario actual
+- Limpia datos de sesión completamente
+- Registra acción de logout
+- Redirige a página pública
+
+**Características:**
+- Limpieza segura de sesión
+- Registro de auditoría
+- Protección contra ataques
+- Experiencia de usuario mejorada
 
 ========================================
 ARQUITECTURA TÉCNICA

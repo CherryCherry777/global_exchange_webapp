@@ -428,10 +428,402 @@ change_client
 
 set_cliente_seleccionado
 ~~~~~~~~~~~~~~~~~~~~~~~~
-**Ubicación:** views.py  
-**Descripción:** Vista para establecer cliente seleccionado via AJAX.  
+**Ubicación:** views.py
+**Descripción:** Vista para establecer cliente seleccionado via AJAX.
 **Funcionalidad:**
 - Actualización via AJAX
 - Validación de permisos
 - Respuesta JSON
 - Actualización de interfaz
+
+Compra y Venta
+--------------
+
+compraventa
+~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista principal para operaciones de compra y venta de divisas.
+**Funcionalidad:**
+- Procesa operaciones de compra/venta
+- Calcula tasas de cambio en tiempo real
+- Valida límites de intercambio
+- Gestiona métodos de pago y cobro
+- Aplica comisiones según configuración
+
+ingresar_pin
+~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para validar PIN de seguridad en operaciones sensibles.
+**Funcionalidad:**
+- Valida PIN para operaciones de alto valor
+- Sistema de intentos limitados
+- Bloqueo temporal por seguridad
+- Registro de validaciones
+
+historial_transacciones
+~~~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para mostrar historial completo de transacciones.
+**Funcionalidad:**
+- Lista transacciones con filtros
+- Detalle completo de operaciones
+- Estados de transacciones
+- Exportación de reportes
+
+Nuevos Métodos Agregados
+=========================
+
+A continuación se documentan los métodos adicionales incorporados al sistema:
+
+Métodos de Autenticación Adicionales
+------------------------------------
+
+resend_verification_email
+~~~~~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para reenviar email de verificación al usuario.
+**Funcionalidad:**
+- Genera nuevo token de verificación
+- Envía email con enlace de activación
+- Validación de usuario existente
+- Límites de reenvío por seguridad
+
+Métodos de Usuarios Adicionales
+-------------------------------
+
+add_role_to_user
+~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para asignar roles adicionales a usuarios existentes.
+**Funcionalidad:**
+- Lista roles disponibles
+- Validación de jerarquía de permisos
+- Asignación múltiple de roles
+- Verificación de conflictos de permisos
+
+remove_role_from_user
+~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para remover roles específicos de usuarios.
+**Funcionalidad:**
+- Lista roles actuales del usuario
+- Protección de roles del sistema
+- Validación de usuario con múltiples roles
+- Actualización de permisos en tiempo real
+
+activate_user
+~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista administrativa para activar usuarios manualmente.
+**Funcionalidad:**
+- Activación sin verificación de email
+- Solo accesible para administradores
+- Registro de auditoría de activación
+- Notificación automática al usuario
+
+deactivate_user
+~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista administrativa para desactivar usuarios del sistema.
+**Funcionalidad:**
+- Desactivación temporal de cuentas
+- Preservación de datos históricos
+- Solo accesible para administradores
+- Notificación automática al usuario
+
+delete_user
+~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista administrativa para eliminar usuarios permanentemente.
+**Funcionalidad:**
+- Eliminación completa de cuenta
+- Verificación de dependencias
+- Confirmación de administrador
+- Registro de auditoría
+
+modify_users
+~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para modificación masiva de usuarios.
+**Funcionalidad:**
+- Edición múltiple de usuarios
+- Actualización de datos comunes
+- Validación masiva
+- Reporte de cambios realizados
+
+Métodos de Clientes Adicionales
+-------------------------------
+
+create_client
+~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista alternativa para creación de clientes con formulario extendido.
+**Funcionalidad:**
+- Formulario completo de cliente
+- Validación de documentos únicos
+- Asignación automática de categoría
+- Configuración inicial de límites
+
+view_client
+~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista detallada de información de cliente específico.
+**Funcionalidad:**
+- Información completa del cliente
+- Lista de usuarios asignados
+- Historial de transacciones
+- Opciones de gestión
+
+modify_client
+~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para modificar información de clientes existentes.
+**Funcionalidad:**
+- Formulario pre-poblado
+- Validación de cambios
+- Actualización en tiempo real
+- Registro de historial de cambios
+
+delete_cliente
+~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para eliminación de clientes del sistema.
+**Funcionalidad:**
+- Confirmación de eliminación
+- Verificación de transacciones pendientes
+- Eliminación lógica o física según configuración
+- Actualización de estadísticas
+
+inactivar_cliente
+~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para desactivar temporalmente clientes.
+**Funcionalidad:**
+- Desactivación sin eliminación
+- Preservación de historial
+- Reactivación futura posible
+- Notificación automática
+
+activar_cliente
+~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para reactivar clientes previamente desactivados.
+**Funcionalidad:**
+- Activación de clientes inactivos
+- Restauración de permisos
+- Notificación automática
+- Validación de estado previo
+
+Métodos de Monedas Adicionales
+------------------------------
+
+create_currency
+~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para crear nuevas monedas en el sistema.
+**Funcionalidad:**
+- Formulario de creación de moneda
+- Validación de códigos únicos (ISO 4217)
+- Configuración de decimales
+- Subida opcional de imagen de bandera
+
+modify_currency
+~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para modificar parámetros de monedas existentes.
+**Funcionalidad:**
+- Actualización de tasas de cambio
+- Modificación de configuración de decimales
+- Cambio de estado activo/inactivo
+- Validación de impacto en transacciones
+
+toggle_currency
+~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para activar/desactivar monedas rápidamente.
+**Funcionalidad:**
+- Cambio rápido de estado
+- Validación de monedas en uso
+- Actualización automática de interfaces
+- Registro de cambios
+
+edit_prices
+~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para edición masiva de precios de monedas.
+**Funcionalidad:**
+- Actualización simultánea de múltiples monedas
+- Validación de consistencia de tasas
+- Registro de cambios históricos
+- Notificación a usuarios afectados
+
+Métodos de Pago y Cobro Adicionales
+-----------------------------------
+
+manage_payment_methods
+~~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista administrativa para gestión global de métodos de pago.
+**Funcionalidad:**
+- Lista métodos de pago del sistema
+- Configuración de comisiones globales
+- Estado activo/inactivo por método
+- Gestión centralizada de configuración
+
+modify_payment_method
+~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para modificar configuración de métodos de pago globales.
+**Funcionalidad:**
+- Edición de comisiones y tarifas
+- Cambio de nombres y descripciones
+- Modificación de estado operativo
+- Validación de configuración
+
+my_payment_methods
+~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista personal para que usuarios gestionen sus métodos de pago.
+**Funcionalidad:**
+- Lista métodos de pago personales
+- Agregar nuevos métodos de pago
+- Editar métodos existentes
+- Eliminar métodos no utilizados
+
+manage_cobro_methods
+~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista administrativa para gestión de métodos de cobro globales.
+**Funcionalidad:**
+- Configuración de métodos de cobro del sistema
+- Gestión de comisiones de cobro
+- Estado activo/inactivo
+- Configuración por moneda
+
+modify_cobro_method
+~~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para modificar métodos de cobro globales.
+**Funcionalidad:**
+- Edición de configuración de cobro
+- Ajuste de comisiones
+- Cambio de parámetros operativos
+- Validación de cambios
+
+Métodos de Páginas Públicas
+---------------------------
+
+public_home
+~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Página pública principal del sistema Global Exchange.
+**Funcionalidad:**
+- Muestra monedas activas y cotizaciones
+- Información general del servicio
+- Acceso para usuarios no registrados
+- Enlaces de registro y login
+
+api_active_currencies
+~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** API REST para obtener información de monedas activas.
+**Funcionalidad:**
+- Retorna datos en formato JSON
+- Filtros por estado y disponibilidad
+- Cálculo automático de comisiones
+- Cache para mejorar rendimiento
+
+Métodos de Utilidades Adicionales
+---------------------------------
+
+change_client
+~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para cambiar el cliente seleccionado en la sesión del usuario.
+**Funcionalidad:**
+- Lista clientes asignados al usuario
+- Cambio de cliente activo en sesión
+- Actualización de contexto de aplicación
+- Redirección automática al dashboard apropiado
+
+Métodos de Roles Adicionales
+----------------------------
+
+create_role
+~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para crear nuevos roles personalizados en el sistema.
+**Funcionalidad:**
+- Formulario de creación de roles
+- Asignación granular de permisos
+- Configuración de jerarquía
+- Validación de nombres únicos
+
+delete_role
+~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para eliminar roles personalizados del sistema.
+**Funcionalidad:**
+- Verificación de uso del rol
+- Reasignación automática de usuarios afectados
+- Protección de roles del sistema
+- Confirmación de eliminación
+
+Métodos de Categorías Adicionales
+---------------------------------
+
+modify_category
+~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para modificar categorías de clientes existentes.
+**Funcionalidad:**
+- Edición de nombre y configuración
+- Ajuste de descuentos asociados
+- Validación de impacto en clientes
+- Historial de cambios realizados
+
+Métodos de Dashboard Adicionales
+--------------------------------
+
+admin_dash
+~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Dashboard específico para administradores del sistema.
+**Funcionalidad:**
+- Métricas generales del sistema
+- Acceso rápido a funciones administrativas
+- Gestión de usuarios y configuración
+- Monitoreo de actividad del sistema
+
+employee_dash
+~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Dashboard específico para empleados del sistema.
+**Funcionalidad:**
+- Funciones limitadas según permisos
+- Gestión de clientes asignados
+- Acceso a herramientas de trabajo diarias
+- Información relevante para operaciones
+
+Métodos de Asignaciones Adicionales
+-----------------------------------
+
+assign_clients
+~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista mejorada para gestión de asignaciones cliente-usuario.
+**Funcionalidad:**
+- Interfaz moderna para asignaciones
+- Búsqueda y filtros avanzados
+- Gestión masiva de asignaciones
+- Desasignación de clientes
+
+desasignar_cliente_usuario
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** views.py
+**Descripción:** Vista para remover asignaciones cliente-usuario específicas.
+**Funcionalidad:**
+- Confirmación de desasignación
+- Verificación de permisos necesarios
+- Actualización automática de relaciones
+- Registro de historial de cambios
