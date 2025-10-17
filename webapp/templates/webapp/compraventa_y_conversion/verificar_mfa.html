@@ -1,0 +1,19 @@
+{% extends "webapp/base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>Verificación en dos pasos (MFA)</h2>
+  <p>Hemos enviado un código de verificación a tu correo electrónico.</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="confirmar" value="1">
+    {% for key, value in data.items %}
+      <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+    <div class="mb-3">
+      <label for="mfa_code" class="form-label">Código de verificación</label>
+      <input type="text" name="mfa_code" id="mfa_code" maxlength="6" class="form-control" required autofocus>
+    </div>
+    <button type="submit" class="btn btn-primary">Verificar y continuar</button>
+  </form>
+</div>
+{% endblock %}

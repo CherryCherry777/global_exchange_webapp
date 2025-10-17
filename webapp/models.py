@@ -1,3 +1,4 @@
+import secrets
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -1037,3 +1038,23 @@ class EmailScheduleConfig(models.Model):
     def __str__(self):
         return f"Envío {self.frequency} a las {self.hour:02d}:{self.minute:02d}"
 
+class MFACode(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(default=timezone.now)
+    used = models.BooleanField(default=False)
+
+    def is_valid(self):
+        """Verifica que el código no esté expirado (5 minutos) ni usado."""
+        return not self.used and (timezone.now() - self.created_at).total_seconds() < 300
+
+    @staticmethod
+    def generate_for_user(user):
+        """Genera y envía un nuevo código MFA al correo del usuario."""
+        code = str(secrets.randbelow(1000000)).zfill(6)
+        mfa = MFACode.objects.create(user=user, code=code)
+        user.email_user(
+            subject="Tu código de verificación (MFA)",
+            message=f"Tu código de verificación para completar la transacción es: {code}\n\nExpira en 5 minutos.",
+        )
+        return mfa

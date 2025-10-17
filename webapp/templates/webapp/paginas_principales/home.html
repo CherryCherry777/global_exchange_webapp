@@ -58,16 +58,18 @@
                         </thead>
                         <tbody>
                             {% for currency in currencies %}
-                            <tr>
-                                <td class="currency-cell">
-                                    {% if currency.flag_image %}
-                                        <img src="{{ currency.flag_image.url }}" alt="{{ currency.name }}" class="currency-flag">
-                                    {% endif %}
-                                    <span class="currency-name">{{ currency.name }}</span>
-                                </td>
-                                <td class="rate-cell">{{ currency.totalCompra|floatformat:currency.decimales_monto }}</td>
-                                <td class="rate-cell">{{ currency.totalVenta|floatformat:currency.decimales_monto }}</td>
-                            </tr>
+                                {% if currency.code != 'PYG' %}
+                                    <tr>
+                                        <td class="currency-cell">
+                                            {% if currency.flag_image %}
+                                                <img src="{{ currency.flag_image.url }}" alt="{{ currency.name }}" class="currency-flag">
+                                            {% endif %}
+                                            <span class="currency-name">{{ currency.name }}</span>
+                                        </td>
+                                        <td class="rate-cell">{{ currency.totalCompra|floatformat:currency.decimales_monto }}</td>
+                                        <td class="rate-cell">{{ currency.totalVenta|floatformat:currency.decimales_monto }}</td>
+                                    </tr>
+                                {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 import secrets
 from celery import shared_task
@@ -7,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
-from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, Transaccion
+from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, MFACode, Transaccion
 from .views.payments.pagos_simulados_a_clientes import pagar_al_cliente
 
 from django.utils import timezone
@@ -219,3 +220,8 @@ def pagar_al_cliente_task(self, transaccion_id: int) -> None:
 
         print(f"[ACREDITACION_FALLIDA] Transacción {transaccion.id}: {e}")
 
+
+@shared_task
+def cleanup_expired_mfa_codes():
+    """Elimina códigos MFA vencidos (más de 1 hora de antigüedad)."""
+    MFACode.objects.filter(created_at__lt=timezone.now() - timedelta(hours=1)).delete()
