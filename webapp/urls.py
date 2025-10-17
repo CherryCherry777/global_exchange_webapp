@@ -149,5 +149,4 @@ urlpatterns = [
     path("tauser/pagar/<int:pk>/", views.tauser_pagar, name="tauser_pagar"),
     path("tauser/cobrar/<int:pk>/", views.tauser_cobrar, name="tauser_cobrar"),
 
-
 ]
