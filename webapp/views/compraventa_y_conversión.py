@@ -5,12 +5,62 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
+from ..models import CuentaBancaria, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
+from .payments.stripe_utils import procesar_pago_stripe
+from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera
+from webapp.tasks import pagar_al_cliente_task
 
 # ----------------------
 # Vistas de compraventa
 # ----------------------
+
+def guardar_transaccion(cliente: Cliente, usuario, data: dict, estado: str, payment_intent_id = None) -> Transaccion:
+    """
+    Crea y guarda una transacción con el estado indicado.
+    """
+    transaccion = Transaccion(
+        cliente=cliente,
+        usuario=usuario,
+        tipo=data["tipo"],
+        estado=estado,
+        moneda_origen=Currency.objects.get(code=data["moneda_origen"]),
+        moneda_destino=Currency.objects.get(code=data["moneda_destino"]),
+        tasa_cambio=Decimal(data["tasa_cambio"]),
+        monto_origen=Decimal(data["monto_origen"]),
+        monto_destino=Decimal(data["monto_destino"]),
+        medio_pago_type=ContentType.objects.get_for_id(data["medio_pago_contenttype"]),
+        medio_pago_id=data["medio_pago"],
+        medio_cobro_type=ContentType.objects.get_for_id(data["medio_cobro_contenttype"]),
+        medio_cobro_id=data["medio_cobro"],
+        stripe_payment_intent_id=payment_intent_id
+    )
+    transaccion.save()
+    return transaccion
+
+
+MONEDAS_SIN_DECIMALES = {"PYG", "CLP", "JPY"}  # agregar otras si aplica
+
+def monto_stripe(monto_origen: Decimal, moneda: str) -> int:
+    """
+    Devuelve el monto en la unidad mínima que Stripe acepta
+    según la moneda.
+
+    Args:
+        monto_origen: monto en unidades normales (Decimal o float)
+        moneda: código de moneda, ej. 'PYG', 'USD'
+
+    Returns:
+        int: monto listo para enviar a Stripe
+    """
+    moneda = moneda.upper()
+    if moneda in MONEDAS_SIN_DECIMALES:
+        # Para monedas sin decimales, se envía entero
+        return int(monto_origen)
+    else:
+        # Para monedas con decimales, se envía en centavos
+        return int(monto_origen * 100)
+
 
 def compraventa_view(request):
     cliente_id = request.session.get("cliente_id")
@@ -22,74 +72,166 @@ def compraventa_view(request):
 
     cliente = get_object_or_404(Cliente, id=cliente_id)
 
+    # --- obtener tipos generales desde la base ---
+    tipos_pago = list(TipoPago.objects.order_by("-nombre").values("id", "nombre"))
+    tipos_cobro = list(TipoCobro.objects.order_by("-nombre").values("id", "nombre"))
+
     if request.method == "POST":
         # Confirmación final
         if "confirmar" in request.POST:
-            data = request.session.get("form_data")
+            data = request.POST.dict()  # todos los inputs del wizard
             if not data:
+                messages.error(request, "No se recibieron datos del formulario. Intenta nuevamente.")
                 return redirect("compraventa")
 
+            # --- Validar tipo de transacción ---
+            tipo = data.get("tipo")
+            if tipo not in Transaccion.Tipo.values:
+                messages.error(request, f"Tipo de transacción inválido: {tipo}")
+                return redirect("compraventa")
+            
             # Validación del monto
             try:
-                monto_origen = float(data["monto_origen"])
-                monto_destino=float(data["monto_destino"])
+                monto_origen = Decimal(data["monto_origen"])
+                monto_destino=Decimal(data["monto_destino"])
                 if monto_origen <= 0:
                     raise ValueError
                 if monto_destino <= 0:
                     raise ValueError
             except (TypeError, ValueError):
                 messages.error(request, "Debés ingresar un monto válido.")
-                return redirect('nombre_de_tu_vista')
-            # Construcción de transacción
-            transaccion = Transaccion(
-                cliente=cliente,
-                usuario=request.user,
-                tipo=data["tipo"],
-                moneda_origen=Currency.objects.get(code=data["moneda_origen"]),
-                moneda_destino=Currency.objects.get(code=data["moneda_destino"]),
-                tasa_cambio=data["tasa_cambio"],
-                monto_origen=monto_origen,
-                monto_destino=monto_destino,
-                medio_pago_type=ContentType.objects.get_for_id(data["medio_pago_type"]),
-                medio_pago_id=data["medio_pago_id"],
-                medio_cobro_type=ContentType.objects.get_for_id(data["medio_cobro_type"]),
-                medio_cobro_id=data["medio_cobro_id"],
-            )
-            transaccion.save()
+                return redirect('compraventa')
+            
+#//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Cobrar al cliente
+#//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            # Obtener tipo de pago
+            try:
+                tipo_pago_general = TipoPago.objects.get(pk=data["medio_pago_tipo"])
+                tipo_pago_nombre = tipo_pago_general.nombre.replace(" ", "").replace("_", "").lower()
+            except TipoPago.DoesNotExist:
+                messages.error(request, "Método de pago inválido.")
+                return redirect("compraventa")
+
+            # Inicializar el estado
+            estado = Transaccion.Estado.PENDIENTE
+            payment_intent_id = None
+
+            # TARJETA INTERNACIONAL
+            # Pagos con Stripe (Tarjeta Internacional) se procesa inmediatamente
+            if tipo_pago_nombre == "tarjetainternacional":
+                # Conseguir el id de la tarjeta generado por Stripe
+                tarjeta_internacional = TarjetaInternacional.objects.get(id=data["medio_pago"])
+                stripe_payment_method_id = tarjeta_internacional.stripe_payment_method_id
+
+                resultado = procesar_pago_stripe(
+                    cliente_stripe_id=cliente.stripe_customer_id,
+                    metodo_pago_id=stripe_payment_method_id,
+                    # función que retorna el monto válido según las reglas de stripe
+                    monto=monto_stripe(monto_origen, data["moneda_origen"]),
+                    moneda=data["moneda_origen"],
+                    descripcion=f"Compra/Venta de divisas ({data['tipo']})",
+                )
+
+                if not resultado.get("success"):
+                    # Pago falló
+                    messages.error(request, f"No se pudo procesar el pago: {resultado.get('message')}")
+                    return redirect("compraventa")
+
+                estado = Transaccion.Estado.PAGADA
+                payment_intent_id = resultado.get("payment_intent_id")
+
+            # TARJETA NACIONAL
+            elif tipo_pago_nombre == "tarjetanacional":
+                tarjeta_nacional = TarjetaNacional.objects.get(id=data["medio_pago"])
+                # Validar que la el monto a cobrar(vista de la casa) esté en guaranies
+                if(data["moneda_origen"] == "PYG"):
+                    resultado = cobrar_al_cliente_tarjeta_nacional(monto_origen, tarjeta_nacional.numero_tokenizado)
+                    if not resultado.get("success"):
+                        # Pago falló
+                        messages.error(request, f"No se pudo procesar el pago: {resultado.get('message')}")
+                        return redirect("compraventa")
+                    
+                    estado = Transaccion.Estado.PAGADA
+                else:
+                    messages.error(request, f"No se puede seleccionar una tarjeta como medio de cobro")
+                    return redirect("compraventa")
+
+            # BILLETERA    
+            elif tipo_pago_nombre == "billetera":
+                billetera = Billetera.objects.get(id=data["medio_pago"])
+                pin = request.POST.get("pin")  # Puede venir vacío si es la primera vez
+                cancelar = request.POST.get("cancelar")
+
+                if cancelar:
+                    messages.info(request, "El pago con billetera fue cancelado.")
+                    return redirect("compraventa")
+
+                resultado = cobrar_al_cliente_billetera(billetera.numero_celular, pin)
+
+                if resultado.get("require_pin"):
+                    # Renderiza el formulario para ingresar o reintentar el PIN
+                    return render(
+                        request,
+                        "webapp/compraventa_y_conversion/ingresar_pin.html",
+                        {
+                            "numero_celular": billetera.numero_celular,
+                            "data": data,
+                            "mensaje": resultado.get("message"),
+                            "allow_retry": resultado.get("allow_retry", True),
+                        },
+                    )
+
+                if not resultado.get("success"):
+                    messages.error(request, f"No se pudo procesar el pago: {resultado.get('message')}")
+                    return redirect("compraventa")
+
+                estado = Transaccion.Estado.PAGADA
+
+            # TRANSFERENCIA    
+            elif tipo_pago_nombre == "cuentabancaria":
+                print("")
+
+            # TAUSER
+            elif tipo_pago_nombre == "tauser":
+                print("")
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////////
+# Pagar al cliente
+#//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            # Obtener tipo de cobro
+            try:
+                tipo_cobro_general = TipoCobro.objects.get(id=data["medio_cobro_tipo"])
+                tipo_cobro_nombre = tipo_cobro_general.nombre.replace(" ", "").replace("_", "").lower()
+            except TipoPago.DoesNotExist:
+                messages.error(request, "Método de pago inválido.")
+                return redirect("compraventa")
+
+            # --- Guardar transacción ---
+            transaccion = guardar_transaccion(cliente, request.user, data, estado, payment_intent_id)
+
+            # --- Pago al cliente en background ---
+            if tipo_cobro_nombre != "tauser":
+                pagar_al_cliente_task.delay(transaccion.id)
 
             # limpiar la sesión
-            request.session.pop("form_data", None)
+            messages.success(request, "Transacción registrada.")
             return redirect("transaccion_list")
-
-        # Paso previo: guardar en sesión y mostrar confirmación
-        data = {
-            "tipo": request.POST.get("tipo"),
-            "moneda_origen": request.POST.get("moneda_origen"),
-            "moneda_destino": request.POST.get("moneda_destino"),
-            "tasa_cambio": request.POST.get("tasa_cambio"),
-            "monto_origen": request.POST.get("monto_origen"),
-            "monto_destino": request.POST.get("monto_destino"),
-            "medio_pago_type": request.POST.get("medio_pago_type"),
-            "medio_pago_id": request.POST.get("medio_pago_id"),
-            "medio_cobro_type": request.POST.get("medio_cobro_type"),
-            "medio_cobro_id": request.POST.get("medio_cobro_id"),
-        }
-
-        request.session["form_data"] = data
-        return render(request, "webapp/compraventa_y_conversion/confirmation_compraventa.html", {"data": data})
-    
-    # --- obtener tipos generales desde la base ---
-    tipos_pago = list(TipoPago.objects.order_by("-nombre").values("id", "nombre"))
-    tipos_cobro = list(TipoCobro.objects.order_by("-nombre").values("id", "nombre"))
 
     for tipo in tipos_pago:
         nombre_normalizado = tipo["nombre"].replace(" ", "").replace("_", "").lower()
         if nombre_normalizado == "cuentabancaria":
             tipo["nombre"] = "Transferencia"""
 
+    # Obtener la categoría del cliente
+    categoria_cliente = cliente.categoria
+
     context = {
         "tipos_pago": tipos_pago,
         "tipos_cobro": tipos_cobro,
+        "categoria_cliente": categoria_cliente,
     }
 
     return render(request, "webapp/compraventa_y_conversion/compraventa.html", context)
@@ -104,8 +246,8 @@ def get_metodos_pago_cobro(request):
     moneda_cobro = request.GET.get("to")
 
     # ---------------- ContentTypes ----------------
-    ct_tarjeta = ContentType.objects.get_for_model(TarjetaNacional)
-    ct_transferencia = ContentType.objects.get_for_model(CuentaBancaria)
+    ct_tarjetaNacional = ContentType.objects.get_for_model(TarjetaNacional)
+    ct_tarjetaInternacional = ContentType.objects.get_for_model(TarjetaInternacional)
     ct_billetera = ContentType.objects.get_for_model(Billetera)
     ct_tauser = ContentType.objects.get_for_model(Tauser)
     ct_transferencia_cobro = ContentType.objects.get_for_model(CuentaBancariaCobro)
@@ -114,41 +256,38 @@ def get_metodos_pago_cobro(request):
     # ---------------- Métodos de Pago ----------------
     metodo_pago = []
 
-    tarjetas = TarjetaNacional.objects.filter(
+    tarjetasNacionales = TarjetaNacional.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
     ).select_related("medio_pago__tipo_pago", "entidad")
-    for t in tarjetas:
+    for t in tarjetasNacionales:
         if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
             continue
         metodo_pago.append({
             "id": t.id,
             "tipo": "tarjeta_nacional",
-            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
+            "nombre": f"{t.medio_pago.nombre} ****{t.ultimos_digitos}",
             "tipo_general_id": t.medio_pago.tipo_pago_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "content_type_id": ct_tarjeta.id,
+            "content_type_id": ct_tarjetaNacional.id,
             "moneda_code": t.medio_pago.moneda.code
         })
 
-    """
-    Eliminado
-    transferencias = CuentaBancaria.objects.filter(
-        medio_pago__cliente__id=cliente_id, medio_pago__activo=True
-    ).select_related("medio_pago__tipo_pago", "entidad")
-    for t in transferencias:
-        if moneda_pago and t.medio_pago.moneda.code != moneda_pago:
-            continue
+    # 🔹 Tarjetas Internacionales
+    tarjetas_internacionales = (
+        TarjetaInternacional.objects
+        .filter(medio_pago__cliente_id=cliente_id, medio_pago__activo=True)
+        .select_related("medio_pago__tipo_pago")
+    )
+    for t in tarjetas_internacionales:
         metodo_pago.append({
             "id": t.id,
-            "tipo": "transferencia",
-            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
-            "numero_cuenta": t.numero_cuenta,
+            "tipo": "tarjeta_internacional",
+            "nombre": f"{t.medio_pago.nombre} ****{t.ultimos_digitos}",
             "tipo_general_id": t.medio_pago.tipo_pago_id,
-            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "moneda_code": t.medio_pago.moneda.code,
-            "content_type_id": ct_transferencia.id
+            "moneda_code": getattr(t.medio_pago.moneda, "code", None),
+            "content_type_id": ct_tarjetaInternacional.id,
         })
-    """
+
     
     billeteras = Billetera.objects.filter(
         medio_pago__cliente__id=cliente_id, medio_pago__activo=True
@@ -159,7 +298,7 @@ def get_metodos_pago_cobro(request):
         metodo_pago.append({
             "id": t.id,
             "tipo": "billetera",
-            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "nombre": f"{t.medio_pago.nombre} ({t.entidad.nombre}) {t.numero_celular}" if t.entidad else f"{t.nombre}",
             "tipo_general_id": t.medio_pago.tipo_pago_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
             "moneda_code": t.medio_pago.moneda.code,
@@ -171,7 +310,7 @@ def get_metodos_pago_cobro(request):
         metodo_pago.append({
             "id": t.id,
             "tipo": t.tipo,
-            "nombre": t.nombre,
+            "nombre": f"{t.nombre} ({t.ubicacion})",
             "ubicacion": t.ubicacion,
             "tipo_general_id": t.tipo_pago.id,
             "moneda_code": None,
@@ -180,25 +319,6 @@ def get_metodos_pago_cobro(request):
 
     # ---------------- Métodos de Cobro ----------------
     metodo_cobro = []
-
-    """
-    Eliminado
-    tarjetas = TarjetaCobro.objects.filter(
-        medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
-    ).select_related("medio_cobro__tipo_cobro", "entidad")
-    for t in tarjetas:
-        if moneda_cobro and t.medio_cobro.moneda.code != moneda_cobro:
-            continue
-        metodo_cobro.append({
-            "id": t.id,
-            "tipo": "tarjeta",
-            "nombre": f"Tarjeta ****{t.ultimos_digitos}",
-            "tipo_general_id": t.medio_cobro.tipo_cobro_id,
-            "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
-            "moneda_code": t.medio_cobro.moneda.code,
-            "content_type_id": ct_tarjeta_cobro.id
-        })
-    """
 
     transferencias = CuentaBancariaCobro.objects.filter(
         medio_cobro__cliente__id=cliente_id, medio_cobro__activo=True
@@ -209,7 +329,7 @@ def get_metodos_pago_cobro(request):
         metodo_cobro.append({
             "id": t.id,
             "tipo": "transferencia",
-            "nombre": f"Transferencia {t.entidad.nombre}" if t.entidad else "Transferencia",
+            "nombre": f"{t.medio_cobro.nombre} ({t.entidad.nombre}) {t.numero_cuenta}" if t.entidad else "Transferencia",
             "numero_cuenta": t.numero_cuenta,
             "tipo_general_id": t.medio_cobro.tipo_cobro_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
@@ -226,7 +346,7 @@ def get_metodos_pago_cobro(request):
         metodo_cobro.append({
             "id": t.id,
             "tipo": "billetera",
-            "nombre": f"Billetera {t.entidad.nombre}" if t.entidad else "Billetera",
+            "nombre": f"{t.medio_cobro.nombre} ({t.entidad.nombre}) {t.numero_celular}" if t.entidad else f"{t.nombre}",
             "tipo_general_id": t.medio_cobro.tipo_cobro_id,
             "entidad": {"nombre": t.entidad.nombre} if t.entidad else None,
             "moneda_code": t.medio_cobro.moneda.code,
@@ -238,7 +358,7 @@ def get_metodos_pago_cobro(request):
         metodo_cobro.append({
             "id": t.id,
             "tipo": t.tipo,
-            "nombre": t.nombre,
+            "nombre": f"{t.nombre} ({t.ubicacion})",
             "ubicacion": t.ubicacion,
             "tipo_general_id": t.tipo_cobro.id,
             "moneda_code": None,

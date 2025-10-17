@@ -36,6 +36,7 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 DEFAULT_FROM_EMAIL = "Global Exchange <noreply@mailtrap.io>"
+SUPPORT_EMAIL = "soporte@tuempresa.com"
 
 
 # Seguridad

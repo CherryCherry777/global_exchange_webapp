@@ -1,12 +1,14 @@
 from decimal import Decimal
 import secrets
 from celery import shared_task
+from celery.exceptions import MaxRetriesExceededError
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
-from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig
+from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, Transaccion
+from .views.payments.pagos_simulados_a_clientes import pagar_al_cliente
 
 from django.utils import timezone
 
@@ -128,3 +130,92 @@ def send_welcome_email(user_email):
         [user_email],
         fail_silently=False,
     )
+
+
+@shared_task(bind=True, max_retries=4, default_retry_delay=5)
+def pagar_al_cliente_task(self, transaccion_id: int) -> None:
+    transaccion = Transaccion.objects.get(pk=transaccion_id)
+
+    try:
+        exito = pagar_al_cliente(transaccion)
+
+        if exito:
+            transaccion.estado = Transaccion.Estado.COMPLETA
+            transaccion.save(update_fields=["estado"])
+            return
+
+        # Forzar excepción para retry
+        raise Exception("No se pudo pagar al cliente")
+
+    except Exception as e:
+        # Verificar si aún podemos reintentar
+        if self.request.retries < self.max_retries:
+            try:
+                raise self.retry(exc=e)
+            except MaxRetriesExceededError:
+                # Esto nunca debería ejecutarse aquí, solo como fallback
+                pass
+
+        # Si llegamos aquí, significa que ya se agotaron los reintentos
+        transaccion.estado = Transaccion.Estado.AC_FALLIDA
+        transaccion.save(update_fields=["estado"])
+
+        # ---------------------------------------------
+        # Notificación al cliente y soporte
+        # ---------------------------------------------
+        try:
+            # Solo necesitamos el correo del usuario responsable y del soporte
+            usuario_email = getattr(transaccion.usuario, "email", None)
+            soporte_email = getattr(settings, "SUPPORT_EMAIL", "soporte@tuempresa.com")
+
+            # Este correo antes iba al cliente, ahora lo recibe el usuario responsable
+            subject_usuario = "Error en la acreditación de la transacción"
+            message_usuario = (
+                f"Estimado/a {transaccion.usuario},\n\n"
+                f"Se recibió el pago de la transacción correctamente, pero hubo problemas "
+                f"para acreditar el monto correspondiente.\n\n"
+                f"Detalles:\n"
+                f"- ID de transacción: {transaccion.id}\n"
+                f"- Monto: {transaccion.monto_destino} {transaccion.moneda_destino}\n\n"
+                f"Por favor, revise la operación y tome las acciones necesarias.\n\n"
+                f"Atentamente,\n"
+                f"El equipo de soporte de {getattr(settings, 'PROJECT_NAME', 'Global Exchange')}"
+            )
+
+            # Correo “admin” sigue igual, para soporte
+            subject_admin = "⚠️ Error crítico: no se pudo acreditar la transacción"
+            message_admin = (
+                f"No se pudo completar la acreditación tras varios intentos.\n\n"
+                f"Detalles de la transacción:\n"
+                f"- ID: {transaccion.id}\n"
+                f"- Usuario responsable: {transaccion.usuario}\n"
+                f"- Monto: {transaccion.monto_destino} {transaccion.moneda_destino}\n"
+                f"- Error final: {str(e)}\n\n"
+                f"Por favor, revise manualmente la operación."
+            )
+
+            # Enviar correo al usuario responsable
+            if usuario_email:
+                send_mail(
+                    subject=subject_usuario,
+                    message=message_usuario,
+                    from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@tuempresa.com"),
+                    recipient_list=[usuario_email],
+                    fail_silently=True,
+                )
+
+            # Enviar correo a soporte
+            admin_recipients = [soporte_email]
+            send_mail(
+                subject=subject_admin,
+                message=message_admin,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@tuempresa.com"),
+                recipient_list=admin_recipients,
+                fail_silently=True,
+            )
+
+        except Exception as mail_error:
+            print(f"[WARN] Error enviando notificación de fallo: {mail_error}")
+
+        print(f"[ACREDITACION_FALLIDA] Transacción {transaccion.id}: {e}")
+

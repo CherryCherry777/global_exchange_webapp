@@ -470,7 +470,7 @@ class TarjetaInternacional(models.Model):
         verbose_name_plural = "Tarjetas Internacionales"
 
     def __str__(self):
-        return f"{self.medio_pago.nombre} - ****{self.ultimos_digitos} ({self.marca})"
+        return f"{self.medio_pago.nombre} - ****{self.ultimos_digitos}"
 
 
 class Billetera(models.Model):
@@ -867,7 +867,9 @@ class Transaccion(models.Model):
 
     class Estado(models.TextChoices):
         PENDIENTE = "PENDIENTE", "Pendiente"
-        PAGADA = "PAGADA", "Pagada"
+        PAGADA = "PAGADA", "Pagada por el cliente"
+        COMPLETA = "COMPLETA", "Transacción finalizada"
+        AC_FALLIDA = "ac_fallida", "Error al acreditar"
         CANCELADA = "CANCELADA", "Cancelada"
         ANULADA = "ANULADA", "Anulada"
 
@@ -902,9 +904,9 @@ class Transaccion(models.Model):
         related_name="transacciones_destino"
     )
     
-    tasa_cambio = models.DecimalField(max_digits=12, decimal_places=8)
-    monto_origen = models.DecimalField(max_digits=15, decimal_places=8)
-    monto_destino = models.DecimalField(max_digits=15, decimal_places=8)
+    tasa_cambio = models.DecimalField(max_digits=16, decimal_places=8)
+    monto_origen = models.DecimalField(max_digits=20, decimal_places=8)
+    monto_destino = models.DecimalField(max_digits=20, decimal_places=8)
 
     # Generic Foreign Key para medio de pago
     medio_pago_type = models.ForeignKey(
@@ -922,6 +924,13 @@ class Transaccion(models.Model):
     )
     medio_cobro_id = models.PositiveIntegerField()
     medio_cobro = GenericForeignKey("medio_cobro_type", "medio_cobro_id")
+
+    stripe_payment_intent_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name="ID de PaymentIntent en Stripe"
+    )
 
     factura_asociada = models.ForeignKey(
         "Factura",
