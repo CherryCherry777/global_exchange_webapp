@@ -27,11 +27,12 @@ html {
    =========================================== */
 
 .header-nav {
-    background: #1a1a2e;
+    background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%);
     padding: 8px 0;
     position: static;
     z-index: 1000;
     margin-bottom: -1px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .nav-container {
@@ -59,6 +60,7 @@ html {
     width: 120px;
     height: 120px;
     object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
     transition: transform 0.3s ease;
 }
 

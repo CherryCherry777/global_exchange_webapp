@@ -14,11 +14,29 @@ from decimal import ROUND_DOWN, Decimal
 @role_required("Administrador")
 def manage_categories(request):
     """Vista para administrar categorías"""
-    # Obtener todas las categorías
-    categorias = Categoria.objects.all().order_by('nombre')
-    
-    # Calcular métricas
-    total_categories = Categoria.objects.count()
+    try:
+        # Obtener todas las categorías
+        categorias = Categoria.objects.all().order_by('nombre')
+        
+        # Calcular métricas
+        total_categories = Categoria.objects.count()
+        
+        # Si no hay categorías, crear algunas de ejemplo
+        if total_categories == 0:
+            print("No hay categorías en la base de datos. Creando categorías de ejemplo...")
+            create_sample_categories()
+            # Volver a obtener las categorías después de crearlas
+            categorias = Categoria.objects.all().order_by('nombre')
+            total_categories = Categoria.objects.count()
+        
+        # Debug: imprimir información en consola
+        print(f"Total de categorías encontradas: {total_categories}")
+        print(f"Categorías: {list(categorias.values('id', 'nombre'))}")
+        
+    except Exception as e:
+        print(f"Error al obtener categorías: {e}")
+        categorias = []
+        total_categories = 0
     
     context = {
         "categorias": categorias,
@@ -122,3 +140,41 @@ def manage_categories(request):
     # GET
     categorias = Categoria.objects.all()
     return render(request, "webapp/categorias/manage_categories.html", {"categorias": categorias})
+
+
+# Función para crear categorías de prueba (solo para desarrollo)
+def create_sample_categories():
+    """Crear categorías de ejemplo si no existen"""
+    sample_categories = [
+        {"nombre": "VIP", "descuento": 15.0},
+        {"nombre": "Premium", "descuento": 10.0},
+        {"nombre": "Estándar", "descuento": 5.0},
+        {"nombre": "Básico", "descuento": 0.0},
+    ]
+    
+    created_count = 0
+    for cat_data in sample_categories:
+        categoria, created = Categoria.objects.get_or_create(
+            nombre=cat_data["nombre"],
+            defaults={"descuento": cat_data["descuento"]}
+        )
+        if created:
+            created_count += 1
+            print(f"Categoría creada: {categoria.nombre}")
+    
+    print(f"Total de categorías creadas: {created_count}")
+    return created_count
+
+
+# Vista temporal para crear categorías de prueba
+@login_required
+@role_required("Administrador")
+def create_sample_categories_view(request):
+    """Vista temporal para crear categorías de ejemplo"""
+    try:
+        created_count = create_sample_categories()
+        messages.success(request, f"Se crearon {created_count} categorías de ejemplo.")
+    except Exception as e:
+        messages.error(request, f"Error al crear categorías: {str(e)}")
+    
+    return redirect("manage_categories")

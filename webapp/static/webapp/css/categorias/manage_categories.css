@@ -10,56 +10,31 @@
     margin: 0;
 }
 
-/* Header Navigation - Match home page exactly */
-.header-nav {
-    background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%) !important;
-    padding: 15px 0 !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 1000 !important;
-    margin-bottom: -1px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+/* Header Navigation styles moved to global.css for consistency across all pages */
+
+/* Create Sample Categories Button */
+.create-sample-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #E7CB3D 0%, #D2AF00 50%, #796503 100%);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
 }
 
-.nav-container {
-    max-width: 1200px !important;
-    margin: 0 auto !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 20px !important;
-}
-
-.logo-container {
-    display: flex !important;
-    align-items: center !important;
-    gap: 15px !important;
-}
-
-.logo-wrapper {
-    display: flex !important;
-    align-items: center !important;
-}
-
-.logo-image {
-    width: 80px !important;
-    height: 80px !important;
-    object-fit: contain !important;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3)) !important;
-    transition: transform 0.3s ease !important;
-}
-
-.logo-image:hover {
-    transform: scale(1.05) !important;
-}
-
-.logo-link {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: 1 !important;
+.create-sample-btn:hover {
+    background: linear-gradient(135deg, #F0D94A 0%, #E0C200 50%, #8A7300 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 203, 61, 0.3);
+    color: #ffffff;
+    text-decoration: none;
 }
 
 .nav-menu {
