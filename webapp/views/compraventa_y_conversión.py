@@ -278,10 +278,14 @@ def compraventa_view(request):
     # Obtener la categoría del cliente
     categoria_cliente = cliente.categoria
 
+    # Obtener los datos de la cuenta del negocio para recibir transferencias
+    cuenta_negocio = CuentaBancariaNegocio.objects.first()
+
     context = {
         "tipos_pago": tipos_pago,
         "tipos_cobro": tipos_cobro,
         "categoria_cliente": categoria_cliente,
+        "cuenta_negocio": cuenta_negocio,
     }
 
     return render(request, "webapp/compraventa_y_conversion/compraventa.html", context)

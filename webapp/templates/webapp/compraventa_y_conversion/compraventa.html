@@ -92,6 +92,20 @@
                                             <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
                                         </div>
                                     </div>
+                                    <!-- Datos de cuenta bancaria para transferencia -->
+                                    <div id="transferencia-info" class="transferencia-info d-none mt-3">
+                                        <div class="transferencia-card">
+                                            <h6 class="transferencia-titulo">Datos para transferencia</h6>
+                                            <div class="transferencia-datos">
+                                                <p class="mb-1"><strong>Titular:</strong> Global Exchange </p>
+                                                <p class="mb-1"><strong>RUC:</strong> 80012345-6 </p>
+                                                <p class="mb-1"><strong>Banco:</strong> {{cuenta_negocio.entidad.nombre}}</p>
+                                                <p class="mb-1"><strong>Cuenta:</strong> {{cuenta_negocio.numero_cuenta}}</p>
+                                                <p class="mb-1"><strong>Alias:</strong> {{cuenta_negocio.alias_cbu}}</p>
+                                            </div>
+                                            <p class="transferencia-nota">Por favor, una vez registrada la operación selecciona "Continuar Pago".</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <!-- Método de Cobro perspectiva del cliente -->
@@ -622,7 +636,16 @@
         pagoTabs.forEach((btn) => {
             const nombre = btn.textContent.trim();
             const esPYG = from === "PYG";
-            const permitido = esPYG || ["Tauser", "Tarjeta Internacional"].includes(nombre);
+            const esTauser = nombre === "Tauser";
+            const permitidoBase = esPYG || ["Tauser", "Tarjeta Internacional"].includes(nombre);
+
+            // 🔹 Regla adicional para Tauser (método de PAGO)
+            // Solo se muestra si el monto termina en 000 (sin decenas, centenas ni unidades)
+            let permitido = permitidoBase;
+            if (esTauser && permitidoBase) {
+                permitido = (amount % 1000 === 0);  // múltiplo de 1000 exacto
+            }
+
             btn.style.display = permitido ? "" : "none";
         });
 
@@ -656,10 +679,28 @@
     function configurarTabsFiltro() {
         const pagoTabs = document.getElementById("pago-tabs");
         const cobroTabs = document.getElementById("cobro-tabs");
+        const selectPago = document.getElementById("simu-metodo-pago");
+        const infoTransferencia = document.getElementById("transferencia-info");
 
         const activar = async (grupo, btn, tipo) => {
             grupo.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
+
+            // 🔹 Si es un botón de pago, controlamos la visibilidad del select y la tarjeta de cuenta
+            if (tipo === "pago") {
+                const nombre = btn.textContent.trim().toLowerCase();
+                const esTransferencia = nombre.includes("transferencia");
+
+                if (esTransferencia) {
+                    // Oculta el select y muestra los datos bancarios
+                    selectPago.classList.add("d-none");
+                    infoTransferencia.classList.remove("d-none");
+                } else {
+                    // Restaura el select normal y oculta los datos bancarios
+                    selectPago.classList.remove("d-none");
+                    infoTransferencia.classList.add("d-none");
+                }
+            }
 
             await recargarMetodos(tipo);
             compute();

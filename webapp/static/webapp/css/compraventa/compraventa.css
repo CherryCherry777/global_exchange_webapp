@@ -449,6 +449,52 @@ body {
 }
 
 /* ===========================
+   BLOQUE DE DATOS DE TRANSFERENCIA
+   ========================== */
+
+.transferencia-info {
+  width: 100%;
+}
+
+.transferencia-card {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 1.5rem 2rem;
+  color: #ffffff;
+  font-family: "Roboto", sans-serif;
+  text-align: left;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.transferencia-titulo {
+  font-weight: bold;
+  font-size: 18px;
+  color: #ffd400;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.transferencia-datos p {
+  font-size: 16px;
+  margin: 0.3rem 0;
+  line-height: 1.4;
+}
+
+.transferencia-nota {
+  font-size: 14px;
+  color: #cccccc;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
+/* Animación de aparición */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===========================
    RESPONSIVE (Opcional)
    ========================== */
 
