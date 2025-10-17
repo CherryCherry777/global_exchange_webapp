@@ -1,28 +1,45 @@
 {% extends "webapp/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/compraventa/ingresar_pin.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-4 text-center">
+<div class="pin-page-container">
     <h4>Autorización de pago con billetera</h4>
-    <p>Se enviará una solicitud de cobro a tu billetera <strong>{{ numero_celular }}</strong>.</p>
 
     <form method="post">
         {% csrf_token %}
+        
+        <!-- Inputs hidden -->
         {% for key, value in data.items %}
             {% if key != 'pin' %}
                 <input type="hidden" name="{{ key }}" value="{{ value }}">
             {% endif %}
         {% endfor %}
 
-        <!-- ...otros campos que necesites conservar -->
+        <!-- Ícono de billetera -->
+        <div class="wallet-icon">
+            <img src="{% static 'webapp/pantalla_autorizar_billetera/autorizar_billetera.png' %}" alt="Wallet Icon">
+        </div>
 
-        <label for="pin">Ingresá tu PIN:</label>
-        <input type="password" name="pin" id="pin" maxlength="4" required>
+        <!-- Texto descriptivo -->
+        <p>Se enviará una solicitud de cobro a tu billetera <strong>{{ numero_celular }}</strong>.</p>
 
-        <button type="submit" name="confirmar" value="1">Confirmar</button>
+        <!-- Formulario de PIN -->
+        <div class="pin-form-wrapper">
+            <label for="pin">Ingresá tu PIN:</label>
+            <input type="password" name="pin" id="pin" maxlength="4" required placeholder="••••">
 
-        {% if allow_retry %}
-            <button type="submit" name="cancelar" value="1" formnovalidate>Cancelar</button>
-        {% endif %}
-
+            <!-- Botones -->
+            <div class="button-container">
+                <button type="submit" name="confirmar" value="1">Confirmar</button>
+                {% if allow_retry %}
+                    <button type="submit" name="cancelar" value="1" formnovalidate>Cancelar</button>
+                {% endif %}
+            </div>
+        </div>
     </form>
 </div>
 {% endblock %}
