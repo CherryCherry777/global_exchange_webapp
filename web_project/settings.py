@@ -193,13 +193,19 @@ LOGGING = {
 
 """
 Nota: ejecutar estos comandos en la terminal de linux para  que funcionen los correos temporizados
-sudo apt install redis-server
+
+sudo apt install redis-server <- este solo la primera vez, el resto todas las veces
+
+
 sudo systemctl enable redis-server
 sudo systemctl start redis-server
 
 Y para empezar celery (el handler para tareas temporizadas)
-celery -A web_project worker -l info #En una terminal separada de manage.py
-celery -A web_project beat -l info #En OTRA terminal aparte de la del worker
+#En una terminal separada de manage.py
+celery -A web_project worker -l info 
+
+#En OTRA terminal aparte de la del worker
+celery -A web_project beat -l info 
 
 todos los cambios en las configuraciones de django requieren matar los procesos celery y reiniciar
 pkill -f 'celery'
