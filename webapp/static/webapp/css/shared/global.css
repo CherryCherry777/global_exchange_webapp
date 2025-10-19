@@ -348,28 +348,51 @@ html {
    TOAST MESSAGES
    =========================================== */
 
+#toast-phantom {
+    height: 75px;
+}
+
 .toast-message {
-    position: fixed;
-    top: 20px;
-    right: 20px;
+    position: absolute;
+    transition: top 0.2s ease; /* suave al cambiar */
+    top: 143px; /* ✅ que coincida con la altura del phantom */
+    left: 0%;
+    width: 100%;
+    transform: none;
+    z-index: 9999; /* ✅ para que esté por encima de todo */
     padding: 15px 20px;
     border-radius: 8px;
-    color: white;
+    margin-bottom: 20px;
+    font-family: 'Roboto', sans-serif;
     font-weight: 500;
-    z-index: 10000;
-    animation: slideInRight 0.3s ease;
+    animation: none;
 }
 
-.toast-message.success { 
-    background: #4caf50; 
+.toast-message.fixed {
+    position: fixed;
+    top: 10px; /* ya flotando desde arriba */
 }
 
-.toast-message.error { 
-    background: #b00020; 
+/* Reutilizamos los colores ya existentes */
+.toast-message.success {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
 }
-
-.toast-message.info { 
-    background: #2196f3; 
+.toast-message.error {
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid #F44336;
+    color: #F44336;
+}
+.toast-message.warning {
+    background: rgba(255, 152, 0, 0.2);
+    border: 1px solid #FF9800;
+    color: #FF9800;
+}
+.toast-message.info {
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196F3;
+    color: #2196F3;
 }
 
 @keyframes slideInRight {

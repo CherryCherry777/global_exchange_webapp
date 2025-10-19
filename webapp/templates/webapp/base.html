@@ -14,15 +14,6 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    {% if messages %}
-        <div id="toast-container">
-            {% for message in messages %}
-                <div class="toast-message {{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
 
     <header class="header-nav">
         <nav class="nav-container">
@@ -138,6 +129,19 @@
         </nav>
     </header>
 
+    {% block messages %}
+        {% if messages %}
+            <div id="toast-phantom"></div>
+            <div id="toast-container">
+                {% for message in messages %}
+                    <div class="toast-message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endblock messages %}
+
     <main>
         {% block content %}{% endblock %}
     </main>
@@ -237,11 +241,36 @@
 
         setTimeout(function() {
             var toasts = document.querySelectorAll('.toast-message');
+            var phantom = document.getElementById('toast-phantom');
+
             toasts.forEach(function(toast) {
                 toast.style.display = 'none';
             });
+
+            if (phantom) {
+                phantom.style.display = 'none'; // ✅ también desaparece el phantom
+            }
         }, 4000); // Oculta después de 4 segundos
 
+        // Sticky dinámico para mensajes
+        document.addEventListener('DOMContentLoaded', function() {
+            const toast = document.querySelector('.toast-message');
+            const phantom = document.getElementById('toast-phantom');
+
+            if (!toast || !phantom) return;
+
+            function updateToastPosition() {
+                const phantomTop = phantom.getBoundingClientRect().top;
+                if (phantomTop <= 0) {
+                    toast.classList.add('fixed');
+                } else {
+                    toast.classList.remove('fixed');
+                }
+            }
+
+            window.addEventListener('scroll', updateToastPosition);
+            updateToastPosition(); // ejecutar al cargar
+        });
     </script>
 </body>
 </html>

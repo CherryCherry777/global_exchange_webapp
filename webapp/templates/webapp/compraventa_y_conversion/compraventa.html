@@ -833,43 +833,52 @@
 //Lógica del Wizard
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function mostrarMensaje(texto, tipo="error", duracion=5000) {
-        // Busca el contenedor; si no existe, lo crea y lo agrega al body
+    function mostrarMensaje(texto, tipo = "success", duracion = 4000) {
+        // 1. Buscar o crear phantom
+        let phantom = document.getElementById("toast-phantom");
+        if (!phantom) {
+            phantom = document.createElement("div");
+            phantom.id = "toast-phantom";
+            document.querySelector("header").insertAdjacentElement("afterend", phantom);
+        }
+
+        // 2. Buscar o crear contenedor
         let container = document.getElementById("toast-container");
         if (!container) {
             container = document.createElement("div");
             container.id = "toast-container";
-            container.style.position = "fixed";
-            container.style.top = "1rem";
-            container.style.right = "1rem";
-            container.style.zIndex = 9999;
-            container.style.display = "flex";
-            container.style.flexDirection = "column";
-            container.style.gap = "0.5rem";
-            document.body.appendChild(container);
+            phantom.insertAdjacentElement("afterend", container);
         }
 
-        // Crear el mensaje
+        // 3. Crear el mensaje
         const msg = document.createElement("div");
         msg.className = `toast-message ${tipo}`;
         msg.textContent = texto;
-        msg.style.padding = "0.8rem 1rem";
-        msg.style.borderRadius = "0.5rem";
-        msg.style.color = "#fff";
-        msg.style.backgroundColor = tipo === "error" ? "#e74c3c" : "#2ecc71";
-        msg.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-        msg.style.opacity = 0;
-        msg.style.transition = "opacity 0.3s";
-
         container.appendChild(msg);
 
-        // Animación de aparición
-        requestAnimationFrame(() => { msg.style.opacity = 1; });
+        // 4. Ajustar phantom al alto exacto del mensaje
+        requestAnimationFrame(() => {
+            phantom.style.height = msg.getBoundingClientRect().height + "px";
+        });
 
-        // Desaparece después de 'duracion' ms
+        // 5. ACTIVAR STICKY DINÁMICO
+        function updateToastPosition() {
+            const phantomTop = phantom.getBoundingClientRect().top;
+            if (phantomTop <= 0) {
+                msg.classList.add("fixed");
+            } else {
+                msg.classList.remove("fixed");
+            }
+        }
+
+        window.addEventListener("scroll", updateToastPosition);
+        updateToastPosition();
+
+        // 6. Auto-remover
         setTimeout(() => {
-            msg.style.opacity = 0;
-            msg.addEventListener("transitionend", () => msg.remove());
+            msg.remove();
+            phantom.remove();
+            if (!container.children.length) container.remove();
         }, duracion);
     }
 

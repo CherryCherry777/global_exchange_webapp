@@ -1,6 +1,7 @@
 from pathlib import Path
 import environ
 import os
+from django.contrib import messages
 from django.urls import reverse_lazy
 from celery.schedules import crontab
 #from .celery import app
@@ -161,6 +162,13 @@ CELERY_BEAT_SCHEDULE = {
         "task": "webapp.tasks.cleanup_expired_mfa_codes",
         "schedule": crontab(minute=0, hour="*/1"),  # cada hora
     },
+}
+
+MESSAGE_TAGS = {
+    messages.SUCCESS: 'success',
+    messages.ERROR: 'error',
+    messages.WARNING: 'warning',
+    messages.INFO: 'info',
 }
 
 """
