@@ -17,28 +17,69 @@ from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 
+import logging
+from django.core.cache import cache
+
+logger = logging.getLogger(__name__)
+
+LOCK_EXPIRE = 60  # seconds — one minute, since this runs every minute
+
+
 @shared_task
 def check_and_send_exchange_rates():
     """
-    Runs every minute. Checks config and decides if emails should be sent.
+    Runs every minute. Checks EmailScheduleConfig and decides
+    if exchange rate emails should be sent.
+    Includes safety lock, validation, and logging.
     """
-    config = EmailScheduleConfig.objects.first()
-    if not config:
+    # ---- Lock to prevent duplicate runs ----
+    if cache.get("check_and_send_exchange_rates_lock"):
+        logger.warning("Skipping run — another check_and_send_exchange_rates task is still active.")
         return
+    cache.set("check_and_send_exchange_rates_lock", True, timeout=LOCK_EXPIRE)
 
-    now = timezone.localtime()
+    try:
+        config = EmailScheduleConfig.objects.first()
+        if not config:
+            logger.warning("No EmailScheduleConfig found. Task skipped.")
+            return
 
-    should_send = False
-    if config.frequency == "daily":
-        should_send = now.hour == config.hour and now.minute == config.minute
-    elif config.frequency == "weekly":
-        # e.g., Monday at configured time
-        should_send = now.weekday() == 0 and now.hour == config.hour and now.minute == config.minute
-    elif config.frequency == "custom" and config.interval_minutes:
-        should_send = now.minute % config.interval_minutes == 0
+        now = timezone.localtime()
+        should_send = False
 
-    if should_send:
-        _send_to_all_users.delay()  # ✅ Run as background task
+        # ---- Validate necessary config fields ----
+        if config.frequency in ["daily", "weekly"] and (config.hour is None or config.minute is None):
+            logger.error(f"Invalid schedule configuration: hour or minute missing for {config.frequency}")
+            return
+
+        # ---- Frequency checks ----
+        if config.frequency == "daily":
+            should_send = now.hour == config.hour and now.minute == config.minute
+
+        elif config.frequency == "weekly":
+            # allow configurable weekday (0=Mon, 6=Sun)
+            weekday = getattr(config, "weekday", 0)  # defaults to Monday if field doesn’t exist
+            should_send = (
+                now.weekday() == weekday
+                and now.hour == config.hour
+                and now.minute == config.minute
+            )
+
+        elif config.frequency == "custom" and config.interval_minutes:
+            should_send = now.minute % config.interval_minutes == 0
+
+        # ---- Action ----
+        if should_send:
+            logger.info(f"✅ Sending exchange rate emails at {now}.")
+            _send_to_all_users.delay()
+        else:
+            logger.debug(f"No send scheduled at {now}. Frequency={config.frequency}")
+
+    except Exception as e:
+        logger.exception(f"Error in check_and_send_exchange_rates: {e}")
+
+    finally:
+        cache.delete("check_and_send_exchange_rates_lock")
 
 
 @shared_task

@@ -1,6 +1,7 @@
 Hola {{ user.get_full_name|default:user.username }},
+
 Ingresa el código de autenticación para ingresar a tu cuenta en {{ project_name }}:
 
-Tu código es: {{ code }}
+Código: {{ code }}
 
 Si no intentaste ingresar, ignora este mensaje.

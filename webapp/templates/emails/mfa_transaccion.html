@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Código de Verificación</title>
+</head>
+<body style="font-family: 'Roboto', sans-serif; background-color: #f5f5f5; color: #1a1a1a; padding: 20px;">
+    <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="color: #391196; text-align: center;">Código de Verificación (MFA)</h2>
+        <p>Hola {{ user.get_full_name|default:user.username }},</p>
+        <p>Ingresa el siguiente código para completar la verificación de tu cuenta en <strong>{{ project_name }}</strong>:</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <span style="font-size: 28px; font-weight: 700; letter-spacing: 4px; color: #FF4500; background: #FFE5E5; padding: 10px 20px; border-radius: 8px;">
+                {{ code }}
+            </span>
+        </div>
+
+        <p>Este código expirará en 5 minutos.</p>
+        <p>Si no intentaste iniciar sesión, ignora este mensaje.</p>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+        <p style="font-size: 12px; color: #666; text-align: center;">Este es un correo automático, por favor no respondas.</p>
+    </div>
+</body>
+</html>

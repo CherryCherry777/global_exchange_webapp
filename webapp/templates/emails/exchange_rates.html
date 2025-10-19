@@ -1,36 +1,55 @@
-<h2>Tasas de cambio</h2>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Tasas de cambio</title>
+  <style>
+    body { font-family: 'Roboto', sans-serif; background: #f5f5f5; color: #333; margin: 0; padding: 0; }
+    .container { max-width: 700px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h2 { color: #391196; font-size: 24px; margin-bottom: 20px; }
+    h3 { font-size: 18px; color: #08052A; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #391196; color: white; }
+    a.unsubscribe { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #dc3545; color: #fff; text-decoration: none; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Tasas de cambio</h2>
 
-{% for entry in clientes_data %}
-  <h3>
-    {% if entry.cliente %}
-      {{ entry.cliente.nombre }} — Descuento: {{ entry.descuento }}
-    {% else %}
-      Sin cliente asociado
-    {% endif %}
-  </h3>
+    {% for entry in clientes_data %}
+      <h3>
+        {% if entry.cliente %}
+          {{ entry.cliente.nombre }} — Descuento: {{ entry.descuento }}
+        {% else %}
+          Sin cliente asociado
+        {% endif %}
+      </h3>
 
-  <table border="1" cellpadding="6" cellspacing="0">
-    <thead>
-      <tr>
-        <th>Moneda</th>
-        <th>Código</th>
-        <th>Precio Compra</th>
-        <th>Precio Venta</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for c in entry.monedas %}
-        <tr>
-          <td>{{ c.name }}</td>
-          <td>{{ c.code }}</td>
-          <td>{{ c.precio_compra }}</td>
-          <td>{{ c.precio_venta }}</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      <table>
+        <thead>
+          <tr>
+            <th>Moneda</th>
+            <th>Código</th>
+            <th>Precio Compra</th>
+            <th>Precio Venta</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in entry.monedas %}
+            <tr>
+              <td>{{ c.name }}</td>
+              <td>{{ c.code }}</td>
+              <td>{{ c.precio_compra }}</td>
+              <td>{{ c.precio_venta }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endfor %}
 
-  <br>
-{% endfor %}
-
-<p><a href="{{ unsubscribe_url }}">Darse de baja</a></p>
+    <a href="{{ unsubscribe_url }}" class="unsubscribe">Darse de baja</a>
+  </div>
+</body>
+</html>

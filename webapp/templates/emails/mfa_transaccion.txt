@@ -1,0 +1,12 @@
+Hola {{ user.get_full_name|default:user.username }},
+
+Ingresa el siguiente código para completar la verificación de tu cuenta en {{ project_name }}:
+
+Código: {{ code }}
+
+Este código expirará en 5 minutos.
+
+Si no intentaste iniciar sesión, ignora este mensaje.
+
+--- 
+Este es un correo automático, por favor no respondas.

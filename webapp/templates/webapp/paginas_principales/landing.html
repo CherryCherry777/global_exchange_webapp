@@ -162,6 +162,14 @@
                 <span class="button-text">Administrar Límites de Intercambio</span>
             </a>
             {% endif %}
+
+            <!--{% has_perms request.user 'webapp.view_manage_schedule' as can_view_manage_schedule %}
+            {% if can_view_manage_schedule %}-->
+            <a href="{% url 'manage_schedule' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Correos de Tasas" class="button-icon">
+                <span class="button-text">Administrar Correos de Tasas</span>
+            </a>
+            <!--{% endif %}-->
         </div>
         {% endif %}
 

@@ -171,6 +171,26 @@ MESSAGE_TAGS = {
     messages.INFO: 'info',
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
+
+
 """
 Nota: ejecutar estos comandos en la terminal de linux para  que funcionen los correos temporizados
 sudo apt install redis-server

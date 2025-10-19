@@ -10,15 +10,7 @@
 {% csrf_token %}
 <div class="manage-quotes-container">
     <!-- Messages -->
-    {% if messages %}
-    <div class="messages-container">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+    
     
     <!-- Header Section -->
     <div class="manage-quotes-header">

@@ -33,6 +33,11 @@ def create_default_roles_and_admin(sender, **kwargs):
         password = "password12345"
         email = "admin2@example.com"
 
+        # Crea tambien un usuario normal listo para usar
+        username2 = "usuario1"
+        password2 = "password12345"
+        email2 = "usuario1@example.com"
+
         if not User.objects.filter(username=username).exists():
             admin_group = Group.objects.get(name="Administrador")
             user = User.objects.create_user(username=username, password=password, email=email)
@@ -42,6 +47,16 @@ def create_default_roles_and_admin(sender, **kwargs):
             print(f"Usuario admin por defecto '{username}' creado con contraseña '{password}'")
         else:
             print(f"Usuario admin '{username}' ya existe")
+
+        if not User.objects.filter(username=username2).exists():
+            normal_group = Group.objects.get(name="Usuario")
+            user = User.objects.create_user(username=username2, password=password2, email=email2)
+            user.groups.add(normal_group)
+            user.is_active = True
+            user.save()
+            print(f"Usuario normal por defecto '{username2}' creado con contraseña '{password2}'")
+        else:
+            print(f"Usuario normal '{username2}' ya existe")
 
 
 @receiver(post_save, sender=User)
