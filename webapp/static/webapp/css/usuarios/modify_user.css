@@ -518,6 +518,32 @@ body .header-nav {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
+.delete-button {
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    width: 125px;
+    height: 36px;
+    text-align: center;
+    line-height: 20px;
+    background: linear-gradient(90deg, #8B0000 0%, #C92A2A 50%, #E63946 100%);
+}
+
+.delete-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(230, 57, 70, 0.5);
+}
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .modify-user-header {

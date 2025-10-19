@@ -9,6 +9,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from decimal import Decimal, ROUND_DOWN
 
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils import timezone
+import secrets
+
 #Las clases van aqui
 #Los usuarios heredan AbstractUser
 class CustomUser(AbstractUser):
@@ -1081,7 +1086,7 @@ class DetalleFactura(models.Model):
         return f"Detalle {self.id} - {self.descripcion}"
 
 
-# Configuracion de frecuencia de correos electronicos
+# models.py
 class EmailScheduleConfig(models.Model):
     """
     Configuración para la frecuencia de envío de correos con tasas de cambio.
@@ -1095,12 +1100,32 @@ class EmailScheduleConfig(models.Model):
         ],
         default="daily"
     )
-    hour = models.IntegerField(default=8)  # hora del día (0–23)
-    minute = models.IntegerField(default=0)  # minuto del día
-    interval_minutes = models.IntegerField(null=True, blank=True)  # solo si es "custom"
+    hour = models.IntegerField(default=8)
+    minute = models.IntegerField(default=0)
+    interval_minutes = models.IntegerField(null=True, blank=True)
+
+    # ✅ Nuevo campo para 'weekly'
+    weekday = models.CharField(
+        max_length=10,
+        choices=[
+            ("monday", "Lunes"),
+            ("tuesday", "Martes"),
+            ("wednesday", "Miércoles"),
+            ("thursday", "Jueves"),
+            ("friday", "Viernes"),
+            ("saturday", "Sábado"),
+            ("sunday", "Domingo"),
+        ],
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
-        return f"Envío {self.frequency} a las {self.hour:02d}:{self.minute:02d}"
+        desc = f"Envío {self.frequency} a las {self.hour:02d}:{self.minute:02d}"
+        if self.frequency == "weekly" and self.weekday:
+            desc += f" ({self.get_weekday_display()})"
+        return desc
+
 
 class MFACode(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -1114,11 +1139,29 @@ class MFACode(models.Model):
 
     @staticmethod
     def generate_for_user(user):
-        """Genera y envía un nuevo código MFA al correo del usuario."""
+        """Genera y envía un nuevo código MFA al correo del usuario usando templates HTML y TXT."""
         code = str(secrets.randbelow(1000000)).zfill(6)
         mfa = MFACode.objects.create(user=user, code=code)
-        user.email_user(
-            subject="Tu código de verificación (MFA)",
-            message=f"Tu código de verificación para completar la transacción es: {code}\n\nExpira en 5 minutos.",
+
+        # Context for the templates
+        context = {
+            "user": user,
+            "code": code,
+            "project_name": "Global Exchange"  # or use settings.PROJECT_NAME
+        }
+
+        # Render plain text and HTML versions
+        text_content = render_to_string("emails/mfa_transaccion.txt", context)
+        html_content = render_to_string("emails/mfa_transaccion.html", context)
+
+        # Create email
+        subject = "Tu código de verificación (MFA)"
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            to=[user.email],
         )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+
         return mfa

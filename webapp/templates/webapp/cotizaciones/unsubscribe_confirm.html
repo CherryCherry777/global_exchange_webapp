@@ -1,9 +1,32 @@
 {% extends "webapp/base.html" %}
+{% load static %}
 {% block title %}Desuscripción Exitosa{% endblock %}
 
 {% block content %}
-<div style="text-align:center; padding: 50px;">
-    <h2>Te has desuscrito correctamente</h2>
-    <p>Ya no recibirás más correos electrónicos de nuestro simulador.</p>
+<link rel="stylesheet" href="{% static 'webapp/css/cotizaciones/modify_quote.css' %}">
+
+<div class="modify-quote-container">
+    <div class="main-content">
+        <!-- Header -->
+        <div class="modify-quote-header">
+            <div class="header-content">
+                <a href="{% url 'landing' %}" class="back-button">← Volver al inicio</a>
+                <div class="header-text">
+                    <h1 class="modify-quote-title">Desuscripción Exitosa</h1>
+                    <p class="modify-quote-subtitle">Ya no recibirás más correos electrónicos de nuestro simulador</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Section -->
+        <div class="modify-section" style="text-align:center;">
+            <h2 class="section-title">¡Listo!</h2>
+            <p>Tu suscripción ha sido cancelada correctamente.</p>
+
+            <div class="action-buttons" style="justify-content:center; margin-top:30px;">
+                <a href="{% url 'landing' %}" class="save-button" style="width: fit-content;">Volver al inicio</a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

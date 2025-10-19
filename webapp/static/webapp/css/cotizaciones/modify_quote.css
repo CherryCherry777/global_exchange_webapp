@@ -92,6 +92,7 @@
     margin-bottom: 30px;
     position: relative;
     overflow: hidden;
+    text-align: center;
 }
 
 .section-title {
@@ -151,6 +152,7 @@
     max-width: 600px;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 20px;
 }
 
@@ -262,6 +264,31 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
 }
+
+.delete-button {
+    background: linear-gradient(90deg, #8B0000 0%, #B22222 50%, #FF4500 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 125px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(178, 34, 34, 0.4);
+}
+
 
 .discard-button {
     background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 94%);
@@ -447,3 +474,5 @@
         height: 32px;
     }
 }
+
+

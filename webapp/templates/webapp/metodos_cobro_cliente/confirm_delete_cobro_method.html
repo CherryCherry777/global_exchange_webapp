@@ -1,26 +1,38 @@
 {% extends "webapp/base.html" %}
+{% load static %}
 
 {% block title %}Confirmar eliminación{% endblock %}
 
 {% block content %}
-<div class="admin-page-container">
-    <div class="admin-header">
-        <div class="header-content">
-            <h1 class="page-title">Confirmar eliminación</h1>
-            <p class="page-subtitle">¿Estás seguro de que deseas eliminar este método de cobro?</p>
+<link rel="stylesheet" href="{% static 'webapp/css/cotizaciones/modify_quote.css' %}">
+
+<div class="modify-quote-container">
+    <div class="main-content">
+        <!-- Header -->
+        <div class="modify-quote-header">
+            <div class="header-content">
+                <a href="{% url 'my_cobro_methods' %}" class="back-button">← Volver a Métodos de Cobro</a>
+                <div class="header-text">
+                    <h1 class="modify-quote-title">Confirmar eliminación</h1>
+                    <p class="modify-quote-subtitle">¿Estás seguro de que deseas eliminar este método de cobro?</p>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="card p-4">
-        <p><strong>Tipo:</strong> {{ tipo|capfirst }}</p>
-        <p><strong>Nombre:</strong> {{ medio_cobro.nombre }}</p>
-        <p><strong>Moneda:</strong> {{ medio_cobro.moneda.code }} - {{ medio_cobro.moneda.name }}</p>
+        <!-- Confirmation Card -->
+        <div class="modify-section">
+            <div class="modify-content" style="align-items:center; text-align:center; gap:15px;">
+                <p><strong>Tipo:</strong> {{ tipo|capfirst }}</p>
+                <p><strong>Nombre:</strong> {{ medio_cobro.nombre }}</p>
+                <p><strong>Moneda:</strong> {{ medio_cobro.moneda.code }} - {{ medio_cobro.moneda.name }}</p>
 
-        <form method="post" class="mt-3">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">Confirmar eliminación</button>
-            <a href="{% url 'my_cobro_methods' %}" class="btn btn-secondary">Cancelar</a>
-        </form>
+                <form method="post" class="action-buttons">
+                    {% csrf_token %}
+                    <button type="submit" class="delete-button" style="width: fit-content;">Confirmar eliminación</button>
+                    <a href="{% url 'my_cobro_methods' %}" class="discard-button">Cancelar</a>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

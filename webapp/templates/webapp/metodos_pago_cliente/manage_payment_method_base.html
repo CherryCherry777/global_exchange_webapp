@@ -219,13 +219,7 @@ Agregar {{ tipo|capfirst }}
 {% block content %}
 <div class="add-payment-method-container">
     <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+    
 
     <!-- Header Section -->
     <div class="add-payment-method-header">
