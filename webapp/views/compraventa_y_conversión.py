@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CuentaBancaria, LimiteIntercambio, MFACode, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
+from ..models import CuentaBancaria, LimiteIntercambioCliente, MFACode, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
 from decimal import Decimal
 from .payments.stripe_utils import procesar_pago_stripe
 from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera, validar_id_transferencia
@@ -172,6 +172,25 @@ def compraventa_view(request):
                     messages.error(request, "Debés ingresar un monto válido.")
                     return redirect('compraventa')
                 
+                # === Validar límite (venta PYG) contra saldo del CLIENTE ===
+                if data.get("moneda_origen") == "PYG":
+
+                    try:
+                        limite_cli = LimiteIntercambioCliente.objects.select_related("config__moneda").get(
+                            cliente=cliente,
+                            config__moneda__code=data.get("moneda_destino")
+                        )
+                        if monto_destino > limite_cli.limite_dia_actual:
+                            messages.error(request, f"El monto {monto_destino} supera el límite DIARIO disponible ({limite_cli.limite_dia_actual} {limite_cli.moneda.code}).")
+                            return redirect("compraventa")
+                        if monto_destino > limite_cli.limite_mes_actual:
+                            messages.error(request, f"El monto {monto_destino} supera el límite MENSUAL disponible ({limite_cli.limite_mes_actual} {limite_cli.moneda.code}).")
+                            return redirect("compraventa")
+
+                    except LimiteIntercambioCliente.DoesNotExist:
+                        messages.error(request, "No hay límites configurados para tu cuenta en esa moneda. Contactá soporte.")
+                        return redirect("compraventa")
+                
     #//////////////////////////////////////////////////////////////////////////////////////////////////////
     # Cobrar al cliente
     #//////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -313,21 +332,24 @@ def compraventa_view(request):
         if nombre_normalizado == "cuentabancaria":
             tipo["nombre"] = "Transferencia"""
 
-    limites = LimiteIntercambio.objects.select_related("moneda").values(
-        "moneda__code", "limite_dia", "limite_mes"
-    )
+    # Obtener la categoría del cliente
+    categoria_cliente = cliente.categoria
 
-    # Convertimos a un diccionario simple para el template
+    limites = LimiteIntercambioCliente.objects.select_related("config__moneda") \
+        .filter(cliente=cliente) \
+        .values(
+            "config__moneda__code",
+            "limite_dia_actual",
+            "limite_mes_actual"
+        )
+
     limites_dict = {
-        item["moneda__code"]: {
-            "dia": float(item["limite_dia"]),
-            "mes": float(item["limite_mes"]),
+        item["config__moneda__code"]: {
+            "dia": float(item["limite_dia_actual"]),
+            "mes": float(item["limite_mes_actual"]),
         }
         for item in limites
     }
-
-    # Obtener la categoría del cliente
-    categoria_cliente = cliente.categoria
 
     # Obtener los datos de la cuenta del negocio para recibir transferencias
     cuenta_negocio = CuentaBancariaNegocio.objects.first()

@@ -11,83 +11,68 @@
 <div class="limites-container">
     <!-- Header Section -->
     <div class="limites-header">
-        <a href="{% url 'landing' %}" class="back-button">
-            ← Volver al Panel
-        </a>
+        <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
         <h1 class="limites-title">Administrar Límites de Intercambio</h1>
-        <p class="limites-subtitle">Administra los límites de intercambio del sistema</p>
+        <p class="limites-subtitle">Administra los límites máximos por categoría y moneda</p>
     </div>
 
     <!-- Main Content -->
     <div class="limites-content">
-        <!-- List Container -->
         <div class="limites-list-container">
-            <h2 class="limites-list-title">Lista de Límites de Intercambio</h2>
-            
-            <!-- Search Container -->
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Buscar límites de Intercambio" id="searchInput">
+            <h2 class="limites-list-title">Límites por Categoría</h2>
+
+            <!-- Selector de categoría + búsqueda -->
+            <div class="search-container" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <select id="categoriaSelect"
+                    class="search-input"
+                    name="categoria_id"                   
+                    hx-get="{% url 'limites_tabla_htmx' %}"
+                    hx-target="#tabla-limites-wrapper"
+                    hx-trigger="change"
+                    hx-include="#categoriaSelect">                 
+                {% for c in categorias %}
+                    <option value="{{ c.id }}"
+                        {% if categoria_seleccionada and c.id == categoria_seleccionada.id %}selected{% endif %}>
+                        {{ c.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+
+                <input type="text" class="search-input" placeholder="Buscar moneda..." id="searchInput">
             </div>
 
-            <!-- Table Container -->
-            <div class="limites-table-container">
-                <table class="limites-table">
-                    <thead>
-                        <tr>
-                            <th>Moneda</th>
-                            <th>Límite Diario</th>
-                            <th>Límite Mensual</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for fila in tabla %}
-                        <tr class="limite-row" data-currency="{{ fila.moneda.name|lower }}">
-                            <td class="currency-cell">
-                                {% if fila.moneda.flag_image %}
-                                    <img src="{{ fila.moneda.flag_image.url }}" 
-                                         alt="{{ fila.moneda.name }}" 
-                                         class="currency-flag">
-                                {% else %}
-                                    <div class="currency-flag-placeholder"></div>
-                                {% endif %}
-                                <span class="currency-name">{{ fila.moneda.name }}</span>
-                            </td>
-                            {% with dec=fila.moneda.decimales_cotizacion %}
-                                <td class="limit-value">{{ fila.limite_dia|floatformat:dec }}</td>
-                                <td class="limit-value">{{ fila.limite_mes|floatformat:dec }}</td>
-                            {% endwith %}
-                            <td class="actions-cell">
-                                <a href="{% url 'limite_edit' fila.moneda.id %}" class="modify-button">
-                                    Modificar
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <!-- Tabla (wrapper HTMX) -->
+            <div id="tabla-limites-wrapper" class="limites-table-container" style="margin-top:12px;">
+                {{ tabla_html|safe }}
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('htmx:afterSettle', attachSearchFilter);
+document.addEventListener('DOMContentLoaded', attachSearchFilter);
+
+function attachSearchFilter() {
     const searchInput = document.getElementById('searchInput');
     const rows = document.querySelectorAll('.limite-row');
 
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        
+    if (!searchInput) return;
+
+    function applyFilter() {
+        const term = (searchInput.value || '').toLowerCase();
         rows.forEach(row => {
-            const currencyName = row.getAttribute('data-currency');
-            if (currencyName.includes(searchTerm)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            const currencyName = row.getAttribute('data-currency') || '';
+            row.style.display = currencyName.includes(term) ? '' : 'none';
         });
-    });
+    }
+
+    searchInput.removeEventListener('input', applyFilter);
+    searchInput.addEventListener('input', applyFilter);
+}
+document.getElementById("categoriaSelect").addEventListener("change", function() {
+    history.pushState({}, "", `?categoria_id=${this.value}`);
 });
 </script>
 {% endblock %}

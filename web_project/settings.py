@@ -162,6 +162,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "webapp.tasks.cleanup_expired_mfa_codes",
         "schedule": crontab(minute=0, hour="*/1"),  # cada hora
     },
+    "check_limite_intercambio_schedule": {
+        "task": "webapp.tasks.limites.check_and_reset_limites_intercambio",
+        "schedule": 60.0,  # cada 60 segundos
+    },
 }
 
 MESSAGE_TAGS = {

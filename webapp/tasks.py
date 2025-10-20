@@ -8,8 +8,10 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
+from django.db.models import  F, OuterRef, Subquery
 
-from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, MFACode, Transaccion, CuentaBancariaNegocio
+from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, LimiteIntercambioCliente, LimiteIntercambioConfig, LimiteIntercambioScheduleConfig, MFACode, Transaccion, CuentaBancariaNegocio
 from .views.payments.pagos_simulados_a_clientes import pagar_al_cliente
 
 from django.utils import timezone
@@ -18,6 +20,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 
 import logging
+import calendar
 from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
@@ -202,6 +205,71 @@ def cancelar_transacciones_vencidas():
     cantidad = vencidas.update(estado=Transaccion.Estado.CANCELADA)
     print(f"[INFO] {cantidad} transacciones con CuentaBancariaNegocio canceladas automáticamente por vencimiento.")
 
+
+# Resetear límites de intercambio
+LOCK_KEY = "check_and_reset_limites_intercambio_lock"
+
+@shared_task
+def check_and_reset_limites_intercambio():
+    """
+    Reset duro:
+      - DAILY   → SOLO limite_dia_actual (por cliente) = limite_dia_max (según su categoría)
+      - MONTHLY → SOLO limite_mes_actual (por cliente) = limite_mes_max (según su categoría)
+    """
+    if cache.get(LOCK_KEY):
+        logger.warning("⏭️  Reset ya en ejecución. Omitiendo este tick.")
+        return
+    cache.set(LOCK_KEY, True, timeout=LOCK_EXPIRE)
+
+    try:
+        now = timezone.localtime()
+        cfgs = LimiteIntercambioScheduleConfig.objects.select_related("categoria")
+
+        for cfg in cfgs:
+            freq = cfg.frequency
+
+            if freq == "daily":
+                should_run = (now.hour == cfg.hour and now.minute == cfg.minute)
+                if not should_run:
+                    continue
+
+                # Subquery: tope diario por categoría+moneda
+                tope_dia_subq = LimiteIntercambioConfig.objects.filter(
+                    categoria=cfg.categoria,
+                    moneda=OuterRef("config__moneda")   # ✅ cambio correcto
+                ).values("limite_dia_max")[:1]
+
+                qs = LimiteIntercambioCliente.objects.filter(cliente__categoria=cfg.categoria)
+
+                with transaction.atomic():
+                    updated = qs.update(limite_dia_actual=Subquery(tope_dia_subq))
+
+                logger.info(f"✅ Reset DIARIO (duro) aplicado para categoría '{cfg.categoria}': {updated} filas.")
+
+            elif freq == "monthly" and cfg.month_day:
+                last_day = calendar.monthrange(now.year, now.month)[1]
+                run_day = min(cfg.month_day, last_day)
+                should_run = (now.day == run_day and now.hour == cfg.hour and now.minute == cfg.minute)
+                if not should_run:
+                    continue
+
+                tope_mes_subq = LimiteIntercambioConfig.objects.filter(
+                    categoria=cfg.categoria,
+                    moneda=OuterRef("config__moneda")
+                ).values("limite_mes_max")[:1]
+
+                qs = LimiteIntercambioCliente.objects.filter(cliente__categoria=cfg.categoria)
+
+                with transaction.atomic():
+                    updated = qs.update(limite_mes_actual=Subquery(tope_mes_subq))
+                logger.info(f"✅ Reset MENSUAL (duro) aplicado para categoría '{cfg.categoria}': {updated} filas.")
+
+    except Exception as e:
+        logger.exception(f"Error en check_and_reset_limites_intercambio: {e}")
+
+    finally:
+        cache.delete(LOCK_KEY)
+        
 
 @shared_task(bind=True, max_retries=4, default_retry_delay=5)
 def pagar_al_cliente_task(self, transaccion_id: int) -> None:

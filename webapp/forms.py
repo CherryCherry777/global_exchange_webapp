@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, TarjetaInternacional, TarjetaNacional, Billetera, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
+from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, LimiteIntercambioConfig, MedioCobro, MedioPago, TarjetaInternacional, TarjetaNacional, Billetera, TipoCobro, TipoPago, Currency, Transaccion
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
@@ -707,8 +707,12 @@ class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
 
 class LimiteIntercambioForm(forms.ModelForm):
     class Meta:
-        model = LimiteIntercambio
-        fields = ['moneda', 'limite_dia', 'limite_mes']
+        model = LimiteIntercambioConfig  # o LimiteIntercambioConfig si ya migramos al nuevo nombre
+        fields = [
+            "moneda",
+            "limite_dia_max",
+            "limite_mes_max",
+        ]
 
 
 # Entidades bancarias y telefonicas

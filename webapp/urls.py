@@ -90,7 +90,8 @@ urlpatterns = [
 
     # Administración de límites de intercambio
     path('limites/', views.limites_intercambio_list, name='limites_list'),
-    path('limites/<int:moneda_id>/editar/', views.limite_edit, name='limite_edit'),
+    path('limites/config/<int:config_id>/editar/', views.limite_config_edit, name='limite_config_edit'),
+    path('limites/cargar-tabla/', views.limites_intercambio_tabla_htmx, name='limites_tabla_htmx'),
 
     # Administración de cotizaciones
     path('prices/', views.prices_list, name='prices_list'),

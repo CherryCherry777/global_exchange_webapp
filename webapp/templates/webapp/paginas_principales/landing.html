@@ -155,7 +155,7 @@
             </a>
             {% endif %}
             
-            {% has_perms request.user 'webapp.view_limiteintercambio' as can_view_limiteintercambio %}
+            {% has_perms request.user 'webapp.view_limiteintercambioconfig' as can_view_limiteintercambio %}
             {% if can_view_limiteintercambio %}
             <a href="{% url 'limites_list' %}" class="management-button">
                 <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Límites de Intercambio" class="button-icon">
