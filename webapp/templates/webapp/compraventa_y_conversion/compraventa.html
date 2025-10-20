@@ -34,7 +34,7 @@
                 <!-- Select Compra/Venta -->
                 <div class="converter-section">
                     <div class="converter-container">
-                        <p class="converter-subtitle">Selecciona la moneda e ingresa el monto de cotización</p>
+                        <p class="converter-subtitle">Selecciona la moneda e ingresa el monto de la operación</p>
                         
                         <div class="converter-form">
                             <!-- From Currency -->
@@ -65,6 +65,8 @@
                                     </div>
                                     <input name="monto_destino" type="text" readonly class="result-input" id="simu-result-main">
                                 </div>
+                                <!-- ⚠️ Aquí aparece el mensaje inline si NO coincide con billetes reales -->
+                                <div id="simu-result-warning" class="result-detail"></div>
                             </div>
 
                             <div class="converter-actions">
@@ -335,6 +337,9 @@
 
         // Muestra el resultado formateado en el campo de salida
         out.value = `${nf(val, b)} ${b}`;
+
+        // 🔥 Validar denominaciones después de actualizar el resultado
+        validarDenominaciones();
     }
 
     function attachListeners() {
@@ -695,12 +700,17 @@
         });
 
         // Si el botón activo quedó oculto → activar el primero visible
-        [pagoTabs, cobroTabs].forEach((tabList) => {
+        [pagoTabs, cobroTabs].forEach((tabList, index) => {
             const activo = Array.from(tabList).find((b) => b.classList.contains("active"));
             if (activo && activo.style.display === "none") {
+                const tipo = index === 0 ? "pago" : "cobro"; // para recargar solo el que cambió
+
                 activo.classList.remove("active");
                 const visible = Array.from(tabList).find((b) => b.style.display !== "none");
                 if (visible) visible.classList.add("active");
+
+                // ✅ Recargar solo los métodos correspondientes
+                recargarMetodos(tipo);
             }
         });
     }
@@ -827,6 +837,53 @@
             return;
         }
     });
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Validar denominaciones para tauser
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function validarDenominaciones() {
+    const fromCode = from.value;
+    const toCode = to.value;
+    const warningEl = document.getElementById("simu-result-warning");
+
+    if (fromCode !== "PYG") {
+        warningEl.classList.add("d-none");
+        return;
+    }
+
+    let montoDestino = out.value.replace(/[^\d.,]/g, "");
+    montoDestino = parseFloat(montoDestino.replace(/\./g, "").replace(",", ".")) || 0;
+    if (!montoDestino) {
+        warningEl.classList.add("d-none");
+        return;
+    }
+
+    const denominaciones = {
+        "USD": [1, 5, 10, 20, 50, 100],
+        "EUR": [5, 10, 20, 50, 100],
+        "BRL": [2, 5, 10, 20, 50, 100, 200],
+        "ARS": [1000, 2000, 5000, 10000]
+    };
+
+    const listaDen = denominaciones[toCode] || null;
+
+    if (!listaDen) {
+        warningEl.classList.add("d-none"); 
+        return;
+    }
+
+    const coincide = listaDen.some(den => montoDestino % den === 0);
+
+    if (!coincide) {
+        warningEl.textContent = 
+            `⚠ Este monto no coincide con denominaciones reales (${toCode}). La diferencia será cobrada en guaraníes al tipo de cambio actual.`;
+        warningEl.classList.remove("d-none");
+    } else {
+        warningEl.classList.add("d-none");
+    }
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

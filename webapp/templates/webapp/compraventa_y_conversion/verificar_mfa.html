@@ -36,9 +36,18 @@
       <input type="text" name="mfa_code" id="mfa_code" maxlength="6" class="form-control" required autofocus>
       <!-- Botones -->
       <div class="button-container">
-        <button type="submit" class="btn btn-primary">Verificar y continuar</button>
+        <button type="submit" name="confirmar">Verificar y continuar</button>
+        <!-- ✅ Sigue siendo botón submit, pero fuerza redirección inmediata -->
+        <button type="submit" name="cancelar" id="cancel-btn">Cancelar</button>
       </div>
     </div>
   </form>
 </div>
+
+<script>
+  document.getElementById("cancel-btn").addEventListener("click", function(event) {
+    event.preventDefault();           // ✋ detiene el envío real del formulario
+    window.location.href = "{% url 'compraventa' %}";  // 🌎 redirige directo
+  });
+</script>
 {% endblock %}

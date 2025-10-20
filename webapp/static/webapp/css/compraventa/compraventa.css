@@ -546,3 +546,14 @@ body {
     width: 100%;
   }
 }
+
+/* Reforzar estilo correcto de navegación SOLO en navbar */
+header .nav-link {
+    font-weight: 500 !important;
+}
+
+/* Restaurar color normal SOLO para links de la barra de navegación global */
+header nav a,
+.navbar a {
+  color: #ffffff !important;
+}
