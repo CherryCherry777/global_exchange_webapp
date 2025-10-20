@@ -955,14 +955,14 @@ function validarDenominaciones() {
 
             const codigoMonedaOrigen = from.value; // Ej: "PYG"
             const codigoMonedaDestino = to.value;  // Ej: "USD"
+            // Tomar monto destino
+            const montoDestinoText = document.getElementById("simu-result-main").value;
+            const montoDestino = parseFloat(
+                (montoDestinoText || "0").replace(/\./g, "").replace(",", ".")
+            );
 
             // ⚠️ Solo validar si el usuario tiene PYG como origen
             if (codigoMonedaOrigen === "PYG" && LIMITES_INTERCAMBIO[codigoMonedaDestino]) {
-                // Tomar monto destino
-                const montoDestinoText = document.getElementById("simu-result-main").value;
-                const montoDestino = parseFloat(
-                    (montoDestinoText || "0").replace(/\./g, "").replace(",", ".")
-                );
 
                 const limiteDia = LIMITES_INTERCAMBIO[codigoMonedaDestino].dia;
                 const limiteMes = LIMITES_INTERCAMBIO[codigoMonedaDestino].mes;
@@ -1025,6 +1025,7 @@ function validarDenominaciones() {
 
             // Validaciones para pasar de pestaña en el wizard
             if (isNaN(montoOrigen) || montoOrigen <= 0) return mostrarMensaje("Monto inválido.", "error");
+            if (isNaN(montoDestino) || montoDestino <= 0) return mostrarMensaje("Monto inválido.", "error");
 
             // Solo exige metodoPago si NO es transferencia
             if (!esTransferencia && metodoPago.value === "")
