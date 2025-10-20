@@ -137,9 +137,9 @@ def modify_role(request, role_id):
     role = get_object_or_404(Group, id=role_id)
     
     if request.method == "POST":
-        # Verificar si es una solicitud de eliminación de permiso
-        if 'permission_id' in request.POST:
-            permission_id = request.POST.get('permission_id')
+        # --- Remove a permission ---
+        if 'remove_permission_id' in request.POST:
+            permission_id = request.POST.get('remove_permission_id')
             try:
                 permission = Permission.objects.get(id=permission_id)
                 role.permissions.remove(permission)
@@ -148,9 +148,19 @@ def modify_role(request, role_id):
                 messages.error(request, "El permiso especificado no existe.")
             return redirect("modify_role", role_id=role_id)
         
-        # Verificar si es una solicitud de eliminación del rol
+        # --- Add a permission ---
+        if 'add_permission_id' in request.POST:
+            permission_id = request.POST.get('add_permission_id')
+            try:
+                permission = Permission.objects.get(id=permission_id)
+                role.permissions.add(permission)
+                messages.success(request, f"Permiso '{permission.name}' agregado al rol '{role.name}' correctamente.")
+            except Permission.DoesNotExist:
+                messages.error(request, "El permiso especificado no existe.")
+            return redirect("modify_role", role_id=role_id)
+        
+        # --- Delete the role ---
         if request.POST.get('action') == 'delete_role':
-            # Proteger el rol Administrador
             if role.name == 'Administrador':
                 messages.error(request, "No se puede eliminar el rol 'Administrador'.")
                 return redirect("modify_role", role_id=role_id)
@@ -160,7 +170,7 @@ def modify_role(request, role_id):
             messages.success(request, f"Rol '{role_name}' eliminado correctamente.")
             return redirect("manage_roles")
         
-        # Procesar formulario de modificación
+        # --- Edit role name or other fields ---
         role_name = request.POST.get('role_name', '')
         is_active = request.POST.get('is_active') == 'on'
         
@@ -170,10 +180,10 @@ def modify_role(request, role_id):
         messages.success(request, f"Rol '{role.name}' modificado correctamente.")
         return redirect("manage_roles")
     
+    # --- GET request ---
     role_permissions = role.permissions.all()
     all_permissions = Permission.objects.all()
     
-    # Agregar información de estado al rol
     role.is_active = role.user_set.filter(is_active=True).exists()
     
     context = {
