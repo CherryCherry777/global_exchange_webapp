@@ -11,7 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import  F, OuterRef, Subquery
 
-from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, LimiteIntercambioCliente, LimiteIntercambioConfig, LimiteIntercambioScheduleConfig, MFACode, Transaccion, CuentaBancariaNegocio
+from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, ExpiracionTransaccionConfig, LimiteIntercambioCliente, LimiteIntercambioConfig, LimiteIntercambioScheduleConfig, MFACode, Tauser, Transaccion, CuentaBancariaNegocio
 from .views.payments.pagos_simulados_a_clientes import pagar_al_cliente
 
 from django.utils import timezone
@@ -185,26 +185,49 @@ def cleanup_expired_mfa_codes():
 
 
 @shared_task
-def cancelar_transacciones_vencidas():
-    """
-    Cancela automáticamente las transacciones pendientes que usan una CuentaBancariaNegocio
-    y que excedieron el tiempo límite.
-    """
-    limite_tiempo = timezone.now() - timedelta(minutes=2)
+def cancelar_transacciones_vencidas_cbn():
+    """Expira transacciones con medio 'Transferencia' según la config definida en el panel."""
+    try:
+        config = ExpiracionTransaccionConfig.objects.get(medio="cuenta_bancaria_negocio")
+        limite_min = config.minutos_expiracion
+    except ExpiracionTransaccionConfig.DoesNotExist:
+        print("[WARN] No existe configuración para 'Transferencia'. No se ejecuta.")
+        return
 
-    # Obtener ContentType de CuentaBancariaNegocio
-    tipo_cuenta_bancaria = ContentType.objects.get_for_model(CuentaBancariaNegocio)
+    limite_tiempo = timezone.now() - timedelta(minutes=limite_min)
+    tipo_cb = ContentType.objects.get_for_model(CuentaBancariaNegocio)
 
-    # Filtrar solo las transacciones PENDIENTES y con ese tipo de medio de pago
     vencidas = Transaccion.objects.filter(
         estado=Transaccion.Estado.PENDIENTE,
-        medio_pago_type=tipo_cuenta_bancaria,
+        medio_pago_type=tipo_cb,
         fecha_creacion__lt=limite_tiempo,
     )
 
     cantidad = vencidas.update(estado=Transaccion.Estado.CANCELADA)
-    print(f"[INFO] {cantidad} transacciones con CuentaBancariaNegocio canceladas automáticamente por vencimiento.")
+    print(f"[INFO] {cantidad} transacciones con Transferencia canceladas automáticamente (> {limite_min} min).")
 
+
+@shared_task
+def cancelar_transacciones_vencidas_tauser():
+    """Expira transacciones con medio 'Tauser' según la config definida en el panel."""
+    try:
+        config = ExpiracionTransaccionConfig.objects.get(medio="tauser")
+        limite_min = config.minutos_expiracion
+    except ExpiracionTransaccionConfig.DoesNotExist:
+        print("[WARN] No existe configuración para 'Tauser'. No se ejecuta.")
+        return
+
+    limite_tiempo = timezone.now() - timedelta(minutes=limite_min)
+    tipo_tauser = ContentType.objects.get_for_model(Tauser)
+
+    vencidas = Transaccion.objects.filter(
+        estado=Transaccion.Estado.PENDIENTE,
+        medio_pago_type=tipo_tauser,
+        fecha_creacion__lt=limite_tiempo,
+    )
+
+    cantidad = vencidas.update(estado=Transaccion.Estado.CANCELADA)
+    print(f"[INFO] {cantidad} transacciones con Tauser canceladas automáticamente (> {limite_min} min).")
 
 # Resetear límites de intercambio
 LOCK_KEY = "check_and_reset_limites_intercambio_lock"
@@ -212,9 +235,9 @@ LOCK_KEY = "check_and_reset_limites_intercambio_lock"
 @shared_task
 def check_and_reset_limites_intercambio():
     """
-    Reset duro:
-      - DAILY   → SOLO limite_dia_actual (por cliente) = limite_dia_max (según su categoría)
-      - MONTHLY → SOLO limite_mes_actual (por cliente) = limite_mes_max (según su categoría)
+    RESET GLOBAL:
+      - DAILY   → limite_dia_actual = limite_dia_max
+      - MONTHLY → limite_mes_actual = limite_mes_max
     """
     if cache.get(LOCK_KEY):
         logger.warning("⏭️  Reset ya en ejecución. Omitiendo este tick.")
@@ -222,47 +245,49 @@ def check_and_reset_limites_intercambio():
     cache.set(LOCK_KEY, True, timeout=LOCK_EXPIRE)
 
     try:
+        config = LimiteIntercambioScheduleConfig.get_solo()
+        if not config.is_active:
+            logger.info("⚠️ Reset global desactivado. No se ejecuta.")
+            return
+
         now = timezone.localtime()
-        cfgs = LimiteIntercambioScheduleConfig.objects.select_related("categoria")
 
-        for cfg in cfgs:
-            freq = cfg.frequency
+        # Verifica timing
+        if config.frequency == "daily":
+            should_run = (now.hour == config.hour and now.minute == config.minute)
+        elif config.frequency == "monthly" and config.month_day:
+            last_day = calendar.monthrange(now.year, now.month)[1]
+            run_day = min(config.month_day, last_day)
+            should_run = (now.day == run_day and now.hour == config.hour and now.minute == config.minute)
+        else:
+            should_run = False
 
-            if freq == "daily":
-                should_run = (now.hour == cfg.hour and now.minute == cfg.minute)
-                if not should_run:
-                    continue
+        if not should_run:
+            return
 
-                # Subquery: tope diario por categoría+moneda
+        # Reset diario global
+        if config.frequency == "daily":
+            with transaction.atomic():
                 tope_dia_subq = LimiteIntercambioConfig.objects.filter(
-                    categoria=cfg.categoria,
-                    moneda=OuterRef("config__moneda")   # ✅ cambio correcto
+                    id=OuterRef("config_id")  # ← se vincula directamente al FK
                 ).values("limite_dia_max")[:1]
 
-                qs = LimiteIntercambioCliente.objects.filter(cliente__categoria=cfg.categoria)
+                updated = LimiteIntercambioCliente.objects.update(
+                    limite_dia_actual=Subquery(tope_dia_subq)
+                )
+            logger.info(f"✅ Reset GLOBAL DIARIO aplicado. {updated} filas afectadas.")
 
-                with transaction.atomic():
-                    updated = qs.update(limite_dia_actual=Subquery(tope_dia_subq))
-
-                logger.info(f"✅ Reset DIARIO (duro) aplicado para categoría '{cfg.categoria}': {updated} filas.")
-
-            elif freq == "monthly" and cfg.month_day:
-                last_day = calendar.monthrange(now.year, now.month)[1]
-                run_day = min(cfg.month_day, last_day)
-                should_run = (now.day == run_day and now.hour == cfg.hour and now.minute == cfg.minute)
-                if not should_run:
-                    continue
-
+        # Reset mensual global
+        elif config.frequency == "monthly":
+            with transaction.atomic():
                 tope_mes_subq = LimiteIntercambioConfig.objects.filter(
-                    categoria=cfg.categoria,
-                    moneda=OuterRef("config__moneda")
+                    id=OuterRef("config_id")
                 ).values("limite_mes_max")[:1]
 
-                qs = LimiteIntercambioCliente.objects.filter(cliente__categoria=cfg.categoria)
-
-                with transaction.atomic():
-                    updated = qs.update(limite_mes_actual=Subquery(tope_mes_subq))
-                logger.info(f"✅ Reset MENSUAL (duro) aplicado para categoría '{cfg.categoria}': {updated} filas.")
+                updated = LimiteIntercambioCliente.objects.update(
+                    limite_mes_actual=Subquery(tope_mes_subq)
+                )
+            logger.info(f"✅ Reset GLOBAL MENSUAL aplicado. {updated} filas afectadas.")
 
     except Exception as e:
         logger.exception(f"Error en check_and_reset_limites_intercambio: {e}")

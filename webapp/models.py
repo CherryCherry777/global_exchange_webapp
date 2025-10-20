@@ -1140,39 +1140,82 @@ class LimiteIntercambioCliente(models.Model):
 # Modelos para Schedule
 # --------------------------------------------
 
+class ExpiracionTransaccionConfig(models.Model):
+    MEDIOS = [
+        ("cuenta_bancaria_negocio", "Transferencia"),
+        ("tauser", "Tauser"),
+    ]
+
+    medio = models.CharField(max_length=40, choices=MEDIOS, unique=True)
+    minutos_expiracion = models.PositiveIntegerField(default=2)
+
+    def __str__(self):
+        return f"{self.get_medio_display()} → {self.minutos_expiracion} min"
+
+
 class LimiteIntercambioScheduleConfig(models.Model):
     """
-    Configuración para el reseteo automático (duro) de límites de intercambio,
-    por CATEGORÍA. Solo una frecuencia activa: daily o monthly.
+    Configuración GLOBAL para el reseteo de límites de intercambio.
+
+    - frequency:
+        - 'daily'   → resetea todos los días a (hour:minute)
+        - 'monthly' → resetea el día `month_day` de cada mes a (hour:minute)
+    - hour/minute: hora exacta local del servidor/APP en la que se ejecutará el reseteo.
+    - month_day: solo aplicable cuando frequency='monthly'.
+    - is_active: permite desactivar el reseteo sin borrar la config.
+
+    Este modelo es SINGLETON: debe existir a lo sumo 1 fila.
+    Se fuerza con UniqueConstraint(true) usando una clave constante.
     """
 
-    categoria = models.OneToOneField(
-        Categoria,
-        on_delete=models.CASCADE,
-        related_name="limite_intercambio_schedule",
-        verbose_name="Categoría"
+    FREQUENCIES = (
+        ("daily", "Diario"),
+        ("monthly", "Mensual"),
     )
 
-    frequency = models.CharField(
-        max_length=20,
-        choices=[
-            ("daily", "Diario"),
-            ("monthly", "Mensual"),
-        ],
-        default="daily"
-    )
+    # Clave constante para asegurar singleton (no visible en formularios)
+    singleton_key = models.PositiveSmallIntegerField(default=1, editable=False, unique=True)
 
-    hour = models.PositiveSmallIntegerField(default=0)   # 0–23
-    minute = models.PositiveSmallIntegerField(default=0) # 0–59
+    frequency = models.CharField(max_length=20, choices=FREQUENCIES, default="daily")
+    hour = models.PositiveSmallIntegerField(default=0)    # 0–23
+    minute = models.PositiveSmallIntegerField(default=0)  # 0–59
 
-    # Solo se usa si frequency = "monthly"
     month_day = models.PositiveSmallIntegerField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="Día del mes (1–31). Solo si frequency='monthly'."
     )
 
-    def __str__(self):
-        return f"{self.categoria} → {self.frequency} @ {self.hour:02d}:{self.minute:02d}"
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Temporizador global de reseteo de límites"
+        verbose_name_plural = "Temporizador global de reseteo de límites"
+
+    def __str__(self) -> str:
+        base = f"{self.get_frequency_display()} @ {self.hour:02d}:{self.minute:02d}"
+        if self.frequency == "monthly" and self.month_day:
+            base = f"Cada mes el día {self.month_day} @ {self.hour:02d}:{self.minute:02d}"
+        return f"(GLOBAL) {base} | {'Activo' if self.is_active else 'Inactivo'}"
+
+    # ---- Helpers de dominio ----
+    def requires_month_day(self) -> bool:
+        """Indica si el campo month_day es requerido por la frecuencia actual."""
+        return self.frequency == "monthly"
+
+    @classmethod
+    def get_solo(cls) -> "LimiteIntercambioScheduleConfig":
+        """
+        Obtiene (o crea si no existe) la única instancia válida.
+        Úsalo en vistas/tareas para leer la configuración global.
+        """
+        obj, _ = cls.objects.get_or_create(singleton_key=1, defaults=dict(
+            frequency="daily",
+            hour=0,
+            minute=0,
+            is_active=True,
+        ))
+        return obj
 
 
 class EmailScheduleConfig(models.Model):

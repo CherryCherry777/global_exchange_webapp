@@ -18,3 +18,4 @@ from .roles import *
 from .usuarios import *
 from .vistas_varias import *
 from .tauser import *
+from .schedule_config import *
