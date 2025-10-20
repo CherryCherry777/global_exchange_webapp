@@ -215,31 +215,6 @@ def historical_view(request):
     return render(request, "webapp/cotizaciones/historical.html")
 
 
-def manage_schedule(request):
-    config, _ = EmailScheduleConfig.objects.get_or_create(pk=1)
-
-    if request.method == "POST":
-        config.frequency = request.POST.get("frequency")
-        config.hour = int(request.POST.get("hour", 8))
-        config.minute = int(request.POST.get("minute", 0))
-
-        if config.frequency == "custom":
-            config.interval_minutes = int(request.POST.get("interval_minutes", 60))
-            config.weekday = None
-        elif config.frequency == "weekly":
-            config.weekday = request.POST.get("weekday")
-            config.interval_minutes = None
-        else:
-            config.weekday = None
-            config.interval_minutes = None
-
-        config.save()
-        messages.success(request,'Horario actualizado exitosamente.')
-        return redirect("manage_schedule")
-
-    return render(request, "webapp/cotizaciones/manage_schedule.html", {"config": config})
-
-
 # Desuscribirse de los correos de tasas
 def unsubscribe(request, uidb64, token):
     try:

@@ -4,11 +4,12 @@ from django.db.models.signals import post_migrate, post_save
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
-from .models import Currency, Entidad, LimiteIntercambio, MedioCobro, Role, MedioPago, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion
+from .models import Currency, Entidad, LimiteIntercambioConfig, LimiteIntercambioCliente, LimiteIntercambioLog, MedioCobro, Role, MedioPago, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
 from django.db import transaction
-
+from decimal import Decimal
+import logging
 
 User = get_user_model()
 
@@ -104,44 +105,71 @@ def asignar_tipo_pago(sender, instance, created, **kwargs):
         instance.tipo_pago = tipo_pago
         instance.save()
 
+# Valores iniciales específicos por moneda (para *_max)
+VALORES_POR_MONEDA = {
+    "PYG": 1000000,
+    "USD": 5000,
+    "EUR": 5000,
+    "BRL": 20000,
+    "ARG": 200000,
+}
+DEFAULT_NO_LISTADA = 0
+
+
 @receiver(post_migrate)
-def crear_limites_intercambio(sender, **kwargs):
-    # Asegurarnos de que los modelos ya estén cargados
-    Currency = apps.get_model('webapp', 'Currency')
-    LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
-
-    # Evitamos ejecutarlo para apps que no sean la tuya
-    if sender.label != 'webapp':
+def seed_limite_config(sender, **kwargs):
+    if sender.label != "webapp":
         return
+    Currency = apps.get_model("webapp", "Currency")
+    Categoria = apps.get_model("webapp", "Categoria")
+    LimiteIntercambioConfig = apps.get_model("webapp", "LimiteIntercambioConfig")
 
-    # Iterar sobre todas las monedas y categorías
-    for moneda in Currency.objects.all():
-        
-        # Crear el límite si no existe
-        LimiteIntercambio.objects.get_or_create(
-            moneda=moneda,
-            defaults={
-                'limite_dia': 1000,     # valor por defecto mínimo
-                'limite_mes': 1000   # valor por defecto máximo
-            }
+    for categoria in Categoria.objects.all():
+        for moneda in Currency.objects.all():
+            valor = VALORES_POR_MONEDA.get(moneda.code, DEFAULT_NO_LISTADA)
+            LimiteIntercambioConfig.objects.get_or_create(
+                categoria=categoria, moneda=moneda,
+                defaults={
+                    "limite_dia_max": valor,
+                    "limite_mes_max": valor,
+                }
+            )
+
+
+@receiver(post_save, sender="webapp.Currency")
+def crear_config_al_crear_moneda(sender, instance, created, **kwargs):
+    if not created:
+        return
+    Categoria = apps.get_model("webapp", "Categoria")
+    LimiteIntercambioConfig = apps.get_model("webapp", "LimiteIntercambioConfig")
+
+    valor = VALORES_POR_MONEDA.get(instance.code, DEFAULT_NO_LISTADA)
+    for categoria in Categoria.objects.all():
+        LimiteIntercambioConfig.objects.get_or_create(
+            categoria=categoria, moneda=instance,
+            defaults={"limite_dia_max": valor, "limite_mes_max": valor}
         )
 
-@receiver(post_save, sender='webapp.Currency')
-def crear_limites_por_moneda(sender, instance, created, **kwargs):
-    """
-    Crea automáticamente registros de LimiteIntercambio para todas las categorías
-    cuando se crea una nueva moneda.
-    """
-    if not created:
-        return  # Solo al crear la moneda
 
-    LimiteIntercambio = apps.get_model('webapp', 'LimiteIntercambio')
-    LimiteIntercambio.objects.create(
-        moneda=instance,
-        limite_dia=0,
-        limite_mes=0
-    )
+@receiver(post_save, sender="webapp.Cliente")
+def crear_saldos_cliente(sender, instance, created, **kwargs):
+    LimiteIntercambioCliente = apps.get_model("webapp", "LimiteIntercambioCliente")
+    LimiteIntercambioConfig = apps.get_model("webapp", "LimiteIntercambioConfig")
 
+    if not instance.categoria_id:
+        return
+
+    configs = LimiteIntercambioConfig.objects.filter(categoria=instance.categoria)
+
+    for cfg in configs:
+        LimiteIntercambioCliente.objects.get_or_create(
+            cliente=instance,
+            config=cfg,  # ✅ AQUÍ SE CAMBIA
+            defaults={
+                "limite_dia_actual": cfg.limite_dia_max,
+                "limite_mes_actual": cfg.limite_mes_max,
+            }
+        )
 
 @receiver(post_save, sender=TipoPago)
 def sync_medios_pago(sender, instance, **kwargs):
@@ -276,9 +304,76 @@ def crear_cuenta_bancaria_negocio(sender, **kwargs):
 
     transaction.on_commit(crear_si_corresponde)
 
+logger = logging.getLogger(__name__)
+
 @receiver(post_save, sender=Transaccion)
 def actualizar_limite_post_transaccion(sender, instance, **kwargs):
-    if instance.estado in [Transaccion.Estado.PAGADA, Transaccion.Estado.COMPLETA] and instance.moneda_origen.code == "PYG":
-        limite = LimiteIntercambio.objects.filter(moneda=instance.moneda_destino).first()
-        if limite:
-            limite.descontar(instance.monto_destino)
+    """
+    Lógica bancaria profesional:
+    - Si llega a PENDIENTE, PAGADA o COMPLETADA → DESCUENTA SOLO 1 VEZ (reserva cupo)
+    - Si luego pasa a CANCELADA o ANULADA → DEVUELVE EXACTAMENTE lo reservado
+    - Usa LimiteIntercambioLog como tracking persistente para evitar dobles descuentos
+    """
+
+    ESTADOS_DESCUENTAN = [
+        Transaccion.Estado.PENDIENTE,
+        Transaccion.Estado.PAGADA,
+        Transaccion.Estado.COMPLETA,
+    ]
+    ESTADOS_RESTAURAN = [
+        Transaccion.Estado.CANCELADA,
+        Transaccion.Estado.ANULADA,
+    ]
+
+    # Solo aplica a operaciones de VENTA → origen PYG
+    if instance.moneda_origen.code != "PYG":
+        return
+
+    try:
+        # Traemos el tracking (si ya existía)
+        log = LimiteIntercambioLog.objects.filter(transaccion=instance).first()
+
+        # 1) Si es estado que DESCUNTA y aún *NO* se descontó antes → descontar
+        if instance.estado in ESTADOS_DESCUENTAN and (not log or log.monto_descontado == 0):
+            with transaction.atomic():
+                config = LimiteIntercambioConfig.objects.get(
+                    categoria=instance.cliente.categoria,
+                    moneda=instance.moneda_destino
+                )
+                limite_cliente = LimiteIntercambioCliente.objects.select_for_update().get(
+                    cliente=instance.cliente,
+                    config=config
+                )
+
+                monto = instance.monto_destino
+                limite_cliente.descontar(monto)
+
+                # Guardar log
+                LimiteIntercambioLog.objects.create(
+                    transaccion=instance,
+                    monto_descontado=monto
+                )
+
+        # 2) Si pasa a cancelado/anulado y ya tenía descuento → restaurar exactamente
+        elif instance.estado in ESTADOS_RESTAURAN and log and log.monto_descontado > 0:
+            with transaction.atomic():
+                config = LimiteIntercambioConfig.objects.get(
+                    categoria=instance.cliente.categoria,
+                    moneda=instance.moneda_destino
+                )
+                limite_cliente = LimiteIntercambioCliente.objects.select_for_update().get(
+                    cliente=instance.cliente,
+                    config=config
+                )
+
+                # Devolver
+                limite_cliente.limite_dia_actual += log.monto_descontado
+                limite_cliente.limite_mes_actual += log.monto_descontado
+                limite_cliente.save(update_fields=["limite_dia_actual", "limite_mes_actual"])
+
+                # Marcar log como ya restaurado
+                log.monto_descontado = Decimal("0")
+                log.save()
+
+    except Exception as e:
+        logger.exception(f"Error en actualización de límite post transacción: {e}")

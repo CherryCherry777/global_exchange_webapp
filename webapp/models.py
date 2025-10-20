@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from decimal import Decimal, ROUND_DOWN
+from typing import Optional
 
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
@@ -588,100 +589,6 @@ class TipoPago(models.Model):
 
 
 # -------------------------------------
-# Modelo para definir limites de intercambio por dia y mes
-# -------------------------------------
-
-class LimiteIntercambio(models.Model):
-    moneda = models.ForeignKey(
-        'Currency',
-        on_delete=models.CASCADE,
-        verbose_name="Moneda",
-        related_name="limites_intercambio"
-    )
-    limite_dia = models.DecimalField(
-        max_digits=23,
-        decimal_places=8,
-        verbose_name="Límite Diario",
-        default=Decimal('0'),
-        error_messages={
-            'max_digits': 'El número no puede tener más de 23 dígitos',
-            'max_decimal_places': 'El número no puede tener más de 8 decimales'
-        }
-    )
-    limite_mes = models.DecimalField(
-        max_digits=23,
-        decimal_places=8,
-        verbose_name="Límite Mensual",
-        default=Decimal('0'),
-        error_messages={
-            'max_digits': 'El número no puede tener más de 23 dígitos',
-            'max_decimal_places': 'El número no puede tener más de 8 decimales'
-        }
-    )
-
-    class Meta:
-        verbose_name = "Límite de Intercambio"
-        verbose_name_plural = "Límites de Intercambio"
-        ordering = ['moneda__code']
-        unique_together = ['moneda']
-
-    def clean(self):
-        if not self.moneda:
-            return
-
-        max_dec = self.moneda.decimales_cotizacion
-
-        def check_decimals(value, field_name):
-            if value is None:
-                return
-            str_val = str(value)
-            if '.' in str_val:
-                dec_count = len(str_val.split('.')[1])
-                if dec_count > max_dec:
-                    raise ValidationError(
-                        {field_name: f"El número máximo de decimales permitidos para esta moneda es {max_dec}."}
-                    )
-
-        check_decimals(self.limite_dia, 'limite_dia')
-        check_decimals(self.limite_mes, 'limite_mes')
-
-    def save(self, *args, **kwargs):
-        if self.moneda:
-            dec = int(self.moneda.decimales_cotizacion)
-            factor = Decimal('1').scaleb(-dec)  # Ej: dec=3 -> 0.001
-            if self.limite_dia is not None:
-                self.limite_dia = Decimal(self.limite_dia).quantize(factor, rounding=ROUND_DOWN)
-            if self.limite_mes is not None:
-                self.limite_mes = Decimal(self.limite_mes).quantize(factor, rounding=ROUND_DOWN)
-        super().save(*args, **kwargs)
-
-    def descontar(self, monto: Decimal):
-        """
-        Descuenta un monto del límite diario y mensual (por ejemplo, después de una transacción).
-        Si el monto supera el límite actual, lanza ValidationError.
-        """
-        if monto is None or monto <= 0:
-            return
-
-        # Validar que haya suficiente límite disponible
-        if monto > self.limite_dia:
-            raise ValidationError(f"El monto {monto} supera el límite diario disponible ({self.limite_dia}).")
-
-        if monto > self.limite_mes:
-            raise ValidationError(f"El monto {monto} supera el límite mensual disponible ({self.limite_mes}).")
-
-        # Restar y normalizar según los decimales de la moneda
-        dec = int(self.moneda.decimales_cotizacion)
-        factor = Decimal('1').scaleb(-dec)
-
-        self.limite_dia = (self.limite_dia - monto).quantize(factor, rounding=ROUND_DOWN)
-        self.limite_mes = (self.limite_mes - monto).quantize(factor, rounding=ROUND_DOWN)
-        self.save(update_fields=["limite_dia", "limite_mes"])
-
-    def __str__(self):
-        return f"{self.moneda.code}"
-
-# -------------------------------------
 # Modelo de métodos de cobro genérico
 # -------------------------------------
 class MedioCobro(models.Model):
@@ -1084,9 +991,233 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"Detalle {self.id} - {self.descripcion}"
+    
+
+# -------------------------------------
+# Modelo para definir limites de intercambio por dia y mes
+# -------------------------------------
+
+class LimiteIntercambioLog(models.Model):
+    transaccion = models.OneToOneField(
+        Transaccion,
+        on_delete=models.CASCADE,
+        related_name="limite_log"
+    )
+    monto_descontado = models.DecimalField(max_digits=23, decimal_places=8, default=Decimal('0'))
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+class LimiteIntercambioConfig(models.Model):
+    """
+    Config de límites por CATEGORÍA + MONEDA.
+    SOLO guarda los topes (máximos).
+    """
+    categoria = models.ForeignKey(
+        Categoria, on_delete=models.CASCADE,
+        related_name="limites_config", verbose_name="Categoría"
+    )
+    moneda = models.ForeignKey(
+        Currency, on_delete=models.CASCADE,
+        related_name="limites_config_por_moneda", verbose_name="Moneda"
+    )
+
+    limite_dia_max = models.DecimalField(
+        max_digits=23, decimal_places=8, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))], verbose_name="Límite Diario (Máx.)"
+    )
+    limite_mes_max = models.DecimalField(
+        max_digits=23, decimal_places=8, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))], verbose_name="Límite Mensual (Máx.)"
+    )
+
+    class Meta:
+        verbose_name = "Config. Límite de Intercambio (Categoría)"
+        verbose_name_plural = "Config. Límites de Intercambio (Categoría)"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["categoria", "moneda"],
+                name="uniq_limite_config_categoria_moneda"
+            )
+        ]
+        ordering = ["categoria__id", "moneda__code"]
+
+    def _factor(self) -> Decimal:
+        dec = int(self.moneda.decimales_cotizacion or 0)
+        return Decimal("1").scaleb(-dec)
+
+    def clean(self):
+        factor = self._factor()
+        for f in ["limite_dia_max", "limite_mes_max"]:
+            v = getattr(self, f)
+            if v is not None and Decimal(v).quantize(factor, rounding=ROUND_DOWN) != Decimal(v):
+                raise ValidationError({f: f"Excede decimales permitidos para {self.moneda.code}."})
+
+    def save(self, *args, **kwargs):
+        factor = self._factor()
+        self.limite_dia_max = Decimal(self.limite_dia_max).quantize(factor, rounding=ROUND_DOWN)
+        self.limite_mes_max = Decimal(self.limite_mes_max).quantize(factor, rounding=ROUND_DOWN)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.categoria} / {self.moneda.code} (MAX)"
 
 
-# models.py
+class LimiteIntercambioCliente(models.Model):
+    """
+    Saldo disponible por CLIENTE,
+    vinculado a una configuración específica (Categoría + Moneda).
+    SOLO guarda valores ACTUALES (saldo).
+    """
+    config = models.ForeignKey(
+        LimiteIntercambioConfig,
+        on_delete=models.CASCADE,
+        related_name="saldos_por_cliente",
+        verbose_name="Configuración de límite (Categoría + Moneda)"
+    )
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.CASCADE,
+        related_name="limites_cliente",
+        verbose_name="Cliente"
+    )
+
+    limite_dia_actual = models.DecimalField(
+        max_digits=23, decimal_places=8, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))],
+        verbose_name="Límite Diario (Actual)"
+    )
+    limite_mes_actual = models.DecimalField(
+        max_digits=23, decimal_places=8, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))],
+        verbose_name="Límite Mensual (Actual)"
+    )
+
+    class Meta:
+        verbose_name = "Límite de Intercambio (Cliente)"
+        verbose_name_plural = "Límites de Intercambio (Cliente)"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cliente", "config"],
+                name="uniq_limite_cliente_config"
+            )
+        ]
+        ordering = ["cliente__id"]
+
+    # 🔧 Normalizador de decimales, basado en la moneda real
+    def _quant(self, value: Decimal) -> Decimal:
+        factor = self.config._factor()  # Usa moneda desde la config
+        return Decimal(value).quantize(factor, rounding=ROUND_DOWN)
+
+    # 💰 Descontar cupo (solo se invoca si ya validamos antes)
+    def descontar(self, monto: Decimal):
+        monto = self._quant(monto)
+        if monto <= 0:
+            raise ValidationError("El monto debe ser positivo.")
+
+        if monto > self.limite_dia_actual:
+            raise ValidationError(f"Supera el límite DIARIO ({self.limite_dia_actual}).")
+
+        if monto > self.limite_mes_actual:
+            raise ValidationError(f"Supera el límite MENSUAL ({self.limite_mes_actual}).")
+
+        self.limite_dia_actual = self._quant(self.limite_dia_actual - monto)
+        self.limite_mes_actual = self._quant(self.limite_mes_actual - monto)
+        self.save(update_fields=["limite_dia_actual", "limite_mes_actual"])
+
+    # 🔄 Reset duros (Celery)
+    def reset_diario(self):
+        self.limite_dia_actual = self._quant(self.config.limite_dia_max)
+        self.save(update_fields=["limite_dia_actual"])
+
+    def reset_mensual(self):
+        self.limite_mes_actual = self._quant(self.config.limite_mes_max)
+        self.save(update_fields=["limite_mes_actual"])
+
+    def __str__(self):
+        return f"{self.cliente} / {self.config.moneda.code} (ACTUAL)"
+
+
+# --------------------------------------------
+# Modelos para Schedule
+# --------------------------------------------
+
+class ExpiracionTransaccionConfig(models.Model):
+    MEDIOS = [
+        ("cuenta_bancaria_negocio", "Transferencia"),
+        ("tauser", "Tauser"),
+    ]
+
+    medio = models.CharField(max_length=40, choices=MEDIOS, unique=True)
+    minutos_expiracion = models.PositiveIntegerField(default=2)
+
+    def __str__(self):
+        return f"{self.get_medio_display()} → {self.minutos_expiracion} min"
+
+
+class LimiteIntercambioScheduleConfig(models.Model):
+    """
+    Configuración GLOBAL para el reseteo de límites de intercambio.
+
+    - frequency:
+        - 'daily'   → resetea todos los días a (hour:minute)
+        - 'monthly' → resetea el día `month_day` de cada mes a (hour:minute)
+    - hour/minute: hora exacta local del servidor/APP en la que se ejecutará el reseteo.
+    - month_day: solo aplicable cuando frequency='monthly'.
+    - is_active: permite desactivar el reseteo sin borrar la config.
+
+    Este modelo es SINGLETON: debe existir a lo sumo 1 fila.
+    Se fuerza con UniqueConstraint(true) usando una clave constante.
+    """
+
+    FREQUENCIES = (
+        ("daily", "Diario"),
+        ("monthly", "Mensual"),
+    )
+
+    # Clave constante para asegurar singleton (no visible en formularios)
+    singleton_key = models.PositiveSmallIntegerField(default=1, editable=False, unique=True)
+
+    frequency = models.CharField(max_length=20, choices=FREQUENCIES, default="daily")
+    hour = models.PositiveSmallIntegerField(default=0)    # 0–23
+    minute = models.PositiveSmallIntegerField(default=0)  # 0–59
+
+    month_day = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Día del mes (1–31). Solo si frequency='monthly'."
+    )
+
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Temporizador global de reseteo de límites"
+        verbose_name_plural = "Temporizador global de reseteo de límites"
+
+    def __str__(self) -> str:
+        base = f"{self.get_frequency_display()} @ {self.hour:02d}:{self.minute:02d}"
+        if self.frequency == "monthly" and self.month_day:
+            base = f"Cada mes el día {self.month_day} @ {self.hour:02d}:{self.minute:02d}"
+        return f"(GLOBAL) {base} | {'Activo' if self.is_active else 'Inactivo'}"
+
+    # ---- Helpers de dominio ----
+    def requires_month_day(self) -> bool:
+        """Indica si el campo month_day es requerido por la frecuencia actual."""
+        return self.frequency == "monthly"
+
+    @classmethod
+    def get_solo(cls) -> "LimiteIntercambioScheduleConfig":
+        """
+        Obtiene (o crea si no existe) la única instancia válida.
+        Úsalo en vistas/tareas para leer la configuración global.
+        """
+        obj, _ = cls.objects.get_or_create(singleton_key=1, defaults=dict(
+            frequency="daily",
+            hour=0,
+            minute=0,
+            is_active=True,
+        ))
+        return obj
+
+
 class EmailScheduleConfig(models.Model):
     """
     Configuración para la frecuencia de envío de correos con tasas de cambio.

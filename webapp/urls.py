@@ -90,7 +90,8 @@ urlpatterns = [
 
     # Administración de límites de intercambio
     path('limites/', views.limites_intercambio_list, name='limites_list'),
-    path('limites/<int:moneda_id>/editar/', views.limite_edit, name='limite_edit'),
+    path('limites/config/<int:config_id>/editar/', views.limite_config_edit, name='limite_config_edit'),
+    path('limites/cargar-tabla/', views.limites_intercambio_tabla_htmx, name='limites_tabla_htmx'),
 
     # Administración de cotizaciones
     path('prices/', views.prices_list, name='prices_list'),
@@ -137,7 +138,6 @@ urlpatterns = [
     path("transaccion/<int:transaccion_id>/ingresar-id/", views.ingresar_idTransferencia, name="ingresar_idTransferencia"),
 
     #Configuracion de notificaciones de correo
-    path("schedule/", views.manage_schedule, name="manage_schedule"),
     path("unsubscribe/<uidb64>/<token>/", views.unsubscribe, name="unsubscribe"),
     path('unsubscribe/confirm/', views.unsubscribe_confirm, name='unsubscribe_confirm'),
     path('unsubscribe/error/', views.unsubscribe_error, name='unsubscribe_error'),
@@ -148,5 +148,8 @@ urlpatterns = [
     path("tauser/login/", views.tauser_login, name="tauser_login"),
     path("tauser/pagar/<int:pk>/", views.tauser_pagar, name="tauser_pagar"),
     path("tauser/cobrar/<int:pk>/", views.tauser_cobrar, name="tauser_cobrar"),
+
+    # Configurar temporizadores (Schedule de celery)
+    path("schedule/", views.manage_schedule, name="manage_schedule"),
 
 ]

@@ -155,6 +155,13 @@ body .header-nav {
     border: 3px solid #016723;
 }
 
+.configuracion-global-container {
+    grid-column: span 4 !important; /* ← ocupa las 4 columnas completas */
+    width: 100% !important;
+    min-height: 140px;
+    border: 3px solid #0A4D9A !important;
+}
+
 /* Management Buttons */
 .management-button {
     width: 286px;

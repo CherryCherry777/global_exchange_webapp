@@ -154,13 +154,21 @@ CELERY_BEAT_SCHEDULE = {
         "task": "webapp.tasks.check_and_send_exchange_rates",
         "schedule": 60.0,  # cada 60 segundos
     },
-    "cancelar_transacciones_vencidas_cada_2min": {
-        "task": "webapp.tasks.cancelar_transacciones_vencidas",
+    "cancelar_transacciones_vencidas_cbn": {
+        "task": "webapp.tasks.cancelar_transacciones_vencidas_cbn",
+        "schedule": crontab(minute="*/2"),  # cada 2 minutos
+    },
+    "cancelar_transacciones_vencidas_tauser": {
+        "task": "webapp.tasks.cancelar_transacciones_vencidas_tauser",
         "schedule": crontab(minute="*/2"),  # cada 2 minutos
     },
     "limpiar_codigos_mfa_cada_hora": {
         "task": "webapp.tasks.cleanup_expired_mfa_codes",
         "schedule": crontab(minute=0, hour="*/1"),  # cada hora
+    },
+    "check_limite_intercambio_schedule": {
+        "task": "webapp.tasks.check_and_reset_limites_intercambio",
+        "schedule": 60.0,  # cada 60 segundos
     },
 }
 

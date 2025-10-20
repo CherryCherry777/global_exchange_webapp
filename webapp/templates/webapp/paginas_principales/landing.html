@@ -20,6 +20,10 @@
 {% has_perms request.user 'webapp.view_limiteintercambio' as p_view_lim %}
 {% has_perms request.user 'webapp.view_mediopago' as p_view_mediopago %}
 {% has_perms request.user 'webapp.view_mediocobro' as p_view_mediocobro %}
+{% has_perms request.user 'webapp.view_emailscheduleconfig' as p_view_emailscheduleconfig %}
+{% has_perms request.user 'webapp.view_limiteintercambioscheduleconfig' as p_view_limiteintercambioscheduleconfig %}
+{% has_perms request.user 'webapp.view_expiraciontransaccionconfig' as p_view_expiraciontransaccionconfig %}
+
 
 {% if can_access_admin_panel or can_access_analyst_panel %}
 <div class="admin-panel">
@@ -155,7 +159,7 @@
             </a>
             {% endif %}
             
-            {% has_perms request.user 'webapp.view_limiteintercambio' as can_view_limiteintercambio %}
+            {% has_perms request.user 'webapp.view_limiteintercambioconfig' as can_view_limiteintercambio %}
             {% if can_view_limiteintercambio %}
             <a href="{% url 'limites_list' %}" class="management-button">
                 <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Límites de Intercambio" class="button-icon">
@@ -163,13 +167,6 @@
             </a>
             {% endif %}
 
-            <!--{% has_perms request.user 'webapp.view_manage_schedule' as can_view_manage_schedule %}-->
-            <!--{% if can_view_manage_schedule %}-->
-            <a href="{% url 'manage_schedule' %}" class="management-button">
-                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Correos de Tasas" class="button-icon">
-                <span class="button-text">Administrar Correos de Tasas</span>
-            </a>
-            <!--{% endif %}-->
         </div>
         {% endif %}
 
@@ -200,6 +197,17 @@
                 <span class="button-text">Administrar Entidades de Pago/Cobro</span>
             </a>
             {% endif %}
+        </div>
+        {% endif %}
+
+        {% if can_access_admin_panel or p_view_emailscheduleconfig or p_view_expiraciontransaccionconfig or p_view_limiteintercambioscheduleconfig %}
+        <!-- Contenedor 5: Gestión de Temporizadores -->
+        <div class="management-container configuracion-global-container">
+            <h2 class="container-title">Configuraciones Globales</h2>
+            <a href="{% url 'manage_schedule' %}" class="management-button long-text-button">
+                <img src="{% static 'webapp/panel_gestiones/15.Administrar_Temporizadores.png' %}" alt="Administrar Temporizadores" class="button-icon">
+                <span class="button-text">Administrar Temporizadores</span>
+            </a>
         </div>
         {% endif %}
 

@@ -1,0 +1,166 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+
+{% block title %}Configuración de temporizadores{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/cotizaciones/modify_quote.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="modify-quote-container">
+    <div class="main-content">
+
+        <!-- Header -->
+        <div class="modify-quote-header">
+            <div class="header-content">
+                <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+                <div class="header-text">
+                    <h1 class="modify-quote-title">Configuración del Sistema</h1>
+                    <p class="modify-quote-subtitle">Programación automática y temporizadores globales</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================= -->
+        <!-- 1. Programación de correos automáticos -->
+        <!-- ================================================= -->
+        <div class="modify-section">
+            <h2 class="section-title">📨 Envío automático de correos</h2>
+
+            <form method="post" class="modify-form">
+                {% csrf_token %}
+                <input type="hidden" name="save_email" value="1">
+
+                <div class="form-row single-field-row">
+                    <label class="field-label">Frecuencia:</label>
+                    <select name="frequency" class="form-input" id="email-frequency">
+                        <option value="daily" {% if email_config.frequency == 'daily' %}selected{% endif %}>Diario</option>
+                        <option value="weekly" {% if email_config.frequency == 'weekly' %}selected{% endif %}>Semanal</option>
+                        <option value="custom" {% if email_config.frequency == 'custom' %}selected{% endif %}>Personalizado</option>
+                    </select>
+                </div>
+
+                <div class="form-row" id="email-weekly" {% if email_config.frequency != "weekly" %}style="display:none"{% endif %}>
+                    <div class="form-field">
+                        <label class="field-label">Día:</label>
+                        <select name="weekday" class="form-input">
+                            <option value="monday" {% if email_config.weekday == 'monday' %}selected{% endif %}>Lunes</option>
+                            <option value="tuesday" {% if email_config.weekday == 'tuesday' %}selected{% endif %}>Martes</option>
+                            <option value="wednesday" {% if email_config.weekday == 'wednesday' %}selected{% endif %}>Miércoles</option>
+                            <option value="thursday" {% if email_config.weekday == 'thursday' %}selected{% endif %}>Jueves</option>
+                            <option value="friday" {% if email_config.weekday == 'friday' %}selected{% endif %}>Viernes</option>
+                            <option value="saturday" {% if email_config.weekday == 'saturday' %}selected{% endif %}>Sábado</option>
+                            <option value="sunday" {% if email_config.weekday == 'sunday' %}selected{% endif %}>Domingo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field">
+                        <label class="field-label">Hora:</label>
+                        <input type="number" name="hour" value="{{ email_config.hour }}" min="0" max="23" class="form-input">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">Minuto:</label>
+                        <input type="number" name="minute" value="{{ email_config.minute }}" min="0" max="59" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-row" id="email-custom" {% if email_config.frequency != "custom" %}style="display:none"{% endif %}>
+                    <div class="form-field">
+                        <label class="field-label">Intervalo (minutos):</label>
+                        <input type="number" name="interval_minutes" value="{{ email_config.interval_minutes }}" class="form-input">
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="save-button">Guardar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ================================================= -->
+        <!-- 2. Reseteo global de límites -->
+        <!-- ================================================= -->
+        <div class="modify-section">
+            <h2 class="section-title">⌛ Temporizador Global de Límites</h2>
+
+            <form method="post" class="modify-form">
+                {% csrf_token %}
+                <input type="hidden" name="save_limites" value="1">
+
+                <div class="form-row single-field-row">
+                    <label class="field-label">¿Activado?</label>
+                    <input type="checkbox" name="is_active" {% if limite_config.is_active %}checked{% endif %}>
+                </div>
+
+                <div class="form-row single-field-row">
+                    <label class="field-label">Frecuencia:</label>
+                    <select name="frequency" class="form-input" id="limite-frequency">
+                        <option value="daily" {% if limite_config.frequency == "daily" %}selected{% endif %}>Diario</option>
+                        <option value="monthly" {% if limite_config.frequency == "monthly" %}selected{% endif %}>Mensual</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field">
+                        <label class="field-label">Hora:</label>
+                        <input type="number" name="hour" value="{{ limite_config.hour }}" min="0" max="23" class="form-input">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">Minuto:</label>
+                        <input type="number" name="minute" value="{{ limite_config.minute }}" min="0" max="59" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-row single-field-row" id="limite-monthly" {% if limite_config.frequency != "monthly" %}style="display:none"{% endif %}>
+                    <label class="field-label">Día del mes:</label>
+                    <input type="number" name="month_day" value="{{ limite_config.month_day }}" min="1" max="31" class="form-input">
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="save-button">Guardar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ================================================= -->
+        <!-- 3. Expiración automática de transacciones -->
+        <!-- ================================================= -->
+        <div class="modify-section">
+            <h2 class="section-title">⚠️ Expiración de Transacciones</h2>
+
+            <form method="post" class="modify-form">
+                {% csrf_token %}
+                <input type="hidden" name="save_expiraciones" value="1">
+
+                {% for item in expiraciones %}
+                <div class="form-row">
+                    <label class="field-label">{{ item.get_medio_display }}</label>
+                    <input type="number" name="{{ item.medio }}" value="{{ item.minutos_expiracion }}" class="form-input">
+                </div>
+                {% endfor %}
+
+                <div class="action-buttons">
+                    <button type="submit" class="save-button">Guardar</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const emailSelect = document.getElementById("email-frequency");
+emailSelect.addEventListener("change", function() {
+    document.getElementById("email-weekly").style.display = this.value === "weekly" ? "flex" : "none";
+    document.getElementById("email-custom").style.display = this.value === "custom" ? "flex" : "none";
+});
+
+const limiteSelect = document.getElementById("limite-frequency");
+limiteSelect.addEventListener("change", function() {
+    document.getElementById("limite-monthly").style.display = this.value === "monthly" ? "flex" : "none";
+});
+</script>
+{% endblock %}
