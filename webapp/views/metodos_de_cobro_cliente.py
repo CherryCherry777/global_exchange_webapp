@@ -41,7 +41,7 @@ def my_cobro_methods(request):
     tipos_cobro = {tp.nombre.lower(): tp.activo for tp in TipoCobro.objects.all()}
     for medio in medios_cobro:
         #medio.activo_global = medio.tipo_pago.activo if medio.tipo_pago else False
-        medio.activo_global = medio.tipo_cobro.activo if medio.tipo_cobro else False
+        medio.activo_global = medio.activo and (medio.tipo_cobro.activo if medio.tipo_cobro else True)
 
     return render(request, "webapp/metodos_cobro_cliente/my_cobro_methods.html", {
         "medios_cobro": medios_cobro
