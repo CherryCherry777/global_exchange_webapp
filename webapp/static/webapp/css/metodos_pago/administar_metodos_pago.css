@@ -1,0 +1,58 @@
+/* Layout base */
+.my-payment-methods-container { width: 100%; min-height: 100vh; background: #0e0e0e; color: #fff; font-family: Roboto, system-ui, -apple-system, Segoe UI, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+/* 1. HEADER */
+.mpc-header { width: 100%; height: 222px; position: relative; background: linear-gradient(90deg, #000000 0%, #100724 50%, #000000 100%); overflow: hidden; }
+
+/* 1.1 Back button */
+.mpc-back-btn { position: absolute; top: 30px; left: 48px; width: 251px; height: 64px; display: inline-flex; align-items: center; justify-content: center; background: rgba(238, 233, 210, 0.1); color: #eee9d2; border-radius: 16px; text-decoration: none; font-weight: 500; letter-spacing: 0.2px; }
+.mpc-back-btn:hover { filter: brightness(1.1); }
+
+/* 1.2 Title */
+.mpc-title { position: absolute; top: 124px; left: 48px; margin: 0; font-size: 32px; line-height: 128%; font-weight: 700; color: #ffffff; }
+
+/* 1.3 Subtitle */
+.mpc-subtitle { position: absolute; top: 172px; left: 48px; margin: 0; font-size: 20px; font-style: italic; font-weight: 500; color: #ffffff; }
+
+/* 2. Cards section */
+.mpc-cards { display: flex; gap: 142px; padding-top: 96px; padding-bottom: 80px; justify-content: center; }
+
+/* 3/4 Card base */
+.mpc-card { position: relative; width: 396px; height: 323px; background: #292826; border-radius: 20px; text-decoration: none; color: #ffffff; padding: 0; border: 1px solid transparent; box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset; cursor: pointer; transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease; }
+.mpc-card--pago { border-color: #70DA32; }
+.mpc-card--cobro { border-color: #00FFCC; }
+
+/* Hover animations */
+.mpc-card:hover { transform: translateY(-6px); }
+.mpc-card--pago:hover { box-shadow: 0 12px 28px rgba(112,218,50,.2), 0 0 0 1px rgba(112,218,50,.65) inset; }
+.mpc-card--cobro:hover { box-shadow: 0 12px 28px rgba(0,255,204,.2), 0 0 0 1px rgba(0,255,204,.65) inset; }
+.mpc-card__arrow { transition: transform .22s ease; }
+.mpc-card:hover .mpc-card__arrow { transform: translateX(4px); }
+
+/* 3.1 / 4.1 Icon circle */
+.mpc-card__icon { position: absolute; top: 18px; left: 23px; }
+.mpc-card__icon-circle { width: 77px; height: 77px; border-radius: 50%; background: linear-gradient(180deg, #391196 0%, #08052A 100%); display: grid; place-items: center; transition: transform .22s ease; }
+.mpc-card__icon-circle img { width: 45px; height: 45px; }
+.mpc-card:hover .mpc-card__icon-circle { transform: scale(1.04); }
+
+/* 3.2 / 4.2 Chip */
+.mpc-card__chip { position: absolute; top: 43px; right: 20px; min-width: 62px; height: 27px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; border-radius: 20px; border: 1px solid #70DA32; background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 94%); font-size: 12px; font-weight: 500; font-style: italic; color: #fff; }
+
+/* 3.3 / 4.3 Titles inside cards */
+.mpc-card__title { position: absolute; top: 118px; left: 17px; right: 17px; margin: 0; font-size: 20px; font-weight: 700; color: #fff; }
+
+/* 3.4 / 4.4 Subtitles */
+.mpc-card__desc { position: absolute; top: 151px; left: 19px; right: 17px; margin: 0; font-size: 14px; font-weight: 300; color: #fff; }
+
+/* 3.5 / 4.5 Tags */
+.mpc-card__tags { position: absolute; left: 19px; right: 17px; top: 200px; display: flex; gap: 12px; flex-wrap: wrap; }
+.mpc-tag { height: 27px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 20px; background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 94%); font-size: 12px; font-weight: 500; font-style: italic; color: #fff; }
+
+/* 3.6 / 4.6 Arrow */
+.mpc-card__arrow { position: absolute; right: 17px; bottom: 29px; width: 32px; height: 32px; }
+
+/* Accessibility focus */
+.mpc-card:focus-visible, .mpc-back-btn:focus-visible { outline: 2px dashed #70DA32; outline-offset: 3px; }
+
+/* Responsive */
+@media (max-width: 900px) { .mpc-cards { gap: 32px; flex-direction: column; align-items: center; padding-top: 48px; } }

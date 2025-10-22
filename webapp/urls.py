@@ -37,6 +37,7 @@ urlpatterns = [
 
     # Landing pages
     path("landing/", views.landing_page, name="landing"),
+    path("administar-metodos-pago/", views.administar_metodos_pago, name="administar_metodos_pago"),
     path("admin-dashboard/", views.admin_dash, name="admin_dashboard"),
     path("employee-dashboard/", views.employee_dash, name="employee_dashboard"),
     path("analyst-dashboard/", views.analyst_dash, name="analyst_dashboard"),
