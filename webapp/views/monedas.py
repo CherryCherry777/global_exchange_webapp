@@ -263,6 +263,8 @@ def toggle_currency(request):
 
 def manage_currency_denominations(request):
     currencies = Currency.objects.all().prefetch_related('denominations')
+    total_currencies = currencies.count()
+    active_currencies = currencies.filter(is_active=True).count()
     currencies_data = []
 
     for currency in currencies:
@@ -275,7 +277,9 @@ def manage_currency_denominations(request):
         })
 
     return render(request, 'webapp/monedas/manage_currency_denominations.html', {
-        'currencies_data': currencies_data
+        'currencies_data': currencies_data,
+        'total_currencies': total_currencies,
+        'active_currencies': active_currencies
     })
 
 def edit_currency_denominations(request, currency_id):
