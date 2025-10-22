@@ -14,7 +14,10 @@ def manage_schedule(request):
     - Expiración automática de transacciones
     """
     email_config, _ = EmailScheduleConfig.objects.get_or_create(pk=1)
-    limite_config = LimiteIntercambioScheduleConfig.get_solo()
+    
+    limite_daily = LimiteIntercambioScheduleConfig.get_by_frequency("daily")
+    limite_monthly = LimiteIntercambioScheduleConfig.get_by_frequency("monthly")
+
     expiraciones = ExpiracionTransaccionConfig.objects.all()
 
     # --- Asegurar entradas por defecto ---
@@ -41,24 +44,31 @@ def manage_schedule(request):
             email_config.interval_minutes = None
 
         email_config.save()
-        messages.success(request, "✅ Programación de correos actualizada.")
+        messages.success(request, "Programación de correos actualizada.")
         return redirect("manage_schedule")
 
     # --- 2) Formulario de LimiteIntercambioScheduleConfig ---
     if "save_limites" in request.POST:
+        frecuencia = request.POST.get("frequency")
+        limite_config = LimiteIntercambioScheduleConfig.get_by_frequency(frecuencia)
+
         limite_config.is_active = ("is_active" in request.POST)
-        limite_config.frequency = request.POST.get("frequency")
         limite_config.hour = int(request.POST.get("hour", 0))
         limite_config.minute = int(request.POST.get("minute", 0))
 
-        if limite_config.frequency == "monthly":
+        if frecuencia == "monthly":
             limite_config.month_day = int(request.POST.get("month_day", 1))
         else:
             limite_config.month_day = None
 
+        # 🔹 Reiniciar historial si el usuario lo pidió
+        if "reset_history" in request.POST:
+            limite_config.last_executed_at = None
+
         limite_config.save()
-        messages.success(request, "✅ Temporizador global de límites actualizado.")
+        messages.success(request, f"Temporizador '{frecuencia}' actualizado correctamente.")
         return redirect("manage_schedule")
+
 
     # --- 3) Formulario de ExpiracionTransaccionConfig ---
     if "save_expiraciones" in request.POST:
@@ -68,13 +78,14 @@ def manage_schedule(request):
                 item.minutos_expiracion = int(nuevo)
                 item.save()
 
-        messages.success(request, "✅ Expiraciones de transacciones actualizadas.")
+        messages.success(request, "Expiraciones de transacciones actualizadas.")
         return redirect("manage_schedule")
 
-    print(limite_config)
     return render(request, "webapp/schedule_config/manage_schedule.html", {
         "email_config": email_config,
-        "limite_config": limite_config,
-        "expiraciones": expiraciones
+        "limite_config": limite_daily,
+        "expiraciones": expiraciones,
+        "limite_daily": limite_daily,
+        "limite_monthly": limite_monthly,
     })
 

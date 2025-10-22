@@ -168,7 +168,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "check_limite_intercambio_schedule": {
         "task": "webapp.tasks.check_and_reset_limites_intercambio",
-        "schedule": 60.0,  # cada 60 segundos
+        "schedule": crontab(minute="*/2"),  # cada 120 segundos
     },
 }
 

@@ -1173,10 +1173,7 @@ class LimiteIntercambioScheduleConfig(models.Model):
         ("monthly", "Mensual"),
     )
 
-    # Clave constante para asegurar singleton (no visible en formularios)
-    singleton_key = models.PositiveSmallIntegerField(default=1, editable=False, unique=True)
-
-    frequency = models.CharField(max_length=20, choices=FREQUENCIES, default="daily")
+    frequency = models.CharField(max_length=20, choices=FREQUENCIES, unique=True)  # ✅ solo 1 por tipo
     hour = models.PositiveSmallIntegerField(default=0)    # 0–23
     minute = models.PositiveSmallIntegerField(default=0)  # 0–59
 
@@ -1187,6 +1184,9 @@ class LimiteIntercambioScheduleConfig(models.Model):
     )
 
     is_active = models.BooleanField(default=True)
+
+    # para evitar reinicios duplicados
+    last_executed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Temporizador global de reseteo de límites"
@@ -1204,19 +1204,13 @@ class LimiteIntercambioScheduleConfig(models.Model):
         return self.frequency == "monthly"
 
     @classmethod
-    def get_solo(cls) -> "LimiteIntercambioScheduleConfig":
-        """
-        Obtiene (o crea si no existe) la única instancia válida.
-        Úsalo en vistas/tareas para leer la configuración global.
-        """
-        obj, _ = cls.objects.get_or_create(singleton_key=1, defaults=dict(
-            frequency="daily",
-            hour=0,
-            minute=0,
-            is_active=True,
-        ))
+    def get_by_frequency(cls, freq: str) -> "LimiteIntercambioScheduleConfig":
+        """Obtiene (o crea) la config específica para daily o monthly."""
+        obj, _ = cls.objects.get_or_create(
+            frequency=freq,
+            defaults=dict(hour=0, minute=0, is_active=True)
+        )
         return obj
-
 
 class EmailScheduleConfig(models.Model):
     """

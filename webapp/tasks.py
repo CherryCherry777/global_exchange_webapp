@@ -229,68 +229,84 @@ def cancelar_transacciones_vencidas_tauser():
     cantidad = vencidas.update(estado=Transaccion.Estado.CANCELADA)
     print(f"[INFO] {cantidad} transacciones con Tauser canceladas automáticamente (> {limite_min} min).")
 
+
 # Resetear límites de intercambio
 LOCK_KEY = "check_and_reset_limites_intercambio_lock"
 
 @shared_task
 def check_and_reset_limites_intercambio():
     """
-    RESET GLOBAL:
-      - DAILY   → limite_dia_actual = limite_dia_max
-      - MONTHLY → limite_mes_actual = limite_mes_max
+    Ejecuta el reset GLOBAL con tolerancia de ±3 minutos:
+      - DAILY   → resetea limite_dia_actual
+      - MONTHLY → resetea limite_mes_actual
+    Cada uno se ejecuta solo si:
+      - is_active=True
+      - estamos dentro del minuto exacto o los 2 siguientes (tolerancia)
+      - no fue ejecutado ya en este mismo día/mes (anti doble ejecución)
     """
+
     if cache.get(LOCK_KEY):
         logger.warning("⏭️  Reset ya en ejecución. Omitiendo este tick.")
         return
     cache.set(LOCK_KEY, True, timeout=LOCK_EXPIRE)
 
     try:
-        config = LimiteIntercambioScheduleConfig.get_solo()
-        if not config.is_active:
-            logger.info("⚠️ Reset global desactivado. No se ejecuta.")
-            return
-
         now = timezone.localtime()
+        now_minute_key = now.strftime("%Y-%m-%d %H:%M")  # resolución minuto
 
-        # Verifica timing
-        if config.frequency == "daily":
-            should_run = (now.hour == config.hour and now.minute == config.minute)
-        elif config.frequency == "monthly" and config.month_day:
+        # ---------- DAILY ----------
+        config_daily = LimiteIntercambioScheduleConfig.get_by_frequency("daily")
+        if config_daily.is_active:
+            target_time = now.replace(hour=config_daily.hour, minute=config_daily.minute, second=0, microsecond=0)
+            diff_seconds = abs((now - target_time).total_seconds())
+
+            # <= 180 segundos de tolerancia (3 minutos)
+            if diff_seconds <= 180:
+                # Evitar repetir si ya se ejecutó este mismo día
+                if not config_daily.last_executed_at or config_daily.last_executed_at.strftime("%Y-%m-%d") != now.strftime("%Y-%m-%d"):
+                    with transaction.atomic():
+                        tope_dia_subq = LimiteIntercambioConfig.objects.filter(
+                            id=OuterRef("config_id")
+                        ).values("limite_dia_max")[:1]
+
+                        updated = LimiteIntercambioCliente.objects.update(
+                            limite_dia_actual=Subquery(tope_dia_subq)
+                        )
+                        config_daily.last_executed_at = now
+                        config_daily.save(update_fields=["last_executed_at"])
+
+                    logger.info(f"✅ Reset DIARIO aplicado. {updated} filas afectadas.")
+                else:
+                    logger.info("⏭️ Reset diario ya se ejecutó hoy. Ignorando.")
+
+        # ---------- MONTHLY ----------
+        config_monthly = LimiteIntercambioScheduleConfig.get_by_frequency("monthly")
+        if config_monthly.is_active and config_monthly.month_day:
             last_day = calendar.monthrange(now.year, now.month)[1]
-            run_day = min(config.month_day, last_day)
-            should_run = (now.day == run_day and now.hour == config.hour and now.minute == config.minute)
-        else:
-            should_run = False
+            run_day = min(config_monthly.month_day, last_day)
+            if now.day == run_day:
+                target_time = now.replace(hour=config_monthly.hour, minute=config_monthly.minute, second=0, microsecond=0)
+                diff_seconds = abs((now - target_time).total_seconds())
 
-        if not should_run:
-            return
+                if diff_seconds <= 180:
+                    if not config_monthly.last_executed_at or config_monthly.last_executed_at.strftime("%Y-%m") != now.strftime("%Y-%m"):
+                        with transaction.atomic():
+                            tope_mes_subq = LimiteIntercambioConfig.objects.filter(
+                                id=OuterRef("config_id")
+                            ).values("limite_mes_max")[:1]
 
-        # Reset diario global
-        if config.frequency == "daily":
-            with transaction.atomic():
-                tope_dia_subq = LimiteIntercambioConfig.objects.filter(
-                    id=OuterRef("config_id")  # ← se vincula directamente al FK
-                ).values("limite_dia_max")[:1]
+                            updated = LimiteIntercambioCliente.objects.update(
+                                limite_mes_actual=Subquery(tope_mes_subq)
+                            )
+                            config_monthly.last_executed_at = now
+                            config_monthly.save(update_fields=["last_executed_at"])
 
-                updated = LimiteIntercambioCliente.objects.update(
-                    limite_dia_actual=Subquery(tope_dia_subq)
-                )
-            logger.info(f"✅ Reset GLOBAL DIARIO aplicado. {updated} filas afectadas.")
-
-        # Reset mensual global
-        elif config.frequency == "monthly":
-            with transaction.atomic():
-                tope_mes_subq = LimiteIntercambioConfig.objects.filter(
-                    id=OuterRef("config_id")
-                ).values("limite_mes_max")[:1]
-
-                updated = LimiteIntercambioCliente.objects.update(
-                    limite_mes_actual=Subquery(tope_mes_subq)
-                )
-            logger.info(f"✅ Reset GLOBAL MENSUAL aplicado. {updated} filas afectadas.")
+                        logger.info(f"✅ Reset MENSUAL aplicado. {updated} filas afectadas.")
+                    else:
+                        logger.info("⏭️ Reset mensual ya se ejecutó este mes. Ignorando.")
 
     except Exception as e:
-        logger.exception(f"Error en check_and_reset_limites_intercambio: {e}")
+        logger.exception(f"💥 Error en check_and_reset_limites_intercambio: {e}")
 
     finally:
         cache.delete(LOCK_KEY)

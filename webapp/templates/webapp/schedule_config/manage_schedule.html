@@ -91,8 +91,15 @@
                 <input type="hidden" name="save_limites" value="1">
 
                 <div class="form-row single-field-row">
-                    <label class="field-label">¿Activado?</label>
-                    <input type="checkbox" name="is_active" {% if limite_config.is_active %}checked{% endif %}>
+                    
+                    <label class="field-label">
+                        <input type="checkbox" name="is_active" {% if limite_config.is_active %}checked{% endif %}>
+                        ¿Activado?
+                    </label>
+                    <label class="field-label">
+                        <input type="checkbox" name="reset_history">
+                        Reiniciar historial de ejecución (permitir ejecutar de nuevo hoy / este mes)
+                    </label>
                 </div>
 
                 <div class="form-row single-field-row">
@@ -158,9 +165,52 @@ emailSelect.addEventListener("change", function() {
     document.getElementById("email-custom").style.display = this.value === "custom" ? "flex" : "none";
 });
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Comportamiento del formulario para el cambio de fechas de reinicio de los límites de venta
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const limiteSelect = document.getElementById("limite-frequency");
+const limitForm = document.querySelector('form input[name="save_limites"]').closest("form");
+
+const hourInput = limitForm.querySelector('input[name="hour"]');
+const minuteInput = limitForm.querySelector('input[name="minute"]');
+const monthDayInput = limitForm.querySelector('input[name="month_day"]');
+const monthRow = limitForm.querySelector('#limite-monthly');
+
+// Cargar valores actuales desde el backend (inyectados por Django)
+const savedConfigs = {
+    daily: {
+        hour: {{ limite_daily.hour }},
+        minute: {{ limite_daily.minute }},
+        day: null
+    },
+    monthly: {
+        hour: {{ limite_monthly.hour }},
+        minute: {{ limite_monthly.minute }},
+        day: {{ limite_monthly.month_day|default:"1" }}
+    }
+};
+
 limiteSelect.addEventListener("change", function() {
-    document.getElementById("limite-monthly").style.display = this.value === "monthly" ? "flex" : "none";
+    const freq = this.value;
+    const cfg = savedConfigs[freq];
+
+    hourInput.value = cfg.hour ?? 0;
+    minuteInput.value = cfg.minute ?? 0;
+
+    console.log(hourInput.value)
+    console.log(minuteInput.value)
+    if (freq === "monthly") {
+        monthRow.style.display = "flex";
+        monthDayInput.value = cfg.day ?? 1;
+    } else {
+        monthRow.style.display = "none";
+    }
 });
+
+// Forzar que el formulario muestre los valores correctos al cargar
+limiteSelect.dispatchEvent(new Event("change"));
+
 </script>
 {% endblock %}
