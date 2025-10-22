@@ -68,11 +68,11 @@ CLIENTES_POR_DEFECTO = [
 ]
 
 DEFAULT_DENOMINATIONS = {
-    "PYG": {"bills": [10000, 5000, 2000, 1000, 500, 100], "coins": [50, 10, 5, 1]},
-    "USD": {"bills": [100, 50, 20, 10, 5, 1], "coins": [0.25, 0.10, 0.05, 0.01]},
+    "PYG": {"bills": [100000,50000,20000,10000, 5000, 2000], "coins": [1000,500,100]},
+    "USD": {"bills": [100, 50, 20, 10, 5, 1], "coins": [1,0.50,0.25, 0.10, 0.05, 0.01]},
     "EUR": {"bills": [500, 200, 100, 50, 20, 10, 5], "coins": [2, 1, 0.50, 0.20, 0.10, 0.05, 0.02, 0.01]},
-    "BRL": {"bills": [100, 50, 20, 10, 5, 2], "coins": [1, 0.50, 0.25, 0.10, 0.05, 0.01]},
-    "ARS": {"bills": [1000, 500, 200, 100, 50, 20, 10], "coins": [5, 2, 1, 0.50, 0.25]},
+    "BRL": {"bills": [200, 100, 50, 20, 10, 5, 2], "coins": [1, 0.50, 0.25, 0.10, 0.05, 0.01]},
+    "ARS": {"bills": [20000,10000,2000,1000, 500, 200, 100, 50, 20, 10], "coins": [10,5,2,1]},
 }
 
 VALORES_POR_MONEDA = {"PYG": 1000000, "USD": 5000, "EUR": 5000, "BRL": 20000, "ARS": 200000}
@@ -401,6 +401,11 @@ def setup_database(sender, **kwargs):
         print("\n🎉 Medios de pago por defecto creados correctamente.\n")
 
     def crear_medios_cobro_por_defecto():
+        tipo_cobro_map = {
+            "billetera": "Billetera",
+            "cuenta_bancaria": "Cuenta Bancaria",
+            "tauser": "Tauser",
+        }
         # === Monedas ===
         moneda_pyg = Currency.objects.filter(code="PYG").first()
         moneda_usd = Currency.objects.filter(code="USD").first()
@@ -429,7 +434,8 @@ def setup_database(sender, **kwargs):
                     tipo="billetera",
                     nombre=nombre_billetera,
                     moneda=moneda_pyg,
-                    activo=True
+                    activo=True,
+                    tipo_cobro=TipoCobro.objects.filter(nombre__iexact=tipo_cobro_map["billetera"]).first()
                 )
                 BilleteraCobro.objects.create(
                     medio_cobro=medio_billetera,
@@ -447,7 +453,8 @@ def setup_database(sender, **kwargs):
                     tipo="cuenta_bancaria",
                     nombre=nombre_cbu_pyg,
                     moneda=moneda_pyg,
-                    activo=True
+                    activo=True,
+                    tipo_cobro=TipoCobro.objects.filter(nombre__iexact=tipo_cobro_map["cuenta_bancaria"]).first()
                 )
                 CuentaBancariaCobro.objects.create(
                     medio_cobro=medio_cbu_pyg,
@@ -466,7 +473,8 @@ def setup_database(sender, **kwargs):
                     tipo="cuenta_bancaria",
                     nombre=nombre_cbu_usd,
                     moneda=moneda_usd,
-                    activo=True
+                    activo=True,
+                    tipo_cobro=TipoCobro.objects.filter(nombre__iexact=tipo_cobro_map["cuenta_bancaria"]).first()
                 )
                 CuentaBancariaCobro.objects.create(
                     medio_cobro=medio_cbu_usd,

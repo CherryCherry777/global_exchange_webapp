@@ -1250,7 +1250,7 @@ class LimiteIntercambioScheduleConfig(models.Model):
             minute=0,
             is_active=True,
         ))
-        return obj
+        return
 
 
 class EmailScheduleConfig(models.Model):

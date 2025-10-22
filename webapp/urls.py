@@ -152,4 +152,8 @@ urlpatterns = [
     # Configurar temporizadores (Schedule de celery)
     path("schedule/", views.manage_schedule, name="manage_schedule"),
 
+    # Configurar denominaciones de monedas
+    path('currency-denominations/', views.manage_currency_denominations, name='currency_denominations'),
+    path('currency-denominations/edit/<int:currency_id>/', views.edit_currency_denominations, name='edit_currency_denominations'),
+
 ]

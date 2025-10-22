@@ -299,7 +299,7 @@
     color: white;
 }
 
-.type-tarjeta {
+.type-tarjeta_nacional, .type-tarjeta_internacional {
     background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
     color: white;
 }

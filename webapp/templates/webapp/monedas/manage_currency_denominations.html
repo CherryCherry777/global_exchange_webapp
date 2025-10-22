@@ -1,0 +1,172 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Administrar Denominaciones{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/monedas/manage_currencies.css' %}">
+<style>
+/* Table */
+.currency-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+.currency-table th, .currency-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+}
+
+/* Badge styles */
+.type-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    margin: 2px;
+}
+.type-bill {
+    background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+    color: white;
+}
+.type-coin {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manage-currencies-container">
+
+    <!-- Header Section -->
+    <div class="manage-currencies-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-currencies-title">Administrar Denominaciones</h1>
+                    <p class="manage-currencies-subtitle">Visualizar y editar denominaciones por moneda</p>
+                </div>
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Monedas</div>
+                        <div class="metric-number">{{ total_currencies }}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Monedas Activas</div>
+                        <div class="metric-number">{{ active_currencies }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="currencies-list-container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Lista de Monedas</h2>
+                <div class="search-input-container">
+                    <input type="text" id="currency-search" placeholder="Buscar monedas..." class="search-input">
+                </div>
+            </div>
+            <div class="currencies-table-container">
+                <table class="currencies-table">
+                    <thead>
+                        <tr>
+                            <th>Moneda</th>
+                            <th>Activo</th>
+                            <th>Denominaciones</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in currencies_data %}
+                        <tr class="currency-row">
+                            <td class="name-cell">{{ item.currency.name }} ({{ item.currency.code }})</td>
+                            <td class="status-cell">
+                                {% if item.currency.is_active %}
+                                    <span class="status-dot active"></span> Activo
+                                {% else %}
+                                    <span class="status-dot inactive"></span> Inactivo
+                                {% endif %}
+                            </td>
+                            <td class="status-cell">
+                                <div>
+                                    <strong>Billetes:</strong>
+                                    {% for denom in item.bills %}
+                                        <span class="type-badge type-bill">{{ denom.value|floatformat:0 }}</span>
+                                    {% empty %}
+                                        <span>No hay billetes</span>
+                                    {% endfor %}
+                                </div>
+                                <div>
+                                    <strong>Monedas:</strong>
+                                    {% for denom in item.coins %}
+                                        <span class="type-badge type-coin">{{ denom.value|floatformat:2 }}</span>
+                                    {% empty %}
+                                        <span>No hay monedas</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="actions-cell">
+                                <a href="{% url 'edit_currency_denominations' item.currency.id %}" class="action-button modify-button">Editar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search filter
+        const searchInput = document.getElementById('currency-search');
+        const rows = document.querySelectorAll('.currencies-table tbody .currency-row');
+    
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const filter = this.value.toLowerCase();
+    
+                rows.forEach(row => {
+                    const nameCell = row.querySelector('.name-cell');
+                    const text = nameCell ? nameCell.textContent.toLowerCase() : '';
+    
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+        }
+    
+        // Auto-hide messages after 5 seconds
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        });
+    });
+</script>
+    
+    <style>
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    </style>
+{% endblock %}
