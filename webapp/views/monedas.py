@@ -1,10 +1,13 @@
+from django.forms import modelformset_factory
+from django.urls import reverse_lazy
+from webapp.forms import CurrencyDenominationForm
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from ..decorators import role_required
-from ..models import Currency
-from decimal import InvalidOperation
+from ..models import Currency, CurrencyDenomination
+from decimal import Decimal, InvalidOperation
 
 # -------------------------------
 # Vistas de monedas (Posibles vistas nuevas)
@@ -256,3 +259,59 @@ def toggle_currency(request):
         messages.success(request, f'Moneda {status} exitosamente.')
     
     return redirect('currency_list')
+
+
+def manage_currency_denominations(request):
+    currencies = Currency.objects.all().prefetch_related('denominations')
+    total_currencies = currencies.count()
+    active_currencies = currencies.filter(is_active=True).count()
+    currencies_data = []
+
+    for currency in currencies:
+        bills = currency.denominations.filter(type='bill').order_by('-value')
+        coins = currency.denominations.filter(type='coin').order_by('-value')
+        currencies_data.append({
+            'currency': currency,
+            'bills': bills,
+            'coins': coins,
+        })
+
+    return render(request, 'webapp/monedas/manage_currency_denominations.html', {
+        'currencies_data': currencies_data,
+        'total_currencies': total_currencies,
+        'active_currencies': active_currencies
+    })
+
+def edit_currency_denominations(request, currency_id):
+    currency = get_object_or_404(Currency, id=currency_id)
+    bills = currency.denominations.filter(type='bill')
+    coins = currency.denominations.filter(type='coin')
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        denom_id = request.POST.get("denom_id")
+        
+        if action == "add":
+            value = request.POST.get("value")
+            type_ = request.POST.get("type")
+            CurrencyDenomination.objects.create(currency=currency, value=value, type=type_)
+            messages.success(request, "Denominación agregada correctamente.")
+            return redirect(request.path_info)
+        
+        if action == "toggle_active" and denom_id:
+            denom = get_object_or_404(CurrencyDenomination, id=denom_id)
+            denom.is_active = not denom.is_active
+            denom.save()
+            return redirect(request.path_info)
+
+        if action == "delete" and denom_id:
+            denom = get_object_or_404(CurrencyDenomination, id=denom_id)
+            denom.delete()
+            messages.success(request, "Denominación eliminada correctamente.")
+            return redirect(request.path_info)
+
+    return render(request, "webapp/monedas/edit_currency_denominations.html", {
+        "currency": currency,
+        "bills": bills,
+        "coins": coins
+    })

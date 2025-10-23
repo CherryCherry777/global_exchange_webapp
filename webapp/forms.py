@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, LimiteIntercambioConfig, MedioCobro, MedioPago, TarjetaInternacional, TarjetaNacional, Billetera, TipoCobro, TipoPago, Currency, Transaccion
+from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CurrencyDenomination, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, LimiteIntercambioConfig, MedioCobro, MedioPago, TarjetaInternacional, TarjetaNacional, Billetera, TipoCobro, TipoPago, Currency, Transaccion
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
@@ -734,3 +734,12 @@ class EntidadEditForm(forms.ModelForm):
         #     "tipo": forms.Select(attrs={"disabled": True}),
         # }
 
+class CurrencyDenominationForm(forms.ModelForm):
+    class Meta:
+        model = CurrencyDenomination
+        fields = ['value', 'type', 'is_active']
+        widgets = {
+            'value': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'type': forms.Select(attrs={'class': 'form-select'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
