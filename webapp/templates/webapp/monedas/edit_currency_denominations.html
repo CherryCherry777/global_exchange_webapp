@@ -1,0 +1,172 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Editar Denominaciones - {{ currency.nombre }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/monedas/modify_currency.css' %}">
+<style>
+/* Badge styles */
+.type-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    margin: 2px;
+    cursor: pointer;
+    text-align: center;
+}
+.type-bill {
+    background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+    color: white;
+}
+.type-coin {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+}
+.type-inactive {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+.action-btn {
+    margin-left: 5px;
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.add-form input, .add-form select, .add-form button {
+    padding: 6px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+.add-btn {
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+}
+.form-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+.form-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="modify-currency-container">
+
+    <!-- Header Section -->
+    <div class="modify-currency-header">
+        <div class="main-content">
+            <a href="{% url 'currency_denominations' %}" class="back-button">← Volver al listado</a>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="modify-currency-title">Editar Denominaciones</h1>
+                    <p class="modify-currency-subtitle">Moneda: {{ currency.name }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="modify-section">
+
+            <!-- Add Denomination Form -->
+            <div class="modify-content">
+                <div class="form-container">
+                    <form method="POST" class="add-form">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Valor</label>
+                                <input type="number" step="0.01" name="value" placeholder="Valor" required>
+                            </div>
+                            <div class="form-field">
+                                <label>Tipo</label>
+                                <select name="type">
+                                    <option value="bill">Billete</option>
+                                    <option value="coin">Moneda</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="action" value="add">
+                            <div class="form-field" style="align-self:flex-end;">
+                                <button type="submit" class="save-button">Agregar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Bills -->
+                <div class="modify-content">
+                    <h2 class="section-title">Billetes</h2>
+                    <div class="form-row">
+                        {% for denom in bills %}
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <span class="type-badge type-bill {% if not denom.is_active %}type-inactive{% endif %}" onclick="this.parentElement.submit();">
+                                        {{ denom.value|floatformat:0 }}
+                                    </span>
+                                    <input type="hidden" name="action" value="toggle_active">
+                                    <input type="hidden" name="denom_id" value="{{ denom.id }}">
+                                </form>
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="denom_id" value="{{ denom.id }}">
+                                    <button class="action-btn" type="submit" onclick="return confirm('¿Eliminar esta denominación?')">x</button>
+                                </form>
+                            </div>
+                        {% empty %}
+                            <p>No hay billetes</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Coins -->
+                <div class="modify-content">
+                    <h2 class="section-title">Monedas</h2>
+                    <div class="form-row">
+                        {% for denom in coins %}
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <span class="type-badge type-coin {% if not denom.is_active %}type-inactive{% endif %}" onclick="this.parentElement.submit();">
+                                        {{ denom.value|floatformat:2 }}
+                                    </span>
+                                    <input type="hidden" name="action" value="toggle_active">
+                                    <input type="hidden" name="denom_id" value="{{ denom.id }}">
+                                </form>
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="denom_id" value="{{ denom.id }}">
+                                    <button class="action-btn" type="submit">x</button>
+                                </form>
+                            </div>
+                        {% empty %}
+                            <p>No hay monedas</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

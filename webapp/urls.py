@@ -37,6 +37,7 @@ urlpatterns = [
 
     # Landing pages
     path("landing/", views.landing_page, name="landing"),
+    path("administar-metodos-pago/", views.administar_metodos_pago, name="administar_metodos_pago"),
     path("admin-dashboard/", views.admin_dash, name="admin_dashboard"),
     path("employee-dashboard/", views.employee_dash, name="employee_dashboard"),
     path("analyst-dashboard/", views.analyst_dash, name="analyst_dashboard"),
@@ -151,5 +152,9 @@ urlpatterns = [
 
     # Configurar temporizadores (Schedule de celery)
     path("schedule/", views.manage_schedule, name="manage_schedule"),
+
+    # Configurar denominaciones de monedas
+    path('currency-denominations/', views.manage_currency_denominations, name='currency_denominations'),
+    path('currency-denominations/edit/<int:currency_id>/', views.edit_currency_denominations, name='edit_currency_denominations'),
 
 ]

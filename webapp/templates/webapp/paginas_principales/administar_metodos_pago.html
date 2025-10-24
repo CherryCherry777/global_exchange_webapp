@@ -1,0 +1,55 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+
+{% block title %}Administrar métodos de pago y cobro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/metodos_pago/administar_metodos_pago.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="my-payment-methods-container">
+  <header class="mpc-header" role="banner">
+    <a href="/" class="mpc-back-btn" aria-label="Volver a Inicio">← Volver a Inicio</a>
+    <h1 class="mpc-title">Administrar métodos de pago y cobro</h1>
+    <p class="mpc-subtitle">Administra tus métodos de pago y cobro personales</p>
+  </header>
+
+  <section class="mpc-cards" aria-label="Accesos rápidos" role="navigation">
+    <!-- Card 1 - Pago -->
+    <a class="mpc-card mpc-card--pago" href="/mis-medios/">
+      <span class="mpc-card__icon">
+        <span class="mpc-card__icon-circle">
+          <img src="{% static 'webapp/pantalla_administrar_metodos/1.Administrar_metodo.png' %}" alt="Pago" width="45" height="45" />
+        </span>
+      </span>
+      <span class="mpc-card__chip">Pago</span>
+      <h3 class="mpc-card__title">Administrar Métodos de Pago</h3>
+      <p class="mpc-card__desc">Administra tu billetera, tarjeta nacional e internacional para realizar pagos</p>
+      <div class="mpc-card__tags">
+        <span class="mpc-tag">Billetera</span>
+        <span class="mpc-tag">Tarjeta nacional</span>
+        <span class="mpc-tag">Tarjeta Internacional</span>
+      </div>
+      <img class="mpc-card__arrow" src="{% static 'webapp/pantalla_administrar_metodos/1.tick.png' %}" alt="Ir a pago" width="32" height="32" />
+    </a>
+
+    <!-- Card 2 - Cobro -->
+    <a class="mpc-card mpc-card--cobro" href="/mis-cobros/">
+      <span class="mpc-card__icon">
+        <span class="mpc-card__icon-circle">
+          <img src="{% static 'webapp/pantalla_administrar_metodos/1.Administrar_metodo.png' %}" alt="Cobro" width="45" height="45" />
+        </span>
+      </span>
+      <span class="mpc-card__chip">Cobro</span>
+      <h3 class="mpc-card__title">Administrar Métodos de Cobro</h3>
+      <p class="mpc-card__desc">Administra tu billetera y cuenta bancaria para recibir pagos y transferencias</p>
+      <div class="mpc-card__tags">
+        <span class="mpc-tag">Billetera</span>
+        <span class="mpc-tag">Cuenta bancaria</span>
+      </div>
+      <img class="mpc-card__arrow" src="{% static 'webapp/pantalla_administrar_metodos/1.tick.png' %}" alt="Ir a cobro" width="32" height="32" />
+    </a>
+  </section>
+</div>
+{% endblock %}

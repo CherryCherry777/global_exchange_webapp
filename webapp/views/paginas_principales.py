@@ -163,3 +163,11 @@ def landing_page(request):
     }
     
     return render(request, "webapp/paginas_principales/landing.html", context)
+
+# ---------------------------------
+# Página independiente: Administrar Métodos de Pago y Cobro (usuario)
+# ---------------------------------
+@login_required
+def administar_metodos_pago(request):
+    """Vista simple que muestra la sección de 'Gestiona tus Métodos de Pago y Cobro' fuera del landing."""
+    return render(request, "webapp/paginas_principales/administar_metodos_pago.html")

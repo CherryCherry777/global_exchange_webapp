@@ -166,6 +166,10 @@
                 <span class="button-text">Administrar Límites de Intercambio</span>
             </a>
             {% endif %}
+            <a href="{% url 'currency_denominations' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Denominaciones de monedas" class="button-icon">
+                <span class="button-text" style="font-size: 15px;">Administrar Denominaciones de Monedas</span>
+            </a>
 
         </div>
         {% endif %}
@@ -215,85 +219,13 @@
 </div>
 {% else %}
 <div class="user-dashboard-container">
-    <!-- Header Section -->
-    <div class="user-dashboard-header">
-        <div class="main-content">
-            <div class="header-content">
-                <div class="header-text">
-                    <h1 class="user-dashboard-title">Bienvenido a Global Exchange!</h1>
-                    <p class="user-dashboard-subtitle">Proveemos el mejor servicio de cambio de monedas</p>
-                </div>
-                
-                <!-- Quick Actions -->
-                <div class="quick-actions">
-                    <a href="{% url 'public_home' %}" class="quick-action-btn">
-                        <div class="btn-icon">
-                            <img src="{% static 'webapp/panel_gestiones/1.Administar_Usuarios.png' %}" alt="Inicio">
-                        </div>
-                        <span class="btn-text">Ir al Inicio</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    {# Header de bienvenida retirado por solicitud #}
 
     <!-- Main Content -->
     <div class="main-content">
         {% is_usuario_asociado request.user as usuario_asociado %}
         {% if usuario_asociado %}
-        <!-- User Management Section -->
-        <div class="user-management-section">
-            <h2 class="section-title">Gestiona tus Métodos de Pago y Cobro</h2>
-            <p class="section-subtitle">Administra tus métodos de pago y cobro personales</p>
-            
-            <div class="user-management-grid">
-                <a href="{% url 'my_payment_methods' %}" class="user-management-card payment-card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <img src="{% static 'webapp/panel_gestiones/9.Administrar_Metodos_de_Pago.png' %}" alt="Métodos de Pago">
-                        </div>
-                        <div class="card-badge payment-badge">Pago</div>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Administrar Métodos de Pago</h3>
-                        <p class="card-description">Gestiona tus billeteras, cuentas bancarias y tarjetas para realizar pagos</p>
-                        <div class="card-features">
-                            <span class="feature-tag">Billeteras</span>
-                            <!--<span class="feature-tag">Cuentas Bancarias</span>-->
-                            <span class="feature-tag">Tarjetas</span>
-                        </div>
-                    </div>
-                    <div class="card-arrow">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </a>
-
-                <a href="{% url 'my_cobro_methods' %}" class="user-management-card cobro-card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <img src="{% static 'webapp/panel_gestiones/11.Administrar_Metodos_de_Cobro.png' %}" alt="Métodos de Cobro">
-                        </div>
-                        <div class="card-badge cobro-badge">Cobro</div>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Administrar Métodos de Cobro</h3>
-                        <p class="card-description">Configura tus métodos para recibir pagos y transferencias</p>
-                        <div class="card-features">
-                            <span class="feature-tag">Billeteras</span>
-                            <span class="feature-tag">Cuentas Bancarias</span>
-                            <!--<span class="feature-tag">Tarjetas</span>-->
-                        </div>
-                    </div>
-                    <div class="card-arrow">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </a>
-            </div>
-        </div>
+        {# Se removió la sección de Métodos de Pago y Cobro y el CTA del landing. Página independiente: /administar-metodos-pago/ #}
         {% else %}
         <!-- No Associated User Message -->
         <div class="no-access-section">

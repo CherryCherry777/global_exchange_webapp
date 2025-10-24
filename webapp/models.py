@@ -88,6 +88,41 @@ class Currency(models.Model):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+    
+
+#Denominaciones de monedas
+class CurrencyDenomination(models.Model):
+    currency = models.ForeignKey(
+        Currency,
+        on_delete=models.CASCADE,
+        related_name="denominations",
+        verbose_name="Moneda"
+    )
+    # Valor del billete/moneda
+    value = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        verbose_name="Valor",
+        help_text="Valor numérico de la denominación (ej: 100.00)"
+    )
+    # Billete o Moneda
+    type = models.CharField(
+        max_length=20,
+        choices=[("bill", "Billete"), ("coin", "Moneda")],
+        default="bill",
+        verbose_name="Tipo"
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
+
+    class Meta:
+        verbose_name = "Denominación de Moneda"
+        verbose_name_plural = "Denominaciones de Moneda"
+        ordering = ["currency", "-value"]
+        unique_together = ("currency", "value")
+
+    def __str__(self):
+        return f"{self.currency.code} {self.value} ({self.get_type_display()})"
+
 
 class CurrencyHistory(models.Model):
     currency = models.ForeignKey(
