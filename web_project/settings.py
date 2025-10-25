@@ -198,6 +198,8 @@ LOGGING = {
     },
 }
 
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 
 """
 Nota: ejecutar estos comandos en la terminal de linux para  que funcionen los correos temporizados

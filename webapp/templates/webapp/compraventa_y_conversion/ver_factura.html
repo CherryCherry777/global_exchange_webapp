@@ -1,0 +1,59 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Ver Factura{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/monedas/modify_currency.css' %}">
+<style>
+    .descargar-button {
+        width: 287px;
+        height: 36px;
+        background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 94%);
+        color: white;
+        text-decoration: none;
+        border-radius: 20px;
+        font-family: 'Roboto', sans-serif;
+        font-size: 16px;
+        font-weight: 500;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="modify-currency-container">
+    <div class="modify-currency-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al menú</a>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="modify-currency-title">Ver Factura</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions" style="margin-bottom: 20px; display: flex; justify-content: center;">
+        <a 
+            href="{% url 'factura_pdf' factura_id=factura_id %}?cliente={{ cliente }}&total={{ total }}&condicion={{ condicion }}" 
+            class="descargar-button" 
+            target="_blank"
+        >
+            Descargar como PDF
+        </a>
+    </div>
+
+    <div style="display:flex; justify-content:center;">
+        <iframe 
+            src="{% url 'factura_view' factura_id=factura_id %}?cliente={{ cliente }}&total={{ total }}&condicion={{ condicion }}"
+            width="900"
+            height="1100"
+            style="border:1px solid #ccc; border-radius:8px;"
+        ></iframe>
+    </div>
+</div>
+{% endblock %}

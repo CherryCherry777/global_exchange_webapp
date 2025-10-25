@@ -1,0 +1,240 @@
+:root { --max-width: 900px; --gap: 16px; }
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 24px; color: #111; background-color: #ffffff;}
+.invoice { max-width: var(--max-width); margin: 0 auto; } /*header, footer { display: flex; justify-content: space-between; align-items: center; gap: var(--gap); }*/
+header h1 { margin: 0; font-size: 1.6rem; }
+address { font-style: normal; line-height: 1.3; }
+section { margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+th, td { padding: 10px; border: 1px solid #202020; text-align: left; }
+thead th { background: #f7f7f7; } tfoot td { font-weight: 700; }
+.th-not-bold { font-weight: 400; } .right { text-align: right; }
+.left { text-align: left; }
+
+/* =========================
+   Estilos generales web
+========================= */
+header {
+  display: flex; /* flex en lugar de grid para mejor control */
+  flex-direction: row;
+  justify-content: space-between; /* separa info-empresa e info-factura */
+  align-items: flex-start; /* que cada div crezca según contenido */
+  gap: 10px;
+  min-height: auto; /* deja que crezca naturalmente */
+}
+
+#info-empresa,
+#info-factura {
+  height: 200px;
+  overflow: hidden;
+  border: 2px solid #000;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+#info-factura {
+  margin: 2px 0;  /* margen superior e inferior pequeño */
+    line-height: 1.2em; /* opcional: ajusta altura de línea si quieres más compacto */
+}
+
+#info-factura p,
+#info-factura b {
+    margin: 0;               /* elimina márgenes internos */
+    padding: 0;
+}
+
+#info-empresa {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centra verticalmente */
+  width: 60%; /* ajusta según tu diseño */
+}
+
+#logo-with-title {
+  display: flex;
+  align-items: center; /* centra logo y texto verticalmente */
+  gap: 10px;
+}
+
+#img-logo-wrapper {
+  width: 70px; /* tamaño del contenedor */
+  height: 70px;
+  background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px; /* opcional */
+  overflow: hidden;
+}
+
+#img-logo-factura {
+  width: 70%; /* ajusta tamaño de la imagen dentro del fondo */
+  height: auto;
+  display: block;
+}
+
+#logo-with-title h1 {
+  margin: 0;
+  font-size: 1.6em;
+}
+
+#info-factura {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centra verticalmente */
+  width: 40%; /* ajusta según tu diseño */
+  text-align: left;
+  font-size: 0.9em; /* un poco más grande que print */
+}
+
+#info-venta {
+  display: block; /* más confiable que grid para web + PDF */
+  border: 2px solid #000;
+  padding: 15px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+#info-venta p {
+  display: flex;
+  justify-content: space-between; /* label a la izquierda, valor a la derecha */
+  margin: 5px 0;
+  font-size: 0.95em;
+}
+
+#detalle {
+  border: 2px solid #000;
+  padding: 5px 15px 20px 15px;
+  margin-bottom: 5px;
+}
+
+#detalle table {
+  table-layout: fixed;
+  width: 100%;
+  word-break: break-word;
+}
+
+#detalle td, #detalle th {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.valor-ventas {
+  width: 15%;
+}
+
+footer p {
+  margin: 2px 0;       /* reduce el margen entre párrafos */
+  line-height: 1.1em;  /* reduce el interlineado */
+  font-size: 0.7em;    /* fuente más pequeña */
+}
+
+/* =========================
+   Safeguards para layout
+========================= */
+* {
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.invoice {
+  max-width: 900px; /* ancho del contenedor */
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+/* =========================
+   Estilos para impresión
+========================= */
+@media print {
+  .invoice {
+    max-width: 100%; /* deja que ocupe casi todo el ancho imprimible */
+    margin: 0;
+  }
+
+  header {
+    display: flex; /* flex en lugar de grid */
+    flex-direction: row;
+    justify-content: space-between; /* separa info-empresa e info-factura */
+    align-items: flex-start; /* cada div crece según contenido */
+    gap: 10px;
+    min-height: auto; /* deja que crezca naturalmente */
+}
+
+#info-empresa,
+#info-factura {
+    height: 200px; /* que crezca según contenido */
+    overflow: hidden;
+    border: 2px solid #000;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+#info-empresa {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* centra verticalmente */
+    width: 60%; /* ajusta según diseño */
+}
+
+#logo-with-title {
+    display: flex;
+    align-items: center; /* centra logo y texto verticalmente */
+    gap: 10px;
+}
+
+#img-logo-wrapper {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #4C1D95 0%, #1E1B4B 50%, #0F172A 100%);
+  border-radius: 8px;
+  position: relative; /* necesario para posicionamiento absoluto */
+}
+
+#img-logo-factura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 70%;
+  max-height: 70%;
+}
+#logo-with-title h1 {
+    margin: 0;
+    font-size: 1.6em;
+}
+
+/* Info factura compacto */
+#info-factura {
+    width: 38%; /* ajusta según diseño */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* centra verticalmente */
+    margin: 0; 
+    line-height: 1.2em; /* altura de línea compacta */
+}
+
+#info-factura p,
+#info-factura b {
+    margin: 0; /* elimina márgenes */
+    padding: 0;
+}
+
+#info-factura br {
+    line-height: 0; /* elimina espacio extra de <br> */
+}
+
+  #info-venta {
+    display: block;
+    border: 2px solid #000;
+    padding: 10px 15px;
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  #info-venta p {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+  }
+}
