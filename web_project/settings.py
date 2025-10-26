@@ -96,6 +96,14 @@ DATABASES = {
         'PASSWORD': env('DB_PASSWORD'),
         'HOST': env('DB_HOST', default='localhost'),
         'PORT': env('DB_PORT', default='5432'),
+    },
+    'facturasegura': {  # nueva conexión al SQL-Proxy
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'fs_proxy_bd',
+        'USER': 'fs_proxy_user',
+        'PASSWORD': 'p123456',
+        'HOST': 'localhost',
+        'PORT': '45432',
     }
 }
 
