@@ -2,7 +2,7 @@ import secrets
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
@@ -1325,3 +1325,26 @@ class MFACode(models.Model):
         email.send()
 
         return mfa
+
+
+class DocSequence(models.Model):
+    est = models.CharField(max_length=3, default="001")
+    pun = models.CharField(max_length=3, default="003")
+    min_num = models.IntegerField(default=151)
+    max_num = models.IntegerField(default=200)
+    current_num = models.IntegerField(default=150)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ("est", "pun")
+
+    def next_numdoc(self) -> str:
+        # ⚠️ este atomic hace que el select_for_update ocurra DENTRO de una transacción
+        with transaction.atomic():
+            # bloqueamos la fila de esta secuencia
+            seq = DocSequence.objects.select_for_update().get(pk=self.pk)
+            if seq.current_num >= seq.max_num:
+                raise RuntimeError("Rango de documentos agotado (151–200).")
+            seq.current_num += 1
+            seq.save(update_fields=["current_num"])
+            return str(seq.current_num).zfill(7)

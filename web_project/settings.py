@@ -97,15 +97,18 @@ DATABASES = {
         'HOST': env('DB_HOST', default='localhost'),
         'PORT': env('DB_PORT', default='5432'),
     },
-    'facturasegura': {  # nueva conexión al SQL-Proxy
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'fs_proxy_bd',
-        'USER': 'fs_proxy_user',
-        'PASSWORD': 'p123456',
-        'HOST': 'localhost',
-        'PORT': '45432',
-    }
+    "fs_proxy": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("FS_PROXY_DB_NAME"),
+        "USER": os.getenv("FS_PROXY_DB_USER"),
+        "PASSWORD": os.getenv("FS_PROXY_DB_PASSWORD"),
+        "HOST": os.getenv("FS_PROXY_DB_HOST", "127.0.0.1"),
+        "PORT": os.getenv("FS_PROXY_DB_PORT", "45432"),
+        "OPTIONS": {"options": "-c statement_timeout=15000"},
+    },
 }
+
+TIMBRADO_NUM = 12345678
 
 # Validación de contraseñas
 AUTH_PASSWORD_VALIDATORS = [

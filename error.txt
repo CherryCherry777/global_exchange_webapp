@@ -1,0 +1,3 @@
+[2025-10-26 15:42:41.976131] ProgrammingError: column "dtelrec" of relation "de" does not exist
+LINE 10: ...umCasRec, cDepRec, dDesDepRec, cCiuRec, dDesCiuRec, dTelRec,
+                                                                ^

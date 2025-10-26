@@ -427,3 +427,14 @@ def pagar_al_cliente_task(self, transaccion_id: int) -> None:
             logger.warning("Error enviando notificaciones: %s", mail_error)
 
         logger.error("[ACREDITACION_FALLIDA] Transacción %s: %s", transaccion.id, e)
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=10)
+def generate_invoice_task(self, transaccion_id: int):
+    from webapp.models import Transaccion
+    from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
+    try:
+        tx = Transaccion.objects.get(id=transaccion_id)
+        return generate_invoice_for_transaccion(tx)
+    except Exception as e:
+        raise self.retry(exc=e)

@@ -1,7 +1,10 @@
+from django.db import connections
 from django.utils import timezone
 from django.core.serializers.json import DjangoJSONEncoder
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
+import os
+from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -17,6 +20,7 @@ from webapp.tasks import pagar_al_cliente_task
 from django.template.loader import get_template
 from django.http import HttpResponse
 from weasyprint import HTML
+from webapp.integraciones.facturasegura import generar_factura_sqlproxy
 
 # ----------------------
 # Vistas de compraventa
@@ -97,7 +101,7 @@ def compraventa_view(request):
         # MFA ANTES DE CONFIRMAR LA TRANSACCION
         # ------------------------------
         data = request.POST.dict()
-
+        MFA_ENABLED = os.getenv("MFA_ENABLED", "true").lower() not in ("0", "false", "no", "off")
         # Pasos previo antes del MFA
         # Para metodos inactivos
         tipo_pago_id = data.get("medio_pago_tipo")
@@ -131,8 +135,15 @@ def compraventa_view(request):
         else:
             skip_mfa = False
 
+        # 🔕 Si MFA está deshabilitado por variable de entorno, lo saltamos
+        if not MFA_ENABLED:
+            skip_mfa = True
+            # inyectamos un código ficticio para entrar al bloque que ya tenés y continuar el flujo
+            if "mfa_code" not in data:
+                data["mfa_code"] = "SKIP"
+
         # === Paso 1: Generar MFA y solicitar código ===
-        if "confirmar" in data and "mfa_code" not in data:
+        if MFA_ENABLED and "confirmar" in data and "mfa_code" not in data:
             MFACode.generate_for_user(request.user)
             messages.info(request, "Se envió un código de verificación a tu correo electrónico.")
             return render(request, "webapp/compraventa_y_conversion/verificar_mfa.html", {"data": data})
@@ -313,6 +324,7 @@ def compraventa_view(request):
 
                 # --- Guardar transacción ---
                 transaccion = guardar_transaccion(cliente, request.user, data, estado, payment_intent_id)
+                
 
                 # Obtener tipo de cobro
                 try:
@@ -325,6 +337,16 @@ def compraventa_view(request):
                 # --- Pago al cliente en background ---
                 if tipo_cobro_nombre != "tauser":
                     pagar_al_cliente_task.delay(transaccion.id)
+
+                if estado == Transaccion.Estado.PAGADA:
+                    try:
+                        result = generate_invoice_for_transaccion(transaccion)
+                        # Si preferís async:
+                        # generate_invoice_task.delay(transaccion.id)
+                        # messages.success(request, f"Factura emitida. Nro {result['dNumDoc']} (DE {result['de_id']}).")
+                    except Exception as e:
+                        messages.warning(request, f"La transacción se registró, pero falló la emisión de la factura: {e}")
+                        with open("error.txt", "a") as f: f.write(f"[{datetime.now()}] {type(e).__name__}: {e}\n")
 
                 # limpiar la sesión
                 messages.success(request, "Transacción registrada.")
@@ -709,106 +731,3 @@ def set_cliente_seleccionado(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-
-# VISTA DE FACTURA
-# Vista principal que muestra el iframe y el botón PDF
-def ver_factura(request):
-    # Podés recibir datos desde GET o backend
-    factura_id = request.GET.get('factura_id', 1)  # un ID por defecto para pruebas
-    cliente = request.GET.get('cliente', 'Juan Pérez')
-    total = request.GET.get('total', '120000')
-    condicion = request.GET.get('condicion', 'Contado')
-
-    context = {
-        'factura_id': factura_id,
-        'cliente': cliente,
-        'total': total,
-        'condicion': condicion,
-    }
-    return render(request, 'webapp/compraventa_y_conversion/ver_factura.html', context)
-
-
-# Vista que renderiza la factura dentro del iframe
-def factura_view(request, factura_id):
-    # Recibimos los datos por GET
-    cliente = request.GET.get('cliente', 'Juan Pérez')
-    condicion = request.GET.get('condicion', 'Contado')
-    moneda = request.GET.get('moneda', 'PYG')
-    total = request.GET.get('total', '120000')
-
-    context = {
-        'ruc': '80000001-2',
-        'timbrado': '12345678',
-        'inicio_vigencia': '01/01/2025',
-        'fin_vigencia': '31/12/2025',
-        'numero_factura': '001-001-0000001',
-
-        'fecha_emision': '25/10/2025',
-        'condicion': condicion,
-        'cliente': cliente,
-        'tipo_cliente': 'Física',
-        'moneda': moneda,
-        'direccion': 'Av. Principal 123',
-        'nota_remision': '—',
-        'documento': '1234567',
-        'email': 'cliente@ejemplo.com',
-
-        'detalle': [
-            {'descripcion': 'Compra de dólares', 'cantidad': 1, 'precio': 120000, 'exentas': '-', 'iva5': '-', 'iva10': 120000},
-        ],
-        'subtotal_exentas': '-',
-        'subtotal_iva5': '-',
-        'subtotal_iva10': 120000,
-        'total_operacion': 120000,
-        'total_guaranies': 120000,
-        'iva5': '-',
-        'iva10': 12000,
-        'iva_total': 12000,
-    }
-
-    return render(request, 'factura/factura.html', context)
-
-
-# Vista para generar PDF con WeasyPrint
-def factura_pdf(request, factura_id):
-    cliente = request.GET.get('cliente', 'Juan Pérez')
-    condicion = request.GET.get('condicion', 'Contado')
-    moneda = request.GET.get('moneda', 'PYG')
-    total = request.GET.get('total', '120000')
-
-    context = {
-        'ruc': '80000001-2',
-        'timbrado': '12345678',
-        'inicio_vigencia': '01/01/2025',
-        'fin_vigencia': '31/12/2025',
-        'numero_factura': '001-001-0000001',
-        'fecha_emision': '25/10/2025',
-        'condicion': condicion,
-        'cliente': cliente,
-        'tipo_cliente': 'Física',
-        'moneda': moneda,
-        'direccion': 'Av. Principal 123',
-        'nota_remision': '—',
-        'documento': '1234567',
-        'email': 'cliente@ejemplo.com',
-        'detalle': [
-            {'descripcion': 'Compra de dólares', 'cantidad': 1, 'precio': 120000, 'exentas': '-', 'iva5': '-', 'iva10': 120000},
-        ],
-        'subtotal_exentas': '-',
-        'subtotal_iva5': '-',
-        'subtotal_iva10': 120000,
-        'total_operacion': 120000,
-        'total_guaranies': 120000,
-        'iva5': '-',
-        'iva10': 12000,
-        'iva_total': 12000,
-    }
-
-    template = get_template('factura/factura.html')
-    html_string = template.render(context)
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="factura_{factura_id}.pdf"'
-
-    HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf(response)
-    return response
