@@ -1,3 +1,6 @@
 [2025-10-26 15:42:41.976131] ProgrammingError: column "dtelrec" of relation "de" does not exist
 LINE 10: ...umCasRec, cDepRec, dDesDepRec, cCiuRec, dDesCiuRec, dTelRec,
                                                                 ^
+[2025-10-26 16:32:33.731919] DataError: value too long for type character varying(20)
+[2025-10-26 16:48:16.988148] WARN: Truncating ddirrec to 20 chars. Original len=21
+[2025-10-26 17:46:59.841887] WARN: Truncating ddirrec to 20 chars. Original len=25
