@@ -51,10 +51,6 @@ def _ensure_len(val: str, min_len: int, max_len: int, default: str) -> str:
 
 
 def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
-    import os
-
-    def _env_true(name: str) -> bool:
-        return str(os.getenv(name, "")).strip().lower() in ("1", "true", "yes", "on")
 
     if transaccion.factura_asociada_id:
         return {"already": True, "factura_id": transaccion.factura_asociada_id}
@@ -66,6 +62,7 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         # Simplemente para testeos para no usar todos nuestros numeros de facturas
         if _env_true("FS_FORCE_DOC_151"):
             seq.current_num = 150  # el incremento lo dejará en 151
+            # Si se quiere hacer que el documento que se va a generar sea otro numero, simplemente cambiar a uno menos
 
         if seq.current_num >= seq.max_num:
             raise RuntimeError("Rango de documentos agotado (151–200).")
