@@ -2,11 +2,12 @@ import os   # <-- NUEVO
 from datetime import datetime
 from django.conf import settings
 from django.db import transaction
-from webapp.models import DocSequence, Transaccion, Factura, DetalleFactura
+from webapp.models import Transaccion, Factura, DetalleFactura
 from webapp.services import fs_proxy as sql
 from webapp.services.dto import InvoiceParams, TimbradoDTO, EmisorDTO, ReceptorDTO, ItemDTO
 import re
 from typing import Optional, Tuple
+from django.contrib import messages
 
 # --- NUEVO: helper de entorno ---
 def _env_true(name: str) -> bool:
@@ -51,41 +52,47 @@ def _ensure_len(val: str, min_len: int, max_len: int, default: str) -> str:
 
 
 def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
+    """
+    Genera una factura y crea el DE en el proxy fs_proxy.
+
+    Reglas para dNumDoc:
+      - Si FS_TEST_OVERWRITE_151=true => fuerza dNumDoc=0000151 (pruebas).
+      - Si NO está forzado: busca en fs_proxy.public.de un dNumDoc entre
+        '0000151'..'0000200' cuyo estado != 'Aprobado' y usa ese número.
+      - Si no encuentra, usa el secuenciador local (DocSequence 001/003).
+
+    También:
+      - IVA exento (0%) para casas de cambio.
+      - Guarda/actualiza Factura con de_id, d_num_doc, est, pun y la asocia a la Transaccion.
+    """
+    import os
+    from django.db import transaction
 
     if transaccion.factura_asociada_id:
         return {"already": True, "factura_id": transaccion.factura_asociada_id}
 
+    # force_151 = str(os.getenv("FS_TEST_OVERWRITE_151", "")).lower() in ("1", "true", "yes")
+    force_151 = False
+
     with transaction.atomic():
-        seq = DocSequence.objects.select_for_update().get(est="001", pun="003")
+        # --- Documento fiscal (Est y Pun fijos a 001/003) ---
 
-        # --- Forzar número 151 si la variable FS_FORCE_DOC_151 está activa ---
-        # Simplemente para testeos para no usar todos nuestros numeros de facturas
-        if _env_true("FS_FORCE_DOC_151"):
-            seq.current_num = 150  # el incremento lo dejará en 151
-            # Si se quiere hacer que el documento que se va a generar sea otro numero, simplemente cambiar a uno menos
-
-        if seq.current_num >= seq.max_num:
-            raise RuntimeError("Rango de documentos agotado (151–200).")
-        seq.current_num += 1
-        dNumDoc = str(seq.current_num).zfill(7)
-        seq.save(update_fields=["current_num"])
-
-        # --- (Opcional) eliminar factura previa con ese número en entorno de prueba ---
-        if _env_true("FS_FORCE_DOC_151"):
-            try:
-                from webapp.services import fs_proxy as sql
-                sql.nuke_de_by_doc("001", "003", dNumDoc)
-            except Exception:
-                pass
+        if force_151:
+            dNumDoc = "0000156"  # no consumimos secuencia cuando se fuerza
+        else:
+            # Intentar reutilizar un dNumDoc del proxy (rechazado/pendiente/etc.)
+            reuse = sql.find_reusable_dnumdoc(est="001", pun="003",
+                                              start="0000151", end="0000200")
+            if reuse:
+                dNumDoc = reuse
+            else:
+                messages.error("No se ha podido generar factura.")
 
         timb = TimbradoDTO(
             iTiDE="1",
-            num_tim=str(getattr(settings, "TIMBRADO_NUM", "02595733")),  # <-- 02595733
-            est="001",
-            pun_exp="003",
-            num_doc=dNumDoc,
-            serie="",
-            fe_ini_t=str(getattr(settings, "TIMBRADO_FECHA_INICIO", "2025-03-27"))  # <-- 2025-03-27
+            num_tim=str(getattr(settings, "TIMBRADO_NUM", "02595733")),
+            est="001", pun_exp="003", num_doc=dNumDoc,
+            serie="", fe_ini_t=str(getattr(settings, "TIMBRADO_FE_INI", "2025-03-27"))
         )
         emisor = EmisorDTO(
             ruc="2595733", dv="3",
@@ -100,15 +107,23 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
             info_fisc="Documento emitido por Global Exchange"
         )
 
+        # --- Receptor normalizado ---
         cli = transaccion.cliente
         es_juridica = (cli.tipoCliente == "persona_juridica")
+        force_ruc_env = os.getenv("FS_FORCE_RUC_REC", True)
 
-        # --- Normalizar RUC y DV ---
-        ruc_base, ruc_dv = _parse_ruc(cli.ruc)
-        is_contrib = bool(ruc_base)
+        if es_juridica:
+            # Persona jurídica → RUC fijo
+            ruc_base, ruc_dv = "2175460", "8"
+            is_contrib = True
+        else:
+            # Persona física → cédula fija
+            cli.documento = "1234567"
+            is_contrib = False  # normalmente no contribuyente en este caso
+            ruc_base, ruc_dv = None, None
 
         iNatRec = "1" if is_contrib else "2"
-        iTiOpe = "1" if is_contrib else "2"
+        iTiOpe  = "1" if is_contrib else "2"
         cPaisRec = "PRY"
 
         nom_base = cli.razonSocial if es_juridica and cli.razonSocial else cli.nombre
@@ -118,15 +133,15 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         if is_contrib:
             iTiContRec = "2" if es_juridica else "1"
             dRucRec = ruc_base
-            dDVRec = ruc_dv or _mod11_py(ruc_base)
+            dDVRec  = ruc_dv or _mod11_py(ruc_base)
             iTipIDRec = "0"
             dDTipIDRec = ""
             dNumIDRec = ""
         else:
             iTiContRec = None
             dRucRec = None
-            dDVRec = None
-            iTipIDRec = "1"
+            dDVRec  = None
+            iTipIDRec = "1"   # CI PY
             dDTipIDRec = ""
             if not cli.documento:
                 raise ValueError("Cliente sin RUC válido ni documento de identidad.")
@@ -143,7 +158,7 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
             email=cli.correo, tel=cli.telefono
         )
 
-        # --- Base en PYG ---
+        # --- Base imponible en PYG (monto informado) ---
         if transaccion.moneda_origen.code == "PYG":
             base_pyg = transaccion.monto_origen
         elif transaccion.moneda_destino.code == "PYG":
@@ -151,14 +166,14 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         else:
             base_pyg = transaccion.monto_destino
 
-        # --- Ítem exento (0%) ---
+        # --- Ítem con IVA 0% (exento) para cambio de divisas ---
         items = [ItemDTO(
             cod_int="CAM/DIV",
             descripcion=f"Servicio de cambio de divisas ({transaccion.tipo})",
             cantidad="1",
             precio_unit=_int_py(base_pyg),
             desc_item="0",
-            iAfecIVA="3",   # Exento
+            iAfecIVA="3",    # exento
             dPropIVA="0",
             dTasaIVA="0",
         )]
@@ -170,6 +185,7 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
             ind_pres="1", cond_ope="1", plazo_cre=""
         )
 
+        # --- Persistimos Factura y Detalle (APP) ---
         detalle = DetalleFactura.objects.create(
             transaccion=transaccion,
             content_type=transaccion.medio_pago_type,
@@ -184,20 +200,41 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
             detalleFactura=detalle,
             estado="emitida"
         )
-        transaccion.factura_asociada = factura
-        transaccion.save(update_fields=["factura_asociada"])
 
-    # --- Proxy ---
-    de_id = sql.insert_de(params)
-    sql.insert_acteco(
-        de_id,
-        actividades=[("62010", "Actividades de programación informática")]
-    )
-    sql.insert_items(de_id, params.items)
-    if params.cond_ope == "1":
-        sql.insert_pago_contado(de_id, items=params.items)
-    sql.confirmar_borrador(de_id)
+        # --- Insertamos en proxy y actualizamos la Factura con datos del DE ---
+        try:
+            de_id = sql.insert_de(params)
+            # Actividad económica fija para este programa
+            sql.insert_acteco(de_id, actividades=[("62010", "Actividades de programación informática")])
+            sql.insert_items(de_id, params.items)
+            if params.cond_ope == "1":
+                sql.insert_pago_contado(de_id, items=params.items)
 
-    Factura.objects.filter(id=factura.id).update(estado="aprobada")
+            # Si estamos forzando 0000151, reseteamos el estado SIFEN del DE antes de confirmar
+            if force_151:
+                sql.reset_sifen_by_de_id(de_id)
+                # (opcional) también podrías hacerlo por doc:
+                # sql.reset_sifen_by_doc("001", "003", dNumDoc)
+
+            # Guardamos vínculo y datos fiscales en nuestra Factura
+            Factura.objects.filter(id=factura.id).update(
+                de_id=de_id,
+                d_num_doc=dNumDoc,
+                est=timb.est,
+                pun=timb.pun_exp,
+            )
+            transaccion.factura_asociada = factura
+            transaccion.save(update_fields=["factura_asociada"])
+
+            # Confirmamos para que el proxy procese
+            sql.confirmar_borrador(de_id)
+
+        except Exception as e:
+            # Marcamos la factura como rechazada en la app si falló la preparación del DE
+            Factura.objects.filter(id=factura.id).update(estado="rechazada")
+            # Log mínimo (puedes integrar con Sentry/logger real)
+            print(f"[invoice_from_tx] Error preparando DE: {e!r}")
+            raise
 
     return {"already": False, "de_id": de_id, "factura_id": factura.id, "dNumDoc": dNumDoc}
+

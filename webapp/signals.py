@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.contrib.sessions.models import Session
 
 from webapp.services.esi_bootstrap import ensure_esi_global_exchange
-from .models import Billetera, BilleteraCobro, ClienteUsuario, CuentaBancariaCobro, Currency, CurrencyDenomination, DocSequence, Entidad, LimiteIntercambioConfig, Categoria, LimiteIntercambioCliente, LimiteIntercambioLog, MedioCobro, Role, MedioPago, TarjetaInternacional, TarjetaNacional, Tauser, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion, Cliente
+from .models import Billetera, BilleteraCobro, ClienteUsuario, CuentaBancariaCobro, Currency, CurrencyDenomination, Entidad, LimiteIntercambioConfig, Categoria, LimiteIntercambioCliente, LimiteIntercambioLog, MedioCobro, Role, MedioPago, TarjetaInternacional, TarjetaNacional, Tauser, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion, Cliente
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
 from django.db import connections, transaction
@@ -128,7 +128,6 @@ def setup_database(sender, **kwargs):
     BilleteraCobro = apps.get_model("webapp", "BilleteraCobro")
     CuentaBancariaCobro = apps.get_model("webapp", "CuentaBancariaCobro")
     Tauser = apps.get_model("webapp", "Tauser")
-    DocSequence = apps.get_model("webapp", "DocSequence")
 
     # -------------------------------------------------------------
     # BLOQUES DE CONFIGURACIÓN
@@ -490,39 +489,6 @@ def setup_database(sender, **kwargs):
 
         print("\n🎉 Medios de cobro por defecto creados correctamente.\n")
 
-    def crear_nro_facturas_por_defecto():
-        DEFAULTS = {
-            "est": "001",
-            "pun": "003",
-            "min_num": 151,
-            "max_num": 200,
-            "current_num": 150,  # el próximo será 151
-            "active": True,
-        }
-        try:
-            with transaction.atomic():
-                if not DocSequence.objects.exists():
-                    DocSequence.objects.create(**DEFAULTS)
-                    print("✅ DocSequence inicial creada.")
-
-                    # --- Bootstrap ESI solo si la DB fs_proxy existe y está accesible ---
-                    if "fs_proxy" in connections.databases:
-                        try:
-                            # Verifica que la conexión al alias exista y sea utilizable
-                            with connections["fs_proxy"].cursor() as _:
-                                pass
-                            from webapp.services.esi_bootstrap import ensure_esi_global_exchange
-                            ensure_esi_global_exchange()
-                            print("✅ ESI (Global Exchange) inicializado en SQL-Proxy.")
-                        except Exception as e:
-                            print("ℹ️ Saltando bootstrap ESI (fs_proxy no disponible aún):", e)
-                    else:
-                        print("ℹ️ Saltando bootstrap ESI: alias 'fs_proxy' no está configurado.")
-                else:
-                    print("ℹ️ DocSequence ya existe; no se crea otra fila.")
-        except Exception as e:
-            print("❌ Hubo un error al intentar crear los defaults de factura:", e)
-            traceback.print_exc()
 
     # -------------------------------------------------------------
     # EXECUTION ORDER
@@ -536,7 +502,6 @@ def setup_database(sender, **kwargs):
     safe_run("Cuenta Bancaria del Negocio", setup_cuenta_negocio)
     safe_run("Medios de Pago para usuario1 por defecto", crear_medios_pago_por_defecto)
     safe_run("Medios de Cobro para usuario1 por defecto", crear_medios_cobro_por_defecto)
-    safe_run("Numeros de factura por defecto", crear_nro_facturas_por_defecto)
 
 """
 @receiver(post_migrate)

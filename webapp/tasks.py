@@ -11,7 +11,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import  F, OuterRef, Subquery
 
-from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, ExpiracionTransaccionConfig, LimiteIntercambioCliente, LimiteIntercambioConfig, LimiteIntercambioScheduleConfig, MFACode, Tauser, Transaccion, CuentaBancariaNegocio
+from webapp.services.invoice_sync import sync_facturas_pendientes
+
+from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, ExpiracionTransaccionConfig, LimiteIntercambioCliente, LimiteIntercambioConfig, LimiteIntercambioScheduleConfig, MFACode, SyncLog, Tauser, Transaccion, CuentaBancariaNegocio
 from .views.payments.pagos_simulados_a_clientes import pagar_al_cliente
 
 from django.utils import timezone
@@ -438,3 +440,46 @@ def generate_invoice_task(self, transaccion_id: int):
         return generate_invoice_for_transaccion(tx)
     except Exception as e:
         raise self.retry(exc=e)
+
+
+@shared_task(name="sync_facturas_sifen")
+def sync_facturas_sifen_task(limit=200):
+    """
+    Tarea periódica Celery para sincronizar facturas con SIFEN
+    y adjuntar XML/PDF automáticamente.
+    """
+    resumen = sync_facturas_pendientes(limit=limit, fetch_files_on_approved=True)
+    print(f"[Celery] Sync completado: {resumen['procesadas']} procesadas, "
+          f"{resumen['aprobadas']} aprobadas, {resumen['rechazadas']} rechazadas.")
+    return resumen
+
+
+@shared_task(name="sync_facturas_sifen")
+def sync_facturas_sifen_task(limit=200):
+    resumen = sync_facturas_pendientes(limit=limit, fetch_files_on_approved=True)
+    SyncLog.objects.create(resumen=resumen)
+    return resumen
+
+
+LOCK_KEY = "sync_facturas_lock"
+LOCK_TTL = 60 * 5  # 5 minutos
+
+@shared_task(bind=True, max_retries=2)
+def sync_facturas_pendientes_task(self, limit=200):
+    """
+    Sincroniza facturas en estado pendiente/rechazada con el proxy SIFEN.
+    Si una factura queda 'Aprobada', adjunta automáticamente XML/PDF.
+    Usa un lock simple para evitar solapamientos.
+    """
+    # Evitar ejecuciones concurrentes
+    if not cache.add(LOCK_KEY, "1", LOCK_TTL):
+        return {"ok": False, "skipped": "locked"}
+
+    try:
+        # Internamente adjuntará documentos si queda 'Aprobada'
+        resumen = sync_facturas_pendientes(limit=limit, attach_docs=True)
+        return {"ok": True, **resumen}
+    except Exception as e:
+        return {"ok": False, "error": repr(e)}
+    finally:
+        cache.delete(LOCK_KEY)

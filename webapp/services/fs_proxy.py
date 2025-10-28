@@ -1,8 +1,7 @@
 # webapp/services/fs_proxy.py
-import os, base64, requests, logging
+import os, base64, requests, logging, re
 from datetime import datetime
 from django.db import connections, transaction
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -329,3 +328,211 @@ def reset_sifen_and_confirm(de_id: int):
                 WHERE id = %s;
             """, (de_id,))
     return True
+
+
+def get_de_by_num(est: str, pun: str, dnumdoc: str):
+    """
+    Busca un DE en el proxy por establecimiento, punto y número.
+    Retorna dict con {id, estado, estado_sifen, desc_sifen, fch_sifen} o None.
+    """
+    with _cursor() as cur:
+        cur.execute("""
+            SELECT id, estado, estado_sifen, desc_sifen, fch_sifen
+            FROM public.de
+            WHERE dEst = %s AND dPunExp = %s AND dNumDoc = %s
+            ORDER BY id DESC
+            LIMIT 1;
+        """, [str(est).zfill(3), str(pun).zfill(3), str(dnumdoc).zfill(7)])
+        row = cur.fetchone()
+        if not row:
+            return None
+        return {
+            "id": row[0],
+            "estado": row[1],
+            "estado_sifen": row[2],
+            "desc_sifen": row[3],
+            "fch_sifen": row[4],
+        }
+
+def find_recent_de_by_email(email: str, around_date=None):
+    """
+    Backfill heurístico: busca el DE más reciente para un receptor por email.
+    Úsalo con cuidado (solo para mapear facturas históricas).
+    """
+    sql_txt = """
+        SELECT id, dEst, dPunExp, dNumDoc, estado, estado_sifen, desc_sifen, fch_sifen
+        FROM public.de
+        WHERE dEmailRec = %s
+        ORDER BY fch_ins DESC
+        LIMIT 1;
+    """
+    with _cursor() as cur:
+        cur.execute(sql_txt, [email])
+        row = cur.fetchone()
+        if not row:
+            return None
+        return {
+            "id": row[0], "est": row[1], "pun": row[2], "dnumdoc": row[3],
+            "estado": row[4], "estado_sifen": row[5], "desc_sifen": row[6], "fch_sifen": row[7]
+        }
+
+
+def reset_sifen_by_de_id(de_id: int) -> bool:
+    """
+    Pone en NULL los campos de estado SIFEN y marca el DE como 'Confirmado'.
+    Útil para reintentos.
+    """
+    with _cursor() as cur:
+        cur.execute("""
+            UPDATE public.de
+               SET estado_sifen = NULL,
+                   desc_sifen   = NULL,
+                   error_sifen  = NULL,
+                   fch_sifen    = NULL,
+                   estado       = 'Confirmado',
+                   fch_upd      = CURRENT_TIMESTAMP
+             WHERE id = %s;
+        """, (de_id,))
+    return True
+
+
+def reset_sifen_by_doc(est: str, pun: str, dnumdoc: str) -> int | None:
+    """
+    Resetea por (dEst, dPunExp, dNumDoc). Retorna el id afectado (o None).
+    """
+    with _cursor() as cur:
+        cur.execute("""
+            UPDATE public.de
+               SET estado_sifen = NULL,
+                   desc_sifen   = NULL,
+                   error_sifen  = NULL,
+                   fch_sifen    = NULL,
+                   estado       = 'Confirmado',
+                   fch_upd      = CURRENT_TIMESTAMP
+             WHERE dEst = %s AND dPunExp = %s AND dNumDoc = %s
+         RETURNING id;
+        """, (est, pun, dnumdoc))
+        row = cur.fetchone()
+        return row[0] if row else None
+    
+FS_PROXY_WEB_URL = os.getenv("FS_PROXY_WEB_URL")  # ej: http://localhost:8001 (proyecto proxy)
+KUDE_USER = os.getenv("FS_PROXY_KUDE_USER")
+KUDE_PASS = os.getenv("FS_PROXY_KUDE_PASS")
+
+def _auth_headers():
+    if not (FS_PROXY_WEB_URL and KUDE_USER and KUDE_PASS):
+        raise RuntimeError("Faltan FS_PROXY_WEB_URL/KUDE_USER/KUDE_PASS")
+    token = base64.b64encode(f"{KUDE_USER}:{KUDE_PASS}".encode()).decode()
+    return {"Authorization": f"Basic {token}"}
+
+# webapp/services/fs_proxy.py
+
+def fetch_kude_files(est: str, pun: str, d_num_doc: str, yyyymm: str):
+    """
+    Devuelve lista de dicts {'name': ..., 'url': ...} del KUDE para el yyyymm dado.
+    Si el mes no existe (404), devuelve [], NO lanza excepción.
+    """
+    if not (FS_PROXY_WEB_URL and KUDE_USER and KUDE_PASS):
+        raise RuntimeError("Faltan FS_PROXY_WEB_URL/KUDE_USER/KUDE_PASS")
+
+    base = FS_PROXY_WEB_URL.rstrip("/")
+    url  = f"{base}/kude/{yyyymm}/"
+
+    auth = (KUDE_USER, KUDE_PASS)
+    r = requests.get(url, auth=auth, timeout=15)
+
+    # Manejo explícito de 404: el directorio del mes no existe
+    if r.status_code == 404:
+        return []
+
+    # Para otros códigos (401/500/etc.) sí levantamos error
+    r.raise_for_status()
+
+    # parseo liviano por nombre de archivo, p.ej. "001-003-0000156-....xml/pdf"
+    # Ajustá si ya tenés otro parser.
+    files = []
+    for line in r.text.splitlines():
+        # links típicos de Nginx autoindex
+        # <a href="001-003-0000156-...xml">...</a>
+        m = re.search(r'href="([^"]+)"', line)
+        if m:
+            name = m.group(1)
+            files.append({"name": name, "url": f"{url}{name}"})
+    return files
+
+
+def find_reusable_dnumdoc(est: str = "001", pun: str = "003",
+                          start: str = "0000151", end: str = "0000200") -> str | None:
+    """
+    Devuelve el primer dNumDoc en [start..end] que NO esté bloqueado.
+    Bloqueado = última fila de ese dNumDoc con estado='Aprobado' o
+    con NUMDOC_APROBADO en desc_sifen/error_sifen.
+    Si no existen filas para ese dNumDoc, se considera usable.
+    """
+
+    def _to_int(s: str) -> int:
+        return int(str(s).strip())
+
+    def _pad7(n: int) -> str:
+        return str(n).zfill(7)
+
+    start_n = _to_int(start)
+    end_n   = _to_int(end)
+
+    # Traemos SOLO la última fila por dNumDoc dentro del rango.
+    # "Última" = mayor fch_upd/fch_ins y, a falta de eso, mayor id.
+    with _cursor() as cur:
+        cur.execute("""
+            WITH ult AS (
+              SELECT
+                dNumDoc,
+                COALESCE(estado, '')       AS estado,
+                COALESCE(desc_sifen, '')   AS desc_sifen,
+                COALESCE(error_sifen, '')  AS error_sifen,
+                row_number() OVER (
+                  PARTITION BY dNumDoc
+                  ORDER BY COALESCE(fch_upd, fch_ins) DESC, id DESC
+                ) AS rn
+              FROM public.de
+              WHERE dEst = %s
+                AND dPunExp = %s
+                AND dNumDoc BETWEEN %s AND %s
+            )
+            SELECT dNumDoc, estado, desc_sifen, error_sifen
+            FROM ult
+            WHERE rn = 1
+            ORDER BY dNumDoc ASC;
+        """, [est, pun, start, end])
+
+        last_by_num = {}
+        for dnumdoc, estado, desc_sifen, error_sifen in cur.fetchall():
+            last_by_num[dnumdoc] = {
+                "estado": (estado or "").strip(),
+                "desc_sifen": (desc_sifen or "").strip(),
+                "error_sifen": (error_sifen or "").strip(),
+            }
+
+    # Recorremos el rango en orden creciente y decidimos
+    for n in range(start_n, end_n + 1):
+        cand = _pad7(n)
+
+        info = last_by_num.get(cand)
+        if not info:
+            # No tuvo filas -> está libre
+            return cand
+
+        estado      = info["estado"]
+        desc_sifen  = info["desc_sifen"]
+        error_sifen = info["error_sifen"]
+
+        has_numdoc_aprob = ("NUMDOC_APROBADO" in desc_sifen.upper()
+                            or "NUMDOC_APROBADO" in error_sifen.upper())
+
+        # Si la última fila está aprobada o el WS marcó NUMDOC_APROBADO, no usar
+        if estado == "Aprobado" or has_numdoc_aprob:
+            continue
+
+        # Caso contrario, es reutilizable
+        return cand
+
+    return None

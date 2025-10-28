@@ -95,6 +95,22 @@
                                     Anular
                                 </button>
                             {% endif %}
+                            {# --- Botones de documentos si hay factura asociada con archivos --- #}
+                                {% with fac=transaccion.factura_asociada %}
+                                    {% if fac and fac.estado == 'aprobada' %}
+                                        {% if fac.pdf_file %}
+                                            <a href="{{ fac.pdf_file.url }}" class="action-button ingresar-id-btn" target="_blank" rel="noopener">
+                                                Ver Factura PDF
+                                            </a>
+                                        {% endif %}
+                                        {% if fac.xml_file %}
+                                            <a href="{{ fac.xml_file.url }}" class="action-button ingresar-id-btn" target="_blank" rel="noopener">
+                                                Ver Factura XML
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                            {% endwith %}
+
                         </td>
                     </tr>
                     {% empty %}

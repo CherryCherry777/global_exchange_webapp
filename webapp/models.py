@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from decimal import Decimal, ROUND_DOWN
 from typing import Optional
+from django.core.validators import RegexValidator, MinLengthValidator, MaxLengthValidator
 
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
@@ -995,6 +996,9 @@ class Transaccion(models.Model):
 # Modelos para facturación y notas de crédito
 # --------------------------------------------
 
+DIGITOS = RegexValidator(regex=r"^\d+$", message="Solo dígitos.")
+
+# webapp/models.py
 class Factura(models.Model):
     ESTADOS = [
         ("emitida", "Emitida"),
@@ -1008,15 +1012,24 @@ class Factura(models.Model):
     fechaEmision = models.DateField(default=timezone.now)
     detalleFactura = models.ForeignKey("DetalleFactura", on_delete=models.CASCADE)
     estado = models.CharField(max_length=20, choices=ESTADOS, default="emitida")
+
+    # --- NUEVOS: enlace con proxy ---
+    de_id = models.IntegerField(null=True, blank=True, db_index=True)
+    est = models.CharField(max_length=3, default="001")   # establecimiento
+    pun = models.CharField(max_length=3, default="003")   # punto de expedición
+    d_num_doc = models.CharField(max_length=7, null=True, blank=True)  # número (con ceros)
+
+    # Archivos
     xml_file = models.FileField(upload_to="facturas/xml/", blank=True, null=True)
     pdf_file = models.FileField(upload_to="facturas/pdf/", blank=True, null=True)
 
     def __str__(self):
         return f"Factura {self.id} - Cliente {self.cliente} ({self.estado})"
 
+
 class DetalleFactura(models.Model):
     transaccion = models.ForeignKey("Transaccion", on_delete=models.CASCADE)
-    
+
     # Campos para GenericForeignKey
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -1026,7 +1039,6 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f"Detalle {self.id} - {self.descripcion}"
-    
 
 # -------------------------------------
 # Modelo para definir limites de intercambio por dia y mes
@@ -1327,24 +1339,8 @@ class MFACode(models.Model):
         return mfa
 
 
-class DocSequence(models.Model):
-    est = models.CharField(max_length=3, default="001")
-    pun = models.CharField(max_length=3, default="003")
-    min_num = models.IntegerField(default=151)
-    max_num = models.IntegerField(default=200)
-    current_num = models.IntegerField(default=150)
-    active = models.BooleanField(default=True)
 
-    class Meta:
-        unique_together = ("est", "pun")
 
-    def next_numdoc(self) -> str:
-        # ⚠️ este atomic hace que el select_for_update ocurra DENTRO de una transacción
-        with transaction.atomic():
-            # bloqueamos la fila de esta secuencia
-            seq = DocSequence.objects.select_for_update().get(pk=self.pk)
-            if seq.current_num >= seq.max_num:
-                raise RuntimeError("Rango de documentos agotado (151–200).")
-            seq.current_num += 1
-            seq.save(update_fields=["current_num"])
-            return str(seq.current_num).zfill(7)
+class SyncLog(models.Model):
+    fecha = models.DateTimeField(auto_now_add=True)
+    resumen = models.JSONField()

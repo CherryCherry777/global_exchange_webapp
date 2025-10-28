@@ -212,6 +212,10 @@ LOGGING = {
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
+FS_PROXY_WEB_URL = os.getenv("FS_PROXY_WEB_URL")  # ej: "https://proxy.tu-dominio.com"
+FS_PROXY_KUDE_USER = os.getenv("FS_PROXY_KUDE_USER")
+FS_PROXY_KUDE_PASS = os.getenv("FS_PROXY_KUDE_PASS")
+
 
 """
 Nota: ejecutar estos comandos en la terminal de linux para  que funcionen los correos temporizados
