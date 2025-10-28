@@ -194,7 +194,7 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
     de_id = sql.insert_de(params)
     sql.insert_acteco(
         de_id,
-        actividades=[("66190", "Actividades auxiliares de servicios financieros n.c.p. (casa de cambios)")]
+        actividades=[("62010", "Actividades de programación informática")]
     )
     sql.insert_items(de_id, params.items)
     if params.cond_ope == "1":
