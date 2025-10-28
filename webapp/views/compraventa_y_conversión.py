@@ -20,8 +20,6 @@ from webapp.tasks import pagar_al_cliente_task
 from django.template.loader import get_template
 from django.http import HttpResponse
 from weasyprint import HTML
-from webapp.integraciones.facturasegura import generar_factura_sqlproxy
-
 # ----------------------
 # Vistas de compraventa
 # ----------------------

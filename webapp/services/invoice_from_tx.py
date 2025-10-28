@@ -1,17 +1,19 @@
-# webapp/services/invoice_from_tx.py
+import os   # <-- NUEVO
 from datetime import datetime
 from django.conf import settings
 from django.db import transaction
 from webapp.models import DocSequence, Transaccion, Factura, DetalleFactura
 from webapp.services import fs_proxy as sql
 from webapp.services.dto import InvoiceParams, TimbradoDTO, EmisorDTO, ReceptorDTO, ItemDTO
+import re
+from typing import Optional, Tuple
+
+# --- NUEVO: helper de entorno ---
+def _env_true(name: str) -> bool:
+    return str(os.getenv(name, "")).strip().lower() in ("1", "true", "yes", "on")
 
 def _int_py(value) -> str:
     return str(int(round(float(value))))  # PYG sin decimales
-
-import re
-from datetime import datetime
-from typing import Optional, Tuple
 
 def _mod11_py(num: str) -> str:
     nums = list(map(int, re.findall(r"\d", num)))
@@ -49,22 +51,44 @@ def _ensure_len(val: str, min_len: int, max_len: int, default: str) -> str:
 
 
 def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
+    import os
+
+    def _env_true(name: str) -> bool:
+        return str(os.getenv(name, "")).strip().lower() in ("1", "true", "yes", "on")
+
     if transaccion.factura_asociada_id:
         return {"already": True, "factura_id": transaccion.factura_asociada_id}
 
     with transaction.atomic():
         seq = DocSequence.objects.select_for_update().get(est="001", pun="003")
+
+        # --- Forzar número 151 si la variable FS_FORCE_DOC_151 está activa ---
+        # Simplemente para testeos para no usar todos nuestros numeros de facturas
+        if _env_true("FS_FORCE_DOC_151"):
+            seq.current_num = 150  # el incremento lo dejará en 151
+
         if seq.current_num >= seq.max_num:
             raise RuntimeError("Rango de documentos agotado (151–200).")
         seq.current_num += 1
         dNumDoc = str(seq.current_num).zfill(7)
         seq.save(update_fields=["current_num"])
 
+        # --- (Opcional) eliminar factura previa con ese número en entorno de prueba ---
+        if _env_true("FS_FORCE_DOC_151"):
+            try:
+                from webapp.services import fs_proxy as sql
+                sql.nuke_de_by_doc("001", "003", dNumDoc)
+            except Exception:
+                pass
+
         timb = TimbradoDTO(
             iTiDE="1",
-            num_tim=str(getattr(settings, "TIMBRADO_NUM", "12345678")),
-            est="001", pun_exp="003", num_doc=dNumDoc,
-            serie="", fe_ini_t="2024-04-17"
+            num_tim=str(getattr(settings, "TIMBRADO_NUM", "02595733")),  # <-- 02595733
+            est="001",
+            pun_exp="003",
+            num_doc=dNumDoc,
+            serie="",
+            fe_ini_t=str(getattr(settings, "TIMBRADO_FECHA_INICIO", "2025-03-27"))  # <-- 2025-03-27
         )
         emisor = EmisorDTO(
             ruc="2595733", dv="3",
@@ -80,38 +104,32 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         )
 
         cli = transaccion.cliente
-
-        # Determinar PF/PJ desde tu modelo:
         es_juridica = (cli.tipoCliente == "persona_juridica")
 
-        # Normalizar RUC
+        # --- Normalizar RUC y DV ---
         ruc_base, ruc_dv = _parse_ruc(cli.ruc)
-        is_contrib = bool(ruc_base)  # tratamos como contribuyente si hay base
+        is_contrib = bool(ruc_base)
 
-        # Naturaleza y tipo de operación
-        iNatRec = "1" if is_contrib else "2"         # 1 contribuyente / 2 no contribuyente
-        iTiOpe  = "1" if is_contrib else "2"         # B2B si contribuyente, B2C si no
+        iNatRec = "1" if is_contrib else "2"
+        iTiOpe = "1" if is_contrib else "2"
         cPaisRec = "PRY"
 
-        # Nombre/dirección (aprovechando razón social para PJ)
         nom_base = cli.razonSocial if es_juridica and cli.razonSocial else cli.nombre
         nom_rec = _ensure_len(nom_base, 4, 255, "Sin Nombre")
         dir_rec = _ensure_len(cli.direccion, 0, 255, "")
 
         if is_contrib:
-            # Contribuyente: iTiContRec 1=PF, 2=PJ; se envía RUC/DV; NO doc alterno
             iTiContRec = "2" if es_juridica else "1"
             dRucRec = ruc_base
-            dDVRec  = ruc_dv or _mod11_py(ruc_base)
+            dDVRec = ruc_dv or _mod11_py(ruc_base)
             iTipIDRec = "0"
             dDTipIDRec = ""
             dNumIDRec = ""
         else:
-            # No contribuyente: NO iTiContRec/RUC/DV; SÍ documento alterno
-            iTiContRec = None    # si luego lo persistís al proxy, ponelo como '' en SQL para no mandar None
+            iTiContRec = None
             dRucRec = None
-            dDVRec  = None
-            iTipIDRec = "1"      # p.ej. 1=CI PY (ajusta al catálogo que uses)
+            dDVRec = None
+            iTipIDRec = "1"
             dDTipIDRec = ""
             if not cli.documento:
                 raise ValueError("Cliente sin RUC válido ni documento de identidad.")
@@ -127,8 +145,8 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
             dep_cod="1", dep_desc="CAPITAL", ciu_cod="1", ciu_desc="ASUNCION (DISTRITO)",
             email=cli.correo, tel=cli.telefono
         )
-        # --- FIN NORMALIZACIÓN ---
 
+        # --- Base en PYG ---
         if transaccion.moneda_origen.code == "PYG":
             base_pyg = transaccion.monto_origen
         elif transaccion.moneda_destino.code == "PYG":
@@ -136,13 +154,16 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         else:
             base_pyg = transaccion.monto_destino
 
+        # --- Ítem exento (0%) ---
         items = [ItemDTO(
             cod_int="CAM/DIV",
             descripcion=f"Servicio de cambio de divisas ({transaccion.tipo})",
             cantidad="1",
             precio_unit=_int_py(base_pyg),
             desc_item="0",
-            iAfecIVA="1", dPropIVA="100", dTasaIVA="10"
+            iAfecIVA="3",   # Exento
+            dPropIVA="0",
+            dTasaIVA="0",
         )]
 
         params = InvoiceParams(
@@ -169,12 +190,15 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         transaccion.factura_asociada = factura
         transaccion.save(update_fields=["factura_asociada"])
 
-    # proxy (fs_proxy)
+    # --- Proxy ---
     de_id = sql.insert_de(params)
-    sql.insert_acteco(de_id, actividades=[("46510", "COMERCIO AL POR MAYOR DE EQUIPOS INFORMÁTICOS Y SOFTWARE")])
+    sql.insert_acteco(
+        de_id,
+        actividades=[("66190", "Actividades auxiliares de servicios financieros n.c.p. (casa de cambios)")]
+    )
     sql.insert_items(de_id, params.items)
     if params.cond_ope == "1":
-        sql.insert_pago_contado(de_id)
+        sql.insert_pago_contado(de_id, items=params.items)
     sql.confirmar_borrador(de_id)
 
     Factura.objects.filter(id=factura.id).update(estado="aprobada")
