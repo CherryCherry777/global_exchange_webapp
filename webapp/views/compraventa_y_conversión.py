@@ -338,7 +338,8 @@ def compraventa_view(request):
 
                 if estado == Transaccion.Estado.PAGADA:
                     try:
-                        result = generate_invoice_for_transaccion(transaccion)
+                        if os.getenv("GENERAR_FACTURA"):
+                            result = generate_invoice_for_transaccion(transaccion)
                         # Si preferís async:
                         # generate_invoice_task.delay(transaccion.id)
                         # messages.success(request, f"Factura emitida. Nro {result['dNumDoc']} (DE {result['de_id']}).")
