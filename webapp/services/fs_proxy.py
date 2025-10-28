@@ -51,14 +51,7 @@ def insert_esi(*, ruc: str, ruc_dv: str, nombre: str, descripcion: str,
                 VALUES (%s, %s, %s, %s, 'ACTIVO', %s, %s, '', %s);
             """, [ruc, ruc_dv, nombre, descripcion, esi_email, esi_passwd, esi_url])
 
-# === Lecturas rápidas ===
-def get_de_status(de_id: int):
-    with _cursor() as cur:
-        cur.execute("SELECT id, estado, dNumDoc, dFeEmiDE FROM public.de WHERE id = %s;", [de_id])
-        row = cur.fetchone()
-        if not row:
-            return None
-        return {"id": row[0], "estado": row[1], "dNumDoc": row[2], "dFeEmiDE": row[3]}
+
 
 def get_dnumdoc(de_id: int):
     with _cursor() as cur:
@@ -536,3 +529,161 @@ def find_reusable_dnumdoc(est: str = "001", pun: str = "003",
         return cand
 
     return None
+
+
+def get_de_status(de_id: int) -> dict | None:
+    """
+    Lee el estado_sifen de una fila específica por ID.
+    """
+    with _cursor() as cur:
+        cur.execute("""
+            SELECT id, "CDC", dRucEm, dEst, dPunExp, dNumDoc,
+                   estado_sifen, desc_sifen, error_sifen, fch_sifen
+            FROM public.de
+            WHERE id = %s
+            """, [de_id])
+        row = cur.fetchone()
+    if not row:
+        return None
+    return {
+        "id": row[0],
+        "CDC": row[1],
+        "dRucEm": row[2],
+        "dEst": row[3],
+        "dPunExp": row[4],
+        "dNumDoc": row[5],
+        "estado_sifen": row[6],
+        "desc_sifen": row[7],
+        "error_sifen": row[8],
+        "fch_sifen": row[9],
+    }
+
+    
+
+
+
+
+def _de_status_sql(cdc_ident: str) -> str:
+    # si no hay columna CDC, mandamos NULL AS cdc
+    cdc_sel = f"{cdc_ident} AS cdc" if cdc_ident != 'NULL' else "NULL AS cdc"
+    return f"""
+        SELECT
+            id,
+            {cdc_sel},
+            dRucEm AS drucem,
+            dEst   AS dest,
+            dPunExp AS dpunexp,
+            dNumDoc AS dnumdoc,
+            estado_sifen, desc_sifen, error_sifen, fch_sifen
+        FROM public.de
+        WHERE id = %s
+        ORDER BY fch_sifen DESC NULLS LAST, id DESC
+        LIMIT 1
+    """
+
+def _latest_by_num_sql(cdc_ident: str) -> str:
+    cdc_sel = f"{cdc_ident} AS cdc" if cdc_ident != 'NULL' else "NULL AS cdc"
+    return f"""
+        SELECT
+            id,
+            {cdc_sel},
+            dRucEm AS drucem,
+            dEst   AS dest,
+            dPunExp AS dpunexp,
+            dNumDoc AS dnumdoc,
+            estado_sifen, desc_sifen, error_sifen, fch_sifen
+        FROM public.de
+        WHERE dEst=%s AND dPunExp=%s AND dNumDoc=%s
+        ORDER BY fch_sifen DESC NULLS LAST, id DESC
+        LIMIT 1
+    """
+
+def _fmt_ts(ts):
+    if not ts:
+        return None
+    if isinstance(ts, str):
+        return ts
+    try:
+        return ts.strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return str(ts)
+
+def get_de_status(de_id: int) -> dict | None:
+    """Devuelve estado_sifen, desc_sifen, etc. para un DE."""
+    with _cursor() as cur:
+        cur.execute("""
+            SELECT
+                id,
+                dRucEm AS drucem,
+                dEst   AS dest,
+                dPunExp AS dpunexp,
+                dNumDoc AS dnumdoc,
+                estado_sifen, desc_sifen, error_sifen, fch_sifen
+            FROM public.de
+            WHERE id = %s
+            ORDER BY fch_sifen DESC NULLS LAST, id DESC
+            LIMIT 1
+        """, [de_id])
+        row = cur.fetchone()
+        if not row:
+            return None
+
+        (id_, drucem, dest, dpunexp, dnumdoc,
+         estado_sifen, desc_sifen, error_sifen, fch_sifen) = row
+
+        return {
+            "id": id_,
+            "dRucEm": drucem,
+            "dEst": dest,
+            "dPunExp": dpunexp,
+            "dNumDoc": dnumdoc,
+            "estado_sifen": estado_sifen or None,
+            "desc_sifen":   desc_sifen or None,
+            "error_sifen":  error_sifen or None,
+            "fch_sifen":    _fmt_ts(fch_sifen),
+        }
+
+def get_latest_de_status_by_num(est: str, pun: str, dnumdoc: str) -> dict | None:
+    """Devuelve la última fila de DE para ese número de documento."""
+    with _cursor() as cur:
+        cur.execute("""
+            SELECT
+                id,
+                dRucEm AS drucem,
+                dEst   AS dest,
+                dPunExp AS dpunexp,
+                dNumDoc AS dnumdoc,
+                estado_sifen, desc_sifen, error_sifen, fch_sifen
+            FROM public.de
+            WHERE dEst=%s AND dPunExp=%s AND dNumDoc=%s
+            ORDER BY fch_sifen DESC NULLS LAST, id DESC
+            LIMIT 1
+        """, [est, pun, dnumdoc])
+        row = cur.fetchone()
+        if not row:
+            return None
+
+        (id_, drucem, dest, dpunexp, dnumdoc,
+         estado_sifen, desc_sifen, error_sifen, fch_sifen) = row
+
+        return {
+            "id": id_,
+            "dRucEm": drucem,
+            "dEst": dest,
+            "dPunExp": dpunexp,
+            "dNumDoc": dnumdoc,
+            "estado_sifen": estado_sifen or None,
+            "desc_sifen":   desc_sifen or None,
+            "error_sifen":  error_sifen or None,
+            "fch_sifen":    _fmt_ts(fch_sifen),
+        }
+
+def refresh_estado_sifen_by_de_id(de_id: int) -> dict | None:
+    """Actualiza el estado local según el último DE registrado."""
+    current = get_de_status(de_id)
+    if not current:
+        return None
+    if current.get("estado_sifen"):
+        return current
+    latest = get_latest_de_status_by_num(current["dEst"], current["dPunExp"], current["dNumDoc"])
+    return latest or current

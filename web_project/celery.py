@@ -12,18 +12,3 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 
 # Auto-descubrir tareas en todas las apps
 app.autodiscover_tasks()
-
-app.conf.beat_schedule = {
-    "sync-facturas-sifen-horario": {
-        "task": "sync_facturas_sifen",
-        "schedule": crontab(minute=5, hour="*"),
-    },
-}
-
-CELERY_BEAT_SCHEDULE = {
-    "sync-facturas-cada-2min": {
-        "task": "webapp.tasks.sync_facturas_pendientes_task",
-        "schedule": crontab(minute="*/2"),
-        "args": (200,),  # cantidad máxima de pendientes por corrida
-    },
-}

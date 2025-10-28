@@ -182,6 +182,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "webapp.tasks.check_and_reset_limites_intercambio",
         "schedule": crontab(minute="*/2"),  # cada 120 segundos
     },
+    "sync-facturas-cada-2min": {
+        "task": "webapp.tasks.sync_facturas_pendientes_task",
+        "schedule": crontab(minute="*/2"),
+        "args": (200,),
+    },
 }
 
 MESSAGE_TAGS = {

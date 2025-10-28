@@ -168,27 +168,93 @@ def sync_factura_de(factura: Factura) -> dict:
         "pdf_name": pdf_name,
     }
 
-
-def sync_facturas_pendientes(limit: int = 50) -> dict:
+def sync_facturas_pendientes(limit=200, attach_docs: bool = False):
     """
-    Sincroniza un lote de facturas en estado 'emitida'.
+    Sincroniza el estado de facturas con el proxy SIFEN (tabla public.de).
+    - Si attach_docs=True, para facturas aprobadas intenta adjuntar XML/PDF automáticamente.
     """
-    qs = Factura.objects.filter(estado="emitida").order_by("id")[:limit]
-    resumen = {"procesadas": 0, "aprobadas": 0, "rechazadas": 0, "con_archivos": 0, "detalles": []}
+    qs = (Factura.objects
+          .filter(estado__in=["emitida", "rechazada"])
+          .exclude(de_id__isnull=True)
+          .order_by("id")[:limit])
 
-    for f in qs:
+    procesadas = aprobadas = rechazadas = con_archivos = 0
+    detalles = []
+
+    for fac in qs:
         try:
-            res = sync_factura_de(f)
-            resumen["procesadas"] += 1
-            if res.get("estado_app") == "aprobada":
-                resumen["aprobadas"] += 1
-            elif res.get("estado_app") == "rechazada":
-                resumen["rechazadas"] += 1
-            if res.get("xml_saved") or res.get("pdf_saved"):
-                resumen["con_archivos"] += 1
-            resumen["detalles"].append({"factura_id": f.id, **res})
+            de = sql.refresh_estado_sifen_by_de_id(fac.de_id) or {}
+            estado_sifen = (de.get("estado_sifen") or "").strip() or None
+            desc_sifen   = de.get("desc_sifen")
+            fch_sifen    = de.get("fch_sifen")
+            yyyymm       = _to_yyyymm(fch_sifen) or timezone.now().strftime("%Y%m")
+
+            # Mapeo de estado SIFEN -> estado app
+            nuevo_estado = fac.estado
+            if estado_sifen == "Aprobado":
+                nuevo_estado = "aprobada"
+            elif estado_sifen == "Rechazado":
+                nuevo_estado = "rechazada"
+            else:
+                # Sin estado en SIFEN → se mantiene "emitida"
+                nuevo_estado = "emitida"
+
+            # Guardar cambio de estado si aplica
+            if nuevo_estado != fac.estado:
+                Factura.objects.filter(id=fac.id).update(estado=nuevo_estado)
+
+            xml_saved = pdf_saved = False
+            xml_name = pdf_name = None
+
+            # Si aprobada y se pidió adjuntar archivos, intentarlo
+            if attach_docs and nuevo_estado == "aprobada":
+                res = attach_kude_files_to_factura(fac, yyyymm=yyyymm)
+                if res.get("ok"):
+                    xml_name = res.get("attached", {}).get("xml")
+                    pdf_name = res.get("attached", {}).get("pdf")
+                    xml_saved = bool(xml_name)
+                    pdf_saved = bool(pdf_name)
+                    if xml_saved or pdf_saved:
+                        con_archivos += 1
+
+            if nuevo_estado == "aprobada":
+                aprobadas += 1
+            elif nuevo_estado == "rechazada":
+                rechazadas += 1
+
+            procesadas += 1
+
+            detalles.append({
+                "factura_id": fac.id,
+                "ok": True,
+                "de_id": fac.de_id,
+                "estado_app": nuevo_estado,
+                "estado_sifen": estado_sifen,
+                "desc_sifen": desc_sifen,
+                "fch_sifen": fch_sifen,
+                "xml_saved": xml_saved,
+                "pdf_saved": pdf_saved,
+                "xml_name": xml_name,
+                "pdf_name": pdf_name,
+            })
+
         except Exception as e:
-            resumen["detalles"].append({"factura_id": f.id, "ok": False, "error": repr(e)})
+            detalles.append({
+                "factura_id": fac.id,
+                "ok": False,
+                "error": repr(e),
+            })
+
+    resumen = {
+        "procesadas": procesadas,
+        "aprobadas": aprobadas,
+        "rechazadas": rechazadas,
+        "con_archivos": con_archivos,
+        "detalles": detalles,
+    }
+
+    # Log opcional para debug
+    print(f"[sync_facturas] ✅ {resumen}")
 
     return resumen
 
@@ -220,20 +286,14 @@ def _try_backfill_de_id(factura: Factura) -> bool:
     return True
 
 
-def _to_yyyymm(dt_like) -> str:
-    if not dt_like:
+def _to_yyyymm(dt) -> Optional[str]:
+    if not dt:
         return None
-    if isinstance(dt_like, str):
-        # ejemplos: "2025-10-27 18:00:05" o "2025-10-27"
-        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
-            try:
-                dt = datetime.strptime(dt_like[:19], fmt)
-                return dt.strftime("%Y%m")
-            except ValueError:
-                pass
-        return None
+    # dt puede venir como str 'YYYY-mm-dd HH:MM:SS' o como date/datetime
     try:
-        return dt_like.strftime("%Y%m")
+        if isinstance(dt, str):
+            return dt[:7].replace("-", "")
+        return dt.strftime("%Y%m")
     except Exception:
         return None
 
