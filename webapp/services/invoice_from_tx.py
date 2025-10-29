@@ -72,13 +72,13 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         return {"already": True, "factura_id": transaccion.factura_asociada_id}
 
     # force_151 = str(os.getenv("FS_TEST_OVERWRITE_151", "")).lower() in ("1", "true", "yes")
-    force_151 = False
+    force_numdoc = os.getenv("FS_TEST_OVERWRITE_NUMDOC", "False")
 
     with transaction.atomic():
         # --- Documento fiscal (Est y Pun fijos a 001/003) ---
 
-        if force_151:
-            dNumDoc = "0000156"  # no consumimos secuencia cuando se fuerza
+        if force_numdoc:
+            dNumDoc = "0000154"  # no consumimos secuencia cuando se fuerza
         else:
             # Intentar reutilizar un dNumDoc del proxy (rechazado/pendiente/etc.)
             reuse = sql.find_reusable_dnumdoc(est="001", pun="003",
@@ -110,7 +110,6 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         # --- Receptor normalizado ---
         cli = transaccion.cliente
         es_juridica = (cli.tipoCliente == "persona_juridica")
-        force_ruc_env = os.getenv("FS_FORCE_RUC_REC", True)
 
         if es_juridica:
             # Persona jurídica → RUC fijo
@@ -210,8 +209,8 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
             if params.cond_ope == "1":
                 sql.insert_pago_contado(de_id, items=params.items)
 
-            # Si estamos forzando 0000151, reseteamos el estado SIFEN del DE antes de confirmar
-            if force_151:
+            # Si estamos forzando numdoc, reseteamos el estado SIFEN del DE antes de confirmar
+            if force_numdoc:
                 sql.reset_sifen_by_de_id(de_id)
                 # (opcional) también podrías hacerlo por doc:
                 # sql.reset_sifen_by_doc("001", "003", dNumDoc)

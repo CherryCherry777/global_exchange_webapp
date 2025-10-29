@@ -186,6 +186,7 @@ CELERY_BEAT_SCHEDULE = {
         "task": "webapp.tasks.sync_facturas_pendientes_task",
         "schedule": crontab(minute="*/2"),
         "args": (200,),
+        "options": {"queue": "celery"},  # <- clave
     },
 }
 
@@ -233,10 +234,10 @@ sudo systemctl start redis-server
 
 Y para empezar celery (el handler para tareas temporizadas)
 #En una terminal separada de manage.py
-celery -A web_project worker -l info 
+celery -A web_project worker -l INFO -Q celery
 
 #En OTRA terminal aparte de la del worker
-celery -A web_project beat -l info 
+celery -A web_project beat   -l INFO
 
 todos los cambios en las configuraciones de django requieren matar los procesos celery y reiniciar
 pkill -f 'celery'

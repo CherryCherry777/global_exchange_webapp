@@ -454,81 +454,65 @@ def fetch_kude_files(est: str, pun: str, d_num_doc: str, yyyymm: str):
     return files
 
 
+LATEST_TS_EXPR = """
+COALESCE(
+  fch_ins,
+  (
+    CASE
+      WHEN pg_typeof(fch_sifen)::text = 'timestamp without time zone' THEN fch_sifen
+      ELSE NULLIF(fch_sifen::text, '')::timestamp
+    END
+  ),
+  '-infinity'::timestamp
+)
+"""
+
 def find_reusable_dnumdoc(est: str = "001", pun: str = "003",
                           start: str = "0000151", end: str = "0000200") -> str | None:
     """
-    Devuelve el primer dNumDoc en [start..end] que NO esté bloqueado.
-    Bloqueado = última fila de ese dNumDoc con estado='Aprobado' o
-    con NUMDOC_APROBADO en desc_sifen/error_sifen.
-    Si no existen filas para ese dNumDoc, se considera usable.
+    Devuelve el primer dnumdoc entre [start..end] cuya ÚLTIMA fila (por fecha real)
+    NO esté aprobada ni tenga el error NUMDOC_APROBADO.
+    La 'última' fila se define por: COALESCE(NULLIF(fch_sifen,'')::timestamp, fch_ins).
     """
-
-    def _to_int(s: str) -> int:
-        return int(str(s).strip())
-
-    def _pad7(n: int) -> str:
-        return str(n).zfill(7)
-
-    start_n = _to_int(start)
-    end_n   = _to_int(end)
-
-    # Traemos SOLO la última fila por dNumDoc dentro del rango.
-    # "Última" = mayor fch_upd/fch_ins y, a falta de eso, mayor id.
     with _cursor() as cur:
-        cur.execute("""
-            WITH ult AS (
+        cur.execute(
+            """
+            WITH ranked AS (
               SELECT
-                dNumDoc,
-                COALESCE(estado, '')       AS estado,
-                COALESCE(desc_sifen, '')   AS desc_sifen,
-                COALESCE(error_sifen, '')  AS error_sifen,
-                row_number() OVER (
-                  PARTITION BY dNumDoc
-                  ORDER BY COALESCE(fch_upd, fch_ins) DESC, id DESC
+                id,
+                dnumdoc,
+                estado,
+                estado_sifen,
+                desc_sifen,
+                error_sifen,
+                COALESCE(NULLIF(fch_sifen,'')::timestamp, fch_ins) AS fch_real,
+                ROW_NUMBER() OVER (
+                  PARTITION BY dnumdoc
+                  ORDER BY COALESCE(NULLIF(fch_sifen,'')::timestamp, fch_ins) DESC NULLS LAST
                 ) AS rn
               FROM public.de
-              WHERE dEst = %s
-                AND dPunExp = %s
-                AND dNumDoc BETWEEN %s AND %s
+              WHERE dest = %s
+                AND dpunexp = %s
+                AND dnumdoc BETWEEN %s AND %s
             )
-            SELECT dNumDoc, estado, desc_sifen, error_sifen
-            FROM ult
+            SELECT dnumdoc
+            FROM ranked
             WHERE rn = 1
-            ORDER BY dNumDoc ASC;
-        """, [est, pun, start, end])
+              AND NOT (
+                    estado = 'Aprobado'
+                 OR  estado_sifen = 'Aprobado'
+                 OR  error_sifen ILIKE '%%NUMDOC_APROBADO%%'
+              )
+            ORDER BY dnumdoc ASC
+            LIMIT 1;
+            """,
+            [est, pun, start, end],
+        )
+        row = cur.fetchone()
+        return row[0] if row else None
 
-        last_by_num = {}
-        for dnumdoc, estado, desc_sifen, error_sifen in cur.fetchall():
-            last_by_num[dnumdoc] = {
-                "estado": (estado or "").strip(),
-                "desc_sifen": (desc_sifen or "").strip(),
-                "error_sifen": (error_sifen or "").strip(),
-            }
 
-    # Recorremos el rango en orden creciente y decidimos
-    for n in range(start_n, end_n + 1):
-        cand = _pad7(n)
 
-        info = last_by_num.get(cand)
-        if not info:
-            # No tuvo filas -> está libre
-            return cand
-
-        estado      = info["estado"]
-        desc_sifen  = info["desc_sifen"]
-        error_sifen = info["error_sifen"]
-
-        has_numdoc_aprob = ("NUMDOC_APROBADO" in desc_sifen.upper()
-                            or "NUMDOC_APROBADO" in error_sifen.upper())
-
-        # Si la última fila está aprobada o el WS marcó NUMDOC_APROBADO, no usar
-        if estado == "Aprobado" or has_numdoc_aprob:
-            continue
-
-        # Caso contrario, es reutilizable
-        return cand
-
-    return None
 
 
 def get_de_status(de_id: int) -> dict | None:

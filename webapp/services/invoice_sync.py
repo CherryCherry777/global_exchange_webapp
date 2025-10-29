@@ -13,6 +13,10 @@ from webapp.services import fs_proxy as sql  # tu wrapper DB del proxy
 from django.utils import timezone
 from django.core.files.base import ContentFile
 from django.contrib import messages
+from celery import current_app as celery_app
+from django.core.cache import cache
+
+
 
 # --- HTTP helpers (proxy en proyecto separado) ---
 
@@ -168,95 +172,163 @@ def sync_factura_de(factura: Factura) -> dict:
         "pdf_name": pdf_name,
     }
 
-def sync_facturas_pendientes(limit=200, attach_docs: bool = False):
+def _is_numdoc_aprobado_case(de_status: dict) -> bool:
     """
-    Sincroniza el estado de facturas con el proxy SIFEN (tabla public.de).
-    - Si attach_docs=True, para facturas aprobadas intenta adjuntar XML/PDF automáticamente.
+    Detecta el caso de número ya aprobado, según los datos reales del proxy:
+      - estado == 'Verificar datos (Rech.Apr.)'
+      - o error_sifen contiene 'NUMDOC_APROBADO'
     """
+    estado = (de_status.get("estado") or "").strip()
+    err = (de_status.get("error_sifen") or "").upper()
+    return estado == "Verificar datos (Rech.Apr.)" or ("NUMDOC_APROBADO" in err)
+
+def _attach_if_approved(factura: Factura, de_status: dict) -> tuple[bool, bool, str | None, str | None]:
+    """
+    Si está Aprobado, adjunta XML/PDF desde el KUDE. Devuelve flags y nombres.
+    """
+    from webapp.services.invoice_sync import attach_kude_files_to_factura, _to_yyyymm
+
+    if (de_status.get("estado_sifen") or "").strip() != "Aprobado" and (de_status.get("estado") or "").strip() != "Aprobado":
+        return (False, False, None, None)
+
+    yyyymm = None
+    # preferimos fch_sifen
+    if de_status.get("fch_sifen"):
+        yyyymm = _to_yyyymm(de_status["fch_sifen"])
+
+    res = attach_kude_files_to_factura(factura, yyyymm=yyyymm)
+    if res.get("ok"):
+        return (bool(res["attached"].get("xml")), bool(res["attached"].get("pdf")),
+                res["attached"].get("xml"), res["attached"].get("pdf"))
+    return (False, False, None, None)
+
+def sync_facturas_pendientes(
+    limit: int = 200,
+    *,
+    fetch_files: bool | None = None,
+    attach_docs: bool | None = None,
+    fetch_files_on_approved: bool | None = None,
+    **kwargs,
+) -> dict:
+    """
+    Sincroniza facturas (emitida/rechazada) contra el proxy SIFEN y, si quedan 'Aprobadas',
+    puede adjuntar automáticamente XML/PDF.
+
+    Parámetros compatibles (backward-compatible):
+      - fetch_files
+      - attach_docs
+      - fetch_files_on_approved
+    Cualquiera de ellos activa el adjunto de archivos si es True.
+    """
+
+    # --- Normalización de flags de adjunto (compatibilidad hacia atrás) ---
+    # Prioridad: fetch_files > attach_docs > fetch_files_on_approved
+    if fetch_files is None:
+        if attach_docs is not None:
+            fetch_files = bool(attach_docs)
+        elif fetch_files_on_approved is not None:
+            fetch_files = bool(fetch_files_on_approved)
+        else:
+            # Valor por defecto: adjuntar archivos cuando la factura quede aprobada
+            fetch_files = True
+            
     qs = (Factura.objects
           .filter(estado__in=["emitida", "rechazada"])
           .exclude(de_id__isnull=True)
-          .order_by("id")[:limit])
+          .order_by("id"))
 
-    procesadas = aprobadas = rechazadas = con_archivos = 0
+    if limit:
+        qs = qs[:limit]
+
     detalles = []
+    aprobadas = rechazadas = con_archivos = procesadas = 0
 
     for fac in qs:
         try:
-            de = sql.refresh_estado_sifen_by_de_id(fac.de_id) or {}
-            estado_sifen = (de.get("estado_sifen") or "").strip() or None
-            desc_sifen   = de.get("desc_sifen")
-            fch_sifen    = de.get("fch_sifen")
-            yyyymm       = _to_yyyymm(fch_sifen) or timezone.now().strftime("%Y%m")
+            de = sql.get_de_status(fac.de_id)  # {id, dRucEm, dEst, dPunExp, dNumDoc, estado, estado_sifen, desc_sifen, error_sifen, fch_sifen}
+            if not de:
+                detalles.append({"factura_id": fac.id, "ok": False, "reason": "DE no encontrado en proxy."})
+                continue
 
-            # Mapeo de estado SIFEN -> estado app
-            nuevo_estado = fac.estado
-            if estado_sifen == "Aprobado":
-                nuevo_estado = "aprobada"
-            elif estado_sifen == "Rechazado":
-                nuevo_estado = "rechazada"
-            else:
-                # Sin estado en SIFEN → se mantiene "emitida"
-                nuevo_estado = "emitida"
+            # Actualizar dNumDoc/est/pun locales si vienen del proxy
+            d_est = (de.get("dEst") or fac.est or "").strip() or "001"
+            d_pun = (de.get("dPunExp") or fac.pun or "").strip() or "003"
+            d_num = (de.get("dNumDoc") or fac.d_num_doc or "").strip()
+            if d_num and (fac.est != d_est or fac.pun != d_pun or fac.d_num_doc != d_num):
+                Factura.objects.filter(id=fac.id).update(est=d_est, pun=d_pun, d_num_doc=d_num)
+                fac.est, fac.pun, fac.d_num_doc = d_est, d_pun, d_num
 
-            # Guardar cambio de estado si aplica
-            if nuevo_estado != fac.estado:
-                Factura.objects.filter(id=fac.id).update(estado=nuevo_estado)
+            estado_sifen = (de.get("estado_sifen") or "").strip()
+            estado = (de.get("estado") or "").strip()
+            desc_sifen = (de.get("desc_sifen") or "").strip()
+            fch_sifen = de.get("fch_sifen")
 
             xml_saved = pdf_saved = False
             xml_name = pdf_name = None
 
-            # Si aprobada y se pidió adjuntar archivos, intentarlo
-            if attach_docs and nuevo_estado == "aprobada":
-                res = attach_kude_files_to_factura(fac, yyyymm=yyyymm)
-                if res.get("ok"):
-                    xml_name = res.get("attached", {}).get("xml")
-                    pdf_name = res.get("attached", {}).get("pdf")
-                    xml_saved = bool(xml_name)
-                    pdf_saved = bool(pdf_name)
-                    if xml_saved or pdf_saved:
-                        con_archivos += 1
+            # Caso aprobado
+            if estado_sifen == "Aprobado" or estado == "Aprobado":
+                if fac.estado != "aprobada":
+                    Factura.objects.filter(id=fac.id).update(estado="aprobada")
+                    fac.estado = "aprobada"
+                    aprobadas += 1
+                # intentar adjuntar XML/PDF
+                x_ok, p_ok, x_name, p_name = _attach_if_approved(fac, de)
+                xml_saved, pdf_saved = x_ok, p_ok
+                xml_name, pdf_name = x_name, p_name
+                if x_ok or p_ok:
+                    con_archivos += 1
 
-            if nuevo_estado == "aprobada":
-                aprobadas += 1
-            elif nuevo_estado == "rechazada":
-                rechazadas += 1
-
-            procesadas += 1
+            else:
+                # Detectar caso NUMDOC_APROBADO tal como se da en tu proxy
+                if _is_numdoc_aprobado_case(de):
+                    # evitar encolar muchas veces en poco tiempo para la misma factura
+                    lock_key = f"retry_numdoc_lock:{fac.id}"
+                    if cache.add(lock_key, "1", timeout=300):  # 5 minutos
+                        try:
+                            # import interno para evitar circular
+                            from webapp.tasks import reintentar_factura_numdoc_task
+                            reintentar_factura_numdoc_task.delay(fac.id)
+                        except Exception as e:
+                            detalles.append({"factura_id": fac.id, "ok": False, "reason": f"no se pudo encolar retry: {e!r}"})
+                    # marcar como rechazada localmente para que el usuario vea el estado transitorio
+                    if fac.estado != "rechazada":
+                        Factura.objects.filter(id=fac.id).update(estado="rechazada")
+                        fac.estado = "rechazada"
+                        rechazadas += 1
+                else:
+                    # Otros estados → solo reflejar si vino 'Rechazado' en estado_sifen
+                    if estado_sifen == "Rechazado" and fac.estado != "rechazada":
+                        Factura.objects.filter(id=fac.id).update(estado="rechazada")
+                        fac.estado = "rechazada"
+                        rechazadas += 1
 
             detalles.append({
                 "factura_id": fac.id,
                 "ok": True,
                 "de_id": fac.de_id,
-                "estado_app": nuevo_estado,
-                "estado_sifen": estado_sifen,
-                "desc_sifen": desc_sifen,
+                "estado_app": fac.estado,
+                "estado_sifen": estado_sifen or estado or None,
+                "desc_sifen": desc_sifen or None,
                 "fch_sifen": fch_sifen,
                 "xml_saved": xml_saved,
                 "pdf_saved": pdf_saved,
                 "xml_name": xml_name,
                 "pdf_name": pdf_name,
             })
+            procesadas += 1
 
         except Exception as e:
-            detalles.append({
-                "factura_id": fac.id,
-                "ok": False,
-                "error": repr(e),
-            })
+            detalles.append({"factura_id": fac.id, "ok": False, "error": repr(e)})
 
-    resumen = {
+    return {
+        "ok": True,
         "procesadas": procesadas,
         "aprobadas": aprobadas,
         "rechazadas": rechazadas,
         "con_archivos": con_archivos,
         "detalles": detalles,
     }
-
-    # Log opcional para debug
-    print(f"[sync_facturas] ✅ {resumen}")
-
-    return resumen
 
 
 def _try_backfill_de_id(factura: Factura) -> bool:
@@ -409,3 +481,16 @@ def _name_matches(name: str, est: str, pun: str, d_num_doc: str) -> bool:
     pref_dash = f"{est}-{pun}-{d_num_doc}-"
     pref_und  = f"{est}-{pun}-{d_num_doc}_"
     return name.startswith(pref_dash) or name.startswith(pref_und)
+
+
+def _enqueue_retry_numdoc(factura_id: int) -> bool:
+    try:
+        celery_app.send_task(
+            "webapp.tasks.reintentar_factura_numdoc_task",
+            args=[factura_id],
+            countdown=2,
+        )
+        return True
+    except Exception as e:
+        print(f"[sync_facturas] No pude encolar reintento NUMDOC: {e!r}")
+        return False
