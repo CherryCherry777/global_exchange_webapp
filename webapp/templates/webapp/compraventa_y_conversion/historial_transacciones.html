@@ -104,8 +104,11 @@
                                             </a>
                                         {% endif %}
                                         {% if fac.xml_file %}
-                                            <a href="{{ fac.xml_file.url }}" class="action-button ingresar-id-btn" target="_blank" rel="noopener">
-                                                Ver Factura XML
+                                            <a href="{{ fac.xml_file.url }}" 
+                                                class="action-button ingresar-id-btn"
+                                                download
+                                                rel="noopener">
+                                                Descargar Factura XML
                                             </a>
                                         {% endif %}
                                     {% endif %}
