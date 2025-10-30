@@ -72,14 +72,18 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         return {"already": True, "factura_id": transaccion.factura_asociada_id}
 
     # force_151 = str(os.getenv("FS_TEST_OVERWRITE_151", "")).lower() in ("1", "true", "yes")
-    force_numdoc = os.getenv("FS_TEST_OVERWRITE_NUMDOC", "False")
+    force_numdoc = os.getenv("FS_TEST_OVERWRITE_NUMDOC", "False").lower() == "true"
+
+    print("force_numdoc =", repr(force_numdoc))
+    print("FS_TEST_OVERWRITE_NUMDOC =", os.getenv("FS_TEST_OVERWRITE_NUMDOC"))
+    print("FS_TEST_OVERWRITE_NUMERO =", os.getenv("FS_TEST_OVERWRITE_NUMERO"))
 
     with transaction.atomic():
         # --- Documento fiscal (Est y Pun fijos a 001/003) ---
 
         if force_numdoc:
             #dNumDoc = "0000154"  # no consumimos secuencia cuando se fuerza
-            os.getenv("FS_TEST_OVERWRITE_NUMERO", "0000151")
+            dNumDoc = os.getenv("FS_TEST_OVERWRITE_NUMERO", "0000151")
         else:
             # Intentar reutilizar un dNumDoc del proxy (rechazado/pendiente/etc.)
             reuse = sql.find_reusable_dnumdoc(est="001", pun="003",

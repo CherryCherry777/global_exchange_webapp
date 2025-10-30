@@ -9,3 +9,4 @@ LINE 10: ...umCasRec, cDepRec, dDesDepRec, cCiuRec, dDesCiuRec, dTelRec,
 [2025-10-26 20:51:22.134077] AttributeError: 'Cliente' object has no attribute 'tipo_persona'
 [2025-10-26 21:06:11.340167] AttributeError: module 'webapp.services.invoice_sql' has no attribute 'insert_de'
 [2025-10-26 21:07:38.442626] DataError: value too long for type character varying(20)
+[2025-10-30 18:17:49.050982] UnboundLocalError: cannot access local variable 'dNumDoc' where it is not associated with a value
