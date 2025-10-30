@@ -7,8 +7,6 @@ from webapp.services import fs_proxy as sql
 from webapp.services.dto import InvoiceParams, TimbradoDTO, EmisorDTO, ReceptorDTO, ItemDTO
 import re
 from typing import Optional, Tuple
-from django.contrib import messages
-
 # --- NUEVO: helper de entorno ---
 def _env_true(name: str) -> bool:
     return str(os.getenv(name, "")).strip().lower() in ("1", "true", "yes", "on")
@@ -91,7 +89,7 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
             if reuse:
                 dNumDoc = reuse
             else:
-                messages.error("No se ha podido generar factura.")
+                print("No se ha podido generar factura.")
 
         timb = TimbradoDTO(
             iTiDE="1",
