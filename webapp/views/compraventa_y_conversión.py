@@ -1,7 +1,10 @@
+from django.db import connections
 from django.utils import timezone
 from django.core.serializers.json import DjangoJSONEncoder
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
+import os
+from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -14,7 +17,9 @@ from decimal import Decimal
 from .payments.stripe_utils import procesar_pago_stripe
 from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera, validar_id_transferencia
 from webapp.tasks import pagar_al_cliente_task
-
+from django.template.loader import get_template
+from django.http import HttpResponse
+from weasyprint import HTML
 # ----------------------
 # Vistas de compraventa
 # ----------------------
@@ -94,7 +99,7 @@ def compraventa_view(request):
         # MFA ANTES DE CONFIRMAR LA TRANSACCION
         # ------------------------------
         data = request.POST.dict()
-
+        MFA_ENABLED = os.getenv("MFA_ENABLED", "true").lower() not in ("0", "false", "no", "off")
         # Pasos previo antes del MFA
         # Para metodos inactivos
         tipo_pago_id = data.get("medio_pago_tipo")
@@ -128,8 +133,15 @@ def compraventa_view(request):
         else:
             skip_mfa = False
 
+        # 🔕 Si MFA está deshabilitado por variable de entorno, lo saltamos
+        if not MFA_ENABLED:
+            skip_mfa = True
+            # inyectamos un código ficticio para entrar al bloque que ya tenés y continuar el flujo
+            if "mfa_code" not in data:
+                data["mfa_code"] = "SKIP"
+
         # === Paso 1: Generar MFA y solicitar código ===
-        if "confirmar" in data and "mfa_code" not in data:
+        if MFA_ENABLED and "confirmar" in data and "mfa_code" not in data:
             MFACode.generate_for_user(request.user)
             messages.info(request, "Se envió un código de verificación a tu correo electrónico.")
             return render(request, "webapp/compraventa_y_conversion/verificar_mfa.html", {"data": data})
@@ -310,6 +322,7 @@ def compraventa_view(request):
 
                 # --- Guardar transacción ---
                 transaccion = guardar_transaccion(cliente, request.user, data, estado, payment_intent_id)
+                
 
                 # Obtener tipo de cobro
                 try:
@@ -322,6 +335,17 @@ def compraventa_view(request):
                 # --- Pago al cliente en background ---
                 if tipo_cobro_nombre != "tauser":
                     pagar_al_cliente_task.delay(transaccion.id)
+
+                if estado == Transaccion.Estado.PAGADA:
+                    try:
+                        if os.getenv("GENERAR_FACTURA"):
+                            result = generate_invoice_for_transaccion(transaccion)
+                        # Si preferís async:
+                        # generate_invoice_task.delay(transaccion.id)
+                        # messages.success(request, f"Factura emitida. Nro {result['dNumDoc']} (DE {result['de_id']}).")
+                    except Exception as e:
+                        messages.warning(request, f"La transacción se registró, pero falló la emisión de la factura: {e}")
+                        with open("error.txt", "a") as f: f.write(f"[{datetime.now()}] {type(e).__name__}: {e}\n")
 
                 # limpiar la sesión
                 messages.success(request, "Transacción registrada.")
@@ -704,3 +728,5 @@ def set_cliente_seleccionado(request):
     else:
         request.session.pop('cliente_id', None)  # Borra la sesión si no hay cliente
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+

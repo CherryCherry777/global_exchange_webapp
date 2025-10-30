@@ -157,4 +157,9 @@ urlpatterns = [
     path('currency-denominations/', views.manage_currency_denominations, name='currency_denominations'),
     path('currency-denominations/edit/<int:currency_id>/', views.edit_currency_denominations, name='edit_currency_denominations'),
 
+    # Factura
+    path('ver-factura/', views.ver_factura, name='ver_factura'),
+    path('factura/', views.factura_view, name='factura_view'),
+    path("factura/<int:factura_id>/", views.factura_view, name="factura_view"),
+    path("factura/<int:factura_id>/pdf/", views.factura_pdf, name="factura_pdf"),
 ]

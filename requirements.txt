@@ -14,3 +14,4 @@ Pillow
 celery
 redis
 stripe
+weasyprint

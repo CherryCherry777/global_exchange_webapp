@@ -7,10 +7,12 @@ from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
 from django.contrib.sessions.models import Session
+
+from webapp.services.esi_bootstrap import ensure_esi_global_exchange
 from .models import Billetera, BilleteraCobro, ClienteUsuario, CuentaBancariaCobro, Currency, CurrencyDenomination, Entidad, LimiteIntercambioConfig, Categoria, LimiteIntercambioCliente, LimiteIntercambioLog, MedioCobro, Role, MedioPago, TarjetaInternacional, TarjetaNacional, Tauser, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion, Cliente
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
-from django.db import transaction
+from django.db import connections, transaction
 from decimal import Decimal
 import logging
 
@@ -486,6 +488,8 @@ def setup_database(sender, **kwargs):
                 print(f"✅ Cuenta Bancaria USD creada para {cliente.nombre}")
 
         print("\n🎉 Medios de cobro por defecto creados correctamente.\n")
+
+
     # -------------------------------------------------------------
     # EXECUTION ORDER
     # -------------------------------------------------------------

@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 import secrets
 from celery import shared_task
@@ -11,7 +11,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import  F, OuterRef, Subquery
 
-from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, ExpiracionTransaccionConfig, LimiteIntercambioCliente, LimiteIntercambioConfig, LimiteIntercambioScheduleConfig, MFACode, Tauser, Transaccion, CuentaBancariaNegocio
+from webapp.services.invoice_retry import retry_factura_numdoc
+from webapp.services.invoice_sync import sync_facturas_pendientes
+
+from .models import Currency, ClienteUsuario, CustomUser, EmailScheduleConfig, ExpiracionTransaccionConfig, LimiteIntercambioCliente, LimiteIntercambioConfig, LimiteIntercambioScheduleConfig, MFACode, SyncLog, Tauser, Transaccion, CuentaBancariaNegocio
 from .views.payments.pagos_simulados_a_clientes import pagar_al_cliente
 
 from django.utils import timezone
@@ -427,3 +430,183 @@ def pagar_al_cliente_task(self, transaccion_id: int) -> None:
             logger.warning("Error enviando notificaciones: %s", mail_error)
 
         logger.error("[ACREDITACION_FALLIDA] Transacción %s: %s", transaccion.id, e)
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=10)
+def generate_invoice_task(self, transaccion_id: int):
+    from webapp.models import Transaccion
+    from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
+    try:
+        tx = Transaccion.objects.get(id=transaccion_id)
+        return generate_invoice_for_transaccion(tx)
+    except Exception as e:
+        raise self.retry(exc=e)
+
+
+@shared_task(name="webapp.tasks.sync_facturas_sifen_task")
+def sync_facturas_sifen_task(limit=200):
+    """
+    Sincroniza facturas con SIFEN y adjunta XML/PDF cuando quedan aprobadas.
+    """
+    resumen = sync_facturas_pendientes(limit=limit, fetch_files=True)
+    SyncLog.objects.create(resumen=resumen)
+    return resumen
+
+
+LOCK_KEY = "sync_facturas_lock"
+LOCK_TTL = 60 * 5  # 5 minutos
+
+@shared_task(bind=True, max_retries=2)
+def sync_facturas_pendientes_task(self, limit=200):
+    """
+    (Opcional) Variante con lock local si querés correrla manualmente o desde otra agenda.
+    """
+    if not cache.add(LOCK_KEY, "1", LOCK_TTL):
+        return {"ok": False, "skipped": "locked"}
+
+    try:
+        resumen = sync_facturas_pendientes(limit=limit, fetch_files=True)
+        return {"ok": True, **resumen}
+    except Exception as e:
+        return {"ok": False, "error": repr(e)}
+    finally:
+        cache.delete(LOCK_KEY)
+
+
+@shared_task(name="webapp.tasks.reintentar_factura_numdoc_task")
+def reintentar_factura_numdoc_task(factura_id: int):
+    """
+    Reintenta una factura que fue rechazada con el error 'NUMDOC_APROBADO',
+    generando un nuevo dNumDoc válido y reenviándola al proxy SIFEN.
+
+    - Busca el siguiente número libre en public.de.
+    - Inserta un nuevo DE en el proxy con ese número.
+    - Actualiza la factura con el nuevo de_id y la marca como 'emitida'.
+    - Llama a confirmar_borrador() para que el proxy procese el nuevo DE.
+    """
+
+    from webapp.models import Factura
+    from webapp.services import fs_proxy as sql
+    from webapp.services.invoice_from_tx import (
+        _int_py, _parse_ruc, _mod11_py, _ensure_len,
+        InvoiceParams, TimbradoDTO, EmisorDTO, ReceptorDTO, ItemDTO
+    )
+    from django.conf import settings
+
+    try:
+        factura = (Factura.objects
+                   .select_related("cliente", "usuario", "detalleFactura__transaccion")
+                   .get(id=factura_id))
+        tx = factura.detalleFactura.transaccion
+
+        # Buscar el siguiente dNumDoc disponible
+        dnumdoc = sql.find_reusable_dnumdoc(est=factura.est, pun=factura.pun,
+                                            start="0000151", end="0000200")
+        if not dnumdoc:
+            return {"ok": False, "reason": "No hay dNumDoc reutilizable en rango."}
+
+        # Construir parámetros del nuevo DE
+        timb = TimbradoDTO(
+            iTiDE="1",
+            num_tim=str(getattr(settings, "TIMBRADO_NUM", "02595733")),
+            est=factura.est or "001", pun_exp=factura.pun or "003", num_doc=dnumdoc,
+            serie="", fe_ini_t=str(getattr(settings, "TIMBRADO_FE_INI", "2025-03-27"))
+        )
+        emisor = EmisorDTO(
+            ruc="2595733", dv="3",
+            nombre="Global Exchange",
+            dir="SIN DIRECCIÓN DEFINIDA",
+            num_casa="0",
+            dep_cod="1", dep_desc="CAPITAL",
+            ciu_cod="1", ciu_desc="ASUNCION (DISTRITO)",
+            tel="021000000",
+            email="equipo8.globalexchange@gmail.com",
+            tip_cont="2",
+            info_fisc="Documento emitido por Global Exchange"
+        )
+
+        cli = factura.cliente
+        es_juridica = (cli.tipoCliente == "persona_juridica")
+
+        # Valores de prueba fijos
+        if es_juridica:
+            ruc_base, ruc_dv = "2175460", "8"
+            is_contrib = True
+        else:
+            ruc_base, ruc_dv = None, None
+            is_contrib = False
+            cli.documento = "1234567"
+
+        iNatRec = "1" if is_contrib else "2"
+        iTiOpe = "1" if is_contrib else "2"
+
+        nom_base = cli.razonSocial if es_juridica and cli.razonSocial else cli.nombre
+        nom_rec = _ensure_len(nom_base, 4, 255, "Sin Nombre")
+        dir_rec = _ensure_len(cli.direccion, 0, 255, "")
+
+        if is_contrib:
+            iTiContRec = "2" if es_juridica else "1"
+            dRucRec = ruc_base
+            dDVRec = ruc_dv
+            iTipIDRec, dDTipIDRec, dNumIDRec = "0", "", ""
+        else:
+            iTiContRec, dRucRec, dDVRec = None, None, None
+            iTipIDRec, dDTipIDRec, dNumIDRec = "1", "", "1234567"
+
+        receptor = ReceptorDTO(
+            nat_rec=iNatRec, ti_ope=iTiOpe, pais="PRY",
+            ti_cont_rec=iTiContRec,
+            ruc=dRucRec, dv=dDVRec,
+            tip_id=iTipIDRec, dtipo_id=dDTipIDRec, num_id=dNumIDRec,
+            nombre=nom_rec,
+            dir=dir_rec, num_casa="",
+            dep_cod="1", dep_desc="CAPITAL", ciu_cod="1", ciu_desc="ASUNCION (DISTRITO)",
+            email=cli.correo, tel=cli.telefono
+        )
+
+        # Determinar base imponible
+        if tx.moneda_origen.code == "PYG":
+            base_pyg = tx.monto_origen
+        elif tx.moneda_destino.code == "PYG":
+            base_pyg = tx.monto_destino
+        else:
+            base_pyg = tx.monto_destino
+
+        items = [ItemDTO(
+            cod_int="CAM/DIV",
+            descripcion=f"Servicio de cambio de divisas ({tx.tipo})",
+            cantidad="1",
+            precio_unit=_int_py(base_pyg),
+            desc_item="0",
+            iAfecIVA="3", dPropIVA="0", dTasaIVA="0"
+        )]
+
+        params = InvoiceParams(
+            timbrado=timb, emisor=emisor, receptor=receptor, items=items,
+            fecha_emision=datetime.now(),
+            tip_emi="1", tip_tra="1", t_imp="1", moneda="PYG",
+            ind_pres="1", cond_ope="1", plazo_cre=""
+        )
+
+        with transaction.atomic():
+            new_de_id = sql.insert_de(params)
+            sql.insert_acteco(new_de_id, actividades=[("62010", "Actividades de programación informática")])
+            sql.insert_items(new_de_id, params.items)
+            sql.insert_pago_contado(new_de_id, items=params.items)
+            sql.confirmar_borrador(new_de_id)
+
+            # Actualizar factura en la app
+            factura.de_id = new_de_id
+            factura.d_num_doc = dnumdoc
+            factura.estado = "emitida"
+            factura.save(update_fields=["de_id", "d_num_doc", "estado"])
+
+        return {
+            "ok": True,
+            "factura_id": factura.id,
+            "new_de_id": new_de_id,
+            "d_num_doc": dnumdoc
+        }
+
+    except Exception as e:
+        return {"ok": False, "error": repr(e)}

@@ -1,0 +1,7 @@
+public.de
+public.de_file
+public.esi
+public.gacteco
+public.gcamdeasoc
+public.gcamitem
+public.gpaconeini

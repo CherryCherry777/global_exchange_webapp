@@ -1,0 +1,125 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'webapp/css/compraventa/factura.css' %}">
+    <title>Factura</title>
+</head>
+<body>
+    <div class="invoice">
+        <header>
+            <div id="info-empresa">
+                <div id="logo-with-title">
+                    <div id="img-logo-wrapper">
+                        <img src="{% static 'webapp/logo.png' %}" id="img-logo-factura" alt="Logo">
+                    </div>
+                    <h1>Global Exchange</h1>
+                </div>
+                <address>
+                    Empresa S.A.<br>
+                    Acceso peatonal de Mcal. Estigarribia a la UNA, San Lorenzo<br>
+                    Tel: 000-000-000
+                </address>
+            </div>
+
+            <div id="info-factura">
+                <b style="text-align: center;">FACTURA</b><br>
+                <p><b>RUC:</b> {{ ruc }}</p>
+                <p><b>Número de Timbrado:</b> {{ timbrado }}</p>
+                <p><b>F. Inicio Vigencia:</b> {{ inicio_vigencia }}</p>
+                <p><b>F. Fin Vigencia:</b> {{ fin_vigencia }}</p>
+                <b>N° {{ numero_factura }}</b>
+            </div>
+        </header>
+
+        <section id="info-venta">
+            <div class="info-venta-object-left">
+                <p><b>Fecha y Hora de Emisión:</b> {{ fecha_emision }}</p>
+            </div>
+            <div class="info-venta-object-right">
+                <p><b>Condición de Venta:</b> {{ condicion }}</p>
+            </div>
+
+            <div class="info-venta-object-left">
+                <p><b>Nombre o Razón Social:</b> {{ cliente }} ({{ tipo_cliente }})</p>
+            </div>
+            <div class="info-venta-object-right">
+                <p><b>Moneda:</b> {{ moneda }}</p>
+            </div>
+
+            <div class="info-venta-object-left">
+                <p><b>Dirección:</b> {{ direccion }}</p>
+            </div>
+            <div class="info-venta-object-right">
+                <p><b>Nota de Remisión nro.:</b> {{ nota_remision }}</p>
+            </div>
+
+            <div class="info-venta-object-left">
+                <p><b>RUC/Documento de Identidad Nro.:</b> {{ documento }}</p>
+            </div>
+            <div class="info-venta-object-right">
+                <p><b>Direccion de Correo Electrónico:</b> {{ email }}</p>
+            </div>
+        </section>
+
+        <section id="detalle">
+            <h2>Detalle</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th rowspan="2">Descripción</th>
+                        <th rowspan="2" class="right">Cantidad</th>
+                        <th rowspan="2" class="right">Precio Unitario</th>
+                        <th colspan="3" class="right">Valor de Ventas</th>
+                    </tr>
+                    <tr>
+                        <th class="right">Exentas</th>
+                        <th class="right">5%</th>
+                        <th class="right">10%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in detalle %}
+                    <tr>
+                        <td>{{ item.descripcion }}</td>
+                        <td class="right">{{ item.cantidad }}</td>
+                        <td class="right">{{ item.precio }}</td>
+                        <td class="right valor-ventas">{{ item.exentas }}</td>
+                        <td class="right valor-ventas">{{ item.iva5 }}</td>
+                        <td class="right valor-ventas">{{ item.iva10 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="left">Subtotales</td>
+                        <td class="right">{{ subtotal_exentas }}</td>
+                        <td class="right">{{ subtotal_iva5 }}</td>
+                        <td class="right">{{ subtotal_iva10 }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="left">Total de la Operación</td>
+                        <td colspan="1" class="right">{{ total_operacion }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="left th-not-bold"><b>Total en Guaraníes</b>&emsp;&emsp;&emsp;{{ total_guaranies }}</td>
+                        <td colspan="1" class="right">{{ total_guaranies }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="left th-not-bold"><b>Liquidación del IVA</b>&emsp;&emsp;&emsp;(5%)&emsp;{{ iva5 }}&emsp;&emsp;&emsp;(10%)&emsp;{{ iva10 }}&emsp;&emsp;&emsp;Total IVA:</td>
+                        <td colspan="1" class="right">{{ iva_total }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </section>
+
+        <footer>
+            <p>Gracias por su compra.</p>
+            <p>Este documento es una representación gráfica de un documento electrónico</p>
+            <p>Condiciones de pago: 30 días</p>
+        </footer>
+    </div>
+</body>
+</html>
