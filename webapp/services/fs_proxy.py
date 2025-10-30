@@ -467,49 +467,83 @@ COALESCE(
 )
 """
 
-def find_reusable_dnumdoc(est: str = "001", pun: str = "003",
-                          start: str = "0000151", end: str = "0000200") -> str | None:
+def find_reusable_dnumdoc(
+    est: str = "001",
+    pun: str = "003",
+    start: str = "0000151",
+    end: str = "0000200",
+) -> str | None:
     """
-    Devuelve el primer dnumdoc entre [start..end] cuya ÚLTIMA fila (por fecha real)
-    NO esté aprobada ni tenga el error NUMDOC_APROBADO.
-    La 'última' fila se define por: COALESCE(NULLIF(fch_sifen,'')::timestamp, fch_ins).
+    Devuelve el primer dnumdoc entre [start..end] que sea reutilizable:
+      - No tiene filas en public.de (libre), o
+      - Su ÚLTIMA fila (por fecha real) NO está Aprobado y NO contiene NUMDOC_APROBADO.
+
+    La 'fecha real' se define como:
+      COALESCE(NULLIF(fch_sifen::text,'')::timestamp, fch_ins)
+
+    Se normaliza dest/dpunexp a 3 dígitos para comparaciones seguras.
     """
     with _cursor() as cur:
         cur.execute(
             """
-            WITH ranked AS (
+            WITH pool AS (
+              SELECT to_char(gs::int, 'FM0000000') AS dnumdoc
+              FROM generate_series(%s::int, %s::int) AS gs
+            ),
+            latest AS (
               SELECT
-                id,
                 dnumdoc,
                 estado,
                 estado_sifen,
-                desc_sifen,
                 error_sifen,
-                COALESCE(NULLIF(fch_sifen,'')::timestamp, fch_ins) AS fch_real,
                 ROW_NUMBER() OVER (
                   PARTITION BY dnumdoc
-                  ORDER BY COALESCE(NULLIF(fch_sifen,'')::timestamp, fch_ins) DESC NULLS LAST
+                  ORDER BY COALESCE(NULLIF(fch_sifen::text,'')::timestamp, fch_ins) DESC NULLS LAST
                 ) AS rn
               FROM public.de
-              WHERE dest = %s
-                AND dpunexp = %s
+              WHERE LPAD(TRIM(dest), 3, '0') = %s
+                AND LPAD(TRIM(dpunexp), 3, '0') = %s
                 AND dnumdoc BETWEEN %s AND %s
+            ),
+            last AS (
+              SELECT
+                dnumdoc,
+                estado,
+                estado_sifen,
+                error_sifen
+              FROM latest
+              WHERE rn = 1
             )
-            SELECT dnumdoc
-            FROM ranked
-            WHERE rn = 1
-              AND NOT (
-                    estado = 'Aprobado'
-                 OR  estado_sifen = 'Aprobado'
-                 OR  error_sifen ILIKE '%%NUMDOC_APROBADO%%'
+            SELECT p.dnumdoc
+            FROM pool p
+            LEFT JOIN last l USING (dnumdoc)
+            WHERE
+              -- Si no existe en public.de, está disponible
+              l.dnumdoc IS NULL
+              OR
+              -- Si existe, su última fila NO debe estar aprobada ni con NUMDOC_APROBADO
+              NOT (
+                   l.estado = 'Aprobado'
+                OR l.estado_sifen = 'Aprobado'
+                OR l.error_sifen ILIKE '%%NUMDOC_APROBADO%%'
               )
-            ORDER BY dnumdoc ASC
+            ORDER BY p.dnumdoc ASC
             LIMIT 1;
             """,
-            [est, pun, start, end],
+            [start, end, est, pun, start, end],
         )
         row = cur.fetchone()
-        return row[0] if row else None
+
+        if row:
+            print("###########################")
+            print("Número reutilizable encontrado:", row[0])
+            print("###########################")
+            return row[0]
+        else:
+            print("###########################")
+            print("No hay dNumDoc reutilizable en el rango.")
+            print("###########################")
+            return None
 
 
 
