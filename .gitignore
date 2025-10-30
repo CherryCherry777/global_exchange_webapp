@@ -40,3 +40,6 @@ docs/_templates/
 # Celery
 celerybeat-schedule
 celerybeat-schedule.db
+
+# Depuración
+error.txt
