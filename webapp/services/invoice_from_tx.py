@@ -78,7 +78,8 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
         # --- Documento fiscal (Est y Pun fijos a 001/003) ---
 
         if force_numdoc:
-            dNumDoc = "0000154"  # no consumimos secuencia cuando se fuerza
+            #dNumDoc = "0000154"  # no consumimos secuencia cuando se fuerza
+            os.getenv("FS_TEST_OVERWRITE_NUMERO", "0000151")
         else:
             # Intentar reutilizar un dNumDoc del proxy (rechazado/pendiente/etc.)
             reuse = sql.find_reusable_dnumdoc(est="001", pun="003",
