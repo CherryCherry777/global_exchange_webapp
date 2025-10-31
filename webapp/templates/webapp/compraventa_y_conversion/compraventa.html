@@ -53,6 +53,9 @@
                                         placeholder="0"
                                     >
                                 </div>
+                                <div id="tauser-suggestion-amount" 
+                                    style="display:none; color:#1b73e8; font-size:14px; margin-top:4px;">
+                                </div>
                             </div>
 
                             <!-- To Currency -->
@@ -66,7 +69,9 @@
                                     <input name="monto_destino" type="text" readonly class="result-input" id="simu-result-main">
                                 </div>
                                 <!-- ⚠️ Aquí aparece el mensaje inline si NO coincide con billetes reales -->
-                                <div id="simu-result-warning" class="result-detail"></div>
+                                <div id="tauser-suggestion-out" 
+                                    style="display:none; color:#1b73e8; font-size:14px; margin-top:4px;">
+                                </div>
                             </div>
 
                             <div class="converter-actions">
@@ -207,6 +212,9 @@
     const metodoPago = document.getElementById("simu-metodo-pago");
     const metodoCobro = document.getElementById("simu-metodo-cobro");
     const LIMITES_INTERCAMBIO = JSON.parse('{{ limites_intercambio|safe }}');
+    const TAUSER_CT_ID = {{ ct_tauser.id }};
+
+    let TAUSER_STOCK = {}; // { tauserId : { "USD": [{value, qty}, ...], ... } }
 
     let CODES = [];
     const META = Object.create(null);
@@ -313,7 +321,6 @@
         // Verifica que ambas monedas existan en META (tabla con cotizaciones/definiciones)
         if (!META[a] || !META[b]) return;
 
-        console.log(META[a])
         // Variables donde se guardarán el resultado y la tasa de cambio usada
         let val, rateAB;
 
@@ -339,8 +346,6 @@
         // Muestra el resultado formateado en el campo de salida
         out.value = `${nf(val, b)} ${b}`;
 
-        // 🔥 Validar denominaciones después de actualizar el resultado
-        validarDenominaciones();
     }
 
     function attachListeners() {
@@ -351,6 +356,18 @@
             amount.addEventListener(evt, () => {
                 actualizarFiltros(); // 🔹 actualiza visibilidad de botones
                 compute();
+
+                aplicarFiltroTauserEnSelect(metodoPago, true);
+                aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+                // ✅ Si el método seleccionado es Tauser → evaluar
+                const opt = metodoPago?.selectedOptions?.[0];
+                if (opt && opt.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoPago, true);
+                }
+
+                evaluarAmbosTausers();
+
             });
 
             // Cuando cambia la moneda de origen (from)
@@ -359,6 +376,23 @@
                 actualizarFiltros();           // 🔹 antes de recargar métodos, actualiza botones
                 await recargarMetodos();       // recarga métodos de pago/cobro disponibles
                 compute();                     // recalcula el resultado
+
+                aplicarFiltroTauserEnSelect(metodoPago, true);
+                aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+                // evaluar pago tauser
+                const optP = metodoPago?.selectedOptions?.[0];
+                if (optP && optP.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoPago, true);
+                }
+
+                const optC = metodoCobro?.selectedOptions?.[0];
+                if (optC && optC.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoCobro, false);
+                }
+
+                evaluarAmbosTausers();
+
             });
 
             // Cuando cambia la moneda de destino (to)
@@ -367,6 +401,23 @@
                 actualizarFiltros();           // actualizar botones de filtros disponibles
                 await recargarMetodos();       // recarga métodos
                 compute();                     // recalcula
+
+                aplicarFiltroTauserEnSelect(metodoPago, true);
+                aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+                // evaluar pago tauser
+                const optP = metodoPago?.selectedOptions?.[0];
+                if (optP && optP.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoPago, true);
+                }
+
+                const optC = metodoCobro?.selectedOptions?.[0];
+                if (optC && optC.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoCobro, false);
+                }
+
+                evaluarAmbosTausers();
+
             });
         });
 
@@ -417,6 +468,18 @@
 
                     await updateRatesForMetodo();
                     compute();
+
+                    aplicarFiltroTauserEnSelect(metodoPago, true);
+                    aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+                    const esPago = (selectEl === metodoPago);
+                    const opt = selectEl.selectedOptions?.[0];
+                    if (opt && opt.dataset.contentTypeId == TAUSER_CT_ID) {
+                        evaluarSugerenciaTauser(selectEl, esPago);
+                    }
+
+                    evaluarAmbosTausers();
+
                 });
             });
         }
@@ -499,6 +562,29 @@
             const res = await fetch(`{% url 'get_metodos_pago_cobro' %}?from=${from.value}&to=${to.value}`);
             const data = await res.json(); // Parseo del JSON de respuesta
 
+            // ✅ Guardar stock de Tausers
+            TAUSER_STOCK = {};
+            [...data.metodo_pago, ...data.metodo_cobro].forEach(item => {
+                if (item.tipo === "Tauser" && item.stock) {
+                    TAUSER_STOCK[item.id] = item.stock; 
+                }
+            });
+
+            // ✅ Dar PYG infinito a todos los Tausers (para stock)
+            for (const tauserId in TAUSER_STOCK) {
+
+                // Si no tiene PYG en su estructura, crearla
+                if (!TAUSER_STOCK[tauserId]["PYG"]) {
+                    TAUSER_STOCK[tauserId]["PYG"] = [];
+                }
+
+                // Añadir un “billete” enorme que actúa como infinito
+                TAUSER_STOCK[tauserId]["PYG"].push({
+                    value: 1000000000, // 1.000.000.000 Gs
+                    quantity: Infinity
+                });
+            }
+
             // 🆕 Opción inicial por defecto
             const agregarOpcionInicial = (selectEl) => {
                 const opt = document.createElement("option");
@@ -568,6 +654,21 @@
 
             // Luego de recargar métodos, actualiza las tasas de cambio
             await updateRatesForMetodo();
+
+            aplicarFiltroTauserEnSelect(metodoPago, true);
+            aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+            // Tras recargar selects, evaluar si hay tauser seleccionado
+            const optP = metodoPago?.selectedOptions?.[0];
+            if (optP && optP.dataset.contentTypeId == TAUSER_CT_ID) {
+                evaluarSugerenciaTauser(metodoPago, true);
+            }
+            const optC = metodoCobro?.selectedOptions?.[0];
+            if (optC && optC.dataset.contentTypeId == TAUSER_CT_ID) {
+                evaluarSugerenciaTauser(metodoCobro, false);
+            }
+
+            evaluarAmbosTausers();
 
         } catch (error) {
             // Si algo falla (error de red o API), lo muestra en consola
@@ -677,14 +778,7 @@
             const esTauser = nombre === "Tauser";
             const permitidoBase = esPYG || ["Tauser", "Tarjeta Internacional"].includes(nombre);
 
-            // 🔹 Regla adicional para Tauser (método de PAGO)
-            // Solo se muestra si el monto termina en 000 (sin decenas, centenas ni unidades)
-            let permitido = permitidoBase;
-            if (esTauser && permitidoBase) {
-                permitido = (amount % 1000 === 0);  // múltiplo de 1000 exacto
-            }
-
-            btn.style.display = permitido ? "" : "none";
+            btn.style.display = permitidoBase ? "" : "none";
         });
 
         // === FILTRO DE COBRO ===
@@ -697,9 +791,7 @@
                 // Solo Tauser cuando to ≠ PYG
                 btn.style.display = esTauser ? "" : "none";
             } else {
-                // to = PYG → ocultar Tauser si no es múltiplo de 100000
-                const esMultiplo = amount % 100000 === 0;
-                btn.style.display = esTauser && !esMultiplo ? "none" : "";
+                btn.style.display = ""
             }
         });
 
@@ -847,47 +939,329 @@
 //Validar denominaciones para tauser
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function validarDenominaciones() {
-    const fromCode = from.value;
-    const toCode = to.value;
-    const warningEl = document.getElementById("simu-result-warning");
+    function tauserPuedeEntregar(tauserId, currencyCode, monto) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        if (!stockInfo || !stockInfo[currencyCode]) return false;
 
-    if (fromCode !== "PYG") {
-        warningEl.classList.add("d-none");
-        return;
+        const denoms = stockInfo[currencyCode]
+            .map(d => ({ value: parseFloat(d.value), qty: d.quantity }))
+            .sort((a, b) => b.value - a.value);
+
+        let restante = monto;
+        for (const d of denoms) {
+            if (d.value <= 0) continue;
+            let maxUnits = Math.floor(restante / d.value);
+            let usar = Math.min(maxUnits, d.qty);
+            restante -= usar * d.value;
+            if (restante <= 0) return true;
+        }
+
+        return false;
     }
 
-    let montoDestino = out.value.replace(/[^\d.,]/g, "");
-    montoDestino = parseFloat(montoDestino.replace(/\./g, "").replace(",", ".")) || 0;
-    if (!montoDestino) {
-        warningEl.classList.add("d-none");
-        return;
+    function tauserPuedeRecibir(tauserId, currencyCode, monto) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        if (!stockInfo || !stockInfo[currencyCode]) return false;
+
+        // ✅ Usa las mismas denominaciones que él maneja (como entregar)
+        const denoms = stockInfo[currencyCode]
+            .map(d => ({ value: parseFloat(d.value), qty: Infinity })) // recibe sin límite
+            .sort((a, b) => b.value - a.value);
+
+        let restante = monto;
+        for (const d of denoms) {
+            if (d.value <= 0) continue;
+            let usar = Math.floor(restante / d.value);
+            restante -= usar * d.value;
+            if (restante <= 0) return true;
+        }
+
+        return false;
     }
 
-    const denominaciones = {
-        "USD": [1, 5, 10, 20, 50, 100],
-        "EUR": [5, 10, 20, 50, 100],
-        "BRL": [2, 5, 10, 20, 50, 100, 200],
-        "ARS": [1000, 2000, 5000, 10000]
-    };
+    function tauserMontoMinimoEntregar(tauserId, currencyCode, monto) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        if (!stockInfo || !stockInfo[currencyCode]) return null;
 
-    const listaDen = denominaciones[toCode] || null;
+        const denoms = stockInfo[currencyCode]
+            .map(d => ({ value: parseFloat(d.value), qty: d.quantity }))
+            .sort((a, b) => b.value - a.value);
 
-    if (!listaDen) {
-        warningEl.classList.add("d-none"); 
-        return;
+        // primero probamos si puede cubrir exacto
+        if (tauserPuedeEntregar(tauserId, currencyCode, monto)) {
+            return monto;
+        }
+
+        // si no puede exacto, vamos buscando hacia arriba
+        let extra = 0;
+        while (extra <= monto * 0.5) { // límite práctico: no crecer más del 50% (evita loops enormes)
+            const intento = monto + extra;
+            let restante = intento;
+
+            for (const d of denoms) {
+                if (d.value <= 0) continue;
+                let usar = Math.min(Math.floor(restante / d.value), d.qty);
+                restante -= usar * d.value;
+                if (restante <= 0) return intento;
+            }
+
+            extra += 1;
+        }
+
+        return null; // no puede entregar ni cercano
     }
 
-    const coincide = listaDen.some(den => montoDestino % den === 0);
 
-    if (!coincide) {
-        warningEl.textContent = 
-            `⚠ Este monto no coincide con denominaciones reales (${toCode}). La diferencia será cobrada en guaraníes al tipo de cambio actual.`;
-        warningEl.classList.remove("d-none");
-    } else {
-        warningEl.classList.add("d-none");
+    function tauserMontoMinimoRecibir(tauserId, currencyCode, monto) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        if (!stockInfo || !stockInfo[currencyCode]) return null;
+
+        // ✅ Mismas denominaciones que puede recibir
+        const denoms = stockInfo[currencyCode]
+            .map(d => ({ value: parseFloat(d.value), qty: Infinity })) 
+            .sort((a, b) => b.value - a.value);
+
+        // Si puede exacto
+        if (tauserPuedeRecibir(tauserId, currencyCode, monto)) {
+            return monto;
+        }
+
+        let extra = 0;
+        while (extra <= monto * 0.5) {
+            const intento = monto + extra;
+            let restante = intento;
+
+            for (const d of denoms) {
+                if (d.value <= 0) continue;
+                let usar = Math.floor(restante / d.value);
+                restante -= usar * d.value;
+                if (restante <= 0) return intento;
+            }
+            extra++;
+        }
+
+        return null;
     }
-}
+
+    function mostrarSugerenciaTauser(mensaje, targetId) {
+        const el = document.getElementById(targetId);
+
+        if (!el) return;
+
+        el.textContent = mensaje;
+        el.style.display = mensaje ? "block" : "none";
+    }
+
+    function evaluarSugerenciaTauser(selectEl, es_pago) {
+        const targetId = es_pago ? "tauser-suggestion-amount" : "tauser-suggestion-out";
+        console.log(targetId)
+
+        mostrarSugerenciaTauser("", targetId);
+
+        const monto = es_pago 
+            ? parseFloat((amount.value || "0").replace(/\./g,"").replace(",", ".")) || 0 
+            : parseFloat((out.value || "0").replace(/\./g,"").replace(",", ".")) || 0;
+
+        const moneda = es_pago ? from.value : to.value;
+        const opt = selectEl.selectedOptions[0];
+        if (!opt || opt.dataset.contentTypeId != TAUSER_CT_ID || !monto) return;
+
+        const tauserId = parseInt(opt.value);
+
+        // ✅ Caso 1: Cliente paga → Tauser recibe
+        if (es_pago) {
+            if (tauserPuedeRecibir(tauserId, moneda, monto)) return;
+
+            const minimo = tauserMontoMinimoRecibir(tauserId, moneda, monto);
+
+            mostrarSugerenciaTauser(
+                minimo
+                    ? `Monto sugerido que puede aceptar este Tauser es ${nf(minimo)}`
+                    : `Este monto no se puede formar con billetes reales.`,
+                targetId
+            );
+            return;
+        }
+
+        // ✅ Caso 2: cliente recibe → tauser entrega
+        if (tauserPuedeEntregar(tauserId, moneda, monto)) return;
+
+        const minimo = tauserMontoMinimoEntregar(tauserId, moneda, monto);
+
+        mostrarSugerenciaTauser(
+            minimo
+                ? `El Tauser puede darte ${nf(minimo)}, el más cercano disponible`
+                : `Este Tauser no puede entregar este monto con su stock.`,
+            targetId
+        );
+    }
+
+    function aplicarFiltroTauserEnSelect(selectEl, es_pago) {
+        const moneda = es_pago ? from.value : to.value;
+
+        for (const opt of [...selectEl.options]) {
+            if (!opt.value) continue;
+            const id = parseInt(opt.value);
+
+            // ✅ Detectar si es Tauser
+            const isTauser = opt.dataset.contentTypeId == TAUSER_CT_ID;
+            if (!isTauser) continue;
+
+            const stockInfo = TAUSER_STOCK[id];
+            const denoms = stockInfo && stockInfo[moneda];
+
+            // ❌ No maneja esa moneda → ocultar
+            if (!denoms) {
+                opt.hidden = true;
+                continue;
+            }
+
+            // ✅ Calcular total de stock disponible en esa moneda
+            const totalStock = denoms.reduce((sum, d) => sum + d.value * d.quantity, 0);
+
+            // ✅ Obtener monto actual
+            const monto = es_pago 
+                ? parseFloat((amount.value||"0").replace(/\./g,"").replace(",", ".")) || 0
+                : parseFloat((out.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+
+            // ⚠️ Si monto es 0 → solo validamos moneda, no ocultamos
+            if (!monto) {
+                opt.hidden = false;
+                continue;
+            }
+
+            // ❌ Ocultar si stock total < monto
+            opt.hidden = totalStock < monto;
+        }
+
+        // ✅ Si el seleccionado quedó oculto → elegir otro visible
+        if (selectEl.selectedOptions.length && selectEl.selectedOptions[0].hidden) {
+            const visible = [...selectEl.options].find(o => !o.hidden && o.value);
+            selectEl.value = visible ? visible.value : "";
+        }
+    }
+
+
+    function evaluarAmbosTausers() {
+        const optP = metodoPago?.selectedOptions?.[0];
+        const optC = metodoCobro?.selectedOptions?.[0];
+
+        if (!optP || !optC) return;
+        if (optP.dataset.contentTypeId != TAUSER_CT_ID) return;
+        if (optC.dataset.contentTypeId != TAUSER_CT_ID) return;
+
+        const tauserIdP = parseInt(optP.value);
+        const tauserIdC = parseInt(optC.value);
+
+        const montoP = parseFloat((amount.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+        const montoC = parseFloat((out.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+
+        const monedaP = from.value; 
+        const monedaC = to.value;
+
+        const puedeRecibir = tauserPuedeRecibir(tauserIdP, monedaP, montoP);
+        const puedeEntregar = tauserPuedeEntregar(tauserIdC, monedaC, montoC);
+
+        // ✅ Ambos perfectos → limpiar mensajes
+        if (puedeRecibir && puedeEntregar) {
+            mostrarSugerenciaTauser("", "tauser-suggestion-amount");
+            mostrarSugerenciaTauser("", "tauser-suggestion-out");
+            return;
+        }
+
+        // ✅ Buscar el monto workable para ambos
+        const minimoAmbos = tauserMontoMinimoAmbos(
+            tauserIdP, tauserIdC,
+            monedaP, monedaC,
+            montoP
+        );
+
+        if (minimoAmbos) {
+            // Solo sugerimos editar amount, NO tocamos out
+            mostrarSugerenciaTauser(
+                `Monto compatible entre Tausers: ${nf(minimoAmbos, monedaP)}`,
+                "tauser-suggestion-amount"
+            );
+            mostrarSugerenciaTauser("", "tauser-suggestion-out");
+        } else {
+            mostrarSugerenciaTauser(
+                `Ninguno de los Tausers puede operar este monto. Ajustá el valor.`,
+                "tauser-suggestion-amount"
+            );
+            mostrarSugerenciaTauser("", "tauser-suggestion-out");
+        }
+    }
+
+
+    // === 1) Conversión NUMÉRICA consistente con tu compute() (PYG base) ===
+    function convertirMonto(fromCode, toCode, monto) {
+        if (isNaN(monto) || monto <= 0) return 0;
+        if (fromCode === "PYG" && toCode !== "PYG") {
+            // PYG -> X  (usa VENTA de la moneda destino)
+            return monto / (META[toCode]?.venta ?? 1);
+        } else if (fromCode !== "PYG" && toCode === "PYG") {
+            // X -> PYG  (usa COMPRA de la moneda origen)
+            return monto * (META[fromCode]?.compra ?? 1);
+        } else {
+            // Caso inválido en tu UI (no debería ocurrir por enforceDifferent)
+            return 0;
+        }
+    }
+
+    // === 2) Paso mínimo (granularidad) para aumentar "amount" en la búsqueda ===
+    // Usa denominaciones del Tauser que RECIBE (pago) para el "from".
+    // Si no hay datos, cae a 1; si es PYG y no hay datos, cae a 50.000.
+    function pasoMinimoPara(tauserId, currencyCode) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        const denoms = stockInfo && stockInfo[currencyCode];
+        if (!denoms || !denoms.length) {
+            // Defaults razonables
+            if (currencyCode === "PYG") return 50000;
+            return 1;
+        }
+        // Elegimos el menor billete como paso (puede reemplazarse por gcd si quieres)
+        let min = Infinity;
+        for (const d of denoms) {
+            const v = Math.floor(parseFloat(d.value));
+            if (v > 0 && v < min) min = v;
+        }
+        if (!isFinite(min)) {
+            if (currencyCode === "PYG") return 50000;
+            return 1;
+        }
+        return min;
+    }
+
+    function tauserMontoMinimoAmbos(tauserIdP, tauserIdC, monedaP, monedaC, montoInicial) {
+        if (!montoInicial || montoInicial <= 0) return null;
+
+        // Paso según denominaciones del tauser que recibe (from)
+        const step = pasoMinimoPara(tauserIdP, monedaP);
+
+        // Redondear
+        const align = (x, s) => Math.ceil(x / s) * s;
+        let intento = align(montoInicial, step);
+
+        // Limite máximo preventivo para que nunca se vuelva infinito
+        // Si llegamos a 1.000.000.000.000 PYG (1 billón) ya paramos
+        const LIMITE_ABSURDO = 1_000_000_000_000;
+
+        while (intento <= LIMITE_ABSURDO) {
+            const intentoDestino = convertirMonto(monedaP, monedaC, intento);
+
+            const okRecibir  = tauserPuedeRecibir(tauserIdP, monedaP, intento);
+            const okEntregar = tauserPuedeEntregar(tauserIdC, monedaC, intentoDestino);
+
+            if (okRecibir && okEntregar) {
+                return intento;
+            }
+
+            intento += step;
+        }
+
+        // Si llegamos acá, no existe coincidencia razonable
+        return null;
+    }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1037,6 +1411,9 @@ function validarDenominaciones() {
 
             if (metodoCobro.value === "") return mostrarMensaje("Selecciona un método de cobro.", "error");
 
+            // ✅ Validación Tauser ANTES de cambiar de paso
+            if (!validarTauserAntesDeContinuar()) return;
+
             // Cambia la vista
             step1.classList.add("d-none");
             step2.classList.remove("d-none");
@@ -1052,6 +1429,83 @@ function validarDenominaciones() {
             ind1.classList.add("active");
         });
     });
+
+    
+    function validarTauserAntesDeContinuar() {
+        const optP = metodoPago?.selectedOptions?.[0];
+        const optC = metodoCobro?.selectedOptions?.[0];
+
+        const monto = parseFloat((amount.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+        const monedaP = from.value;
+        const monedaC = to.value;
+
+        // ✅ Caso 1: solo Tauser en PAGO (cliente entrega a Tauser)
+        if (optP && optP.dataset.contentTypeId == TAUSER_CT_ID) {
+            const idP = parseInt(optP.value);
+            const nombreP = optP.textContent.trim();
+
+            if (!tauserPuedeRecibir(idP, monedaP, monto)) {
+                mostrarMensaje(
+                    `El Tauser "${nombreP}" no puede manejar el monto ingresado en ${monedaP}. Ajustá el valor.`,
+                    "error"
+                );
+                return false;
+            }
+        }
+
+        // ✅ Caso 2: solo Tauser en COBRO (Tauser entrega al cliente)
+        if (optC && optC.dataset.contentTypeId == TAUSER_CT_ID) {
+            const idC = parseInt(optC.value);
+            const nombreC = optC.textContent.trim();
+
+            // Para cobro, usamos el monto que el Tauser debe entregar (out)
+            const montoDestino = parseFloat((out.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+
+            if (!tauserPuedeEntregar(idC, monedaC, montoDestino)) {
+                mostrarMensaje(
+                    `El Tauser "${nombreC}" no puede manejar el monto ingresado en ${monedaC}. Ajustá el valor.`,
+                    "error"
+                );
+                return false;
+            }
+        }
+
+        // ✅ Caso 3: AMBOS Tausers
+        if (
+            optP && optC &&
+            optP.dataset.contentTypeId == TAUSER_CT_ID &&
+            optC.dataset.contentTypeId == TAUSER_CT_ID
+        ) {
+            const idP = parseInt(optP.value);
+            const idC = parseInt(optC.value);
+            const nombreP = optP.textContent.trim();
+            const nombreC = optC.textContent.trim();
+
+            const montoDestino = parseFloat((out.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+
+            const puedeRecibir = tauserPuedeRecibir(idP, monedaP, monto);
+            const puedeEntregar = tauserPuedeEntregar(idC, monedaC, montoDestino);
+
+            if (!puedeRecibir) {
+                mostrarMensaje(
+                    `El Tauser "${nombreP}" no puede manejar el monto ingresado en ${monedaP}. Ajustá el valor.`,
+                    "error"
+                );
+                return false;
+            }
+
+            if (!puedeEntregar) {
+                mostrarMensaje(
+                    `El Tauser "${nombreC}" no puede manejar el monto ingresado en ${monedaC}. Ajustá el valor.`,
+                    "error"
+                );
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
 })();
 

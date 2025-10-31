@@ -5,8 +5,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from webapp.models import Transaccion, Tauser
+from django.views.decorators.http import require_http_methods
+from webapp.models import Transaccion, Tauser, TauserCurrencyStock, CurrencyDenomination
 from django.db.models import Q
+from ..decorators import role_required
 
 
 User = get_user_model()
@@ -174,4 +176,94 @@ def tauser_cobrar(request, pk):
     return render(request, "webapp/tauser/tauser_simulador.html", {
         "transaccion": transaccion,
         "modo": "cobrar"
+    })
+
+login_required
+@role_required("Administrador")
+@require_http_methods(["GET", "POST"])
+def manage_tausers(request):
+    tausers = Tauser.objects.filter(activo=True)
+
+    # Caso especial: no hay Tausers todavía
+    if not tausers.exists():
+        messages.warning(request, "No hay Tausers registrados aún.")
+        return render(request, "webapp/tauser/manage_tauser.html", {
+            "tausers": [],
+            "selected_tauser": None,
+            "stock": [],
+            "total_tausers": 0,
+            "total_denominations": 0,
+        })
+
+    # Determinar Tauser seleccionado
+    tauser_id = request.GET.get("tauser_id")
+
+    # Si ID no viene o no existe, elegir el primero activo
+    selected_tauser = tausers.filter(id=tauser_id).first() if tauser_id else None
+    if not selected_tauser:
+        selected_tauser = tausers.first()  # fallback
+        # Redirigimos sin romper experiencia
+        return redirect(f"{request.path}?tauser_id={selected_tauser.id}")
+
+    # POST = actualización de stock
+    if request.method == "POST":
+        # Reset total
+        if "reset_tauser" in request.POST:
+            TauserCurrencyStock.objects.filter(tauser=selected_tauser).update(quantity=0)
+            messages.success(request, "Stock del Tauser vaciado correctamente.")
+            return redirect(f"{request.path}?tauser_id={selected_tauser.id}")
+
+        # Agregar stock
+        den_id = request.POST.get("denomination_id")
+        qty = int(request.POST.get("add_qty", 0))
+
+        try:
+            denomination = CurrencyDenomination.objects.get(id=den_id)
+        except CurrencyDenomination.DoesNotExist:
+            messages.error(request, "La denominación seleccionada no existe.")
+            return redirect(f"{request.path}?tauser_id={selected_tauser.id}")
+
+        if qty > 0:
+            item, created = TauserCurrencyStock.objects.get_or_create(
+                tauser=selected_tauser,
+                denomination=denomination,
+                currency=denomination.currency,  # ✅ clave faltante
+                defaults={"quantity": 0}
+            )
+            item.quantity += qty
+            item.save()
+
+            msg = "creados" if created else "agregados"
+            messages.success(request, f"Se han {msg} {qty} billetes correctamente.")
+
+        else:
+            messages.error(request, "Debe ingresar una cantidad válida.")
+
+        return redirect(f"{request.path}?tauser_id={selected_tauser.id}")
+
+    # GET: mostrar stock
+    stock_qs = (
+        TauserCurrencyStock.objects
+        .filter(tauser=selected_tauser)
+        .select_related("denomination__currency")
+        .order_by("-denomination__currency__code", "-denomination__value")
+    )
+
+    stock = [
+        {
+            "stock_id": s.id,                        # id del registro de stock (no nos sirve aquí)
+            "denomination_id": s.denomination.id,   # ✅ este es el que necesitamos
+            "currency": s.denomination.currency.code,
+            "value": s.denomination.value,
+            "quantity": s.quantity,
+        }
+        for s in stock_qs
+    ]
+
+    return render(request, "webapp/tauser/manage_tauser.html", {
+        "tausers": tausers,
+        "selected_tauser": selected_tauser,
+        "stock": stock,
+        "total_tausers": tausers.count(),
+        "total_denominations": len(stock),
     })

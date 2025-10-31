@@ -149,6 +149,7 @@ urlpatterns = [
     path("tauser/login/", views.tauser_login, name="tauser_login"),
     path("tauser/pagar/<int:pk>/", views.tauser_pagar, name="tauser_pagar"),
     path("tauser/cobrar/<int:pk>/", views.tauser_cobrar, name="tauser_cobrar"),
+    path("tauser/manage/", views.manage_tausers, name="manage_tausers"),
 
     # Configurar temporizadores (Schedule de celery)
     path("schedule/", views.manage_schedule, name="manage_schedule"),

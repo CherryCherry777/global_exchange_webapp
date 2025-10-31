@@ -166,10 +166,6 @@
                 <span class="button-text">Administrar Límites de Intercambio</span>
             </a>
             {% endif %}
-            <a href="{% url 'currency_denominations' %}" class="management-button">
-                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Denominaciones de monedas" class="button-icon">
-                <span class="button-text" style="font-size: 15px;">Administrar Denominaciones de Monedas</span>
-            </a>
 
         </div>
         {% endif %}
@@ -204,16 +200,25 @@
         </div>
         {% endif %}
 
-        {% if can_access_admin_panel or p_view_emailscheduleconfig or p_view_expiraciontransaccionconfig or p_view_limiteintercambioscheduleconfig %}
         <!-- Contenedor 5: Gestión de Temporizadores -->
         <div class="management-container configuracion-global-container">
             <h2 class="container-title">Configuraciones Globales</h2>
-            <a href="{% url 'manage_schedule' %}" class="management-button long-text-button">
-                <img src="{% static 'webapp/panel_gestiones/15.Administrar_Temporizadores.png' %}" alt="Administrar Temporizadores" class="button-icon">
-                <span class="button-text">Administrar Temporizadores</span>
+            {% if can_access_admin_panel or p_view_emailscheduleconfig or p_view_expiraciontransaccionconfig or p_view_limiteintercambioscheduleconfig %}
+                <a href="{% url 'manage_schedule' %}" class="management-button long-text-button">
+                    <img src="{% static 'webapp/panel_gestiones/15.Administrar_Temporizadores.png' %}" alt="Administrar Temporizadores" class="button-icon">
+                    <span class="button-text">Administrar Temporizadores</span>
+                </a>
+            {% endif %}
+            <a href="{% url 'currency_denominations' %}" class="management-button long-text-button">
+                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Denominaciones de monedas" class="button-icon">
+                <span class="button-text">Administrar Denominaciones</span>
+            </a>
+            <a href="{% url 'manage_tausers' %}" class="management-button long-text-button">
+                <img src="{% static 'webapp/panel_gestiones/16.Administrar_Tausers.png' %}" alt="Administrar Tausers" class="button-icon">
+                <span class="button-text">Administrar Tausers</span>
             </a>
         </div>
-        {% endif %}
+        
 
     </div>
 </div>
