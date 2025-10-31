@@ -285,12 +285,12 @@ def setup_database(sender, **kwargs):
                 comision = 0.0
                 if model == TipoPago:
                     if "Tarjeta" in nombre:
-                        comision = 0.03  # 3% for any card
+                        comision = 3  # 3% for any card
                     elif "Billetera" in nombre:
-                        comision = 0.02  # 2% for wallets
+                        comision = 2  # 2% for wallets
                 else:
                     if "Billetera" in nombre:
-                        comision = 0.02
+                        comision = 2
 
                 model.objects.get_or_create(
                     nombre=nombre,

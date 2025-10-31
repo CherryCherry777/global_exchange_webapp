@@ -313,6 +313,7 @@
         // Verifica que ambas monedas existan en META (tabla con cotizaciones/definiciones)
         if (!META[a] || !META[b]) return;
 
+        console.log(META[a])
         // Variables donde se guardarán el resultado y la tasa de cambio usada
         let val, rateAB;
 
@@ -426,22 +427,25 @@
             // Si no existen los selectores de método de pago o cobro, no hace nada
             if (!metodoPago || !metodoCobro) return;
 
-            // Función auxiliar: obtiene el tipo general desde el atributo data-* de la opción seleccionada
-            const getTipoGeneral = (select) => {
-                // Obtiene el índice de la opción actualmente seleccionada en el <select>
-                const idx = select.selectedIndex;
+            // Función para obtener el "tipo general" del botón activo (pago o cobro)
+            const getTipoGeneral = (tipo) => {
+                // Según el parámetro recibido ("pago" o "cobro"), seleccionamos el botón activo del grupo correspondiente
+                const selector = tipo === "pago"
+                    ? "#pago-tabs .tab-btn.active"   // Busca el botón activo dentro del grupo de Pago
+                    : "#cobro-tabs .tab-btn.active"; // Busca el botón activo dentro del grupo de Cobro
 
-                // Si no hay ninguna opción seleccionada (índice < 0), devuelve cadena vacía
-                if (idx < 0) return "";
-
-                // Devuelve el valor del atributo data-tipo-general de la opción seleccionada
-                // Si no existe, devuelve cadena vacía
-                return select.options[idx].dataset.tipoGeneral || "";
+                // Devuelve el valor del atributo data-tipo-general del botón activo,
+                // o cadena vacía si no existe o aún no hay un botón activo
+                return document.querySelector(selector)?.dataset.tipoGeneral || "";
             };
 
-            // Obtiene los IDs (tipoGeneral o value) para pago y cobro
-            const pagoId = getTipoGeneral(metodoPago);
-            const cobroId = getTipoGeneral(metodoCobro);
+            // Obtiene el tipo general del método de pago seleccionado
+            // (proviene del botón activo en la sección "Pagar con")
+            const pagoId = getTipoGeneral("pago");
+
+            // Obtiene el tipo general del método de cobro seleccionado
+            // (proviene del botón activo en la sección "Recibir en")
+            const cobroId = getTipoGeneral("cobro");
 
             // Construye la URL hacia la API de monedas, pasando los IDs como query params
             const url = `{% url 'api_currencies' %}?tipo_metodo_pago_id=${pagoId}&tipo_metodo_cobro_id=${cobroId}`;

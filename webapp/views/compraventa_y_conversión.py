@@ -13,7 +13,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
 from ..models import CuentaBancaria, LimiteIntercambioCliente, MFACode, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from .payments.stripe_utils import procesar_pago_stripe
 from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera, validar_id_transferencia
 from webapp.tasks import pagar_al_cliente_task
@@ -690,6 +690,9 @@ def api_active_currencies(request):
             # - dejar venta/compra sin modificar
             print("Error al aplicar comisiones:", e)
 
+        # ✅ Siempre devolver venta/compra sin decimales (PYG siempre)
+        venta = venta.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        compra = compra.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
 
         items.append({
             "code": c.code,
