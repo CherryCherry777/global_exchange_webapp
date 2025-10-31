@@ -70,14 +70,15 @@ CLIENTES_POR_DEFECTO = [
 ]
 
 DEFAULT_DENOMINATIONS = {
-    "PYG": {"bills": [100000,50000,20000,10000, 5000, 2000], "coins": [1000,500,100]},
-    "USD": {"bills": [100, 50, 20, 10, 5, 1], "coins": [1,0.50,0.25, 0.10, 0.05, 0.01]},
-    "EUR": {"bills": [500, 200, 100, 50, 20, 10, 5], "coins": [2, 1, 0.50, 0.20, 0.10, 0.05, 0.02, 0.01]},
-    "BRL": {"bills": [200, 100, 50, 20, 10, 5, 2], "coins": [1, 0.50, 0.25, 0.10, 0.05, 0.01]},
-    "ARS": {"bills": [20000,10000,2000,1000, 500, 200, 100, 50, 20, 10], "coins": [10,5,2,1]},
+    "PYG": {"bills": [100000, 50000], "coins": []},
+    "USD": {"bills": [100, 50], "coins": []},
+    "EUR": {"bills": [500, 200, 100, 50], "coins": []},
+    "BRL": {"bills": [200, 100], "coins": []},
+    "ARS": {"bills": [20000, 10000, 2000, 1000], "coins": []},
 }
 
-VALORES_POR_MONEDA = {"PYG": 1000000, "USD": 5000, "EUR": 5000, "BRL": 20000, "ARS": 200000}
+
+VALORES_POR_MONEDA = {"PYG": 100000000, "USD": 50000, "EUR": 50000, "BRL": 200000, "ARS": 20000000}
 DEFAULT_NO_LISTADA = 0
 
 @receiver(post_migrate)
@@ -285,12 +286,12 @@ def setup_database(sender, **kwargs):
                 comision = 0.0
                 if model == TipoPago:
                     if "Tarjeta" in nombre:
-                        comision = 0.03  # 3% for any card
+                        comision = 3  # 3% for any card
                     elif "Billetera" in nombre:
-                        comision = 0.02  # 2% for wallets
+                        comision = 2  # 2% for wallets
                 else:
                     if "Billetera" in nombre:
-                        comision = 0.02
+                        comision = 2
 
                 model.objects.get_or_create(
                     nombre=nombre,
@@ -489,6 +490,46 @@ def setup_database(sender, **kwargs):
 
         print("\n🎉 Medios de cobro por defecto creados correctamente.\n")
 
+    def setup_tauser_stock():
+        Tauser = apps.get_model("webapp", "Tauser")
+        CurrencyDenomination = apps.get_model("webapp", "CurrencyDenomination")
+        TauserCurrencyStock = apps.get_model("webapp", "TauserCurrencyStock")
+
+        tausers = Tauser.objects.filter(activo=True)
+        if not tausers.exists():
+            print("⚠️ No hay Tausers activos aún, stock no inicializado.")
+            return
+
+        # Solo billetes
+        denominations = CurrencyDenomination.objects.filter(is_active=True, type="bill")
+        if not denominations.exists():
+            print("⚠️ No hay denominaciones activas, stock no inicializado.")
+            return
+
+        INITIAL_QTY = 1000
+
+        for tauser in tausers:
+            for denom in denominations:
+                stock, created = TauserCurrencyStock.objects.get_or_create(
+                    tauser=tauser,
+                    denomination=denom,
+                    defaults={
+                        "currency": denom.currency,  # ✅ FIX OBLIGADO
+                        "quantity": INITIAL_QTY
+                    }
+                )
+
+                # Si ya existía pero no tiene moneda asignada (defensive fix)
+                if stock.currency_id is None:
+                    stock.currency = denom.currency
+
+                # Si existe pero tiene 0
+                if stock.quantity == 0:
+                    stock.quantity = INITIAL_QTY
+
+                stock.save()
+
+        print(f"✅ Stock inicial cargado: {INITIAL_QTY} billetes por denominación")
 
     # -------------------------------------------------------------
     # EXECUTION ORDER
@@ -502,6 +543,7 @@ def setup_database(sender, **kwargs):
     safe_run("Cuenta Bancaria del Negocio", setup_cuenta_negocio)
     safe_run("Medios de Pago para usuario1 por defecto", crear_medios_pago_por_defecto)
     safe_run("Medios de Cobro para usuario1 por defecto", crear_medios_cobro_por_defecto)
+    safe_run("Stock inicial de Tauser", setup_tauser_stock)
 
 """
 @receiver(post_migrate)

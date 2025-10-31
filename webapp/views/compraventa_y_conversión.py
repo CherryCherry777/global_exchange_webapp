@@ -12,14 +12,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CuentaBancaria, LimiteIntercambioCliente, MFACode, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro
-from decimal import Decimal
+from ..models import CurrencyDenomination, LimiteIntercambioCliente, MFACode, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro, TauserCurrencyStock
+from decimal import Decimal, ROUND_HALF_UP
 from .payments.stripe_utils import procesar_pago_stripe
 from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera, validar_id_transferencia
 from webapp.tasks import pagar_al_cliente_task
 from django.template.loader import get_template
 from django.http import HttpResponse
 from weasyprint import HTML
+from collections import defaultdict
 # ----------------------
 # Vistas de compraventa
 # ----------------------
@@ -188,9 +189,12 @@ def compraventa_view(request):
                 if data.get("moneda_origen") == "PYG":
 
                     try:
-                        limite_cli = LimiteIntercambioCliente.objects.select_related("config__moneda").get(
-                            cliente=cliente,
-                            config__moneda__code=data.get("moneda_destino")
+                        limite_cli = (
+                            LimiteIntercambioCliente.objects
+                            .select_related("config__moneda")
+                            .filter(cliente=cliente, config__moneda__code=data.get("moneda_destino"))
+                            .order_by('-id')  # tomamos el último creado
+                            .first()
                         )
                         if monto_destino > limite_cli.limite_dia_actual:
                             messages.error(request, f"El monto {monto_destino} supera el límite DIARIO disponible ({limite_cli.limite_dia_actual} {limite_cli.moneda.code}).")
@@ -378,12 +382,15 @@ def compraventa_view(request):
     # Obtener los datos de la cuenta del negocio para recibir transferencias
     cuenta_negocio = CuentaBancariaNegocio.objects.first()
 
+    ct_tauser = ContentType.objects.get_for_model(Tauser)
+
     context = {
         "tipos_pago": tipos_pago,
         "tipos_cobro": tipos_cobro,
         "categoria_cliente": categoria_cliente,
         "cuenta_negocio": cuenta_negocio,
         "limites_intercambio": json.dumps(limites_dict, cls=DjangoJSONEncoder),
+        "ct_tauser": ct_tauser,
     }
 
     return render(request, "webapp/compraventa_y_conversion/compraventa.html", context)
@@ -396,6 +403,8 @@ def get_metodos_pago_cobro(request):
 
     moneda_pago = request.GET.get("from")
     moneda_cobro = request.GET.get("to")
+
+    tauser_stock = get_tauser_stock_dict()
 
     # ---------------- ContentTypes ----------------
     ct_tarjetaNacional = ContentType.objects.get_for_model(TarjetaNacional)
@@ -466,7 +475,8 @@ def get_metodos_pago_cobro(request):
             "ubicacion": t.ubicacion,
             "tipo_general_id": t.tipo_pago.id,
             "moneda_code": None,
-            "content_type_id": ct_tauser.id
+            "content_type_id": ct_tauser.id,
+            "stock": tauser_stock.get(t.id, {})
         })
 
     # ---------------- Métodos de Cobro ----------------
@@ -514,10 +524,30 @@ def get_metodos_pago_cobro(request):
             "ubicacion": t.ubicacion,
             "tipo_general_id": t.tipo_cobro.id,
             "moneda_code": None,
-            "content_type_id": ct_tauser.id
+            "content_type_id": ct_tauser.id,
+            "stock": tauser_stock.get(t.id, {})
         })
 
     return JsonResponse({"metodo_pago": metodo_pago, "metodo_cobro": metodo_cobro})
+
+
+def get_tauser_stock_dict():
+    data = defaultdict(lambda: defaultdict(list))
+
+    stocks = (
+        TauserCurrencyStock.objects
+        .select_related("tauser", "currency", "denomination")
+        .filter(tauser__activo=True, quantity__gt=0)
+        .order_by("tauser_id", "currency_id", "-denomination__value")
+    )
+
+    for s in stocks:
+        data[s.tauser_id][s.currency.code].append({
+            "value": float(s.denomination.value),
+            "quantity": s.quantity
+        })
+
+    return data
 
 
 # ----------------------------------
@@ -690,6 +720,9 @@ def api_active_currencies(request):
             # - dejar venta/compra sin modificar
             print("Error al aplicar comisiones:", e)
 
+        # ✅ Siempre devolver venta/compra sin decimales (PYG siempre)
+        venta = venta.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        compra = compra.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
 
         items.append({
             "code": c.code,

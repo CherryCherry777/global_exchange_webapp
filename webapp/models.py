@@ -848,22 +848,49 @@ class Tauser(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.tipo})"
 
-# Tabla intermedia entre Tauser y Currency
-"""
-class TauserCurrency(models.Model):
-    tauser = models.ForeignKey(Tauser, on_delete=models.CASCADE, related_name="monedas")
-    currency = models.ForeignKey("Currency", on_delete=models.PROTECT, related_name="tausers")
-    stock = models.DecimalField(max_digits=20, decimal_places=2, default=0.0, verbose_name="Stock disponible")
+# Tabla intermedia entre Tauser, Currency y CurrencyDenomination
+class TauserCurrencyStock(models.Model):
+    tauser = models.ForeignKey(
+        Tauser,
+        on_delete=models.CASCADE,
+        related_name="stocks",
+        verbose_name="Tauser"
+    )
+
+    currency = models.ForeignKey(
+        Currency,
+        on_delete=models.CASCADE,
+        related_name="tauser_stocks",
+        verbose_name="Moneda"
+    )
+
+    denomination = models.ForeignKey(
+        CurrencyDenomination,
+        on_delete=models.CASCADE,
+        related_name="tauser_stocks",
+        verbose_name="Denominación"
+    )
+
+    quantity = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Cantidad de billetes/monedas"
+    )
+
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Última actualización")
 
     class Meta:
-        db_table = "tauser_currency"
-        verbose_name = "Stock Tauser por Moneda"
-        verbose_name_plural = "Stocks Tauser por Moneda"
-        unique_together = ("tauser", "currency")
+        verbose_name = "Stock de Tauser"
+        verbose_name_plural = "Stock de Tausers"
+        unique_together = ("tauser", "currency", "denomination")
+        ordering = ["tauser", "currency", "-denomination"]
 
     def __str__(self):
-        return f"{self.tauser.nombre} - {self.currency.code}: {self.stock}"
-"""
+        return f"{self.tauser.nombre} | {self.currency.code} {self.denomination.value} x {self.quantity}"
+
+    @property
+    def total_valor(self):
+        return self.denomination.value * self.quantity
+
 
 # ------------------------------------------------------
 # Modelo Transaccion para el registro de la compraventa
