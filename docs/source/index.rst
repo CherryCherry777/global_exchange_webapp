@@ -24,6 +24,8 @@ Contenido
    uso
    modulos_documentacion
    documentacion_vistas
+   nuevos_modulos
+   testing_suite
 
 Referencia de Módulos
 ---------------------

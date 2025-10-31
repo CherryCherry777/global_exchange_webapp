@@ -615,8 +615,417 @@ Funcionalidades Principales
 - Experiencia de usuario mejorada
 
 ========================================
-ARQUITECTURA TÉCNICA
+16. MÓDULO DE FACTURACIÓN
 ========================================
+
+**Script Principal:** ``factura.py``
+**Métodos:** ``ver_factura``, ``factura_view``, ``factura_pdf``
+
+Descripción
+-----------
+Sistema completo de facturación con generación de documentos fiscales y gestión de comprobantes.
+
+Funcionalidades Principales
+----------------------------
+
+**16.1 Vista Principal de Factura (ver_factura)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/factura.py``
+
+**Funcionalidad:**
+- Interfaz principal para visualización de facturas
+- Renderizado con iframe para mejor presentación
+- Botones de acción para PDF y operaciones
+- Información completa de facturación
+- Integración con sistema de impresión
+
+**Características:**
+- Diseño profesional para documentos fiscales
+- Vista previa en tiempo real
+- Opciones de personalización
+- Compatibilidad con diferentes formatos
+- Optimización para impresión
+
+**16.2 Vista Específica de Factura (factura_view)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/factura.py``
+
+**Funcionalidad:**
+- Renderizado específico por ID de factura
+- Obtención de datos completos de transacción
+- Cálculos automáticos de impuestos y totales
+- Preparación de datos para diferentes formatos
+- Validación de permisos de acceso
+
+**Características:**
+- Cálculos precisos de impuestos
+- Información detallada de productos/servicios
+- Datos de cliente y empresa
+- Validación de integridad de datos
+- Seguridad en acceso a documentos
+
+**16.3 Generación de PDF (factura_pdf)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/factura.py``
+
+**Funcionalidad:**
+- Generación de PDF usando weasyprint
+- Diseño profesional para documentos fiscales
+- Descarga automática o visualización en navegador
+- Optimización para diferentes tamaños de papel
+- Compatibilidad con estándares fiscales
+
+**Características:**
+- Calidad profesional de PDF
+- Diseño responsive para PDF
+- Optimización de tamaño de archivo
+- Compatibilidad multiplataforma
+- Metadatos completos de documento
+
+========================================
+17. MÓDULO DE TEMPORIZADORES
+========================================
+
+**Script Principal:** ``schedule_views.py``
+**Métodos:** ``manage_schedule``, configuración automática de tareas
+
+Descripción
+-----------
+Sistema de automatización y programación de tareas para operaciones del sistema.
+
+Funcionalidades Principales
+----------------------------
+
+**17.1 Gestión de Temporizadores (manage_schedule)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Funcionalidad:**
+- Configuración de envío automático de emails
+- Programación de reseteo de límites de intercambio
+- Configuración de expiración de transacciones
+- Interface administrativa para temporizadores
+- Validación de configuraciones de horarios
+
+**Características:**
+- Configuración flexible de frecuencias
+- Validación de horarios y fechas
+- Sistema de backup para tareas críticas
+- Logs detallados de ejecución
+- Notificaciones de estado de tareas
+
+**Tipos de Temporizadores:**
+
+**17.2 Email Schedule Config**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Envío automático de cotizaciones diarias
+- Resúmenes semanales para usuarios
+- Notificaciones personalizadas
+- Configuración de horarios específicos
+
+**17.3 Límite Intercambio Schedule Config**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Reseteo automático de límites diarios/mensuales
+- Configuración por categoría de cliente
+- Historial de ejecuciones
+- Validación de límites activos
+
+**17.4 Expiración Transacción Config**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Timeout automático de transacciones pendientes
+- Configuración por tipo de medio de pago
+- Notificaciones de expiración
+- Limpieza automática de transacciones vencidas
+
+============================================
+18. MÓDULO DE TAUSER (TERCEROS AUTORIZADOS)
+============================================
+
+**Script Principal:** ``tauser.py``
+**Métodos:** ``tauser_login``, ``tauser_home``, ``tauser_pagar``, ``tauser_cobrar``
+
+Descripción
+-----------
+Sistema especializado para gestión de terceros autorizados que procesan pagos y cobros del sistema.
+
+Funcionalidades Principales
+----------------------------
+
+**18.1 Login de TAUser (tauser_login)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/tauser.py``
+
+**Funcionalidad:**
+- Sistema de autenticación independiente para TAUsers
+- Validación de credenciales específicas
+- Gestión de sesiones separadas del sistema principal
+- Redirección a dashboard especializado
+- Control de acceso basado en permisos TAUser
+
+**Características:**
+- Autenticación segura independiente
+- Gestión de sesiones específicas
+- Validación de permisos especializados
+- Registro de actividad de TAUsers
+- Integración con sistema de auditoría
+
+**18.2 Dashboard TAUser (tauser_home)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/tauser.py``
+
+**Funcionalidad:**
+- Panel de control específico para TAUsers
+- Lista de transacciones pendientes de procesamiento
+- Estadísticas de operaciones realizadas
+- Acceso directo a funciones de pago y cobro
+- Información de estado del sistema
+
+**Características:**
+- Interfaz optimizada para operaciones rápidas
+- Información en tiempo real
+- Métricas de rendimiento personal
+- Notificaciones de transacciones urgentes
+- Tools especializadas para TAUsers
+
+**18.3 Procesamiento de Pagos TAUser (tauser_pagar)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/tauser.py``
+
+**Funcionalidad:**
+- Procesamiento de pagos por parte de TAUsers
+- Validación de transacciones pendientes
+- Confirmación de pagos realizados
+- Actualización automática de estados
+- Registro detallado de operaciones
+
+**Características:**
+- Validación exhaustiva de transacciones
+- Confirmación segura de pagos
+- Actualización en tiempo real
+- Prevención de duplicaciones
+- Integración con sistemas bancarios
+
+**18.4 Procesamiento de Cobros TAUser (tauser_cobrar)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/tauser.py``
+
+**Funcionalidad:**
+- Gestión de cobros por TAUsers
+- Validación de transferencias recibidas
+- Confirmación de recepción de fondos
+- Actualización de estados de cobro
+- Reconciliación automática
+
+**Características:**
+- Validación de transferencias bancarias
+- Confirmación de montos recibidos
+- Actualización automática de estados
+- Prevención de errores de reconciliación
+- Integración con sistemas bancarios
+
+========================================
+19. MÓDULO DE LÍMITES DE INTERCAMBIO
+========================================
+
+**Script Principal:** ``limites_de_intercambio.py``
+**Métodos:** ``limites_intercambio_list``, ``limites_intercambio_tabla_htmx``, ``limite_config_edit``
+
+Descripción
+-----------
+Gestión avanzada de límites de intercambio por categoría de cliente con tecnología HTMX para actualizaciones dinámicas.
+
+Funcionalidades Principales
+----------------------------
+
+**19.1 Lista de Límites (limites_intercambio_list)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/limites_de_intercambio.py``
+
+**Funcionalidad:**
+- Vista principal para gestión de límites
+- Lista todos los límites por categoría de cliente
+- Filtros por moneda, estado y categoría
+- Estadísticas de uso y disponibilidad
+- Información de límites activos/inactivos
+
+**Características:**
+- Interfaz moderna con filtros avanzados
+- Estadísticas en tiempo real
+- Validación de límites por categoría
+- Información detallada de uso
+- Acciones rápidas de edición
+
+**19.2 Tabla Dinámica HTMX (limites_intercambio_tabla_htmx)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/limites_de_intercambio.py``
+
+**Funcionalidad:**
+- Actualización dinámica de tabla sin recarga completa
+- Tecnología HTMX para mejor experiencia de usuario
+- Filtros en tiempo real con respuesta inmediata
+- Optimización de rendimiento para grandes volúmenes
+- Interactividad mejorada en frontend
+
+**Características:**
+- Actualizaciones parciales eficientes
+- Respuesta inmediata a filtros
+- Reducción de carga del servidor
+- Experiencia de usuario mejorada
+- Compatibilidad con JavaScript deshabilitado
+
+**19.3 Edición de Configuración (limite_config_edit)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/limites_de_intercambio.py``
+
+**Funcionalidad:**
+- Formulario de edición de límites específicos
+- Validación de rangos y montos permitidos
+- Actualización en tiempo real de configuración
+- Historial completo de cambios realizados
+- Validación de impacto en clientes activos
+
+**Características:**
+- Formulario pre-poblado con datos actuales
+- Validación en tiempo real
+- Confirmación de cambios críticos
+- Historial de modificaciones
+- Notificación de impacto en clientes
+
+========================================
+20. MÓDULO DE COTIZACIONES AVANZADAS
+========================================
+
+**Script Principal:** ``cotizaciones.py``
+**Métodos:** ``api_currency_history``, ``historical_view``, ``unsubscribe``, ``prices_list``, ``edit_prices``
+
+Descripción
+-----------
+Sistema avanzado de gestión de cotizaciones con API REST, visualización histórica y gestión de suscripciones.
+
+Funcionalidades Principales
+----------------------------
+
+**20.1 API de Historial de Monedas (api_currency_history)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/cotizaciones.py``
+
+**Funcionalidad:**
+- API REST para obtener historial de cotizaciones
+- Datos en formato JSON optimizado para gráficos
+- Filtros por moneda, fecha y rango temporal
+- Cache inteligente para mejorar rendimiento
+- Documentación automática con Swagger
+
+**Características:**
+- Respuesta JSON estructurada
+- Filtros flexibles por parámetros
+- Cache con invalidación inteligente
+- Rate limiting para prevenir abuso
+- Versionado de API
+
+**Ejemplo de Respuesta:**
+
+.. code-block:: json
+
+   {
+     "currency": "USD",
+     "period": "30d",
+     "data": [
+       {
+         "date": "2025-10-31",
+         "buy_rate": 7200.00,
+         "sell_rate": 7300.00,
+         "volume": 15000.00
+       }
+     ]
+   }
+```
+
+**20.2 Vista Histórica (historical_view)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/cotizaciones.py``
+
+**Funcionalidad:**
+- Interfaz web con gráficos interactivos
+- Visualización de tendencias históricas
+- Filtros por periodo y moneda específica
+- Exportación de datos en múltiples formatos
+- Análisis de volatilidad y tendencias
+
+**Características:**
+- Gráficos interactivos con Chart.js
+- Filtros dinámicos sin recarga
+- Exportación a Excel, PDF, CSV
+- Análisis estadístico básico
+- Responsive design para móviles
+
+**20.3 Sistema de Desuscripción (unsubscribe)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/cotizaciones.py``
+
+**Funcionalidad:**
+- Procesamiento seguro de desuscripción de emails
+- Validación de tokens de desuscripción
+- Actualización de preferencias de usuario
+- Confirmación de desuscripción exitosa
+- Manejo de errores y casos edge
+
+**Características:**
+- Tokens seguros con expiración
+- Validación de usuario y token
+- Confirmación visual clara
+- Opciones de reactivación
+- Registro de actividad
+
+**20.4 Lista de Precios (prices_list)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/cotizaciones.py``
+
+**Funcionalidad:**
+- Vista tabular de todos los precios del sistema
+- Estado activo/inactivo por moneda
+- Información de última actualización
+- Acciones rápidas de edición masiva
+- Estadísticas de volatilidad
+
+**Características:**
+- Tabla ordenable y filtrable
+- Indicadores visuales de estado
+- Acciones masivas disponibles
+- Historial de cambios visible
+- Alertas de precios obsoletos
+
+**20.5 Edición de Precios (edit_prices)**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Ubicación:** ``webapp/views/cotizaciones.py``
+
+**Funcionalidad:**
+- Formulario de edición múltiple de precios
+- Validación de consistencia entre monedas
+- Actualización simultánea de cotizaciones
+- Confirmación de cambios masivos
+- Previsualización de impacto
+
+**Características:**
+- Edición masiva eficiente
+- Validación cruzada de tasas
+- Confirmación de cambios críticos
+- Rollback automático en errores
+- Notificaciones a usuarios afectados
 
 Tecnologías Utilizadas
 ----------------------
