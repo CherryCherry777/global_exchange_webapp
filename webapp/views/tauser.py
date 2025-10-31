@@ -7,9 +7,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.http import require_http_methods
 from webapp.models import Transaccion, Tauser, TauserCurrencyStock, CurrencyDenomination
-from django.db.models import Q
+from django.db.models import Q, F
 from ..decorators import role_required
-
+from decimal import Decimal
 
 User = get_user_model()
 
@@ -113,36 +113,63 @@ def tauser_home(request):
 
 
 def tauser_pagar(request, pk):
-    """
-    Simula un pago desde el cliente hacia el sistema (Tauser como medio de pago).
-    Redirige amablemente si la transacción no existe o no es válida.
-    """
     try:
         transaccion = Transaccion.objects.get(pk=pk)
     except Transaccion.DoesNotExist:
         messages.error(request, "La transacción no existe o ya fue eliminada.")
         return redirect(request.META.get("HTTP_REFERER", reverse("tauser_home")))
 
-    # Validar que pueda pagarse (estado pendiente)
     if transaccion.estado != Transaccion.Estado.PENDIENTE:
         messages.warning(request, "Esta transacción ya fue procesada o no puede pagarse.")
         return redirect("tauser_home")
 
+    tauser = Tauser.objects.get(id=transaccion.medio_pago_id)
+    moneda = transaccion.moneda_origen
+    monto = transaccion.monto_origen  # Decimal
+
     if request.method == "POST":
         accion = request.POST.get("accion")
-        if accion == "confirmar":
-            # Actualiza estado y fecha de actualización
-            transaccion.estado = Transaccion.Estado.PAGADA
-            transaccion.save(update_fields=["estado", "fecha_actualizacion"])
-            messages.success(request, f"Transacción #{pk} marcada como PAGADA con éxito.")
-            return redirect("tauser_home")
-        elif accion == "cancelar":
+
+        if accion == "cancelar":
             messages.info(request, "Operación cancelada.")
             return redirect("tauser_home")
 
+        if accion == "confirmar":
+
+            # ✅ Si moneda NO es PYG, registrar billetes recibidos
+            if moneda.code != "PYG":
+                denoms = CurrencyDenomination.objects.filter(currency=moneda)
+                total = Decimal('0')
+
+                for d in denoms:
+                    qty = int(request.POST.get(f"denom_{d.id}", 0))
+                    if qty > 0:
+                        total += qty * d.value
+                        TauserCurrencyStock.objects.update_or_create(
+                            tauser=tauser,
+                            currency=moneda,
+                            denomination=d,
+                            defaults={"quantity": F("quantity") + qty}
+                        )
+
+                if total != monto:
+                    messages.error(request, f"Los billetes ingresados ({total}) no coinciden con el monto ({monto}).")
+                    return redirect(request.path)
+
+            # ✅ Actualizar estado
+            transaccion.estado = Transaccion.Estado.PAGADA
+            transaccion.save(update_fields=["estado", "fecha_actualizacion"])
+
+            messages.success(request, f"Transacción #{pk} marcada como PAGADA.")
+            return redirect("tauser_home")
+
+    # 🧠 mandar lista de denominaciones al template
+    denominaciones = CurrencyDenomination.objects.filter(currency=transaccion.moneda_origen)
+
     return render(request, "webapp/tauser/tauser_simulador.html", {
         "transaccion": transaccion,
-        "modo": "pagar"
+        "modo": "pagar",
+        "denominaciones": denominaciones
     })
 
 
@@ -167,6 +194,16 @@ def tauser_cobrar(request, pk):
         if accion == "confirmar":
             transaccion.estado = Transaccion.Estado.COMPLETA
             transaccion.save(update_fields=["estado", "fecha_actualizacion"])
+
+            # === actualizar stock ===
+            if transaccion.moneda_destino.code != "PYG":
+                actualizar_stock_tauser(
+                    transaccion.medio_cobro_id,           # tauser ID
+                    transaccion.moneda_destino.code,      # currency code
+                    transaccion.monto_destino,            # amount
+                    "egreso"
+                )
+
             messages.success(request, f"Transacción #{pk} completada con éxito.")
             return redirect("tauser_home")
         elif accion == "cancelar":
@@ -177,6 +214,63 @@ def tauser_cobrar(request, pk):
         "transaccion": transaccion,
         "modo": "cobrar"
     })
+
+
+def actualizar_stock_tauser(tauser_id, currency_code, monto, operacion):
+    """
+    operacion: 'ingreso' (tauser recibe) o 'egreso' (tauser entrega)
+    No modifica stock para PYG.
+    """
+    if currency_code == "PYG":
+        return  # Stock infinito de Guaraníes
+
+    monto = Decimal(monto)
+
+    stock = (
+        TauserCurrencyStock.objects
+        .filter(tauser_id=tauser_id, currency__code=currency_code, quantity__gt=0)
+        .select_related("currency", "denomination")
+        .order_by("-denomination__value")
+    )
+
+    # ✅ ingreso: tauser recibe billetes → sumamos cantidades
+    if operacion == "ingreso":
+        restante = monto
+        for s in stock:
+            denom = Decimal(s.denomination.value)
+
+            # ¿cuántos billetes de este valor entran?
+            q = restante // denom  # Decimal // Decimal ✅
+
+            if q > 0:
+                s.quantity += int(q)
+                s.save(update_fields=["quantity"])
+                restante -= denom * q
+
+            if restante <= 0:
+                break
+        return
+
+    # ✅ egreso: tauser entrega billetes → restamos cantidades
+    restante = monto
+    for s in stock:
+        denom = Decimal(s.denomination.value)
+        max_units = restante // denom
+        usar = min(int(max_units), s.quantity)
+
+        if usar > 0:
+            s.quantity -= usar
+            s.save(update_fields=["quantity"])
+            restante -= denom * usar
+
+        if restante <= 0:
+            break
+
+    if restante > 0:
+        raise ValueError(
+            f"Stock insuficiente del Tauser {tauser_id} para {monto} {currency_code}"
+        )
+
 
 login_required
 @role_required("Administrador")

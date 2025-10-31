@@ -189,9 +189,12 @@ def compraventa_view(request):
                 if data.get("moneda_origen") == "PYG":
 
                     try:
-                        limite_cli = LimiteIntercambioCliente.objects.select_related("config__moneda").get(
-                            cliente=cliente,
-                            config__moneda__code=data.get("moneda_destino")
+                        limite_cli = (
+                            LimiteIntercambioCliente.objects
+                            .select_related("config__moneda")
+                            .filter(cliente=cliente, config__moneda__code=data.get("moneda_destino"))
+                            .order_by('-id')  # tomamos el último creado
+                            .first()
                         )
                         if monto_destino > limite_cli.limite_dia_actual:
                             messages.error(request, f"El monto {monto_destino} supera el límite DIARIO disponible ({limite_cli.limite_dia_actual} {limite_cli.moneda.code}).")
