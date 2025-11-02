@@ -44,7 +44,7 @@
                 {% csrf_token %}
 
                 {% if modo == 'pagar' %}
-                    <div class="denom-box">
+                    <div class="denom-box" style="color: #000;">
                         <h4>Ingresar billetes recibidos</h4>
                         {% for d in denominaciones %}
                             <label class="denom-line">

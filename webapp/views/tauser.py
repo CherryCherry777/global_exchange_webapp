@@ -8,6 +8,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.http import require_http_methods
 from webapp.models import Transaccion, Tauser, TauserCurrencyStock, CurrencyDenomination
 from django.db.models import Q, F
+
+from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
 from ..decorators import role_required
 from decimal import Decimal
 
@@ -159,6 +161,8 @@ def tauser_pagar(request, pk):
             # ✅ Actualizar estado
             transaccion.estado = Transaccion.Estado.PAGADA
             transaccion.save(update_fields=["estado", "fecha_actualizacion"])
+
+            result = generate_invoice_for_transaccion(transaccion)
 
             messages.success(request, f"Transacción #{pk} marcada como PAGADA.")
             return redirect("tauser_home")
