@@ -1,7 +1,12 @@
 from django.shortcuts import render
 from django.template.loader import get_template
 from django.http import HttpResponse
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except Exception:
+    HTML = None
+    WEASYPRINT_AVAILABLE = False
 
 
 
@@ -104,6 +109,13 @@ def factura_pdf(request, factura_id):
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="factura_{factura_id}.pdf"'
+
+    if not WEASYPRINT_AVAILABLE:
+        return HttpResponse(
+            "Generación de PDF no disponible en este entorno. Habilitar weasyprint en Linux/WSL/Docker.",
+            status=503,
+            content_type='text/plain'
+        )
 
     HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf(response)
     return response
