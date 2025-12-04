@@ -22,22 +22,6 @@
                     <h1 class="my-cobro-methods-title">Mis Métodos de Cobro</h1>
                     <p class="my-cobro-methods-subtitle">Gestiona tus métodos de cobro personales</p>
                 </div>
-                
-                <!-- Metrics Cards -->
-                <div class="header-metrics">
-                    <div class="metric-card">
-                        <div class="metric-label">Total Métodos</div>
-                        <div class="metric-number">{{ medios_cobro|length }}</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Métodos Activos</div>
-                        <div class="metric-number">
-                            {% for medio in medios_cobro %}
-                                {% if medio.activo_global %}{{ forloop.counter0|add:1 }}{% endif %}
-                            {% empty %}0{% endfor %}
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -173,9 +157,6 @@
                         <tr class="empty-row">
                             <td colspan="5" class="empty-message">
                                 <div class="empty-state">
-                                    <div class="empty-icon">
-                                        <img src="{% static 'webapp/pantalla_metodo_cobro/1.metodo_cobro.png' %}" alt="No hay métodos">
-                                    </div>
                                     <h3>No tienes métodos de cobro registrados</h3>
                                     <p>Agrega tu primer método de cobro para comenzar</p>
                                 </div>
