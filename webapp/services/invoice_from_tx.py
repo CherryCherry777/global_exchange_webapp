@@ -116,6 +116,7 @@ def generate_invoice_for_transaccion(transaccion: Transaccion) -> dict:
 
         if es_juridica:
             # Persona jurídica → RUC fijo
+            # Esto es solo por propositos de testeo, en un entorno de produccion, cambiariamos a la RUC del cliente
             ruc_base, ruc_dv = "2175460", "8"
             is_contrib = True
         else:
