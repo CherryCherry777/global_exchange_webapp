@@ -572,6 +572,7 @@ def setup_database(sender, **kwargs):
             
             if i+1 == largo:
                 #En caso de que hayan mas tausers para los que hay asignados nombres
+                print("Observacion: Puede haber algun Tauser sin ubicacion asignada")
                 return
             
             tauser.ubicacion=sucursales[i]
