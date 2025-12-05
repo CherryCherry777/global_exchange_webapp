@@ -1,0 +1,582 @@
+/* =========================================================
+   AGREGAR BILLETERA - CSS PIXEL-PERFECT
+   Especificación de diseño aplicada exactamente
+   ========================================================= */
+
+:root {
+    --accent-left: #5B15C2;
+    --accent-mid: #391196;
+    --accent-right: #08052A;
+    --muted-bg: rgba(238, 233, 210, 0.10);
+    --white: #FFFFFF;
+    --dark-bg: #000000;
+    --input-bg: #646464;
+}
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================= */
+.add-payment-method-container {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--dark-bg);
+    color: var(--white);
+    font-family: 'Roboto', Arial, Helvetica, sans-serif;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =========================================================
+   SECCIÓN 1: HEADER (222px)
+   ========================================================= */
+.add-payment-method-header {
+    width: 100%;
+    height: 222px;
+    background: linear-gradient(90deg, #000000 0%, #100724 50%, #000000 100%);
+    padding-top: 30px;
+    padding-bottom: 40px;
+    box-sizing: border-box;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.add-payment-method-header .main-content {
+    max-width: 100%;
+    padding: 0 48px;
+    box-sizing: border-box;
+}
+
+/* Back Button */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 64px;
+    padding: 0 20px;
+    margin-left: 0;
+    margin-top: 0;
+    border-radius: 20px;
+    background: rgba(238, 233, 210, 0.10);
+    color: var(--white);
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    font-family: 'Roboto', Arial, sans-serif;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Header Content (Title & Subtitle) */
+.header-content {
+    margin-left: 0;
+    margin-top: 26px;
+}
+
+.header-text {
+    width: 100%;
+}
+
+.add-payment-method-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--white);
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', Arial, sans-serif;
+    line-height: 1.2;
+}
+
+.add-payment-method-subtitle {
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: var(--white);
+    margin: 8px 0 0 0;
+    padding: 0;
+    font-family: 'Roboto', Arial, sans-serif;
+    line-height: 1.2;
+}
+
+/* =========================================================
+   SECCIÓN 2: TÍTULO DEL FORMULARIO
+   ========================================================= */
+.form-title-section {
+    width: 100%;
+    background: var(--dark-bg);
+    text-align: center;
+    padding: 50px 48px;
+    box-sizing: border-box;
+}
+
+.form-container {
+    width: 100%;
+    height: 577px;
+    background: linear-gradient(90deg, #000000 15%, #100724 50%, #000000 85%);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 70px 0 0 0;
+    margin: 0;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.form-card {
+    width: 100%;
+    max-width: 100%;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    backdrop-filter: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.form-title {
+    font-family: 'Roboto', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: var(--white);
+    margin: 0;
+    padding: 0;
+}
+
+.form-subtitle {
+    font-family: 'Roboto', Arial, sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    display: none;
+}
+
+/* =========================================================
+   SECCIÓN 3: ÍCONO PRINCIPAL
+   ========================================================= */
+.payment-method-icon-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0 60px 0;
+    flex-shrink: 0;
+}
+
+.payment-method-icon {
+    width: 56px;
+    height: 52px;
+    object-fit: contain;
+}
+
+/* =========================================================
+   SECCIÓN 4: CAMPOS DEL FORMULARIO
+   ========================================================= */
+.form-fields-wrapper {
+    width: 100%;
+    max-width: 900px;
+    padding: 0 48px;
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
+.form-section {
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-family: 'Roboto', Arial, sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    color: white;
+    margin: 0 0 40px 0;
+    padding: 0;
+    border: none;
+}
+
+/* Form Grid Layout */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 100px;
+    margin-bottom: 50px;
+}
+
+.form-row.full {
+    grid-template-columns: 1fr;
+    gap: 50px;
+}
+
+/* Form Groups */
+.form-group {
+    position: relative;
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--white);
+    margin-bottom: 12px;
+    padding: 0;
+}
+
+/* Form Inputs */
+.form-group input,
+.form-group select {
+    width: 286px;
+    height: 46px;
+    background: #646464;
+    border: none;
+    border-radius: 5px;
+    padding: 0 15px;
+    color: white;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.form-group input::placeholder,
+.form-group select::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(91, 21, 194, 0.5);
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    background: #646464;
+}
+
+/* Select Styling */
+.form-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding: 0 40px 0 15px;
+    background: #646464 url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 12px center;
+    background-size: 16px;
+    cursor: pointer;
+}
+
+/* Select Options */
+.form-group select option {
+    background-color: #1a1a2e;
+    color: white;
+    padding: 10px;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.form-group select option:hover {
+    background-color: #2a2a3e;
+    color: white;
+}
+
+.form-group select option:checked {
+    background-color: #391196;
+    color: white;
+}
+
+/* Text Inputs Only */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="number"] {
+    background-image: none !important;
+    padding-right: 12px;
+}
+
+/* =========================================================
+   SECCIÓN 5: BOTONES DE ACCIÓN
+   ========================================================= */
+.form-actions {
+    display: flex;
+    gap: 66px;
+    justify-content: center;
+    margin-top: 100px;
+    padding: 0;
+    border: none;
+    width: 100%;
+}
+
+.action-button {
+    width: 125px;
+    height: 36px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+}
+
+.submit-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+}
+
+.submit-button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(91, 21, 194, 0.3);
+}
+
+.cancel-button {
+    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 94%);
+}
+
+.cancel-button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+    color: var(--white);
+}
+
+/* =========================================================
+   ERROR MESSAGES
+   ========================================================= */
+.text-danger {
+    color: #ff6b6b;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 14px;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.form-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-weight: 500;
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+.alert-success {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
+}
+
+.alert-error {
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid #F44336;
+    color: #F44336;
+}
+
+.alert-warning {
+    background: rgba(255, 152, 0, 0.2);
+    border: 1px solid #FF9800;
+    color: #FF9800;
+}
+
+.alert-info {
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196F3;
+    color: #2196F3;
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+@media (max-width: 1400px) {
+    .form-fields-wrapper {
+        padding: 0 40px;
+    }
+
+    .add-payment-method-header .main-content {
+        padding: 0 40px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .form-row {
+        gap: 50px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        max-width: 286px;
+    }
+}
+
+@media (max-width: 768px) {
+    .add-payment-method-header {
+        height: auto;
+        padding: 20px 16px;
+    }
+
+    .back-button {
+        height: 48px;
+        font-size: 16px;
+        padding: 0 16px;
+    }
+
+    .add-payment-method-title {
+        font-size: 24px;
+    }
+
+    .add-payment-method-subtitle {
+        font-size: 14px;
+    }
+
+    .form-title {
+        font-size: 24px;
+    }
+
+    .form-container {
+        padding: 40px 0 0 0;
+    }
+
+    .form-header {
+        margin-bottom: 30px;
+    }
+
+    .payment-method-icon-circle {
+        margin-bottom: 30px;
+        width: 80px;
+        height: 80px;
+    }
+
+    .payment-method-icon {
+        width: 48px;
+        height: 44px;
+    }
+
+    .form-fields-wrapper {
+        padding: 0 20px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .form-label {
+        font-size: 16px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 50px;
+    }
+
+    .action-button {
+        width: 100%;
+        height: 48px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .add-payment-method-header {
+        padding: 15px 12px;
+    }
+
+    .back-button {
+        height: 40px;
+        font-size: 14px;
+        padding: 0 12px;
+    }
+
+    .add-payment-method-title {
+        font-size: 20px;
+    }
+
+    .form-title {
+        font-size: 20px;
+    }
+
+    .form-fields-wrapper {
+        padding: 0 15px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .form-label {
+        font-size: 14px;
+    }
+
+    .action-button {
+        height: 44px;
+        font-size: 12px;
+    }
+}
