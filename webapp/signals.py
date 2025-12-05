@@ -531,6 +531,58 @@ def setup_database(sender, **kwargs):
 
         print(f"✅ Stock inicial cargado: {INITIAL_QTY} billetes por denominación")
 
+    def setup_tauser_names():
+        Tauser = apps.get_model("webapp", "Tauser")
+
+        tausers = Tauser.objects.filter(activo=True)
+        if not tausers.exists():
+            print("⚠️ No hay Tausers activos aún, nombres no inicializados.")
+            return
+        
+        """
+        i = 1
+        for name in default_names:
+        Tauser.objects.create(
+            nombre=name,
+            activo=True,
+            ubicacion=f"Sucursal {i}",
+            # No asignamos tipo_pago ni tipo_cobro
+        )
+        i += 1"""
+
+        default_names = [
+        "Tauser 1", "Tauser 2", "Tauser 3", "Tauser 4", "Tauser 5",
+        "Tauser 6", "Tauser 7", "Tauser 8", "Tauser 9", "Tauser 10"
+        ]
+
+        # OJO si se agregan mas sucursales, agregar a esta lista
+
+        sucursales = [
+            "Casa Central", "Sucursal Pinedo", "Sucursal Villamorra", "Sucursal Multiplaza", "Sucursal Mariano Roque Alonso",
+            "Sucursal Ciudad del Este", "Sucursal Encarnación", "Sucursal Mercado San Lorenzo", "Sucursal Itaugua", "Sucursal Capiata"
+        ]
+        largo = len(sucursales)
+
+        i = 0
+
+        for tauser in tausers:
+            if tauser.ubicacion != f"Sucursal {i+1}":
+                print("✅ Nombres ya asignados a los Tausers")
+                return
+            
+            if i+1 == largo:
+                #En caso de que hayan mas tausers para los que hay asignados nombres
+                print("Observacion: Puede haber algun Tauser sin ubicacion asignada")
+                return
+            
+            tauser.ubicacion=sucursales[i]
+            tauser.save()
+            i += 1
+
+        print("✅ Nombres de Tausers establecidos")
+        
+
+
     # -------------------------------------------------------------
     # EXECUTION ORDER
     # -------------------------------------------------------------
@@ -544,6 +596,7 @@ def setup_database(sender, **kwargs):
     safe_run("Medios de Pago para usuario1 por defecto", crear_medios_pago_por_defecto)
     safe_run("Medios de Cobro para usuario1 por defecto", crear_medios_cobro_por_defecto)
     safe_run("Stock inicial de Tauser", setup_tauser_stock)
+    safe_run("Asignacion de nombres a los Tauser", setup_tauser_names)
 
 """
 @receiver(post_migrate)

@@ -309,6 +309,7 @@ class TarjetaNacionalForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
         queryset=Entidad.objects.filter(tipo="banco", activo=True),
         label="Banco Emisor",
+        empty_label="Seleccionar banco emisor",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
@@ -378,6 +379,7 @@ class BilleteraForm(forms.ModelForm):
             )
 
         self.fields["entidad"].queryset = qs
+        self.fields["entidad"].empty_label = "Seleccione un proveedor"
 
     def clean_numero_celular(self):
         numero_celular = self.cleaned_data.get("numero_celular") or ""
@@ -391,7 +393,8 @@ class CuentaBancariaForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
         queryset=Entidad.objects.filter(tipo="banco", activo=True),
         label="Banco",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        empty_label="Seleccionar Banco"
     )
 
     class Meta:

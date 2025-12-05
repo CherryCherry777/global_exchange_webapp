@@ -19,7 +19,12 @@ from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_naci
 from webapp.tasks import pagar_al_cliente_task
 from django.template.loader import get_template
 from django.http import HttpResponse
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except Exception:
+    HTML = None
+    WEASYPRINT_AVAILABLE = False
 from collections import defaultdict
 # ----------------------
 # Vistas de compraventa

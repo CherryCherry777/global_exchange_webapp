@@ -1,7 +1,7 @@
 {% extends "webapp/base.html" %}
 {% load static %}
 
-{% block title %}Mis Métodos de Pago{% endblock %}
+{% block title %}Administrar métodos de pago{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'webapp/css/metodos_pago/my_payment_methods.css' %}" />
@@ -13,31 +13,15 @@
     
 
     <!-- Header Section -->
-    <div class="my-payment-methods-header">
-        <div class="main-content">
-            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
-            
-            <div class="header-content">
+        <div class="my-payment-methods-header">
+            <div class="main-content">
+                <a href="{% url 'administar_metodos_pago' %}" class="back-button">← Volver a administrar métodos</a>            <div class="header-content">
                 <div class="header-text">
-                    <h1 class="my-payment-methods-title">Mis Métodos de Pago</h1>
+                    <h1 class="my-payment-methods-title">Administrar métodos de pago</h1>
                     <p class="my-payment-methods-subtitle">Gestiona tus métodos de pago personales</p>
                 </div>
                 
-                <!-- Metrics Cards -->
-                <div class="header-metrics">
-                    <div class="metric-card">
-                        <div class="metric-label">Total Métodos</div>
-                        <div class="metric-number">{{ medios_pago|length }}</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Métodos Activos</div>
-                        <div class="metric-number">
-                            {% for medio in medios_pago %}
-                                {% if medio.activo_global %}{{ forloop.counter0|add:1 }}{% endif %}
-                            {% empty %}0{% endfor %}
-                        </div>
-                    </div>
-                </div>
+                <!-- Metrics Hidden per Design -->
             </div>
         </div>
     </div>
@@ -46,7 +30,7 @@
     <div class="main-content">
         <!-- Add Payment Methods Section -->
         <div class="add-payment-methods-section">
-            <h2 class="section-title">Agregar Nuevo Método de Pago</h2>
+            <h2 class="section-title">Agregar Nuevo Métodos de Pago</h2>
             <div class="add-buttons-container">
                 <a href="{% url 'add_payment_method' 'billetera' %}" class="add-button">
                     <div class="button-icon">
@@ -79,9 +63,9 @@
         <div class="payment-methods-list-container">
             <!-- Search Section -->
             <div class="search-section">
-                <h2 class="search-title">Mis Métodos de Pago</h2>
+                <h2 class="search-title">Lista de Métodos de Pago</h2>
                 <div class="search-bar">
-                    <input type="text" id="searchInput" placeholder="Buscar método de pago..." class="search-input">
+                    <input type="text" id="searchInput" placeholder="Buscar Método de Pago" class="search-input">
                 </div>
             </div>
 
@@ -181,10 +165,7 @@
                         <tr class="empty-row">
                             <td colspan="5" class="empty-message">
                                 <div class="empty-state">
-                                    <div class="empty-icon">
-                                        <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="No hay métodos">
-                                    </div>
-                                    <h3>No tienes métodos de pago registrados</h3>
+                                    <h3>No hay métodos de pago registrados</h3>
                                     <p>Agrega tu primer método de pago para comenzar</p>
                                 </div>
                             </td>

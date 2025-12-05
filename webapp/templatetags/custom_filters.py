@@ -80,3 +80,12 @@ def decimal_step(value):
     except:
         return '1'
 
+@register.filter
+def replace_underscore(value):
+    """Reemplaza guiones bajos con espacios.
+    
+    Ejemplo:
+        {{ "tarjeta_nacional"|replace_underscore|capfirst }}  -> Tarjeta Nacional
+    """
+    return str(value).replace('_', ' ')
+

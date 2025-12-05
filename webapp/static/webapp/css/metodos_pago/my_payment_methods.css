@@ -1,207 +1,226 @@
-/* My Payment Methods Styles */
+/* =========================================================
+   ADMINISTRAR MÉTODOS DE PAGO - CSS PIXEL-PERFECT
+   Especificación de diseño aplicada exactamente
+   ========================================================= */
+
+:root {
+    --accent-left: #5B15C2;
+    --accent-mid: #391196;
+    --accent-right: #08052A;
+    --muted-bg: rgba(238, 233, 210, 0.10);
+    --white: #FFFFFF;
+    --dark-bg: #000000;
+}
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================= */
 .my-payment-methods-container {
+    width: 100%;
     min-height: 100vh;
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-    padding: 20px 0;
+    background: var(--dark-bg);
+    color: var(--white);
+    font-family: 'Roboto', Arial, Helvetica, sans-serif;
+    padding: 0;
+    margin: 0;
 }
 
-/* Header Section */
+/* =========================================================
+   SECCIÓN 1: HEADER (222px)
+   ========================================================= */
 .my-payment-methods-header {
-    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%);
-    padding: 40px 0;
-    margin-bottom: 30px;
+    width: 100%;
+    height: 222px;
+    background: linear-gradient(90deg, #000000 0%, #100724 50%, #000000 100%);
+    padding-top: 30px;
+    padding-bottom: 40px;
+    box-sizing: border-box;
+    position: relative;
 }
 
-.main-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+.my-payment-methods-header .main-content {
+    max-width: 100%;
+    padding: 0 48px;
+    box-sizing: border-box;
 }
 
+/* Back Button */
 .back-button {
-    display: inline-block;
-    background: rgba(238, 233, 210, 0.1);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 64px;
+    padding: 0 20px;
+    margin-left: 0;
+    margin-top: 0;
+    border-radius: 20px;
+    background: rgba(238, 233, 210, 0.10);
+    color: var(--white);
     text-decoration: none;
-    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
     font-weight: 500;
     font-style: italic;
-    font-size: 20px;
-    margin-bottom: 30px;
+    font-family: 'Roboto', Arial, sans-serif;
     transition: all 0.3s ease;
 }
 
 .back-button:hover {
-    background: rgba(238, 233, 210, 0.2);
+    background: rgba(238, 233, 210, 0.15);
     transform: translateY(-2px);
 }
 
+/* Header Content (Title & Subtitle) */
 .header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 30px;
-}
-
-.header-text {
-    flex: 1;
-    min-width: 300px;
+    margin-left: 0;
+    margin-top: 26px;
 }
 
 .my-payment-methods-title {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 700;
     font-size: 32px;
-    color: white;
-    margin: 0 0 10px 0;
+    font-weight: 700;
+    color: var(--white);
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
 }
 
 .my-payment-methods-subtitle {
-    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
     font-weight: 500;
     font-style: italic;
-    font-size: 20px;
-    color: white;
-    margin: 0;
+    color: var(--white);
+    margin: 8px 0 0 0;
+    padding: 0;
+    line-height: 1.2;
 }
 
-/* Metrics Cards */
+/* Metrics (opcional, puede ocultarse si no aparece en el mockup) */
 .header-metrics {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+    display: none;
 }
 
-.metric-card {
-    background: rgba(238, 233, 210, 0.1);
+/* =========================================================
+   SECCIÓN 2: AGREGAR NUEVO MÉTODO
+   ========================================================= */
+.add-payment-methods-section {
+    width: 1355px;
+    background: var(--muted-bg);
     border-radius: 20px;
-    padding: 20px;
-    text-align: center;
-    min-width: 177px;
-    height: 149px;
+    margin: 40px auto 61px auto;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 32px 24px;
+    box-sizing: border-box;
+    min-height: auto;
 }
 
-.metric-label {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 600;
-    font-style: italic;
-    font-size: 16px;
-    color: white;
-    margin-bottom: 10px;
-}
-
-.metric-number {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-    font-style: italic;
-    font-size: 96px;
-    color: white;
-    line-height: 1;
-}
-
-/* Add Payment Methods Section */
-.add-payment-methods-section {
-    background: rgba(238, 233, 210, 0.1);
-    border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 30px;
-}
-
-.section-title {
-    font-family: 'Roboto', sans-serif;
+.add-payment-methods-section .section-title {
+    font-size: 32px;
     font-weight: 700;
-    font-size: 24px;
-    color: white;
-    margin: 0 0 20px 0;
+    color: var(--white);
+    margin: 0 0 28px 0;
+    padding: 0;
     text-align: center;
+    width: 100%;
 }
 
 .add-buttons-container {
     display: flex;
-    gap: 20px;
-    justify-content: center;
+    gap: 42px;
     flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
 }
 
 .add-button {
-    display: flex;
-    flex-direction: column;
+    width: 287px;
+    height: 42px;
+    border-radius: 20px;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 15px;
+    justify-content: center;
+    color: var(--white);
     text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    font-family: 'Roboto', Arial, sans-serif;
+    background: linear-gradient(90deg, var(--accent-right) 0%, var(--accent-mid) 50%, var(--accent-left) 94%);
     transition: all 0.3s ease;
-    min-width: 150px;
+    border: none;
+    cursor: pointer;
+    padding: 0;
 }
 
 .add-button:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(91, 21, 194, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-.button-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.add-button .button-icon {
+    display: none;
 }
 
-.button-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+.add-button .button-text {
+    white-space: nowrap;
 }
 
-.button-text {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-    font-style: italic;
-    font-size: 14px;
-    text-align: center;
-}
-
-/* Payment Methods List Container */
+/* =========================================================
+   SECCIÓN 3: LISTA DE MÉTODOS (491px)
+   ========================================================= */
 .payment-methods-list-container {
-    background: rgba(238, 233, 210, 0.1);
+    width: 1355px;
+    height: 491px;
+    background: var(--muted-bg);
     border-radius: 20px;
-    padding: 30px;
+    margin: 61px auto 80px auto;
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
 }
 
+/* Search Section */
 .search-section {
-    margin-bottom: 30px;
+    position: absolute;
+    top: 27px;
+    left: 102px;
+    right: 102px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: calc(100% - 204px);
+    box-sizing: border-box;
 }
 
-.search-title {
-    font-family: 'Roboto', sans-serif;
+.search-section .search-title {
+    font-size: 32px;
     font-weight: 700;
-    font-size: 24px;
-    color: white;
-    margin: 0 0 20px 0;
+    color: var(--white);
+    margin: 0;
+    padding: 0;
 }
 
 .search-bar {
-    max-width: 400px;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
 }
 
 .search-input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid rgba(238, 233, 210, 0.2);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    font-family: 'Roboto', sans-serif;
+    width: 312px;
+    height: 36px;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.45);
+    border: none;
+    padding: 0 14px;
+    color: rgba(255, 255, 255, 0.9);
     font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    font-family: 'Roboto', Arial, sans-serif;
     transition: all 0.3s ease;
 }
 
@@ -211,132 +230,220 @@
 
 .search-input:focus {
     outline: none;
-    border-color: #5B15C2;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.6);
 }
 
-/* Payment Methods Table */
+/* Table Container */
 .payment-methods-table-container {
-    overflow-x: auto;
+    position: absolute;
+    top: 153px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: calc(100% - 153px);
+    padding: 0 102px;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
 
 .payment-methods-table {
     width: 100%;
-    border-collapse: collapse;
-    background: transparent;
+    border-collapse: separate;
+    border-spacing: 0 23px;
+    table-layout: fixed;
 }
 
-.payment-methods-table th {
-    background: rgba(238, 233, 210, 0.1);
-    color: white;
-    font-family: 'Roboto', sans-serif;
-    font-weight: 600;
-    font-size: 16px;
-    padding: 15px;
-    text-align: left;
-    border-bottom: 2px solid rgba(238, 233, 210, 0.2);
+/* Table Headers */
+.payment-methods-table thead th {
+    color: var(--white);
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    font-family: 'Roboto', Arial, sans-serif;
+    text-align: center;
+    padding: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
-.payment-methods-table td {
-    padding: 15px;
-    border-bottom: 1px solid rgba(238, 233, 210, 0.1);
+.payment-methods-table thead tr {
+    display: table-row;
+}
+
+/* Columns Distribution */
+.payment-methods-table th:nth-child(1),
+.payment-methods-table td:nth-child(1) {
+    width: 25%;
+}
+
+.payment-methods-table th:nth-child(2),
+.payment-methods-table td:nth-child(2) {
+    width: 20%;
+}
+
+.payment-methods-table th:nth-child(3),
+.payment-methods-table td:nth-child(3) {
+    display: none;
+}
+
+.payment-methods-table th:nth-child(4),
+.payment-methods-table td:nth-child(4) {
+    width: 20%;
+}
+
+.payment-methods-table th:nth-child(5),
+.payment-methods-table td:nth-child(5) {
+    width: 35%;
+}
+
+/* Table Body Rows */
+.payment-methods-table tbody tr {
+    display: table-row;
+    height: 55px;
+}
+
+.payment-methods-table tbody td {
+    padding: 0;
     vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.payment-method-row:hover {
-    background: rgba(238, 233, 210, 0.05);
+.payment-method-row {
+    display: table-row;
 }
 
-/* Method Cell */
+/* Cell Styling */
+.method-cell {
+    width: 25%;
+    display: table-cell;
+    vertical-align: middle;
+    padding: 0;
+}
+
+.method-cell .payment-method-info {
+    display: flex;
+    align-items: center;
+    gap: 23px;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.type-cell {
+    width: 20%;
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.provider-cell {
+    display: none;
+}
+
+.currency-cell {
+    display: none;
+}
+
+.details-cell {
+    display: none;
+}
+
+.status-cell {
+    width: 20%;
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.actions-cell {
+    width: 35%;
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.actions-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Payment Method Info */
 .payment-method-info {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
 }
 
 .payment-method-icon-circle {
-    width: 50px;
-    height: 50px;
+    width: 43px;
+    height: 43px;
+    min-width: 43px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #391196 0%, #08052A 100%);
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
 }
 
 .payment-method-icon {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 26px;
     object-fit: contain;
 }
 
 .payment-method-name {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 600;
-    font-size: 16px;
-    color: white;
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--white);
+    font-family: 'Roboto', Arial, sans-serif;
 }
 
-/* Type Cell */
+/* Provider & Currency Text */
+.provider-text,
+.currency-text {
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--white);
+    font-family: 'Roboto', Arial, sans-serif;
+}
+
+.payment-method-icon {
+    width: 28px;
+    height: 26px;
+    object-fit: contain;
+}
+
+.payment-method-name {
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--white);
+    font-family: 'Roboto', Arial, sans-serif;
+}
+
+/* Type Badge */
 .type-badge {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-    font-size: 14px;
-    text-transform: capitalize;
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--white);
+    font-family: 'Roboto', Arial, sans-serif;
 }
 
-.type-billetera {
-    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
-    color: white;
-}
-
-.type-cuenta_bancaria {
-    background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
-    color: white;
-}
-
-.type-tarjeta_nacional, .type-tarjeta_internacional {
-    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
-    color: white;
-}
-
-/* Details Cell */
-.details-content {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.detail-item {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.detail-label {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-    min-width: 80px;
-}
-
-.detail-value {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 400;
-    font-size: 14px;
-    color: white;
-}
-
-/* Status Cell */
+/* Status Indicator */
 .status-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    justify-content: center;
 }
 
 .status-dot {
@@ -347,226 +454,232 @@
 }
 
 .status-dot.active {
-    background: linear-gradient(135deg, #391196 0%, #08052A 100%);
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
 }
 
 .status-dot.inactive {
-    background: linear-gradient(135deg, #909090 0%, #535353 100%);
+    background: linear-gradient(180deg, #909090 0%, #535353 100%);
 }
 
 .status-text {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-    font-style: italic;
-    font-size: 16px;
-    color: white;
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--white);
+    font-family: 'Roboto', Arial, sans-serif;
 }
 
-/* Actions Cell */
+/* Actions Container */
 .actions-container {
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 24px;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .action-button {
-    padding: 8px 16px;
+    width: 125px;
+    height: 38px;
     border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
     text-decoration: none;
-    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
     font-weight: 500;
     font-style: italic;
-    font-size: 14px;
-    transition: all 0.3s ease;
+    font-family: 'Roboto', Arial, sans-serif;
     border: none;
     cursor: pointer;
-    display: inline-block;
-    text-align: center;
+    transition: all 0.3s ease;
 }
 
 .edit-button {
     background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
-    color: white;
-}
-
-.edit-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(91, 21, 194, 0.3);
 }
 
 .delete-button {
-    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 100%);
-    color: white;
+    background: linear-gradient(90deg, #C3C3C3 0%, #828281 20%, #2F2F2F 94%);
 }
 
-.delete-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(47, 47, 47, 0.3);
+.action-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 /* Empty State */
 .empty-row {
-    background: transparent;
+    display: table-row !important;
+    height: auto;
 }
 
 .empty-message {
     text-align: center;
-    padding: 60px 20px;
+    padding: 80px 40px;
+    grid-column: 1 / -1;
+    display: table-cell;
 }
 
 .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-}
-
-.empty-icon {
-    width: 80px;
-    height: 80px;
-    opacity: 0.5;
-}
-
-.empty-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+    justify-content: center;
+    gap: 12px;
 }
 
 .empty-state h3 {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 600;
-    font-size: 20px;
-    color: white;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--white);
     margin: 0;
+    font-family: 'Roboto', Arial, sans-serif;
 }
 
 .empty-state p {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 400;
     font-size: 16px;
     color: rgba(255, 255, 255, 0.7);
     margin: 0;
+    font-family: 'Roboto', Arial, sans-serif;
 }
 
-/* Alerts */
-.alert {
-    padding: 15px 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-    animation: slideIn 0.3s ease-out;
-}
-
-.alert-success {
-    background: rgba(76, 175, 80, 0.2);
-    border: 1px solid #4CAF50;
-    color: #4CAF50;
-}
-
-.alert-error {
-    background: rgba(244, 67, 54, 0.2);
-    border: 1px solid #F44336;
-    color: #F44336;
-}
-
-.alert-warning {
-    background: rgba(255, 152, 0, 0.2);
-    border: 1px solid #FF9800;
-    color: #FF9800;
-}
-
-.alert-info {
-    background: rgba(33, 150, 243, 0.2);
-    border: 1px solid #2196F3;
-    color: #2196F3;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+@media (max-width: 1400px) {
+    .add-payment-methods-section,
+    .payment-methods-list-container {
+        width: calc(100% - 192px);
+        margin-left: 96px;
+        margin-right: 96px;
     }
-    to {
+}
+
+@media (max-width: 1024px) {
+    .add-payment-methods-section,
+    .payment-methods-list-container {
+        width: calc(100% - 96px);
+        margin-left: 48px;
+        margin-right: 48px;
+    }
+
+    .add-buttons-container {
+        left: 24px;
+    }
+
+    .payment-methods-table thead th:nth-child(1) {
+        margin-left: 20px;
+    }
+
+    .payment-methods-table tbody td.method-cell {
+        margin-left: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .my-payment-methods-header {
+        height: auto;
+        padding: 20px 24px;
+    }
+
+    .add-payment-methods-section {
+        width: calc(100% - 48px);
+        height: auto;
+        padding: 24px;
+        margin: 24px 24px 40px 24px;
+    }
+
+    .add-buttons-container {
+        position: static;
+        transform: none;
+        left: 0;
+        top: 0;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .add-button {
+        width: 100%;
+    }
+
+    .payment-methods-list-container {
+        width: calc(100% - 48px);
+        height: auto;
+        margin: 24px 24px 40px 24px;
+        padding: 24px;
+    }
+
+    .search-section {
+        position: static;
+        flex-direction: column;
+        gap: 12px;
+        padding: 0;
+    }
+
+    .search-bar {
+        position: static;
+        right: auto;
+        top: auto;
+        width: 100%;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .payment-methods-table {
+        border-spacing: 0 16px;
+    }
+
+    .payment-methods-table thead {
+        display: none;
+    }
+
+    .payment-methods-table tbody tr {
+        display: block;
+        margin-bottom: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .payment-methods-table tbody td {
+        display: block;
+        margin-bottom: 8px;
+        text-align: left;
+    }
+
+    .method-cell,
+    .type-cell,
+    .status-cell,
+    .actions-cell {
+        flex: none;
+        margin-left: 0;
+    }
+
+    .payment-methods-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        display: inline-block;
+        width: 100px;
+    }
+}
+
+/* =========================================================
+   ANIMACIONES
+   ========================================================= */
+@keyframes slideOut {
+    from {
         transform: translateX(0);
         opacity: 1;
     }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .header-metrics {
-        justify-content: center;
-    }
-    
-    .metric-card {
-        min-width: 150px;
-        height: 120px;
-    }
-    
-    .metric-number {
-        font-size: 60px;
-    }
-    
-    .add-buttons-container {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .add-button {
-        width: 100%;
-        max-width: 300px;
-    }
-    
-    .payment-method-info {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-    
-    .actions-container {
-        flex-direction: column;
-    }
-    
-    .action-button {
-        width: 100%;
+    to {
+        transform: translateX(100%);
+        opacity: 0;
     }
 }
 
-@media (max-width: 480px) {
-    .main-content {
-        padding: 0 15px;
-    }
-    
-    .my-payment-methods-title {
-        font-size: 24px;
-    }
-    
-    .my-payment-methods-subtitle {
-        font-size: 16px;
-    }
-    
-    .metric-card {
-        min-width: 120px;
-        height: 100px;
-    }
-    
-    .metric-number {
-        font-size: 48px;
-    }
-    
-    .payment-methods-table {
-        font-size: 14px;
-    }
-    
-    .payment-methods-table th,
-    .payment-methods-table td {
-        padding: 10px 8px;
-    }
+.alert.slide-out {
+    animation: slideOut 0.3s ease-in forwards;
 }
