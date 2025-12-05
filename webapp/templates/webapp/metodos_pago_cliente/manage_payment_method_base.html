@@ -1,5 +1,6 @@
 {% extends "webapp/base.html" %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}
 {% if is_edit %}
@@ -32,6 +33,8 @@ Agregar {{ tipo|capfirst }}
 .form-group input::placeholder,
 .form-group select::placeholder {
     color: rgba(255, 255, 255, 0.7);
+    font-weight: 300;
+    font-style: italic;
 }
 
 .form-group input:focus,
@@ -62,6 +65,11 @@ Agregar {{ tipo|capfirst }}
     font-family: 'Roboto', Arial, sans-serif;
     font-size: 20px;
     font-weight: 500;
+}
+
+.form-group select option[value=""] {
+    font-weight: 300;
+    font-style: italic;
 }
 
 .form-group select option:hover {
@@ -115,16 +123,16 @@ Agregar {{ tipo|capfirst }}
                 <div class="header-text">
                     <h1 class="add-payment-method-title">
                         {% if is_edit %}
-                        Editar {{ tipo|capfirst }}
+                        Editar {{ tipo|replace_underscore|capfirst }}
                         {% else %}
-                        Agregar Billetera
+                        Agregar {{ tipo|replace_underscore|capfirst }}
                         {% endif %}
                     </h1>
                     <p class="add-payment-method-subtitle">
                         {% if is_edit %}
-                        Modifica los datos de tu {{ tipo|capfirst }}
+                        Modifica los datos de tu {{ tipo|replace_underscore|lower }}
                         {% else %}
-                        Agrega una billetera a tus métodos de pago
+                        Agrega {{ tipo|replace_underscore|lower }} a tus métodos de pago
                         {% endif %}
                     </p>
                 </div>
@@ -171,7 +179,7 @@ Agregar {{ tipo|capfirst }}
                                 <div class="form-group">
                                     <label for="id_moneda" class="form-label">Moneda</label>
                                     <select name="moneda" id="id_moneda" class="form-control" required>
-                                        <option value="">-- Seleccione una moneda --</option>
+                                        <option value="">Seleccione una moneda</option>
                                         {% for m in monedas %}
                                             <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
                                         {% endfor %}
@@ -193,7 +201,7 @@ Agregar {{ tipo|capfirst }}
                     <!-- Datos Específicos Section -->
                     {% if tipo|lower != "tarjeta_internacional" %}
                         <div class="form-section">
-                            <h3 class="section-title">Datos del {{ tipo|capfirst }}</h3>
+                            <h3 class="section-title">Datos del {{ tipo|replace_underscore|capfirst }}</h3>
                             
                             <div class="form-row">
                                 {% for field in form.visible_fields %}

@@ -118,26 +118,26 @@
 }
 
 .form-container {
-    width: 100%;
-    height: 577px;
-    background: linear-gradient(90deg, #000000 15%, #100724 50%, #000000 85%);
+    width: auto;
+    height: auto;
+    background: transparent;
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 70px 0 0 0;
+    padding: 70px 0 60px 0;
     margin: 0;
     box-sizing: border-box;
-    overflow-y: auto;
+    overflow-y: visible;
 }
 
 .form-card {
-    width: 100%;
+    width: auto;
     max-width: 100%;
-    background: transparent;
-    border-radius: 0;
-    padding: 0;
+    background: linear-gradient(90deg, #000000 0%, #100724 50%, #000000 100%);
+    border-radius: 20px;
+    padding: 60px 140px;
     backdrop-filter: none;
     border: none;
     display: flex;
@@ -179,7 +179,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 0 60px 0;
+    margin: 0 0 40px 0;
     flex-shrink: 0;
 }
 
@@ -193,11 +193,11 @@
    SECCIÓN 4: CAMPOS DEL FORMULARIO
    ========================================================= */
 .form-fields-wrapper {
-    width: 100%;
-    max-width: 900px;
-    padding: 0 48px;
+    width: auto;
+    max-width: 100%;
+    padding: 0;
     box-sizing: border-box;
-    margin: 0 auto;
+    margin: 0;
 }
 
 .form-section {
@@ -209,28 +209,32 @@
     font-weight: 600;
     font-size: 20px;
     color: white;
-    margin: 0 0 40px 0;
+    margin: 0 0 25px 0;
     padding: 0;
     border: none;
+    text-align: center;
+    width: 100%;
 }
 
 /* Form Grid Layout */
 .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 100px;
-    margin-bottom: 50px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin-bottom: 40px;
+    justify-content: center;
 }
 
 .form-row.full {
     grid-template-columns: 1fr;
-    gap: 50px;
+    gap: 40px;
 }
 
 /* Form Groups */
 .form-group {
     position: relative;
     margin-bottom: 0;
+    flex-shrink: 0;
 }
 
 .form-label {
@@ -265,6 +269,8 @@
 .form-group input::placeholder,
 .form-group select::placeholder {
     color: rgba(255, 255, 255, 0.7);
+    font-weight: 300;
+    font-style: italic;
 }
 
 .form-group input:focus,
@@ -299,6 +305,11 @@
     font-weight: 500;
 }
 
+.form-group select option[value=""] {
+    font-weight: 300;
+    font-style: italic;
+}
+
 .form-group select option:hover {
     background-color: #2a2a3e;
     color: white;
@@ -323,12 +334,12 @@
    ========================================================= */
 .form-actions {
     display: flex;
-    gap: 66px;
+    gap: 40px;
     justify-content: center;
-    margin-top: 100px;
+    margin-top: 40px;
     padding: 0;
     border: none;
-    width: 100%;
+    width: auto;
 }
 
 .action-button {
