@@ -23,6 +23,8 @@
     font-family: 'Roboto', Arial, Helvetica, sans-serif;
     padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* =========================================================
@@ -35,35 +37,42 @@
     padding-top: 30px;
     padding-bottom: 40px;
     box-sizing: border-box;
-    display: flex;
-    align-items: flex-start;
     position: relative;
 }
 
-.main-content {
-    width: 100%;
-    max-width: 1355px;
-    margin: 0 auto;
-    padding: 0 96px;
+.my-cobro-methods-header .main-content {
+    max-width: 100%;
+    padding: 0 48px;
     box-sizing: border-box;
 }
 
+.main-content-wrapper {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+}
+
 .back-button {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     height: 64px;
     padding: 0 20px;
-    background: rgba(238, 233, 210, 0.10);
-    border: none;
+    margin-left: 0;
+    margin-top: 0;
     border-radius: 20px;
+    background: rgba(238, 233, 210, 0.10);
     color: var(--white);
     text-decoration: none;
     font-size: 20px;
     font-weight: 500;
     font-style: italic;
     font-family: 'Roboto', Arial, sans-serif;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
     transition: all 0.3s ease;
 }
 
@@ -72,13 +81,15 @@
     transform: translateY(-2px);
 }
 
+/* Header Content (Title & Subtitle) */
 .header-content {
+    margin-left: 0;
     margin-top: 26px;
-    width: 100%;
 }
 
 .header-text {
     width: 100%;
+    text-align: left;
 }
 
 .my-cobro-methods-title {
@@ -88,6 +99,7 @@
     margin: 0;
     padding: 0;
     font-family: 'Roboto', Arial, sans-serif;
+    line-height: 1.2;
 }
 
 .my-cobro-methods-subtitle {
@@ -111,7 +123,7 @@
     height: auto;
     background: var(--muted-bg);
     border-radius: 20px;
-    margin: 40px auto 61px auto;
+    margin: 0 0 30px 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -119,13 +131,14 @@
     padding: 32px 24px;
     box-sizing: border-box;
     min-height: auto;
+    flex-shrink: 0;
 }
 
 .add-cobro-methods-section .section-title {
     font-size: 32px;
     font-weight: 700;
     color: var(--white);
-    margin: 0 0 28px 0;
+    margin: 0 0 16px 0;
     padding: 0;
     text-align: center;
     width: 100%;
@@ -182,10 +195,11 @@
     height: 491px;
     background: var(--muted-bg);
     border-radius: 20px;
-    margin: 61px auto 80px auto;
+    margin: 0;
     padding: 0;
     box-sizing: border-box;
     position: relative;
+    flex-shrink: 0;
 }
 
 /* Search Section */
