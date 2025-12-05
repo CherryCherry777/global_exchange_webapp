@@ -137,26 +137,37 @@ def tauser_pagar(request, pk):
             return redirect("tauser_home")
 
         if accion == "confirmar":
-
             # ✅ Si moneda NO es PYG, registrar billetes recibidos
             if moneda.code != "PYG":
                 denoms = CurrencyDenomination.objects.filter(currency=moneda)
-                total = Decimal('0')
+                total: Decimal = Decimal("0")
+                cantidades: dict[int, int] = {}  # d.id -> qty
 
+                # 1️⃣ Solo calculamos total y guardamos cantidades
                 for d in denoms:
                     qty = int(request.POST.get(f"denom_{d.id}", 0))
                     if qty > 0:
                         total += qty * d.value
+                        cantidades[d.id] = qty
+
+                # 2️⃣ Validar antes de tocar el stock
+                if total != monto:
+                    messages.error(
+                        request,
+                        f"Los billetes ingresados ({total}) no coinciden con el monto ({monto})."
+                    )
+                    return redirect(request.path)
+
+                # 3️⃣ Ahora sí, actualizar el stock porque el total es correcto
+                for d in denoms:
+                    qty = cantidades.get(d.id, 0)
+                    if qty > 0:
                         TauserCurrencyStock.objects.update_or_create(
                             tauser=tauser,
                             currency=moneda,
                             denomination=d,
                             defaults={"quantity": F("quantity") + qty}
                         )
-
-                if total != monto:
-                    messages.error(request, f"Los billetes ingresados ({total}) no coinciden con el monto ({monto}).")
-                    return redirect(request.path)
 
             # ✅ Actualizar estado
             transaccion.estado = Transaccion.Estado.PAGADA
@@ -165,6 +176,7 @@ def tauser_pagar(request, pk):
             result = generate_invoice_for_transaccion(transaccion)
 
             messages.success(request, f"Transacción #{pk} marcada como PAGADA.")
+
             return redirect("tauser_home")
 
     # 🧠 mandar lista de denominaciones al template
