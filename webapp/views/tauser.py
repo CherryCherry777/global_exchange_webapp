@@ -8,8 +8,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.http import require_http_methods
 from webapp.models import Transaccion, Tauser, TauserCurrencyStock, CurrencyDenomination
 from django.db.models import Q, F
+from django.db import transaction
+from datetime import datetime
+import os
 
 from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
+from webapp.tasks import pagar_al_cliente_task
 from ..decorators import role_required
 from decimal import Decimal
 
@@ -115,6 +119,10 @@ def tauser_home(request):
 
 
 def tauser_pagar(request, pk):
+    """
+    Simula un pago del cliente al sistema (Tauser como medio de pago).
+    Redirige amablemente si no se encuentra la transacción.
+    """
     try:
         transaccion = Transaccion.objects.get(pk=pk)
     except Transaccion.DoesNotExist:
@@ -171,11 +179,22 @@ def tauser_pagar(request, pk):
 
             # ✅ Actualizar estado
             transaccion.estado = Transaccion.Estado.PAGADA
-            transaccion.save(update_fields=["estado", "fecha_actualizacion"])
+            transaccion.save()
 
-            result = generate_invoice_for_transaccion(transaccion)
+            try:
+                if os.getenv("GENERAR_FACTURA"):
+                    result = generate_invoice_for_transaccion(transaccion)
+                # Si preferís async:
+                # generate_invoice_task.delay(transaccion.id)
+                # messages.success(request, f"Factura emitida. Nro {result['dNumDoc']} (DE {result['de_id']}).")
+            except Exception as e:
+                messages.warning(request, f"La transacción se registró, pero falló la emisión de la factura: {e}")
+                with open("error.txt", "a") as f: f.write(f"[{datetime.now()}] {type(e).__name__}: {e}\n")
 
-            messages.success(request, f"Transacción #{pk} marcada como PAGADA.")
+            messages.success(request, f"Transacción #{pk} PAGADA.")
+
+            if transaccion.medio_cobro.medio_cobro.nombre != "tauser":
+                pagar_al_cliente_task.delay(transaccion.id)
 
             return redirect("tauser_home")
 

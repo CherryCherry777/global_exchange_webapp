@@ -25,6 +25,7 @@ from django.utils.encoding import force_bytes
 import logging
 import calendar
 from django.core.cache import cache
+from webapp.emails import send_fallo_acreditacion_email
 
 logger = logging.getLogger(__name__)
 
@@ -380,51 +381,7 @@ def pagar_al_cliente_task(self, transaccion_id: int) -> None:
         # Notificación al usuario responsable y soporte
         # ---------------------------------------------
         try:
-            usuario_email = getattr(transaccion.usuario, "email", None)
-            soporte_email = getattr(settings, "SUPPORT_EMAIL", "soporte@tuempresa.com")
-            project_name = getattr(settings, "PROJECT_NAME", "Global Exchange")
-            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@tuempresa.com")
-
-            subject_usuario = "Error en la acreditación de la transacción"
-            message_usuario = (
-                f"Estimado/a {transaccion.usuario},\n\n"
-                f"Se recibió el pago de la transacción correctamente, pero hubo problemas "
-                f"para acreditar el monto correspondiente.\n\n"
-                f"Detalles:\n"
-                f"- ID de transacción: {transaccion.id}\n"
-                f"- Monto: {transaccion.monto_destino} {transaccion.moneda_destino}\n\n"
-                f"Por favor, revise la operación y tome las acciones necesarias.\n\n"
-                f"Atentamente,\n"
-                f"El equipo de soporte de {project_name}"
-            )
-
-            subject_admin = "⚠️ Error crítico: no se pudo acreditar la transacción"
-            message_admin = (
-                "No se pudo completar la acreditación tras varios intentos.\n\n"
-                f"Detalles de la transacción:\n"
-                f"- ID: {transaccion.id}\n"
-                f"- Usuario responsable: {transaccion.usuario}\n"
-                f"- Monto: {transaccion.monto_destino} {transaccion.moneda_destino}\n"
-                f"- Error final: {str(e)}\n\n"
-                "Por favor, revise manualmente la operación."
-            )
-
-            if usuario_email:
-                send_mail(
-                    subject=subject_usuario,
-                    message=message_usuario,
-                    from_email=from_email,
-                    recipient_list=[usuario_email],
-                    fail_silently=True,
-                )
-
-            send_mail(
-                subject=subject_admin,
-                message=message_admin,
-                from_email=from_email,
-                recipient_list=[soporte_email],
-                fail_silently=True,
-            )
+            send_fallo_acreditacion_email(transaccion, e)
 
         except Exception as mail_error:
             logger.warning("Error enviando notificaciones: %s", mail_error)

@@ -1,0 +1,8 @@
+⚠️ Error crítico: no se pudo acreditar la transacción
+No se pudo completar la acreditación tras varios intentos.
+Detalles de la transacción:
+- ID: {{transaccion.id}}
+- Usuario responsable: {{transaccion.usuario}}
+- Monto: {{transaccion.monto_destino}} {{transaccion.moneda_destino}}
+- Error final: {{e}}
+Por favor, revise manualmente la operación.

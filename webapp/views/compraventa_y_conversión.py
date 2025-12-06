@@ -342,7 +342,7 @@ def compraventa_view(request):
                     return redirect("compraventa")
 
                 # --- Pago al cliente en background ---
-                if tipo_cobro_nombre != "tauser":
+                if tipo_cobro_nombre != "tauser" and tipo_pago_nombre != "tauser":
                     pagar_al_cliente_task.delay(transaccion.id)
 
                 if estado == Transaccion.Estado.PAGADA:

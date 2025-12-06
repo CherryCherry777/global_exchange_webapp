@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Error en la acreditación de la transacción</title>
+  <style>
+    body { font-family: 'Roboto', sans-serif; background: #f5f5f5; color: #333; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h1 { color: #391196; font-size: 24px; }
+    a.button { display: inline-block; padding: 10px 20px; background: #5B15C2; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 500; margin-top: 20px; }
+    p { line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Estimado/a {{transaccion.usuario}},</h1>
+    <p>Se recibió el pago de la transacción correctamente, pero hubo problemas 
+       para acreditar el monto correspondiente.</p>
+    <p><strong>Detalles:</strong>:</p>
+    <p>- ID de transacción: {{transaccion.id}}</p>
+    <p>- Monto: {{transaccion.monto_destino}} {{transaccion.moneda_destino}}</p>
+    <p>Por favor, aguarde un momento y en breves su caso será revisado.
+       Atentamente,</p>
+    <p>El equipo de soporte de <strong>{{project_name}}</strong> </p>
+  </div>
+</body>
+</html>
