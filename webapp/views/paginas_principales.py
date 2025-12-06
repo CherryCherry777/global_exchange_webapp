@@ -7,6 +7,8 @@ from ..forms import UserUpdateForm
 from ..utils import get_user_primary_role
 from ..models import Currency, Cliente
 from django.contrib.auth import update_session_auth_hash
+from decimal import Decimal
+
 # -------------
 # Public views
 # -------------
@@ -19,11 +21,6 @@ def public_home(request):
 
     # Obtener todas las monedas activas excepto la moneda base (Guaraní paraguayo)
     currencies = Currency.objects.filter(is_active=True).exclude(code='PYG')
-    
-    # Agregar atributo dinámico "total" a cada moneda
-    for currency in currencies:
-        currency.totalVenta = float(currency.base_price) + float(currency.comision_venta)
-        currency.totalCompra = float(currency.base_price) - float(currency.comision_compra)
 
     # Obtener la fecha de la última actualización de las monedas
     last_update = None
@@ -43,12 +40,23 @@ def public_home(request):
                 # Si el cliente no existe, limpiar la sesión
                 request.session.pop('cliente_id', None)
 
+    # Agregar atributo dinámico "total" a cada moneda
+    for currency in currencies:
+        if current_client and current_client.categoria:
+            descuentoCategoria = Decimal(current_client.categoria.descuento or 0)
+        else:
+            descuentoCategoria = Decimal('0')
+
+        currency.totalVenta = Decimal(currency.base_price) + (Decimal(currency.comision_venta) * (1 - descuentoCategoria)) 
+        currency.totalCompra = Decimal(currency.base_price) - (Decimal(currency.comision_compra) * (1 - descuentoCategoria))
+
     return render(request, "webapp/paginas_principales/home.html", {
         "can_access_gestiones": can_access_gestiones,
         "currencies": currencies,
         "last_update": last_update,
         "is_guest": is_guest,
-        "current_client": current_client
+        "current_client": current_client,
+        "categoria_cliente": current_client.categoria if current_client else None
     })
 
 # ------------------------------

@@ -66,8 +66,8 @@
                                             {% endif %}
                                             <span class="currency-name">{{ currency.name }}</span>
                                         </td>
-                                        <td class="rate-cell">{{ currency.totalCompra|floatformat:currency.decimales_monto }}</td>
-                                        <td class="rate-cell">{{ currency.totalVenta|floatformat:currency.decimales_monto }}</td>
+                                        <td class="rate-cell">{{ currency.totalCompra|floatformat:0 }} PYG</td>
+                                        <td class="rate-cell">{{ currency.totalVenta|floatformat:0 }} PYG</td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}
@@ -119,7 +119,12 @@
                     </div>
 
                     <div class="reference-text">
-                        <p>*Última actualización: 12/09/2025 - 01:49 - Cotizaciones meramente de referencia.</p>
+                        {% if categoria_cliente %}
+                            <p>Cotización exclusiva para la categoria: {{categoria_cliente.nombre|upper}}</p>
+                        {% else %}
+                            <p>SIN CATEGORÍA</p>
+                        {% endif %}
+                        <p>*Última actualización: {% if last_update %} {{ last_update|date:"d/m/Y H:i" }} {% else %} Fecha: No disponible {% endif %} - Cotizaciones meramente de referencia.</p>
                     </div>
                 </div>
             </div>
