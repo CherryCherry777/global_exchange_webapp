@@ -16,6 +16,10 @@ from django.db import connections, transaction
 from decimal import Decimal
 import logging
 
+from django.db.models import Q
+from django.core.files.base import ContentFile
+import requests
+
 User = get_user_model()
 # ================================================================
 # CONFIGURACIONES POR DEFECTO
@@ -559,7 +563,7 @@ def setup_database(sender, **kwargs):
 
         sucursales = [
             "Casa Central", "Sucursal Pinedo", "Sucursal Villamorra", "Sucursal Multiplaza", "Sucursal Mariano Roque Alonso",
-            "Sucursal Ciudad del Este", "Sucursal Encarnación", "Sucursal Mercado San Lorenzo", "Sucursal Itaugua", "Sucursal Capiata"
+            "Sucursal Ciudad del Este", "Sucursal Encarnación", "Sucursal Mercado San Lorenzo", "Sucursal Itaugua", "Sucursal Capiata", "Sucursal Lambaré"
         ]
         largo = len(sucursales)
 
@@ -581,6 +585,49 @@ def setup_database(sender, **kwargs):
 
         print("✅ Nombres de Tausers establecidos")
         
+    def setup_imagenes_monedas():
+        Currency = apps.get_model("webapp", "Currency")
+
+        monedas = Currency.objects.filter(Q(flag_image__isnull=True) | Q(flag_image=''))
+
+        if not monedas.exists():
+            print("✅ Todas las monedas ya tienen imagenes de banderas asignadas")
+            return
+
+        """
+        banderas = [
+            "https://file.garden/aTR_tQRLDge8swJl/banderas_paises/pyg.png", "https://file.garden/aTR_tQRLDge8swJl/banderas_paises/usd.png",
+            "https://file.garden/aTR_tQRLDge8swJl/banderas_paises/ars.png", "https://file.garden/aTR_tQRLDge8swJl/banderas_paises/eur.png", 
+            "https://file.garden/aTR_tQRLDge8swJl/banderas_paises/brl.png"
+        ]
+
+        Todas las monedas tienen imagenes en mi repositorio de filegarden, si quieren agregar alguna contactar a Raquel para que suba la imagen correspondiente
+        """
+
+        for moneda in monedas:
+            """
+            if moneda.code == "EUR":
+                url = "https://file.garden/aTR_tQRLDge8swJl/banderas_paises/eur.png"
+                response = requests.get(url)
+
+                if response.status_code == 200:
+                    file_name = "eur.png"
+                    moneda.flag_image.save(file_name, ContentFile(response.content), save=True)
+            """
+            url = "https://file.garden/aTR_tQRLDge8swJl/banderas_paises/" + str(moneda.code).lower() + ".png"
+            #print("url: " + url)
+
+            response = requests.get(url)
+            if response.status_code == 200:
+                print(f"✅ Asignando imagen a la moneda {moneda.name}")
+                file_name = str(moneda.code).lower() + ".png"
+                moneda.flag_image.save(file_name, ContentFile(response.content), save=True)
+            else:
+                print(f"❌ No hay imagen establecida para la moneda {moneda.name}")
+
+        print("✅ Imagenes de banderas asignadas a las monedas")
+
+
 
 
     # -------------------------------------------------------------
@@ -597,6 +644,7 @@ def setup_database(sender, **kwargs):
     safe_run("Medios de Cobro para usuario1 por defecto", crear_medios_cobro_por_defecto)
     safe_run("Stock inicial de Tauser", setup_tauser_stock)
     safe_run("Asignacion de nombres a los Tauser", setup_tauser_names)
+    safe_run("Asignacion de banderas a las monedas", setup_imagenes_monedas)
 
 """
 @receiver(post_migrate)
