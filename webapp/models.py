@@ -1051,7 +1051,7 @@ class Transaccion(models.Model):
 
             print(f"⬤ Ganancia: {monto_gs_pagado - costo_real}")
 
-            return monto_gs_pagado - costo_real
+            return abs(costo_real - monto_gs_pagado)
         
     class Meta:
         permissions = [
