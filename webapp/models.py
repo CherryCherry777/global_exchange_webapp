@@ -1018,6 +1018,46 @@ class Transaccion(models.Model):
             return f"{self.medio_cobro.nombre} ({self.medio_cobro.ubicacion})"
         return ""
 
+    @property
+    def ganancia_en_pyg(self):
+        """
+        Calcula la ganancia REAL en guaraníes, según si es COMPRA o VENTA
+        y según cuál moneda es PYG.
+        """
+
+        #rate_origen = Decimal(self.tasa_cambio)
+        #rate_destino = Decimal(self.tasa_cambio)
+
+        monto_orig = Decimal(self.monto_origen)
+        monto_dest = Decimal(self.monto_destino)
+        tasa = Decimal(self.tasa_cambio)
+        print(f"⬤ Tasa de cambio: {tasa}")
+
+        # 🔹 CASO 1 — ORIGEN ES PYG (típico en una VENTA)
+        if self.moneda_origen.code == "PYG":
+            # El cliente entrega Gs y recibe divisa
+            # Valor real en Gs de la divisa entregada
+            costo_real = monto_dest * tasa
+
+            return monto_orig - costo_real
+
+        # 🔹 CASO 2 — DESTINO ES PYG (típico en una COMPRA)
+        if self.moneda_destino.code == "PYG":
+            # El cliente entrega divisa y recibe Gs
+            monto_gs_pagado = monto_dest  # ya está expresado en Gs
+            print(f"⬤ Monto en guaranies pagado: {monto_gs_pagado}")
+            costo_real = monto_orig * tasa
+            print(f"⬤ Costo Real: {costo_real}")
+
+            print(f"⬤ Ganancia: {monto_gs_pagado - costo_real}")
+
+            return monto_gs_pagado - costo_real
+        
+    class Meta:
+        permissions = [
+            ("ver_reportes", "Puede ver los reportes de la empresa"),
+        ]
+
     
 # --------------------------------------------
 # Modelos para facturación y notas de crédito

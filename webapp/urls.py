@@ -1,5 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+
+from webapp.views.reportes_transacciones_ganancias import reporte_transacciones
 from . import views
 
 urlpatterns = [
@@ -163,4 +165,7 @@ urlpatterns = [
     path('factura/', views.factura_view, name='factura_view'),
     path("factura/<int:factura_id>/", views.factura_view, name="factura_view"),
     path("factura/<int:factura_id>/pdf/", views.factura_pdf, name="factura_pdf"),
+
+    # Administracion global de transacciones
+    path("reportes/", reporte_transacciones, name="reporte_transacciones"),
 ]

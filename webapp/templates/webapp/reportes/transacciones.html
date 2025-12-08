@@ -1,0 +1,86 @@
+{% extends "webapp/base.html" %}
+{% load static %}
+
+{% block title %}Reporte de Transacciones{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/compraventa_y_conversion/historial_transacciones.css' %}?v=5.3">
+{% endblock %}
+
+{% block content %}
+
+<header class="transactions-header">
+    <div class="header-content">
+        <a href="{% url 'landing' %}" class="back-button">⟵ Volver</a>
+        <h1 class="transactions-title">Reporte de Transacciones</h1>
+        <p class="transactions-subtitle">Filtra y exporta los registros de transacciones</p>
+    </div>
+</header>
+
+<main class="main-content">
+
+    <!-- Formulario de filtros -->
+    <form method="get" class="filter-form">
+        {{ form.as_p }}
+
+        <button type="submit" class="action-button">Filtrar</button>
+        <button type="submit" name="export_csv" value="1" class="action-button export-btn">
+            Exportar CSV
+        </button>
+    </form>
+
+    <div class="transactions-list-container">
+
+        <h2 class="list-title">Resultados</h2>
+
+        <p class="total-ganancia">
+            Ganancia Total: {{ ganancia_total|floatformat:5 }} Gs
+        </p>
+
+        <table class="transactions-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Moneda Origen</th>
+                    <th>Monto Origen</th>
+                    <th>Moneda Destino</th>
+                    <th>Monto Destino</th>
+                    <th>Ganancia (En Gs.)</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% if transacciones %}
+                    {% for t in transacciones %}
+                        <tr>
+                            <td>{{ t.id }}</td>
+                            <td>{{ t.fecha_creacion }}</td>
+                            <td>{{ t.tipo }}</td>
+                            <td>{{ t.estado }}</td>
+                            <td>{{ t.moneda_origen.code }}</td>
+                            <td>{{ t.monto_origen }}</td>
+                            <td>{{ t.moneda_destino.code }}</td>
+                            <td>{{ t.monto_destino }}</td>
+                            <td>{{ t.ganancia_en_pyg|floatformat:5 }} Gs</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="no-transactions">
+                            No hay transacciones encontradas.
+                        </td>
+                    </tr>
+                {% endif %}
+
+            </tbody>
+        </table>
+
+    </div>
+
+</main>
+
+{% endblock %}

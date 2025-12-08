@@ -746,3 +746,26 @@ class CurrencyDenominationForm(forms.ModelForm):
             'type': forms.Select(attrs={'class': 'form-select'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+
+class ReporteTransaccionesForm(forms.Form):
+    fecha_inicio = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    fecha_fin = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    tipo = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Todos')] + list(Transaccion.Tipo.choices)
+    )
+    estado = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Todos')] + list(Transaccion.Estado.choices)
+    )
+    moneda = forms.ModelChoiceField(
+        required=False,
+        queryset=Currency.objects.all()
+    )
