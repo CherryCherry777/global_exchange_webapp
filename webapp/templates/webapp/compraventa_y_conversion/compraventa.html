@@ -99,23 +99,43 @@
                             {% is_usuario_asociado request.user as usuario_asociado %}
                             {% if usuario_asociado %}
                                 <!-- Método de Pago perspectiva del cliente -->
-                                <div class="converter-field">
-                                    <label class="field-label">Pagar con:</label>
+                                <div class="converter-field metodo-pago-section" id="metodo-pago-section">
+                                    <label class="field-label metodo-label">¿Cómo quiere pagar?</label>
                                     
-                                    <div class="converter-field-content">
-                                        <div class="tab-row" id="pago-tabs">
+                                    <div class="converter-field-content metodo-content" id="pago-content">
+                                        <div class="tab-row metodo-tabs" id="pago-tabs">
                                         {% for tipo in tipos_pago %}
-                                            <button type="button" class="tab-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}">
-                                            {{ tipo.nombre }}
+                                            <button type="button" class="tab-btn metodo-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}" data-tipo-nombre="{{ tipo.nombre }}">
+                                                {% if tipo.nombre == "Tauser" %}
+                                                    <img src="{% static 'webapp/pantalla_compra_venta/1.Tauser.png' %}" alt="Tauser" class="metodo-icon tauser-icon">
+                                                    <span class="metodo-text">Tauser (TAS)</span>
+                                                {% elif tipo.nombre == "Tarjeta Nacional" %}
+                                                    <img src="{% static 'webapp/pantalla_compra_venta/2.Tarjeta.png' %}" alt="Tarjeta" class="metodo-icon tarjeta-icon">
+                                                    <span class="metodo-text">Tarjeta Nacional</span>
+                                                {% elif tipo.nombre == "Tarjeta Internacional" %}
+                                                    <img src="{% static 'webapp/pantalla_compra_venta/3.Internacional.png' %}" alt="Internacional" class="metodo-icon internacional-icon">
+                                                    <span class="metodo-text">Tarjeta Internacional</span>
+                                                {% elif tipo.nombre == "Cuenta Bancaria" or tipo.nombre == "Transferencia" %}
+                                                    <img src="{% static 'webapp/pantalla_compra_venta/4.Transferencia.png' %}" alt="Transferencia" class="metodo-icon transferencia-icon">
+                                                    <span class="metodo-text">Transferencia</span>
+                                                {% elif tipo.nombre == "Billetera" %}
+                                                    <img src="{% static 'webapp/pantalla_compra_venta/5.Billetera.png' %}" alt="Billetera" class="metodo-icon billetera-icon">
+                                                    <span class="metodo-text">Billetera</span>
+                                                {% else %}
+                                                    <span class="metodo-text">{{ tipo.nombre }}</span>
+                                                {% endif %}
                                             </button>
                                         {% endfor %}
                                         </div>
 
-                                        <div class="select-wrapper select-wrapper-inline">
-                                            <select id="simu-metodo-pago" name="medio_pago" class="currency-select">
+                                        <div class="select-wrapper metodo-select-wrapper metodo-select-expanded" id="pago-select-wrapper">
+                                            <select id="simu-metodo-pago" name="medio_pago" class="metodo-select metodo-select-white">
+                                                <option value="" disabled selected>Seleccione una opción</option>
                                             </select>
-                                            <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                            <img src="{% static 'webapp/pantalla_compra_venta/tick.png' %}" alt="dropdown" class="metodo-select-arrow metodo-select-arrow-dark">
                                         </div>
+                                        
+                                        <button type="button" class="metodo-btn-atras" id="pago-btn-atras">Atrás</button>
                                     </div>
                                     <!-- Datos de cuenta bancaria para transferencia -->
                                     <div id="transferencia-info" class="transferencia-info d-none mt-3">
@@ -134,23 +154,37 @@
                                 </div>
                                 
                                 <!-- Método de Cobro perspectiva del cliente -->
-                                <div class="converter-field">
-                                    <label class="field-label">Recibir en:</label>
+                                <div class="converter-field metodo-cobro-section" id="metodo-cobro-section">
+                                    <label class="field-label metodo-label">¿Dónde quiere recibir?</label>
 
-                                    <div class="converter-field-content">
-                                        <div class="tab-row" id="cobro-tabs">
+                                    <div class="converter-field-content metodo-content" id="cobro-content">
+                                        <div class="tab-row metodo-tabs" id="cobro-tabs">
                                         {% for tipo in tipos_cobro %}
-                                            <button type="button" class="tab-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}">
-                                            {{ tipo.nombre }}
+                                            <button type="button" class="tab-btn metodo-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}" data-tipo-nombre="{{ tipo.nombre }}">
+                                                {% if tipo.nombre == "Tauser" %}
+                                                    <img src="{% static 'webapp/pantalla_compra_venta/1.Tauser.png' %}" alt="Tauser" class="metodo-icon tauser-icon">
+                                                    <span class="metodo-text">Tauser (TAS)</span>
+                                                {% elif tipo.nombre == "Cuenta Bancaria" or tipo.nombre == "Transferencia" %}
+                                                    <img src="{% static 'webapp/pantalla_compra_venta/4.Transferencia.png' %}" alt="Transferencia" class="metodo-icon transferencia-icon">
+                                                    <span class="metodo-text">Transferencia</span>
+                                                {% elif tipo.nombre == "Billetera" %}
+                                                    <img src="{% static 'webapp/pantalla_compra_venta/5.Billetera.png' %}" alt="Billetera" class="metodo-icon billetera-icon">
+                                                    <span class="metodo-text">Billetera</span>
+                                                {% else %}
+                                                    <span class="metodo-text">{{ tipo.nombre }}</span>
+                                                {% endif %}
                                             </button>
                                         {% endfor %}
                                         </div>
                                         
-                                        <div class="select-wrapper select-wrapper-inline">
-                                            <select id="simu-metodo-cobro" name="medio_cobro" class="currency-select">
+                                        <div class="select-wrapper metodo-select-wrapper metodo-select-expanded" id="cobro-select-wrapper">
+                                            <select id="simu-metodo-cobro" name="medio_cobro" class="metodo-select metodo-select-white">
+                                                <option value="" disabled selected>Seleccione una opción</option>
                                             </select>
-                                            <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                            <img src="{% static 'webapp/pantalla_compra_venta/tick.png' %}" alt="dropdown" class="metodo-select-arrow metodo-select-arrow-dark">
                                         </div>
+                                        
+                                        <button type="button" class="metodo-btn-atras" id="cobro-btn-atras">Atrás</button>
                                     </div>
                                 </div>
 
@@ -972,6 +1006,8 @@
         const amountEl = document.getElementById("simu-amount");
         const fromEl = document.getElementById("simu-from");
         const toEl = document.getElementById("simu-to");
+        const pagoContent = document.getElementById("pago-content");
+        const cobroContent = document.getElementById("cobro-content");
 
         const amount = parseFloat(amountEl?.value?.replace(/\./g, "")) || 0;
         const from = fromEl?.value?.trim() || "";
@@ -980,9 +1016,25 @@
         const pagoTabs = document.querySelectorAll("#pago-tabs .tab-btn");
         const cobroTabs = document.querySelectorAll("#cobro-tabs .tab-btn");
 
+        // Colapsar secciones expandidas cuando cambian las monedas
+        if (pagoContent) {
+            pagoContent.classList.remove("expanded");
+            pagoTabs.forEach(b => b.classList.remove("selected-method"));
+        }
+        if (cobroContent) {
+            cobroContent.classList.remove("expanded");
+            cobroTabs.forEach(b => b.classList.remove("selected-method"));
+        }
+
+        // Ocultar info transferencia al cambiar filtros
+        const infoTransferencia = document.getElementById("transferencia-info");
+        if (infoTransferencia) {
+            infoTransferencia.classList.add("d-none");
+        }
+
         // === FILTRO DE PAGO ===
         pagoTabs.forEach((btn) => {
-            const nombre = btn.textContent.trim();
+            const nombre = btn.dataset.tipoNombre || btn.textContent.trim();
             const esPYG = from === "PYG";
             const esTauser = nombre === "Tauser";
             const permitidoBase = esPYG || ["Tauser", "Tarjeta Internacional"].includes(nombre);
@@ -992,7 +1044,7 @@
 
         // === FILTRO DE COBRO ===
         cobroTabs.forEach((btn) => {
-            const nombre = btn.textContent.trim();
+            const nombre = btn.dataset.tipoNombre || btn.textContent.trim();
             const esPYG = to === "PYG";
             const esTauser = nombre === "Tauser";
 
@@ -1023,25 +1075,37 @@
     function configurarTabsFiltro() {
         const pagoTabs = document.getElementById("pago-tabs");
         const cobroTabs = document.getElementById("cobro-tabs");
+        const pagoContent = document.getElementById("pago-content");
+        const cobroContent = document.getElementById("cobro-content");
         const selectPago = document.getElementById("simu-metodo-pago");
+        const selectCobro = document.getElementById("simu-metodo-cobro");
         const infoTransferencia = document.getElementById("transferencia-info");
+        const btnAtrasPago = document.getElementById("pago-btn-atras");
+        const btnAtrasCobro = document.getElementById("cobro-btn-atras");
 
-        const activar = async (grupo, btn, tipo) => {
-            grupo.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-
+        // Función para expandir la sección de método de pago
+        const expandirMetodo = async (contentEl, tabsEl, btn, tipo, selectEl) => {
+            // Quitar active de todos y marcar el seleccionado
+            tabsEl.querySelectorAll(".metodo-btn").forEach(b => {
+                b.classList.remove("active", "selected-method");
+            });
+            btn.classList.add("active", "selected-method");
+            
+            // Agregar clase expanded al contenedor
+            contentEl.classList.add("expanded");
+            
             // 🔹 Si es un botón de pago, controlamos la visibilidad del select y la tarjeta de cuenta
             if (tipo === "pago") {
-                const nombre = btn.textContent.trim().toLowerCase();
-                const esTransferencia = nombre.includes("transferencia");
+                const nombre = (btn.dataset.tipoNombre || btn.textContent.trim()).toLowerCase();
+                const esTransferencia = nombre.includes("cuenta bancaria") || nombre.includes("transferencia");
 
                 if (esTransferencia) {
                     // Oculta el select y muestra los datos bancarios
-                    selectPago.classList.add("d-none");
+                    selectEl.parentElement.classList.add("d-none");
                     infoTransferencia.classList.remove("d-none");
                 } else {
                     // Restaura el select normal y oculta los datos bancarios
-                    selectPago.classList.remove("d-none");
+                    selectEl.parentElement.classList.remove("d-none");
                     infoTransferencia.classList.add("d-none");
                 }
             }
@@ -1050,13 +1114,49 @@
             compute();
         };
 
-        pagoTabs.querySelectorAll(".tab-btn").forEach(btn =>
-            btn.addEventListener("click", () => activar(pagoTabs, btn, "pago"))
+        // Función para colapsar la sección (volver al estado inicial)
+        const colapsarMetodo = (contentEl, tabsEl) => {
+            contentEl.classList.remove("expanded");
+            tabsEl.querySelectorAll(".metodo-btn").forEach(b => {
+                b.classList.remove("selected-method");
+            });
+            // Ocultar info transferencia al colapsar
+            if (infoTransferencia) {
+                infoTransferencia.classList.add("d-none");
+            }
+        };
+
+        // Event listeners para botones de pago
+        pagoTabs.querySelectorAll(".metodo-btn").forEach(btn =>
+            btn.addEventListener("click", () => {
+                if (!pagoContent.classList.contains("expanded")) {
+                    expandirMetodo(pagoContent, pagoTabs, btn, "pago", selectPago);
+                }
+            })
         );
 
-        cobroTabs.querySelectorAll(".tab-btn").forEach(btn =>
-            btn.addEventListener("click", () => activar(cobroTabs, btn, "cobro"))
+        // Event listeners para botones de cobro
+        cobroTabs.querySelectorAll(".metodo-btn").forEach(btn =>
+            btn.addEventListener("click", () => {
+                if (!cobroContent.classList.contains("expanded")) {
+                    expandirMetodo(cobroContent, cobroTabs, btn, "cobro", selectCobro);
+                }
+            })
         );
+
+        // Event listener para botón "Atrás" de pago
+        if (btnAtrasPago) {
+            btnAtrasPago.addEventListener("click", () => {
+                colapsarMetodo(pagoContent, pagoTabs);
+            });
+        }
+
+        // Event listener para botón "Atrás" de cobro
+        if (btnAtrasCobro) {
+            btnAtrasCobro.addEventListener("click", () => {
+                colapsarMetodo(cobroContent, cobroTabs);
+            });
+        }
     }
 
 
