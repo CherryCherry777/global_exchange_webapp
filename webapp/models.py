@@ -943,6 +943,11 @@ class Transaccion(models.Model):
     monto_origen = models.DecimalField(max_digits=20, decimal_places=8)
     monto_destino = models.DecimalField(max_digits=20, decimal_places=8)
 
+    medio_pago_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    medio_cobro_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    desc_cliente = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    monto_base_moneda = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+
     # Generic Foreign Key para medio de pago
     medio_pago_type = models.ForeignKey(
         ContentType,
