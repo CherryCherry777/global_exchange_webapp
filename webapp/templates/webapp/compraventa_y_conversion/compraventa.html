@@ -1016,14 +1016,14 @@
         const pagoTabs = document.querySelectorAll("#pago-tabs .tab-btn");
         const cobroTabs = document.querySelectorAll("#cobro-tabs .tab-btn");
 
-        // Colapsar secciones expandidas cuando cambian las monedas
+        // Colapsar secciones expandidas cuando cambian las monedas (sin animación)
         if (pagoContent) {
             pagoContent.classList.remove("expanded");
-            pagoTabs.forEach(b => b.classList.remove("selected-method"));
+            pagoTabs.forEach(b => b.classList.remove("selected-method", "hiding", "active"));
         }
         if (cobroContent) {
             cobroContent.classList.remove("expanded");
-            cobroTabs.forEach(b => b.classList.remove("selected-method"));
+            cobroTabs.forEach(b => b.classList.remove("selected-method", "hiding", "active"));
         }
 
         // Ocultar info transferencia al cambiar filtros
@@ -1083,47 +1083,66 @@
         const btnAtrasPago = document.getElementById("pago-btn-atras");
         const btnAtrasCobro = document.getElementById("cobro-btn-atras");
 
-        // Función para expandir la sección de método de pago
+        // Función para expandir la sección de método de pago CON ANIMACIONES SECUENCIADAS
         const expandirMetodo = async (contentEl, tabsEl, btn, tipo, selectEl) => {
-            // Quitar active de todos y marcar el seleccionado
-            tabsEl.querySelectorAll(".metodo-btn").forEach(b => {
-                b.classList.remove("active", "selected-method");
-            });
-            btn.classList.add("active", "selected-method");
+            const todosLosBotones = tabsEl.querySelectorAll(".metodo-btn");
             
-            // Agregar clase expanded al contenedor
-            contentEl.classList.add("expanded");
-            
-            // 🔹 Si es un botón de pago, controlamos la visibilidad del select y la tarjeta de cuenta
-            if (tipo === "pago") {
-                const nombre = (btn.dataset.tipoNombre || btn.textContent.trim()).toLowerCase();
-                const esTransferencia = nombre.includes("cuenta bancaria") || nombre.includes("transferencia");
-
-                if (esTransferencia) {
-                    // Oculta el select y muestra los datos bancarios
-                    selectEl.parentElement.classList.add("d-none");
-                    infoTransferencia.classList.remove("d-none");
-                } else {
-                    // Restaura el select normal y oculta los datos bancarios
-                    selectEl.parentElement.classList.remove("d-none");
-                    infoTransferencia.classList.add("d-none");
+            // Paso 1 [0ms]: Agregar clase 'hiding' a botones no seleccionados (inicia fade-out)
+            todosLosBotones.forEach(b => {
+                if (b !== btn) {
+                    b.classList.add("hiding");
                 }
-            }
+            });
+            
+            // Paso 2 [100ms]: Marcar botón seleccionado
+            setTimeout(() => {
+                btn.classList.add("active", "selected-method");
+            }, 100);
+            
+            // Paso 3 [400ms]: Agregar clase 'expanded' al contenedor (inicia animación de selector y botón atrás)
+            setTimeout(() => {
+                contentEl.classList.add("expanded");
+                
+                // 🔹 Si es un botón de pago, controlamos la visibilidad del select y la tarjeta de cuenta
+                if (tipo === "pago") {
+                    const nombre = (btn.dataset.tipoNombre || btn.textContent.trim()).toLowerCase();
+                    const esTransferencia = nombre.includes("cuenta bancaria") || nombre.includes("transferencia");
 
+                    if (esTransferencia) {
+                        // Oculta el select y muestra los datos bancarios
+                        selectEl.parentElement.classList.add("d-none");
+                        infoTransferencia.classList.remove("d-none");
+                    } else {
+                        // Restaura el select normal y oculta los datos bancarios
+                        selectEl.parentElement.classList.remove("d-none");
+                        infoTransferencia.classList.add("d-none");
+                    }
+                }
+            }, 400);
+
+            // Cargar métodos y calcular (ejecutar de forma async)
             await recargarMetodos(tipo);
             compute();
         };
 
-        // Función para colapsar la sección (volver al estado inicial)
+        // Función para colapsar la sección CON ANIMACIONES SECUENCIADAS
         const colapsarMetodo = (contentEl, tabsEl) => {
+            const todosLosBotones = tabsEl.querySelectorAll(".metodo-btn");
+            
+            // Paso 1 [0ms]: Remover clase 'expanded' (inicia animación de salida del selector y botón atrás)
             contentEl.classList.remove("expanded");
-            tabsEl.querySelectorAll(".metodo-btn").forEach(b => {
-                b.classList.remove("selected-method");
-            });
-            // Ocultar info transferencia al colapsar
+            
+            // Ocultar info transferencia
             if (infoTransferencia) {
                 infoTransferencia.classList.add("d-none");
             }
+            
+            // Paso 2 [300ms]: Restaurar botones (fade-in de botones ocultos)
+            setTimeout(() => {
+                todosLosBotones.forEach(b => {
+                    b.classList.remove("hiding", "selected-method", "active");
+                });
+            }, 300);
         };
 
         // Event listeners para botones de pago
