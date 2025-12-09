@@ -193,7 +193,7 @@ def tauser_pagar(request, pk):
 
             messages.success(request, f"Transacción #{pk} PAGADA.")
 
-            if transaccion.medio_cobro.medio_cobro.nombre != "tauser":
+            if not isinstance(transaccion.medio_cobro, Tauser):
                 pagar_al_cliente_task.delay(transaccion.id)
 
             return redirect("tauser_home")
