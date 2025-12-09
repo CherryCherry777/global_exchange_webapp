@@ -1039,34 +1039,32 @@ class Transaccion(models.Model):
 
         monto_orig = Decimal(self.monto_origen)
         monto_dest = Decimal(self.monto_destino)
-        tasa = Decimal(self.monto_base_moneda)
-
+        precio_base = int(self.monto_base_moneda)
+        print(self.medio_pago_porc)
+        print(self.desc_cliente)
 
         #print(f"⬤ Tasa de cambio: {tasa}")
 
-        # 🔹 CASO 1 — ORIGEN ES PYG (típico en una VENTA)
-        if self.moneda_origen.code == "PYG":
+        # 🔹 CASO 1 — VENTA
+        if self.tipo == "VENTA":
             # El cliente entrega Gs y recibe divisa
             # Valor real en Gs de la divisa entregada
-            """costo_real = monto_dest * tasa
+            """costo_real = monto_dest * precio_base
 
             return monto_orig - costo_real
             """
-            por_des = Decimal(self.desc_cliente)
 
             comision_vta = Decimal(self.comision_vta_com)
 
-            tc_venta_base = tasa + comision_vta
+            descuento_categoria = comision_vta * (Decimal(self.desc_cliente)/100)
 
-            descuento = comision_vta * (por_des/100)
+            tc_venta_base = precio_base + comision_vta
 
-            ajuste_medio = tc_venta_base*(Decimal(self.medio_cobro_porc)/100)
+            tc_venta = int(tc_venta_base - descuento_categoria)
 
-            tc_venta_final = tc_venta_base - descuento - ajuste_medio
+            costo_real = monto_dest * precio_base
 
-            costo_real = monto_dest*tasa
-
-            return costo_real - tc_venta_final
+            return tc_venta - costo_real
 
 
         # 🔹 CASO 2 — DESTINO ES PYG (típico en una COMPRA)
@@ -1079,21 +1077,17 @@ class Transaccion(models.Model):
 
             #print(f"⬤ Ganancia: {monto_gs_pagado - costo_real}")
 
-            por_des = Decimal(self.desc_cliente)
+            descuento_categoria = comision_com * (Decimal(self.desc_cliente)/100)
 
             comision_com = Decimal(self.comision_vta_com)
 
-            tc_compra_base = tasa - comision_com
+            tc_compra_base = precio_base - comision_com
 
-            descuento = comision_com * (por_des/100)
+            tc_compra = int(tc_compra_base + descuento_categoria)
 
-            ajuste_medio = tc_compra_base*(Decimal(self.medio_pago_porc)/100)
+            costo_real = monto_orig * precio_base
 
-            tc_compra_final = tc_compra_base + descuento + ajuste_medio
-
-            costo_real = monto_orig*tasa
-
-            return costo_real - tc_compra_final
+            return costo_real - tc_compra
         
     class Meta:
         permissions = [
