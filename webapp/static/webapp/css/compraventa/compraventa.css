@@ -15,9 +15,14 @@ body {
   margin: 0 auto;
 }
 
-/* Ocultar el título original si existe */
+/* Ocultar el título original "Compra venta" si existe */
 .converter-title {
   display: none;
+}
+
+/* Subtítulo ¿Cómo quiere su divisa? - NO ocultar */
+.converter-subtitle {
+  display: block !important;
 }
 
 /* ===========================
@@ -112,9 +117,10 @@ body {
 }
 
 .converter-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5rem !important;
+  align-items: center !important;
 }
 
 /* ===========================
@@ -124,80 +130,237 @@ body {
 .converter-field {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1.5rem;
 }
 
-/* Labels de las secciones */
-.field-label {
-  font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 16px;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
+/* ===========================
+   TÍTULO PRINCIPAL - ¿Cómo quiere su divisa?
+   ========================== */
+
+.converter-subtitle {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 20px !important;
+  color: #FFFFFF !important;
+  text-align: center !important;
+  margin-bottom: 2.5rem !important;
+  display: block !important;
+  width: 100% !important;
 }
+
+/* Labels de las secciones - Tengo/Quiero esta moneda */
+.field-label {
+  font-family: 'Roboto', sans-serif !important;
+  font-style: italic !important;
+  font-weight: 300 !important;
+  font-size: 20px !important;
+  color: #FFFFFF !important;
+  margin-bottom: 10px !important;
+}
+
+/* ===========================
+   FILA DE CAMPOS (selector + input)
+   ========================== */
 
 .field-row {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0 !important;
 }
 
 /* ===========================
-   SELECTORES DE MONEDA (Botones dorados)
+   CUSTOM DROPDOWN DE MONEDA (Botón completo clickeable)
+   Estructura: [Bandera | Código | Tick] = 181px × 93px
    ========================== */
 
-.select-wrapper {
-  position: relative;
-  width: 266px;
-  height: 57px;
+.currency-dropdown {
+  position: relative !important;
+  width: 181px !important;
+  height: 93px !important;
+  flex-shrink: 0 !important;
 }
 
-.currency-select {
-  width: 100%;
-  height: 100%;
-  border-radius: 5px;
-  background: linear-gradient(90deg, #b59702 6%, #d2af00 50%, #ffd400 100%);
-  border: none;
-  padding: 0 60px 0 20px;
-  font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 24px;
-  color: #000000;
-  appearance: none;
-  cursor: pointer;
+/* Botón principal del dropdown - TODO ES CLICKEABLE */
+/* Distribución: |15px|Bandera|10px|Código|20px|Tick|15px| = 181px */
+.currency-dropdown-button {
+  width: 181px !important;
+  height: 93px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 12px !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  transition: box-shadow 0.2s ease !important;
 }
 
-/* Flecha desplegable (tick.png) */
-.select-arrow {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 45px;
-  height: 45px;
-  pointer-events: none;
+.currency-dropdown-button:hover {
+  box-shadow: 0 0 15px rgba(91, 21, 193, 0.6) !important;
+}
+
+/* Bandera de la moneda (izquierda) - con margen derecho */
+.currency-dropdown-button .currency-flag {
+  width: 45px !important;
+  height: 28px !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+  border-radius: 3px !important;
+  margin-right: 8px !important;
+}
+
+/* Código de moneda (centro) - separado de bandera y tick */
+.currency-dropdown-button .currency-code {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 22px !important;
+  color: #FFFFFF !important;
+  flex-grow: 1 !important;
+  text-align: center !important;
+  margin-right: 15px !important;
+}
+
+/* Flecha tick (derecha) - claramente separado del código */
+.currency-dropdown-button .select-arrow {
+  width: 28px !important;
+  height: 28px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Menú desplegable */
+.currency-dropdown-menu {
+  display: none;
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  width: 181px !important;
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  background: linear-gradient(180deg, #08052A 0%, #1a0a4a 100%) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  z-index: 1000 !important;
+  margin-top: 5px !important;
+}
+
+.currency-dropdown-menu.open {
+  display: block !important;
+}
+
+/* Cada opción del menú */
+.currency-dropdown-option {
+  display: flex !important;
+  align-items: center !important;
+  padding: 12px 15px !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease !important;
+}
+
+.currency-dropdown-option:hover {
+  background: rgba(91, 21, 193, 0.4) !important;
+}
+
+.currency-dropdown-option.selected {
+  background: rgba(91, 21, 193, 0.6) !important;
+}
+
+.currency-dropdown-option .option-flag {
+  width: 40px !important;
+  height: 25px !important;
+  object-fit: cover !important;
+  border-radius: 3px !important;
+  margin-right: 10px !important;
+}
+
+.currency-dropdown-option .option-code {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  color: #FFFFFF !important;
 }
 
 /* ===========================
-   INPUTS DE MONTO
+   FILA DE CAMPOS (dropdown + input PEGADOS)
+   Total: 181px + 233px = 414px
+   Sobrescribe estilos de home.css
    ========================== */
 
-.amount-input,
-.result-input {
-  width: 327px;
-  height: 57px;
-  border-radius: 5px;
-  background-color: #d9d9d9;
-  border: none;
-  padding: 0 20px;
-  font-family: "Roboto", sans-serif;
-  font-size: 20px;
-  color: #000000;
+.field-row,
+.converter-field > .field-row,
+.converter-form .converter-field .field-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0 !important;
+  width: 414px !important;
+  max-width: 414px !important;
 }
 
-.result-input {
-  background-color: #d9d9d9;
-  cursor: not-allowed;
+/* ===========================
+   INPUTS DE MONTO (campos de entrada)
+   Dimensiones EXACTAS: 233px × 93px, pegado al dropdown
+   Sobrescribe estilos de home.css
+   ========================== */
+
+.converter-field > .field-row > .amount-input,
+.converter-field > .field-row > .result-input,
+.converter-form .converter-field .field-row .amount-input,
+.converter-form .converter-field .field-row .result-input,
+#simu-amount,
+#simu-result-main {
+  width: 233px !important;
+  min-width: 233px !important;
+  max-width: 233px !important;
+  height: 93px !important;
+  border-radius: 0 20px 20px 0 !important;
+  background: linear-gradient(90deg, #FFFFFF 0%, #E5E5E5 50%, #FFFFFF 100%) !important;
+  border: none !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 24px !important;
+  color: #000000 !important;
+  text-align: center !important;
+  padding: 0 15px !important;
+  margin-left: 0 !important;
+  flex: 0 0 233px !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Ajustar el botón del dropdown para que se una visualmente con el input */
+.currency-dropdown-button {
+  border-radius: 20px 0 0 20px !important;
+}
+
+.converter-field > .field-row > .result-input {
+  cursor: not-allowed !important;
+}
+
+/* Estilos para placeholders */
+#simu-amount::placeholder,
+#simu-result-main::placeholder,
+.amount-input::placeholder,
+.result-input::placeholder {
+  color: #999999 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 24px !important;
+  opacity: 1 !important;
+}
+
+/* ===========================
+   SECCIONES DE MONEDA - Espaciado vertical y centrado
+   ========================== */
+
+.converter-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.8rem !important;
+  margin-bottom: 35px !important;
+  align-items: flex-start !important;
+  width: 414px !important;
 }
 
 /* ===========================
@@ -205,27 +368,31 @@ body {
    ========================== */
 
 .converter-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
+  display: flex !important;
+  justify-content: center !important;
+  margin-top: 1.5rem !important;
+  width: 414px !important;
 }
 
 .intercambiar-button {
-  width: 623px;
-  height: 57px;
-  border-radius: 5px;
-  background: linear-gradient(90deg, #b59702 6%, #d2af00 50%, #ffd400 100%);
-  border: none;
-  font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 24px;
-  color: #000000;
-  cursor: pointer;
-  transition: transform 0.2s;
+  width: 326px !important;
+  height: 57px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
+  border: none !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 24px !important;
+  color: #FFFFFF !important;
+  cursor: pointer !important;
+  transition: transform 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .intercambiar-button:hover {
-  transform: scale(1.02);
+  transform: scale(1.02) !important;
 }
 
 /* Texto de conversión debajo del botón intercambiar */

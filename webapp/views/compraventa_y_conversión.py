@@ -735,6 +735,7 @@ def api_active_currencies(request):
             "decimals": int(c.decimales_monto or 2),
             "venta": float(venta),
             "compra": float(compra),
+            "flag_url": c.flag_image.url if c.flag_image else "",
         })
 
     # Asegurar que PYG siempre exista
@@ -745,6 +746,7 @@ def api_active_currencies(request):
             "decimals": 0,
             "venta": 1.0,
             "compra": 1.0,
+            "flag_url": "/static/webapp/flags/pyg.png",
         })
 
     return JsonResponse({"items": items})

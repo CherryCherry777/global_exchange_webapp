@@ -34,23 +34,32 @@
                 <!-- Select Compra/Venta -->
                 <div class="converter-section">
                     <div class="converter-container">
-                        <p class="converter-subtitle">Selecciona la moneda e ingresa el monto de la operación</p>
+                        <p class="converter-subtitle">¿Cómo quiere su divisa?</p>
                         
                         <div class="converter-form">
                             <!-- From Currency -->
                             <div class="converter-field">
                                 <label class="field-label">Tengo esta moneda</label>
                                 <div class="field-row">
-                                    <div class="select-wrapper">
-                                        <select id="simu-from" name="moneda_origen" class="currency-select"></select>
-                                        <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                    <!-- Custom Dropdown para moneda origen -->
+                                    <div class="currency-dropdown" id="dropdown-from">
+                                        <div class="currency-dropdown-button" id="btn-from">
+                                            <img id="simu-from-flag" src="" alt="bandera" class="currency-flag">
+                                            <span id="simu-from-code" class="currency-code">USD</span>
+                                            <img src="{% static 'webapp/pantalla_compra_venta/tick.png' %}" alt="dropdown" class="select-arrow">
+                                        </div>
+                                        <div class="currency-dropdown-menu" id="menu-from">
+                                            <!-- Opciones se llenan con JS -->
+                                        </div>
+                                        <!-- Select oculto para mantener compatibilidad con el form -->
+                                        <select id="simu-from" name="moneda_origen" style="display:none;"></select>
                                     </div>
                                     <input
                                         id="simu-amount"
                                         name="monto_origen"
                                         type="text"
                                         class="amount-input"
-                                        placeholder="0"
+                                        placeholder="0 USD"
                                     >
                                 </div>
                                 <div id="tauser-suggestion-amount" 
@@ -62,11 +71,20 @@
                             <div class="converter-field">
                                 <label class="field-label">Quiero esta moneda</label>
                                 <div class="field-row">
-                                    <div class="select-wrapper">
-                                        <select id="simu-to" name="moneda_destino" class="currency-select"></select>
-                                        <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                    <!-- Custom Dropdown para moneda destino -->
+                                    <div class="currency-dropdown" id="dropdown-to">
+                                        <div class="currency-dropdown-button" id="btn-to">
+                                            <img id="simu-to-flag" src="" alt="bandera" class="currency-flag">
+                                            <span id="simu-to-code" class="currency-code">PYG</span>
+                                            <img src="{% static 'webapp/pantalla_compra_venta/tick.png' %}" alt="dropdown" class="select-arrow">
+                                        </div>
+                                        <div class="currency-dropdown-menu" id="menu-to">
+                                            <!-- Opciones se llenan con JS -->
+                                        </div>
+                                        <!-- Select oculto para mantener compatibilidad con el form -->
+                                        <select id="simu-to" name="moneda_destino" style="display:none;"></select>
                                     </div>
-                                    <input name="monto_destino" type="text" readonly class="result-input" id="simu-result-main">
+                                    <input name="monto_destino" type="text" readonly class="result-input" id="simu-result-main" placeholder="0 PYG">
                                 </div>
                                 <!-- ⚠️ Aquí aparece el mensaje inline si NO coincide con billetes reales -->
                                 <div id="tauser-suggestion-out" 
@@ -219,6 +237,121 @@
     let CODES = [];
     const META = Object.create(null);
 
+    // Flag para prevenir clicks múltiples en el botón intercambiar
+    let isSwapping = false;
+
+    // Referencias a elementos del dropdown personalizado
+    const fromFlag = document.getElementById("simu-from-flag");
+    const toFlag = document.getElementById("simu-to-flag");
+    const fromCodeSpan = document.getElementById("simu-from-code");
+    const toCodeSpan = document.getElementById("simu-to-code");
+    const btnFrom = document.getElementById("btn-from");
+    const btnTo = document.getElementById("btn-to");
+    const menuFrom = document.getElementById("menu-from");
+    const menuTo = document.getElementById("menu-to");
+
+    // ===========================
+    // CUSTOM DROPDOWN LOGIC
+    // ===========================
+    
+    // Toggle menú al hacer clic en el botón
+    btnFrom.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menuTo.classList.remove("open");
+        menuFrom.classList.toggle("open");
+    });
+    
+    btnTo.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menuFrom.classList.remove("open");
+        menuTo.classList.toggle("open");
+    });
+    
+    // Cerrar menús al hacer clic fuera
+    document.addEventListener("click", () => {
+        menuFrom.classList.remove("open");
+        menuTo.classList.remove("open");
+    });
+    
+    // Función para construir las opciones del menú dropdown
+    function buildDropdownMenu(menuEl, selectEl, codeSpan, flagImg, excludeCode = null) {
+        menuEl.innerHTML = "";
+        
+        CODES.forEach(code => {
+            if (excludeCode && code === excludeCode) return; // Excluir la moneda del otro dropdown
+            
+            const option = document.createElement("div");
+            option.className = "currency-dropdown-option";
+            if (code === selectEl.value) option.classList.add("selected");
+            option.dataset.code = code;
+            
+            const flagUrl = META[code]?.flag_url || "";
+            option.innerHTML = `
+                <img src="${flagUrl}" alt="${code}" class="option-flag" onerror="this.style.display='none'">
+                <span class="option-code">${code}</span>
+            `;
+            
+            option.addEventListener("click", (e) => {
+                e.stopPropagation();
+                
+                // Actualizar el select oculto
+                selectEl.value = code;
+                
+                // Actualizar el botón visible
+                codeSpan.textContent = code;
+                if (flagImg && META[code]?.flag_url) {
+                    flagImg.src = META[code].flag_url;
+                    flagImg.style.display = 'block';
+                }
+                
+                // Cerrar el menú
+                menuEl.classList.remove("open");
+                
+                // Disparar evento change para mantener la lógica existente
+                selectEl.dispatchEvent(new Event("change"));
+            });
+            
+            menuEl.appendChild(option);
+        });
+    }
+    
+    // Función para actualizar la UI del dropdown desde el select
+    function updateDropdownUI() {
+        const fromValue = from.value;
+        const toValue = to.value;
+        
+        // Actualizar botón FROM
+        fromCodeSpan.textContent = fromValue || "---";
+        if (fromFlag && META[fromValue]?.flag_url) {
+            fromFlag.src = META[fromValue].flag_url;
+            fromFlag.style.display = 'block';
+        } else if (fromFlag) {
+            fromFlag.style.display = 'none';
+        }
+        
+        // Actualizar botón TO
+        toCodeSpan.textContent = toValue || "---";
+        if (toFlag && META[toValue]?.flag_url) {
+            toFlag.src = META[toValue].flag_url;
+            toFlag.style.display = 'block';
+        } else if (toFlag) {
+            toFlag.style.display = 'none';
+        }
+        
+        // Actualizar placeholders dinámicamente
+        if (amount) {
+            amount.placeholder = `0 ${fromValue || 'USD'}`;
+        }
+        if (out) {
+            out.placeholder = `0 ${toValue || 'PYG'}`;
+        }
+        
+        // Reconstruir menús excluyendo la moneda seleccionada en el otro dropdown
+        // Esto previene que el usuario seleccione la misma moneda en ambos
+        buildDropdownMenu(menuFrom, from, fromCodeSpan, fromFlag, toValue);
+        buildDropdownMenu(menuTo, to, toCodeSpan, toFlag, fromValue);
+    }
+
     function nf(value, currencyCode) {
         // Determina cuántos decimales mostrar según la moneda
         // Si es "PYG" (guaraní paraguayo), se usan 0 decimales
@@ -234,6 +367,28 @@
         }).format(value); // Aplica el formateador al número recibido
     }
 
+    // Función para extraer solo el número de un valor que puede incluir código de moneda
+    // Ej: "1.234,56 USD" -> 1234.56
+    function extractNumber(text) {
+        if (!text) return NaN;
+        // Elimina cualquier código de moneda (letras al final)
+        const numericPart = text.replace(/[A-Za-z\s]+$/g, "").trim();
+        // Convierte formato español (1.234,56) a formato numérico (1234.56)
+        return parseFloat(
+            numericPart
+                .replace(/\./g, "")   // elimina puntos de miles
+                .replace(",", ".")    // reemplaza coma decimal por punto
+        );
+    }
+
+    // Función para formatear un input con su código de moneda
+    function formatWithCurrency(inputEl, currencyCode) {
+        const num = extractNumber(inputEl.value);
+        if (!isNaN(num) && num > 0) {
+            inputEl.value = `${nf(num, currencyCode)} ${currencyCode}`;
+        }
+    }
+
     function buildOptions(selectEl, preferCode) {
         // Limpia el contenido actual del <select>
         selectEl.innerHTML = "";
@@ -244,14 +399,8 @@
             const opt = document.createElement("option");
             opt.value = code; // el valor de la opción será el código de moneda
 
-            // Obtiene el nombre de la moneda desde META, o usa el código si no existe
-            const name = META[code]?.name || code;
-
-            // Define el texto visible de la opción, con casos especiales
-            if (code === "USD") opt.textContent = "DÓLAR";
-            else if (code === "PYG") opt.textContent = "GUARANÍ";
-            else if (code === "EUR") opt.textContent = "EURO";
-            else opt.textContent = name.toUpperCase(); // para el resto, usa el nombre en mayúsculas
+            // Mostrar solo el código de 3 letras (USD, EUR, PYG, etc.)
+            opt.textContent = code;
 
             // Agrega la opción al <select>
             selectEl.appendChild(opt);
@@ -263,6 +412,9 @@
         // Si no hay preferencia válida, selecciona el primer código disponible
         else if (CODES.length) 
             selectEl.value = CODES[0];
+        
+        // Actualiza el dropdown UI después de construir las opciones
+        updateDropdownUI();
     }
 
     // variables y listeners utilizados en enforceDifferent()
@@ -271,46 +423,46 @@
 
     from.addEventListener("focus", () => lastFrom = from.value);
     to.addEventListener("focus", () => lastTo = to.value);
+    
+    // Actualizar dropdown UI cuando cambia la selección
+    from.addEventListener("change", updateDropdownUI);
+    to.addEventListener("change", updateDropdownUI);
 
     function enforceDifferent(changed, other) {
-        // Caso 1: si el usuario pone PYG en ambos
-        if (from.value === "PYG" && to.value === "PYG") {
-            const prev = (changed === from ? lastFrom : lastTo);
-            const fallback = prev && prev !== "PYG"
-                ? prev
-                : (CODES.includes("USD") ? "USD" : CODES.find(c => c !== "PYG"));
-
-            if (changed === from) to.value = fallback;
-            else from.value = fallback;
+        // Validación de seguridad: si de alguna manera ambas monedas son iguales
+        // (no debería ocurrir porque las opciones están filtradas en el dropdown)
+        if (from.value === to.value) {
+            // Cambiar el otro a una moneda diferente
+            const fallback = from.value === "PYG" ? "USD" : "PYG";
+            if (changed === from) {
+                to.value = fallback;
+            } else {
+                from.value = fallback;
+            }
+            updateDropdownUI();
+            return;
         }
 
-        // Caso 2: si el usuario pone la misma moneda en ambos (pero no es PYG)
-        else if (from.value === to.value) {
-            // el otro se fuerza a PYG
-            if (changed === from) to.value = "PYG";
-            else from.value = "PYG";
-        }
-
-        // Caso 3: si ninguno es PYG
+        // Caso: si ninguno es PYG (ambas son divisas extranjeras)
+        // Solo se permiten conversiones con Guaraníes
         if (from.value !== "PYG" && to.value !== "PYG") {
             // el que no cambió se fuerza a PYG
             if (changed === from) to.value = "PYG";
             else from.value = "PYG";
+            
+            // Actualizar la UI del dropdown
+            updateDropdownUI();
         }
     }
     
     function compute() {
         // Convierte el valor ingresado en el campo "amount" a número decimal.
         const rawText = amount.value || "";
-        const raw = parseFloat(
-            rawText
-                .replace(/\./g, "")   // elimina puntos de miles
-                .replace(",", ".")    // reemplaza coma decimal por punto
-        );
+        const raw = extractNumber(rawText);
 
         // Si no es un número válido o es menor/igual a 0, muestra un mensaje de error.
         if (isNaN(raw) || raw <= 0) {
-            out.value = "—"; // salida vacía con guion
+            out.value = ""; // vacío para mostrar el placeholder
             detail.textContent = "Ingresá un monto para calcular"; // mensaje para el usuario
             return; // corta la ejecución
         }
@@ -338,17 +490,36 @@
         } 
         // Caso inválido: cuando se intenta convertir entre dos monedas que no son PYG
         else {
-            out.value = "—"; 
+            out.value = ""; // vacío para mostrar el placeholder
             detail.textContent = "Sólo se permiten conversiones con Guaraníes"; 
             return;
         }
 
         // Muestra el resultado formateado en el campo de salida
         out.value = `${nf(val, b)} ${b}`;
+        
+        // NO formateamos amount aquí - eso interfiere con la escritura del usuario
+        // El formateo de amount se hace solo en el evento blur
 
     }
 
     function attachListeners() {
+        // Listener para quitar el código de moneda al hacer focus en amount
+        amount.addEventListener("focus", () => {
+            // Solo quitar el código de moneda si existe, dejando el número tal cual
+            const text = amount.value || "";
+            // Elimina el código de moneda al final (ej: "1.234 USD" -> "1.234")
+            amount.value = text.replace(/\s+[A-Za-z]{2,4}$/g, "").trim();
+        });
+
+        // Listener para agregar el código de moneda al salir de amount
+        amount.addEventListener("blur", () => {
+            const num = extractNumber(amount.value);
+            if (!isNaN(num) && num > 0) {
+                amount.value = `${nf(num, from.value)} ${from.value}`;
+            }
+        });
+
         // Agrega listeners a los campos de monto, moneda origen y moneda destino.
         // Se escucha tanto "input" (cuando el usuario escribe) como "change" (cuando cambia el valor).
         ["input","change"].forEach(evt => {
@@ -423,15 +594,53 @@
 
         // Listener para el botón de "intercambiar" monedas
         intercambiar.addEventListener("click", async () => {
-            // Intercambia los valores de las monedas
-            const tmp = from.value; 
-            from.value = to.value; 
-            to.value = tmp;
+            // Prevenir clicks múltiples mientras se procesa
+            if (isSwapping) return;
+            isSwapping = true;
 
-            enforceDifferent(from,to);     // asegura que no queden iguales
-            actualizarFiltros();           // 🔹 tras intercambiar, recalcula visibilidad
-            await recargarMetodos();       // recarga métodos acorde a la nueva selección
-            compute();                     // recalcula conversión
+            try {
+                // Extraer los números de los campos (sin códigos de moneda)
+                const numAmount = extractNumber(amount.value);
+                const numOut = extractNumber(out.value);
+
+                // Intercambia los valores de las monedas (selects ocultos)
+                const tmpCurrency = from.value; 
+                from.value = to.value; 
+                to.value = tmpCurrency;
+
+                // Intercambia los números y los formatea con los nuevos códigos de moneda
+                // El valor de amount (que era moneda FROM) ahora es moneda TO
+                // El valor de out (que era moneda TO) ahora es moneda FROM
+                if (!isNaN(numOut) && numOut > 0) {
+                    amount.value = `${nf(numOut, from.value)} ${from.value}`;
+                } else {
+                    amount.value = "";
+                }
+                
+                if (!isNaN(numAmount) && numAmount > 0) {
+                    out.value = `${nf(numAmount, to.value)} ${to.value}`;
+                } else {
+                    out.value = "";
+                }
+
+                // Guardar los valores intercambiados antes de recargar métodos
+                const savedAmountValue = amount.value;
+                const savedOutValue = out.value;
+
+                // Actualiza la interfaz visual (banderas, códigos, placeholders)
+                updateDropdownUI();
+
+                enforceDifferent(from,to);     // asegura que no queden iguales
+                actualizarFiltros();           // 🔹 tras intercambiar, recalcula visibilidad
+                await recargarMetodos();       // recarga métodos acorde a la nueva selección
+                
+                // Restaurar los valores intercambiados (recargarMetodos llama compute que los sobrescribe)
+                amount.value = savedAmountValue;
+                out.value = savedOutValue;
+            } finally {
+                // Permitir nuevo click después de completar
+                isSwapping = false;
+            }
         });
 
         // Si existen selectores de métodos de pago y cobro, agrega listeners
