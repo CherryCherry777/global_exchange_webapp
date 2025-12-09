@@ -62,13 +62,18 @@ def guardar_transaccion(cliente: Cliente, usuario, data: dict, estado: str, paym
 
     tipo_cliente = cliente.categoria
 
+
     if (data["moneda_origen"] == "PYG"):
         # Guardar el monto base de la moneda destino
+        # Esto es una venta
         moneda_destino=Currency.objects.get(code=data["moneda_destino"])
         monto_base = moneda_destino.base_price
+        comision = moneda_destino.comision_venta
+
     else:
         moneda_origen = Currency.objects.get(code=data["moneda_origen"])
         monto_base = moneda_origen.base_price
+        comision = moneda_origen.comision_compra
 
     transaccion = Transaccion(
         cliente=cliente,
@@ -88,7 +93,8 @@ def guardar_transaccion(cliente: Cliente, usuario, data: dict, estado: str, paym
         medio_cobro_porc=tipo_cobro.comision,
         stripe_payment_intent_id=payment_intent_id,
         desc_cliente=tipo_cliente.descuento,
-        monto_base_moneda=monto_base
+        monto_base_moneda=monto_base,
+        comision_vta_com=comision
     )
     transaccion.save()
     return transaccion

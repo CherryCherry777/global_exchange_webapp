@@ -297,7 +297,7 @@ class Categoria(models.Model):
     descuento = models.DecimalField(
         max_digits=4, 
         decimal_places=3,
-        validators=[MinValueValidator(0), MaxValueValidator(1)],
+        #validators=[MinValueValidator(0), MaxValueValidator(1)],
         verbose_name="Descuento"
     )
 
@@ -948,6 +948,9 @@ class Transaccion(models.Model):
     desc_cliente = models.DecimalField(max_digits=16, decimal_places=8, default=0)
     monto_base_moneda = models.DecimalField(max_digits=16, decimal_places=8, default=0)
 
+    comision_vta_com = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    
+
     # Generic Foreign Key para medio de pago
     medio_pago_type = models.ForeignKey(
         ContentType,
@@ -1033,28 +1036,46 @@ class Transaccion(models.Model):
         #rate_origen = Decimal(self.tasa_cambio)
         #rate_destino = Decimal(self.tasa_cambio)
 
+
         monto_orig = Decimal(self.monto_origen)
         monto_dest = Decimal(self.monto_destino)
-        tasa = Decimal(self.tasa_cambio)
+        tasa = Decimal(self.monto_base_moneda)
+
+
         print(f"⬤ Tasa de cambio: {tasa}")
 
         # 🔹 CASO 1 — ORIGEN ES PYG (típico en una VENTA)
         if self.moneda_origen.code == "PYG":
             # El cliente entrega Gs y recibe divisa
             # Valor real en Gs de la divisa entregada
-            costo_real = monto_dest * tasa
+            """costo_real = monto_dest * tasa
 
             return monto_orig - costo_real
+            """
+            por_des = Decimal(self.desc_cliente)
+
+            comision_vta = Decimal(self.comision_vta_com)
+
+            tc_venta_base = tasa + comision_vta
+
+            descuento = comision_vta * (por_des/100)
+
+            ajuste_medio = tc_venta_base*(Decimal(self.medio_cobro_porc)/100)
+
+            tc_venta_final = tc_venta_base - descuento - ajuste_medio
+
+            return tc_venta_final
+
 
         # 🔹 CASO 2 — DESTINO ES PYG (típico en una COMPRA)
         if self.moneda_destino.code == "PYG":
             # El cliente entrega divisa y recibe Gs
-            monto_gs_pagado = monto_dest  # ya está expresado en Gs
-            print(f"⬤ Monto en guaranies pagado: {monto_gs_pagado}")
-            costo_real = monto_orig * tasa
-            print(f"⬤ Costo Real: {costo_real}")
+            #monto_gs_pagado = monto_dest  # ya está expresado en Gs
+            #print(f"⬤ Monto en guaranies pagado: {monto_gs_pagado}")
+            #costo_real = monto_orig * tasa
+            #print(f"⬤ Costo Real: {costo_real}")
 
-            print(f"⬤ Ganancia: {monto_gs_pagado - costo_real}")
+            #print(f"⬤ Ganancia: {monto_gs_pagado - costo_real}")
 
             return abs(costo_real - monto_gs_pagado)
         

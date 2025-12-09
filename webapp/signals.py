@@ -39,6 +39,12 @@ CATEGORIAS_POR_DEFECTO = [
     {"nombre": "VIP", "descuento": 0.1},
 ]
 
+CATEGORIAS_POR_DEFECTO_DESCUENTOS = {
+    "Minorista": 0,
+    "Corporativo": 0.05,
+    "VIP": 0.1
+}
+
 CLIENTES_POR_DEFECTO = [
     {
         "tipoCliente": "persona_fisica",
@@ -169,7 +175,11 @@ def setup_database(sender, **kwargs):
 
     def setup_clientes():
         for cat in CATEGORIAS_POR_DEFECTO:
-            Categoria.objects.get_or_create(nombre=cat["nombre"], defaults={"descuento": cat["descuento"]})
+            Categoria.objects.get_or_create(nombre=cat["nombre"])
+            categoria = Categoria.objects.get(nombre=cat["nombre"])
+            categoria.descuento = CATEGORIAS_POR_DEFECTO_DESCUENTOS[cat["nombre"]]
+            categoria.save()
+            print(f"El descuento para la categoria {cat["nombre"]} es {cat["descuento"]}")
         usuario = User.objects.filter(username="usuario1").first()
         if not usuario:
             print("⚠️ Usuario base 'usuario1' no existe todavía.")
