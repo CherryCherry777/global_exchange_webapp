@@ -5,6 +5,23 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'webapp/css/compraventa_y_conversion/historial_transacciones.css' %}?v=5.3">
+
+<style>
+
+    #tablaContainer, #graficosContainer {
+        transition: opacity 0.25s ease-out;
+    }
+    .hidden {
+        opacity: 0 !important;
+        pointer-events: none;
+        height: 0;
+    }
+    .fade {
+        opacity: 1;
+        transition: opacity 0.25s ease;
+    }
+</style>
+
 {% endblock %}
 
 {% block content %}
@@ -23,8 +40,8 @@
     <form method="get" class="filter-form">
         {{ form.as_p }}
 
-        <button type="submit" class="action-button">Filtrar</button>
-        <button type="submit" name="export_csv" value="1" class="action-button export-btn">
+        <button type="submit" class="action-button" style="background-color:#2596be;">Filtrar</button>
+        <button type="submit" name="export_csv" value="1" class="action-button export-btn" style="background-color:#2596be;">
             Exportar CSV
         </button>
     </form>
@@ -33,54 +50,151 @@
 
         <h2 class="list-title">Resultados</h2>
 
+        <div class="view-toggle">
+            <button id="btnVerTabla" class="action-button" style="background-color:#2596be;">Ver Tabla</button>
+            <button id="btnVerGraficos" class="action-button" style="background-color:#2596be;">Ver Gráficos</button>
+        </div>
+
         <p class="total-ganancia">
-            Ganancia Total: {{ ganancia_total|floatformat:5 }} Gs
+            Ganancia Total: {{ ganancia_total|floatformat:0 }} Gs
         </p>
 
-        <table class="transactions-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Fecha</th>
-                    <th>Tipo</th>
-                    <th>Estado</th>
-                    <th>Moneda Origen</th>
-                    <th>Monto Origen</th>
-                    <th>Moneda Destino</th>
-                    <th>Monto Destino</th>
-                    <th>Ganancia (En Gs.)</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {% if transacciones %}
-                    {% for t in transacciones %}
-                        <tr>
-                            <td>{{ t.id }}</td>
-                            <td>{{ t.fecha_creacion }}</td>
-                            <td>{{ t.tipo }}</td>
-                            <td>{{ t.estado }}</td>
-                            <td>{{ t.moneda_origen.code }}</td>
-                            <td>{{ t.monto_origen }}</td>
-                            <td>{{ t.moneda_destino.code }}</td>
-                            <td>{{ t.monto_destino }}</td>
-                            <td>{{ t.ganancia_en_pyg|floatformat:5 }} Gs</td>
-                        </tr>
-                    {% endfor %}
-                {% else %}
+        <!-- TABLA -->
+        <div id="tablaContainer" class="fade">
+            <table class="transactions-table">
+                <thead>
                     <tr>
-                        <td colspan="9" class="no-transactions">
-                            No hay transacciones encontradas.
-                        </td>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Monto Origen</th>
+                        <th>Monto Destino</th>
+                        <th>Ganancia (En Gs.)</th>
                     </tr>
-                {% endif %}
+                </thead>
+                <tbody>
+                    {% if transacciones %}
+                        {% for t in transacciones %}
+                            <tr>
+                                <td>{{ t.id }}</td>
+                                <td>{{ t.fecha_creacion }}</td>
+                                <td>{{ t.tipo }}</td>
+                                <td>{{ t.estado }}</td>
+                                {% if t.moneda_origen.code == "PYG" %}
+                                    <td>{{ t.monto_origen|floatformat:0 }} {{ t.moneda_origen.code }}</td>
+                                    <td>{{ t.monto_destino|floatformat:2 }} {{ t.moneda_destino.code }}</td>
+                                {% else %}
+                                    <td>{{ t.monto_origen|floatformat:2 }} {{ t.moneda_origen.code }}</td>
+                                    <td>{{ t.monto_destino|floatformat:0 }} {{ t.moneda_destino.code }}</td>
+                                {% endif %}
+                                <td>{{ t.ganancia_en_pyg|floatformat:0 }} Gs</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="no-transactions">
+                                No hay transacciones encontradas.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
 
-            </tbody>
-        </table>
+        <!-- GRAFICOS -->
+        <div id="graficosContainer" class="fade hidden">
+
+            <h3>Ganancia por Fecha</h3>
+            <canvas id="chartGananciaFecha"></canvas>
+
+            <h3 style="margin-top: 30px;">Ganancia por Moneda</h3>
+            <canvas id="chartGananciaMoneda"></canvas>
+
+        </div>
 
     </div>
 
 </main>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+        // Elementos
+        const tablaContainer = document.getElementById("tablaContainer");
+        const graficosContainer = document.getElementById("graficosContainer");
+        const btnVerTabla = document.getElementById("btnVerTabla");
+        const btnVerGraficos = document.getElementById("btnVerGraficos");
+
+        // Data desde Django
+        const gananciasPorFecha = {{ gpf|safe }};
+        const gananciasPorMoneda = {{ gpm|safe }};
+
+        let grafico1 = null;
+        let grafico2 = null;
+
+        // Mostrar gráficos
+        btnVerGraficos.addEventListener("click", () => {
+            console.log("CLICK OK");
+            tablaContainer.classList.add("hidden");
+            graficosContainer.classList.remove("hidden");
+        
+            if (!grafico1) {
+                requestAnimationFrame(() => {
+                    crearGraficoFecha();
+                });
+            }
+            if (!grafico2) {
+                requestAnimationFrame(() => {
+                    crearGraficoMoneda();
+                });
+            }
+        });
+
+        // Mostrar tabla
+        btnVerTabla.addEventListener("click", () => {
+            graficosContainer.classList.add("hidden");
+            tablaContainer.classList.remove("hidden");
+        });
+
+        // Función gráfico 1
+        function crearGraficoFecha() {
+            const ctx = document.getElementById('chartGananciaFecha');
+            grafico1 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: gananciasPorFecha.map(i => i.fecha),
+                    datasets: [{
+                        label: 'Ganancia en Gs',
+                        data: gananciasPorFecha.map(i => i.total),
+                        borderWidth: 2
+                    }]
+                }
+            });
+        }
+
+        // Función gráfico 2
+        function crearGraficoMoneda() {
+            const ctx = document.getElementById('chartGananciaMoneda');
+            grafico2 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(gananciasPorMoneda),
+                    datasets: [{
+                        label: 'Ganancia en Gs',
+                        data: Object.values(gananciasPorMoneda),
+                        borderWidth: 2
+                    }]
+                }
+            });
+        }
+
+});
+</script>
 
 {% endblock %}

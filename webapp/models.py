@@ -1042,7 +1042,7 @@ class Transaccion(models.Model):
         tasa = Decimal(self.monto_base_moneda)
 
 
-        print(f"⬤ Tasa de cambio: {tasa}")
+        #print(f"⬤ Tasa de cambio: {tasa}")
 
         # 🔹 CASO 1 — ORIGEN ES PYG (típico en una VENTA)
         if self.moneda_origen.code == "PYG":
@@ -1064,7 +1064,9 @@ class Transaccion(models.Model):
 
             tc_venta_final = tc_venta_base - descuento - ajuste_medio
 
-            return tc_venta_final
+            costo_real = monto_dest*tasa
+
+            return costo_real - tc_venta_final
 
 
         # 🔹 CASO 2 — DESTINO ES PYG (típico en una COMPRA)
@@ -1077,7 +1079,21 @@ class Transaccion(models.Model):
 
             #print(f"⬤ Ganancia: {monto_gs_pagado - costo_real}")
 
-            return abs(costo_real - monto_gs_pagado)
+            por_des = Decimal(self.desc_cliente)
+
+            comision_com = Decimal(self.comision_vta_com)
+
+            tc_compra_base = tasa - comision_com
+
+            descuento = comision_com * (por_des/100)
+
+            ajuste_medio = tc_compra_base*(Decimal(self.medio_pago_porc)/100)
+
+            tc_compra_final = tc_compra_base + descuento + ajuste_medio
+
+            costo_real = monto_orig*tasa
+
+            return costo_real - tc_compra_final
         
     class Meta:
         permissions = [
