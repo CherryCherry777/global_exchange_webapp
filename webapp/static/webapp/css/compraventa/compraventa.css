@@ -176,21 +176,21 @@ body {
 
 .currency-dropdown {
   position: relative !important;
-  width: 181px !important;
-  height: 93px !important;
+  width: 140px !important;
+  height: 70px !important;
   flex-shrink: 0 !important;
 }
 
 /* Botón principal del dropdown - TODO ES CLICKEABLE */
-/* Distribución: |15px|Bandera|10px|Código|20px|Tick|15px| = 181px */
+/* Tamaño reducido: 140px × 70px */
 .currency-dropdown-button {
-  width: 181px !important;
-  height: 93px !important;
-  border-radius: 20px !important;
+  width: 140px !important;
+  height: 70px !important;
+  border-radius: 15px !important;
   background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
   display: flex !important;
   align-items: center !important;
-  padding: 0 12px !important;
+  padding: 0 10px !important;
   cursor: pointer !important;
   box-sizing: border-box !important;
   transition: box-shadow 0.2s ease !important;
@@ -200,31 +200,31 @@ body {
   box-shadow: 0 0 15px rgba(91, 21, 193, 0.6) !important;
 }
 
-/* Bandera de la moneda (izquierda) - con margen derecho */
+/* Bandera de la moneda (izquierda) - tamaño reducido */
 .currency-dropdown-button .currency-flag {
-  width: 45px !important;
-  height: 28px !important;
+  width: 35px !important;
+  height: 22px !important;
   object-fit: cover !important;
   flex-shrink: 0 !important;
   border-radius: 3px !important;
-  margin-right: 8px !important;
+  margin-right: 6px !important;
 }
 
-/* Código de moneda (centro) - separado de bandera y tick */
+/* Código de moneda (centro) - fuente reducida */
 .currency-dropdown-button .currency-code {
   font-family: 'Roboto', sans-serif !important;
   font-weight: 400 !important;
-  font-size: 22px !important;
+  font-size: 18px !important;
   color: #FFFFFF !important;
   flex-grow: 1 !important;
   text-align: center !important;
-  margin-right: 15px !important;
+  margin-right: 8px !important;
 }
 
-/* Flecha tick (derecha) - claramente separado del código */
+/* Flecha tick (derecha) - tamaño reducido */
 .currency-dropdown-button .select-arrow {
-  width: 28px !important;
-  height: 28px !important;
+  width: 22px !important;
+  height: 22px !important;
   flex-shrink: 0 !important;
 }
 
@@ -234,8 +234,8 @@ body {
   position: absolute !important;
   top: 100% !important;
   left: 0 !important;
-  width: 181px !important;
-  max-height: 280px !important;
+  width: 140px !important;
+  max-height: 250px !important;
   overflow-y: auto !important;
   background: linear-gradient(180deg, #08052A 0%, #1a0a4a 100%) !important;
   border-radius: 10px !important;
@@ -293,13 +293,13 @@ body {
   flex-direction: row !important;
   align-items: center !important;
   gap: 0 !important;
-  width: 414px !important;
-  max-width: 414px !important;
+  width: 320px !important;
+  max-width: 320px !important;
 }
 
 /* ===========================
    INPUTS DE MONTO (campos de entrada)
-   Dimensiones EXACTAS: 233px × 93px, pegado al dropdown
+   Dimensiones REDUCIDAS: 180px × 70px, pegado al dropdown
    Sobrescribe estilos de home.css
    ========================== */
 
@@ -309,21 +309,21 @@ body {
 .converter-form .converter-field .field-row .result-input,
 #simu-amount,
 #simu-result-main {
-  width: 233px !important;
-  min-width: 233px !important;
-  max-width: 233px !important;
-  height: 93px !important;
-  border-radius: 0 20px 20px 0 !important;
+  width: 180px !important;
+  min-width: 180px !important;
+  max-width: 180px !important;
+  height: 70px !important;
+  border-radius: 0 15px 15px 0 !important;
   background: linear-gradient(90deg, #FFFFFF 0%, #E5E5E5 50%, #FFFFFF 100%) !important;
   border: none !important;
   font-family: 'Roboto', sans-serif !important;
   font-weight: 400 !important;
-  font-size: 24px !important;
+  font-size: 18px !important;
   color: #000000 !important;
   text-align: center !important;
-  padding: 0 15px !important;
+  padding: 0 12px !important;
   margin-left: 0 !important;
-  flex: 0 0 233px !important;
+  flex: 0 0 180px !important;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
   box-sizing: border-box !important;
@@ -331,7 +331,7 @@ body {
 
 /* Ajustar el botón del dropdown para que se una visualmente con el input */
 .currency-dropdown-button {
-  border-radius: 20px 0 0 20px !important;
+  border-radius: 15px 0 0 15px !important;
 }
 
 .converter-field > .field-row > .result-input {
@@ -346,38 +346,38 @@ body {
   color: #999999 !important;
   font-family: 'Roboto', sans-serif !important;
   font-weight: 400 !important;
-  font-size: 24px !important;
+  font-size: 18px !important;
   opacity: 1 !important;
 }
 
 /* ===========================
-   SECCIONES DE MONEDA - Espaciado vertical y centrado
+   SECCIONES DE MONEDA - Espaciado vertical reducido
    ========================== */
 
 .converter-field {
   display: flex !important;
   flex-direction: column !important;
-  gap: 0.8rem !important;
-  margin-bottom: 35px !important;
+  gap: 0.6rem !important;
+  margin-bottom: 20px !important;
   align-items: flex-start !important;
-  width: 414px !important;
+  width: 320px !important;
 }
 
 /* ===========================
-   BOTÓN INTERCAMBIAR
+   BOTÓN INTERCAMBIAR - Tamaño reducido
    ========================== */
 
 .converter-actions {
   display: flex !important;
   justify-content: center !important;
-  margin-top: 1.5rem !important;
-  width: 414px !important;
+  margin-top: 1rem !important;
+  width: 320px !important;
 }
 
 .intercambiar-button {
-  width: 326px !important;
-  height: 57px !important;
-  border-radius: 20px !important;
+  width: 260px !important;
+  height: 48px !important;
+  border-radius: 15px !important;
   background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
   border: none !important;
   font-family: 'Roboto', sans-serif !important;
@@ -767,7 +767,7 @@ header nav a,
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 20px !important;
   width: 100% !important;
   max-width: none !important;
 }
@@ -945,44 +945,37 @@ header nav a,
 /* Estado inicial: selector oculto (NO usar display: none) */
 .metodo-select-expanded {
   opacity: 0 !important;
-  transform: translateY(-20px) !important;
   max-height: 0 !important;
   overflow: hidden !important;
   pointer-events: none !important;
   margin: 0 !important;
   padding: 0 !important;
   transition: opacity 0.4s ease-out, 
-              transform 0.4s ease-out,
               max-height 0.4s ease-out,
               margin 0.4s ease-out !important;
 }
 
-/* Estado expandido: selector visible con animación */
+/* Estado expandido: selector visible con transición suave */
 .metodo-content.expanded .metodo-select-expanded {
   opacity: 1 !important;
-  transform: translateY(0) !important;
   max-height: 80px !important;
   pointer-events: auto !important;
   margin-top: 15px !important;
-  animation: slideDown 0.4s ease-out 0.2s both !important;
 }
 
-/* Keyframes para slide-down del selector */
+/* Keyframes para aparición del selector - solo opacidad */
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 /* Estado inicial: botón Atrás oculto (NO usar display: none) */
 .metodo-btn-atras {
   opacity: 0 !important;
-  transform: translateY(-10px) !important;
   max-height: 0 !important;
   overflow: hidden !important;
   pointer-events: none !important;
@@ -998,7 +991,6 @@ header nav a,
   color: #FFFFFF !important;
   cursor: pointer !important;
   transition: opacity 0.3s ease-in-out 0.1s, 
-              transform 0.3s ease-in-out 0.1s,
               max-height 0.3s ease-in-out,
               box-shadow 0.2s ease !important;
   margin: 0 !important;
@@ -1006,27 +998,23 @@ header nav a,
   align-self: center !important;
 }
 
-/* Estado expandido: botón Atrás visible con animación */
+/* Estado expandido: botón Atrás visible con transición suave */
 .metodo-content.expanded .metodo-btn-atras {
   opacity: 1 !important;
-  transform: translateY(0) !important;
   max-height: 50px !important;
   height: 36px !important;
   pointer-events: auto !important;
   margin-top: 15px !important;
   padding: 0 20px !important;
-  animation: fadeInUp 0.3s ease-out 0.4s both !important;
 }
 
-/* Keyframes para fade-in-up del botón Atrás */
+/* Keyframes para aparición del botón Atrás - solo opacidad */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(-10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1084,6 +1072,214 @@ header nav a,
   align-items: center !important;
 }
 
+/* ===========================
+   LAYOUT HORIZONTAL DE 3 COLUMNAS
+   ========================== */
+
+/* Contenedor principal horizontal - GRID de 3 columnas iguales */
+.converter-horizontal-layout {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 80px !important;
+  width: 100% !important;
+  max-width: 1600px !important;
+  margin: 0 auto !important;
+  padding: 20px 40px !important;
+  box-sizing: border-box !important;
+  align-items: start !important;
+}
+
+/* Cada columna - centrada */
+.converter-column {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  min-width: 0 !important;
+}
+
+/* Columna de divisas */
+.column-divisa {
+  align-items: center !important;
+}
+
+/* Columna de pago */
+.column-pago {
+  align-items: center !important;
+}
+
+/* Columna de cobro */
+.column-cobro {
+  align-items: center !important;
+}
+
+/* Subtítulos de columnas - centrados */
+.converter-column .converter-subtitle {
+  text-align: center !important;
+  margin-bottom: 20px !important;
+  width: 100% !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  color: #FFFFFF !important;
+}
+
+/* Formulario de divisa centrado */
+.column-divisa .converter-form {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 15px !important;
+  width: 100% !important;
+}
+
+/* Campos de divisa centrados */
+.column-divisa .converter-field {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+/* Labels centrados */
+.column-divisa .field-label {
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* Resultado centrado */
+.column-divisa .converter-result {
+  text-align: center !important;
+  margin-top: 15px !important;
+}
+
+/* Tabs de métodos - layout vertical centrado */
+.converter-column .metodo-tabs {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 15px !important;
+  width: 100% !important;
+}
+
+/* Botones de método en columnas - ancho fijo */
+.converter-column .metodo-btn {
+  width: 396px !important;
+  max-width: 100% !important;
+}
+
+/* Contenido de método - posición relativa para contener absolutos */
+.converter-column .metodo-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  gap: 15px !important;
+  position: relative !important;
+  min-height: 380px !important;
+}
+
+/* ===========================
+   ALINEACIÓN EN ESTADO EXPANDIDO - POSICIÓN ABSOLUTA FIJA
+   ========================== */
+
+/* Contenedor expandido - posición relativa para hijos absolutos */
+.converter-column .metodo-content.expanded {
+  position: relative !important;
+  min-height: 200px !important;
+  padding: 0 !important;
+}
+
+/* Tab-row en estado expandido */
+.converter-column .metodo-content.expanded .metodo-tabs {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+/* Botón seleccionado - POSICIÓN ABSOLUTA FIJA en top: 0 */
+/* Usa margin-left negativo para centrar SIN transform (evita movimiento horizontal) */
+.converter-column .metodo-content.expanded .metodo-btn.selected-method {
+  position: absolute !important;
+  top: 0 !important;
+  left: 50% !important;
+  margin-left: -150px !important;
+  width: 396px !important;
+  max-width: calc(100%) !important;
+  z-index: 10 !important;
+  transition: top 0.4s ease-in-out, opacity 0.3s ease-in-out !important;
+}
+
+/* Selector expandido - POSICIÓN ABSOLUTA debajo del botón */
+/* Usa margin-left negativo para centrar SIN transform */
+.converter-column .metodo-content.expanded .metodo-select-expanded {
+  position: absolute !important;
+  top: 73px !important;
+  left: 50% !important;
+  margin-left: -178px !important;
+  width: 396px !important;
+  max-width: calc(100% - 20px) !important;
+  z-index: 9 !important;
+}
+
+/* Select blanco dentro del wrapper */
+.converter-column .metodo-content.expanded .metodo-select-white {
+  width: 100% !important;
+}
+
+/* Botón atrás - POSICIÓN ABSOLUTA debajo del selector */
+/* Usa margin-left negativo para centrar SIN transform */
+.converter-column .metodo-content.expanded .metodo-btn-atras {
+  position: absolute !important;
+  top: 146px !important;
+  left: 50% !important;
+  margin-left: -62.5px !important;
+  width: 125px !important;
+  z-index: 8 !important;
+}
+
+/* Responsive: volver a vertical en pantallas pequeñas */
+@media (max-width: 1400px) {
+  .converter-horizontal-layout {
+    gap: 60px !important;
+    max-width: 1200px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .converter-horizontal-layout {
+    grid-template-columns: 1fr !important;
+    gap: 60px !important;
+    padding: 20px !important;
+    max-width: 500px !important;
+  }
+  
+  .converter-column {
+    max-width: 480px !important;
+    width: 100% !important;
+    align-items: center !important;
+  }
+  
+  .column-divisa,
+  .column-pago,
+  .column-cobro {
+    max-width: 480px !important;
+    align-items: center !important;
+  }
+  
+  .column-divisa .converter-subtitle,
+  .column-divisa .field-label,
+  .column-divisa .converter-result {
+    text-align: center !important;
+  }
+  
+  .column-divisa .converter-form,
+  .column-divisa .converter-field {
+    align-items: center !important;
+  }
+}
+
 /* Responsive para medios de pago */
 @media (max-width: 480px) {
   .metodo-btn,
@@ -1111,5 +1307,10 @@ header nav a,
   .metodo-select-white {
     width: 100% !important;
     max-width: 396px !important;
+  }
+  
+  .converter-horizontal-layout {
+    padding: 0 10px !important;
+    gap: 30px !important;
   }
 }
