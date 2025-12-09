@@ -252,13 +252,15 @@ Agregar {{ tipo|capfirst }}
                         <!-- Dropdown de moneda solo al crear -->
                         {% if not is_edit %}
                         <div class="form-group">
+                            <!-- Solo guaranies para medios de cobro billetera y cuenta bancaria
                             <label class="form-label">Moneda</label>
                             <select name="moneda" id="id_moneda" required>
                                 <option value="">Seleccione una moneda</option>
                                 {% for m in monedas %}
                                     <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
                                 {% endfor %}
-                            </select>
+                            </select>-->
+                            <input type="hidden" name="moneda" value="1">
                         </div>
                         {% endif %}
 
