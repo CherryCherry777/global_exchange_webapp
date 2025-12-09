@@ -20,3 +20,4 @@ from .vistas_varias import *
 from .tauser import *
 from .schedule_config import *
 from .factura import *
+from .reportes_transacciones_ganancias import *

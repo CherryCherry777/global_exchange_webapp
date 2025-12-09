@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CurrencyDenomination, LimiteIntercambioCliente, MFACode, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro, TauserCurrencyStock
+from ..models import CurrencyDenomination, LimiteIntercambioCliente, MFACode, MedioCobro, MedioPago, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro, TauserCurrencyStock
 from decimal import Decimal, ROUND_HALF_UP
 from .payments.stripe_utils import procesar_pago_stripe
 from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera, validar_id_transferencia
@@ -30,10 +30,51 @@ from collections import defaultdict
 # Vistas de compraventa
 # ----------------------
 
+tipos_pago_nombres = {
+    "billetera": "Billetera",
+    "tarjeta_nacional": "Tarjeta Nacional",
+    "tarjeta_internacional": "Tarjeta Internacional",
+    "cuenta_bancaria": "Cuenta Bancaria",
+    "tauser": "Tauser"
+}
+
+tipos_cobro_nombres = {
+    "billetera": "Billetera",
+    "cuenta_bancaria": "Cuenta Bancaria",
+    "tauser": "Tauser"
+}
+
 def guardar_transaccion(cliente: Cliente, usuario, data: dict, estado: str, payment_intent_id = None) -> Transaccion:
     """
     Crea y guarda una transacción con el estado indicado.
     """
+    medio_pago = MedioPago.objects.get(id=data["medio_pago"])
+    tipo_pago_nombre = medio_pago.tipo #almacenado en minuscula
+    tipo_pago = TipoPago.objects.get(nombre=tipos_pago_nombres[tipo_pago_nombre])
+
+    print(f"Nombre de medio de pago: {tipo_pago_nombre}")
+
+    medio_cobro = MedioCobro.objects.get(id=data["medio_cobro"])
+    tipo_cobro_nombre = medio_cobro.tipo
+    tipo_cobro = TipoCobro.objects.get(nombre=tipos_cobro_nombres[tipo_cobro_nombre])
+
+    print(f"Nombre de medio de cobro: {tipo_cobro_nombre}")
+
+    tipo_cliente = cliente.categoria
+
+
+    if (data["moneda_origen"] == "PYG"):
+        # Guardar el monto base de la moneda destino
+        # Esto es una venta
+        moneda_destino=Currency.objects.get(code=data["moneda_destino"])
+        monto_base = moneda_destino.base_price
+        comision = moneda_destino.comision_venta
+
+    else:
+        moneda_origen = Currency.objects.get(code=data["moneda_origen"])
+        monto_base = moneda_origen.base_price
+        comision = moneda_origen.comision_compra
+
     transaccion = Transaccion(
         cliente=cliente,
         usuario=usuario,
@@ -46,9 +87,14 @@ def guardar_transaccion(cliente: Cliente, usuario, data: dict, estado: str, paym
         monto_destino=Decimal(data["monto_destino"]),
         medio_pago_type=ContentType.objects.get_for_id(data["medio_pago_contenttype"]),
         medio_pago_id=data["medio_pago"],
+        medio_pago_porc=tipo_pago.comision,
         medio_cobro_type=ContentType.objects.get_for_id(data["medio_cobro_contenttype"]),
         medio_cobro_id=data["medio_cobro"],
-        stripe_payment_intent_id=payment_intent_id
+        medio_cobro_porc=tipo_cobro.comision,
+        stripe_payment_intent_id=payment_intent_id,
+        desc_cliente=tipo_cliente.descuento,
+        monto_base_moneda=monto_base,
+        comision_vta_com=comision
     )
     transaccion.save()
     return transaccion

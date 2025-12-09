@@ -167,6 +167,14 @@
             </a>
             {% endif %}
 
+            {% has_perms request.user 'webapp.ver_reportes' as can_view_reportes %}
+            {% if can_view_reportes %}
+            <a href="{% url 'reporte_transacciones' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Límites de Intercambio" class="button-icon">
+                <span class="button-text">Reportes de Transacciones</span>
+            </a>
+            {% endif %}
+
         </div>
         {% endif %}
 

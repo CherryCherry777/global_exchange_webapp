@@ -297,7 +297,7 @@ class Categoria(models.Model):
     descuento = models.DecimalField(
         max_digits=4, 
         decimal_places=3,
-        validators=[MinValueValidator(0), MaxValueValidator(1)],
+        #validators=[MinValueValidator(0), MaxValueValidator(1)],
         verbose_name="Descuento"
     )
 
@@ -943,6 +943,14 @@ class Transaccion(models.Model):
     monto_origen = models.DecimalField(max_digits=20, decimal_places=8)
     monto_destino = models.DecimalField(max_digits=20, decimal_places=8)
 
+    medio_pago_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    medio_cobro_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    desc_cliente = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    monto_base_moneda = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+
+    comision_vta_com = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    
+
     # Generic Foreign Key para medio de pago
     medio_pago_type = models.ForeignKey(
         ContentType,
@@ -1017,6 +1025,78 @@ class Transaccion(models.Model):
         elif isinstance(self.medio_cobro, Tauser):
             return f"{self.medio_cobro.nombre} ({self.medio_cobro.ubicacion})"
         return ""
+
+    @property
+    def ganancia_en_pyg(self):
+        """
+        Calcula la ganancia REAL en guaraníes, según si es COMPRA o VENTA
+        y según cuál moneda es PYG.
+        """
+
+        #rate_origen = Decimal(self.tasa_cambio)
+        #rate_destino = Decimal(self.tasa_cambio)
+
+
+        monto_orig = Decimal(self.monto_origen)
+        monto_dest = Decimal(self.monto_destino)
+        precio_base = int(self.monto_base_moneda)
+        print(self.medio_pago_porc)
+        print(self.desc_cliente)
+
+        #print(f"⬤ Tasa de cambio: {tasa}")
+
+        # 🔹 CASO 1 — VENTA
+        if self.tipo == "VENTA":
+            # El cliente entrega Gs y recibe divisa
+            # Valor real en Gs de la divisa entregada
+            """costo_real = monto_dest * precio_base
+
+            return monto_orig - costo_real
+            """
+
+            comision_vta = Decimal(self.comision_vta_com)
+
+            descuento_categoria = comision_vta * Decimal(self.desc_cliente)
+
+            tasa_venta_base = precio_base + comision_vta
+
+            tasa_venta = int(tasa_venta_base - descuento_categoria)
+
+            tc_venta = tasa_venta * monto_dest
+
+            costo_real = monto_dest * precio_base
+
+            return tc_venta - costo_real
+
+
+        # 🔹 CASO 2 — COMPRA
+        if self.tipo == "COMPRA":
+            # El cliente entrega divisa y recibe Gs
+            #monto_gs_pagado = monto_dest  # ya está expresado en Gs
+            #print(f"⬤ Monto en guaranies pagado: {monto_gs_pagado}")
+            #costo_real = monto_orig * tasa
+            #print(f"⬤ Costo Real: {costo_real}")
+
+            #print(f"⬤ Ganancia: {monto_gs_pagado - costo_real}")
+
+            comision_com = Decimal(self.comision_vta_com)
+
+            descuento_categoria = comision_com * Decimal(self.desc_cliente)
+
+            tasa_compra_base = precio_base - comision_com
+
+            tasa_compra = int(tasa_compra_base + descuento_categoria)
+
+            tc_compra = tasa_compra * monto_orig
+
+            costo_real = monto_orig * precio_base
+
+            return costo_real - tc_compra
+        
+    class Meta:
+        permissions = [
+            ("ver_reportes", "Puede ver los reportes de la empresa"),
+        ]
 
     
 # --------------------------------------------

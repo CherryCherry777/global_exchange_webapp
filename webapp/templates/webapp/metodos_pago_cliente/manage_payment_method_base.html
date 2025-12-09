@@ -176,15 +176,20 @@ Agregar {{ tipo|capfirst }}
                             {% if tipo|lower != "tarjeta_internacional" %}
                                 <!-- Dropdown de moneda solo al crear -->
                                 {% if not is_edit %}
-                                <div class="form-group">
-                                    <label for="id_moneda" class="form-label">Moneda</label>
-                                    <select name="moneda" id="id_moneda" class="form-control" required>
-                                        <option value="">Seleccione una moneda</option>
-                                        {% for m in monedas %}
-                                            <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+                                    <!-- Los metodos que no sean tarjetas no pueden elegir monedas-->
+                                    {% if tipo|lower != "tarjeta_nacional" %}
+                                        <input type="hidden" name="moneda" value="1">
+                                    {% else %}
+                                        <div class="form-group">
+                                            <label for="id_moneda" class="form-label">Moneda</label>
+                                            <select name="moneda" id="id_moneda" class="form-control" required>
+                                                <option value="">Seleccione una moneda</option>
+                                                {% for m in monedas %}
+                                                    <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    {% endif %}
                                 {% endif %}
 
                                 <!-- Mostrar moneda como campo deshabilitado al editar -->
