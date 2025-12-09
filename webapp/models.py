@@ -1056,19 +1056,21 @@ class Transaccion(models.Model):
 
             comision_vta = Decimal(self.comision_vta_com)
 
-            descuento_categoria = comision_vta * (Decimal(self.desc_cliente)/100)
+            descuento_categoria = comision_vta * Decimal(self.desc_cliente)
 
-            tc_venta_base = precio_base + comision_vta
+            tasa_venta_base = precio_base + comision_vta
 
-            tc_venta = int(tc_venta_base - descuento_categoria)
+            tasa_venta = int(tasa_venta_base - descuento_categoria)
+
+            tc_venta = tasa_venta * monto_dest
 
             costo_real = monto_dest * precio_base
 
             return tc_venta - costo_real
 
 
-        # 🔹 CASO 2 — DESTINO ES PYG (típico en una COMPRA)
-        if self.moneda_destino.code == "PYG":
+        # 🔹 CASO 2 — COMPRA
+        if self.tipo == "COMPRA":
             # El cliente entrega divisa y recibe Gs
             #monto_gs_pagado = monto_dest  # ya está expresado en Gs
             #print(f"⬤ Monto en guaranies pagado: {monto_gs_pagado}")
@@ -1077,13 +1079,15 @@ class Transaccion(models.Model):
 
             #print(f"⬤ Ganancia: {monto_gs_pagado - costo_real}")
 
-            descuento_categoria = comision_com * (Decimal(self.desc_cliente)/100)
-
             comision_com = Decimal(self.comision_vta_com)
 
-            tc_compra_base = precio_base - comision_com
+            descuento_categoria = comision_com * Decimal(self.desc_cliente)
 
-            tc_compra = int(tc_compra_base + descuento_categoria)
+            tasa_compra_base = precio_base - comision_com
+
+            tasa_compra = int(tasa_compra_base + descuento_categoria)
+
+            tc_compra = tasa_compra * monto_orig
 
             costo_real = monto_orig * precio_base
 
