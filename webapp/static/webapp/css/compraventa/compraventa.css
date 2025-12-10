@@ -15,9 +15,14 @@ body {
   margin: 0 auto;
 }
 
-/* Ocultar el título original si existe */
+/* Ocultar el título original "Compra venta" si existe */
 .converter-title {
   display: none;
+}
+
+/* Subtítulo ¿Cómo quiere su divisa? - NO ocultar */
+.converter-subtitle {
+  display: block !important;
 }
 
 /* ===========================
@@ -112,9 +117,10 @@ body {
 }
 
 .converter-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5rem !important;
+  align-items: center !important;
 }
 
 /* ===========================
@@ -124,108 +130,266 @@ body {
 .converter-field {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1.5rem;
 }
 
-/* Labels de las secciones */
-.field-label {
-  font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 16px;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
+/* ===========================
+   TÍTULO PRINCIPAL - ¿Cómo quiere su divisa?
+   ========================== */
+
+.converter-subtitle {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 20px !important;
+  color: #FFFFFF !important;
+  text-align: center !important;
+  margin-bottom: 2.5rem !important;
+  display: block !important;
+  width: 100% !important;
 }
+
+/* Labels de las secciones - Tengo/Quiero esta moneda */
+.field-label {
+  font-family: 'Roboto', sans-serif !important;
+  font-style: italic !important;
+  font-weight: 300 !important;
+  font-size: 20px !important;
+  color: #FFFFFF !important;
+  margin-bottom: 10px !important;
+}
+
+/* ===========================
+   FILA DE CAMPOS (selector + input)
+   ========================== */
 
 .field-row {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0 !important;
 }
 
 /* ===========================
-   SELECTORES DE MONEDA (Botones dorados)
+   CUSTOM DROPDOWN DE MONEDA (Botón completo clickeable)
+   Estructura: [Bandera | Código | Tick] = 181px × 93px
    ========================== */
 
-.select-wrapper {
-  position: relative;
-  width: 266px;
-  height: 57px;
+.currency-dropdown {
+  position: relative !important;
+  width: 140px !important;
+  height: 70px !important;
+  flex-shrink: 0 !important;
 }
 
-.currency-select {
-  width: 100%;
-  height: 100%;
-  border-radius: 5px;
-  background: linear-gradient(90deg, #b59702 6%, #d2af00 50%, #ffd400 100%);
-  border: none;
-  padding: 0 60px 0 20px;
-  font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 24px;
-  color: #000000;
-  appearance: none;
-  cursor: pointer;
+/* Botón principal del dropdown - TODO ES CLICKEABLE */
+/* Tamaño reducido: 140px × 70px */
+.currency-dropdown-button {
+  width: 140px !important;
+  height: 70px !important;
+  border-radius: 15px !important;
+  background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 10px !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
 }
 
-/* Flecha desplegable (tick.png) */
-.select-arrow {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 45px;
-  height: 45px;
-  pointer-events: none;
+.currency-dropdown-button:hover {
+  box-shadow: 0 0 15px rgba(91, 21, 193, 0.6) !important;
+}
+
+/* Bandera de la moneda (izquierda) - tamaño reducido */
+.currency-dropdown-button .currency-flag {
+  width: 35px !important;
+  height: 22px !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+  border-radius: 3px !important;
+  margin-right: 6px !important;
+}
+
+/* Código de moneda (centro) - fuente reducida */
+.currency-dropdown-button .currency-code {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  color: #FFFFFF !important;
+  flex-grow: 1 !important;
+  text-align: center !important;
+  margin-right: 8px !important;
+}
+
+/* Flecha tick (derecha) - tamaño reducido */
+.currency-dropdown-button .select-arrow {
+  width: 22px !important;
+  height: 22px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Menú desplegable */
+.currency-dropdown-menu {
+  display: none;
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  width: 140px !important;
+  max-height: 250px !important;
+  overflow-y: auto !important;
+  background: linear-gradient(180deg, #08052A 0%, #1a0a4a 100%) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  z-index: 1000 !important;
+  margin-top: 5px !important;
+}
+
+.currency-dropdown-menu.open {
+  display: block !important;
+}
+
+/* Cada opción del menú */
+.currency-dropdown-option {
+  display: flex !important;
+  align-items: center !important;
+  padding: 12px 15px !important;
+  cursor: pointer !important;
+}
+
+.currency-dropdown-option:hover {
+  background: rgba(91, 21, 193, 0.4) !important;
+}
+
+.currency-dropdown-option.selected {
+  background: rgba(91, 21, 193, 0.6) !important;
+}
+
+.currency-dropdown-option .option-flag {
+  width: 40px !important;
+  height: 25px !important;
+  object-fit: cover !important;
+  border-radius: 3px !important;
+  margin-right: 10px !important;
+}
+
+.currency-dropdown-option .option-code {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  color: #FFFFFF !important;
 }
 
 /* ===========================
-   INPUTS DE MONTO
+   FILA DE CAMPOS (dropdown + input PEGADOS)
+   Total: 181px + 233px = 414px
+   Sobrescribe estilos de home.css
    ========================== */
 
-.amount-input,
-.result-input {
-  width: 327px;
-  height: 57px;
-  border-radius: 5px;
-  background-color: #d9d9d9;
-  border: none;
-  padding: 0 20px;
-  font-family: "Roboto", sans-serif;
-  font-size: 20px;
-  color: #000000;
-}
-
-.result-input {
-  background-color: #d9d9d9;
-  cursor: not-allowed;
+.field-row,
+.converter-field > .field-row,
+.converter-form .converter-field .field-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0 !important;
+  width: 320px !important;
+  max-width: 320px !important;
 }
 
 /* ===========================
-   BOTÓN INTERCAMBIAR
+   INPUTS DE MONTO (campos de entrada)
+   Dimensiones REDUCIDAS: 180px × 70px, pegado al dropdown
+   Sobrescribe estilos de home.css
+   ========================== */
+
+.converter-field > .field-row > .amount-input,
+.converter-field > .field-row > .result-input,
+.converter-form .converter-field .field-row .amount-input,
+.converter-form .converter-field .field-row .result-input,
+#simu-amount,
+#simu-result-main {
+  width: 180px !important;
+  min-width: 180px !important;
+  max-width: 180px !important;
+  height: 70px !important;
+  border-radius: 0 15px 15px 0 !important;
+  background: linear-gradient(90deg, #FFFFFF 0%, #E5E5E5 50%, #FFFFFF 100%) !important;
+  border: none !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  color: #000000 !important;
+  text-align: center !important;
+  padding: 0 12px !important;
+  margin-left: 0 !important;
+  flex: 0 0 180px !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Ajustar el botón del dropdown para que se una visualmente con el input */
+.currency-dropdown-button {
+  border-radius: 15px 0 0 15px !important;
+}
+
+.converter-field > .field-row > .result-input {
+  cursor: not-allowed !important;
+}
+
+/* Estilos para placeholders */
+#simu-amount::placeholder,
+#simu-result-main::placeholder,
+.amount-input::placeholder,
+.result-input::placeholder {
+  color: #999999 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  opacity: 1 !important;
+}
+
+/* ===========================
+   SECCIONES DE MONEDA - Espaciado vertical reducido
+   ========================== */
+
+.converter-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.6rem !important;
+  margin-bottom: 20px !important;
+  align-items: flex-start !important;
+  width: 320px !important;
+}
+
+/* ===========================
+   BOTÓN INTERCAMBIAR - Tamaño reducido
    ========================== */
 
 .converter-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
+  display: flex !important;
+  justify-content: center !important;
+  margin-top: 1rem !important;
+  width: 320px !important;
 }
 
 .intercambiar-button {
-  width: 623px;
-  height: 57px;
-  border-radius: 5px;
-  background: linear-gradient(90deg, #b59702 6%, #d2af00 50%, #ffd400 100%);
-  border: none;
-  font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 24px;
-  color: #000000;
-  cursor: pointer;
-  transition: transform 0.2s;
+  width: 260px !important;
+  height: 48px !important;
+  border-radius: 15px !important;
+  background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
+  border: none !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 24px !important;
+  color: #FFFFFF !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .intercambiar-button:hover {
-  transform: scale(1.02);
+  box-shadow: 0 0 15px rgba(91, 21, 194, 0.5) !important;
 }
 
 /* Texto de conversión debajo del botón intercambiar */
@@ -283,7 +447,6 @@ body {
   font-size: 15px;
   color: #ffffff;
   cursor: pointer;
-  transition: all 0.3s;
   white-space: nowrap;
   text-align: center;
   display: flex;
@@ -314,7 +477,6 @@ body {
 
 .tab-btn:hover {
   opacity: 0.9;
-  transform: translateY(-2px);
 }
 
 .tab-btn.active {
@@ -348,28 +510,29 @@ body {
 }
 
 /* ===========================
-   BOTÓN CONTINUAR
+   BOTÓN CONTINUAR - mismo estilo que botones de método
    ========================== */
 
+/* Contenedor del botón Continuar - centrado horizontal */
+.continuar-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin-top: -190px !important;
+    margin-bottom: 20px !important;
+}
+
 #next-step {
-    width: 200px;
-    height: 60px;
-    border-radius: 5px;
-    background: linear-gradient(90deg, #0A052F 6%, #381194 50%, #5B15C1 100%);
-    border: none;
-    font-family: 'Roboto', sans-serif;
-    font-weight: bold;
-    font-size: 24px;
-    color: #FFFFFF;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: block;
-    margin: 2rem auto 0;
+    width: 396px !important;
+    height: 58px !important;
+    border-radius: 20px !important;
+    margin: 0 auto !important;
+    justify-content: center !important;
 }
 
 #next-step:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(91, 21, 193, 0.4);
+  box-shadow: 0 0 15px rgba(91, 21, 194, 0.5) !important;
 }
 
 /* ===========================
@@ -421,7 +584,6 @@ body {
   font-size: 20px;
   padding: 0 2rem;
   cursor: pointer;
-  transition: all 0.3s;
 }
 
 #prev-step {
@@ -436,7 +598,6 @@ body {
 
 #prev-step:hover,
 #step-2 button[type="submit"]:hover {
-  transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
@@ -464,7 +625,6 @@ body {
   color: #ffffff;
   font-family: "Roboto", sans-serif;
   text-align: left;
-  animation: fadeIn 0.3s ease-in-out;
 }
 
 .transferencia-titulo {
@@ -486,12 +646,6 @@ body {
   color: #cccccc;
   margin-top: 1rem;
   font-style: italic;
-}
-
-/* Animación de aparición */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ===========================
@@ -556,4 +710,577 @@ header .nav-link {
 header nav a,
 .navbar a {
   color: #ffffff !important;
+}
+
+/* ===========================
+   SECCIÓN DE MEDIOS DE PAGO - NUEVO DISEÑO
+   ========================== */
+
+/* Contenedor de la sección de medios de pago/cobro */
+.metodo-pago-section,
+.metodo-cobro-section {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 0 auto 30px auto !important;
+  padding-top: 30px !important;
+}
+
+/* Label de la sección - ¿Cómo quiere pagar? */
+.metodo-label {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+  font-size: 20px !important;
+  color: #FFFFFF !important;
+  text-align: center !important;
+  margin-bottom: 20px !important;
+  width: 100% !important;
+}
+
+/* Contenedor de botones y select */
+.metodo-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 15px !important;
+  width: 100% !important;
+}
+
+/* Contenedor de botones de tipo */
+.metodo-tabs {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 20px !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Botón de método de pago - ESTADO BASE (valores explícitos para reset completo) */
+.metodo-btn {
+  /* Dimensiones fijas */
+  width: 396px !important;
+  min-width: 396px !important;
+  max-width: 396px !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 70px !important;
+  
+  /* Posicionamiento - reset explícito */
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  
+  /* Apariencia */
+  border-radius: 20px !important;
+  background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  
+  /* Espaciado - reset explícito */
+  padding: 0 20px !important;
+  margin: 0 !important;
+  
+  /* Tipografía */
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 24px !important;
+  color: #FFFFFF !important;
+  
+  /* Layout */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 15px !important;
+  
+  /* Estado */
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  
+  /* Otros */
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.metodo-btn:hover {
+  box-shadow: 0 0 15px rgba(91, 21, 194, 0.5) !important;
+}
+
+.metodo-btn.active {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6) !important;
+}
+
+/* Íconos dentro del botón */
+.metodo-icon {
+  flex-shrink: 0 !important;
+  object-fit: contain !important;
+}
+
+/* Tamaños específicos de íconos */
+.tauser-icon {
+  width: 42px !important;
+  height: 48px !important;
+}
+
+.tarjeta-icon {
+  width: 52px !important;
+  height: 52px !important;
+}
+
+.internacional-icon {
+  width: 48px !important;
+  height: 31px !important;
+}
+
+.transferencia-icon {
+  width: 33px !important;
+  height: 41px !important;
+}
+
+.billetera-icon {
+  width: 40px !important;
+  height: 39px !important;
+}
+
+/* Texto del botón */
+.metodo-text {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 24px !important;
+  color: #FFFFFF !important;
+  white-space: nowrap !important;
+}
+
+/* Wrapper del select de método específico */
+.metodo-select-wrapper {
+  position: relative !important;
+  width: 396px !important;
+  margin-top: 10px !important;
+}
+
+/* Select de método específico - NUEVO DISEÑO */
+.metodo-select {
+  width: 100% !important;
+  height: 52px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%) !important;
+  border: none !important;
+  padding: 0 50px 0 20px !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  color: #FFFFFF !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+.metodo-select:focus {
+  outline: none !important;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5) !important;
+}
+
+.metodo-select option {
+  background-color: #1a0a4a !important;
+  color: #FFFFFF !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 16px !important;
+  padding: 10px !important;
+}
+
+/* Flecha del select */
+.metodo-select-arrow {
+  position: absolute !important;
+  right: 15px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 20px !important;
+  height: 20px !important;
+  pointer-events: none !important;
+}
+
+/* Ocultar los estilos antiguos de tabs cuando se usan las nuevas clases */
+.metodo-tabs .metodo-btn:nth-child(1),
+.metodo-tabs .metodo-btn:nth-child(2),
+.metodo-tabs .metodo-btn:nth-child(3),
+.metodo-tabs .metodo-btn:nth-child(4),
+.metodo-tabs .metodo-btn:nth-child(5) {
+  width: 396px !important;
+}
+
+/* ===========================
+   ESTADOS DE BOTONES DE MÉTODO (SIN ANIMACIONES)
+   ========================== */
+
+/* Botones de método - SIN transiciones, cambios instantáneos */
+.metodo-tabs .metodo-btn {
+  max-height: 70px !important;
+  overflow: hidden !important;
+}
+
+/* Estado de ocultamiento - cambio instantáneo */
+.metodo-tabs .metodo-btn.hiding {
+  display: none !important;
+}
+
+/* Estado normal - valores fijos */
+.metodo-tabs .metodo-btn:not(.hiding):not(.selected-method) {
+  display: flex !important;
+  opacity: 1 !important;
+  height: 58px !important;
+  width: 396px !important;
+  padding: 0 20px !important;
+  pointer-events: auto !important;
+}
+
+/* Botón seleccionado - dimensiones fijas, sin animación */
+.metodo-tabs .metodo-btn.selected-method {
+  display: flex !important;
+  opacity: 1 !important;
+  width: 396px !important;
+  min-width: 396px !important;
+  max-width: 396px !important;
+  height: 58px !important;
+  padding: 0 20px !important;
+  border-radius: 20px !important;
+  border: none !important;
+  pointer-events: none !important;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6) !important;
+  position: relative !important;
+}
+
+/* Estado inicial: selector oculto */
+.metodo-select-expanded {
+  display: none !important;
+}
+
+/* Estado expandido: selector visible */
+.metodo-content.expanded .metodo-select-expanded {
+  display: block !important;
+  opacity: 1 !important;
+  margin-top: 15px !important;
+}
+
+/* FORZAR OCULTAR select para transferencias (sobrescribe expanded) */
+.metodo-content.expanded .metodo-select-expanded.select-hidden {
+  display: none !important;
+}
+
+/* Keyframes eliminados - cambios instantáneos */
+
+/* Estado inicial: botón Atrás oculto */
+.metodo-btn-atras {
+  display: none !important;
+  width: 125px !important;
+  height: 36px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
+  border: none !important;
+  outline: none !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+  font-size: 16px !important;
+  color: #FFFFFF !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  padding: 0 20px !important;
+  align-self: center !important;
+}
+
+/* Estado expandido: botón Atrás visible */
+.metodo-content.expanded .metodo-btn-atras {
+  display: block !important;
+  margin-top: 15px !important;
+}
+
+/* Hover del botón Atrás */
+.metodo-btn-atras:hover {
+  box-shadow: 0 0 15px rgba(91, 21, 194, 0.5) !important;
+}
+
+/* Select blanco - estado expandido */
+.metodo-select-white {
+  width: 396px !important;
+  height: 58px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(90deg, #FFFFFF 0%, #E5E5E5 50%, #FFFFFF 100%) !important;
+  border: none !important;
+  padding: 0 50px 0 20px !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  color: #333333 !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+.metodo-select-white:focus {
+  outline: none !important;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5) !important;
+}
+
+.metodo-select-white option {
+  background-color: #FFFFFF !important;
+  color: #333333 !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 16px !important;
+  padding: 10px !important;
+}
+
+/* Flecha oscura para select blanco */
+.metodo-select-arrow-dark {
+  filter: brightness(0) saturate(100%) !important;
+}
+
+/* Estilos para el contenedor de contenido del método */
+.metodo-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+/* Centrar elementos cuando está expandido */
+.metodo-content.expanded {
+  align-items: center !important;
+}
+
+/* ===========================
+   LAYOUT HORIZONTAL DE 3 COLUMNAS
+   ========================== */
+
+/* Contenedor principal horizontal - LAYOUT COMPACTO */
+.converter-horizontal-layout {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  gap: 60px !important;
+  width: 100% !important;
+  max-width: 1600px !important;
+  margin: 0 !important;
+  margin-left: -90px !important;
+  padding: 20px 10px !important;
+  box-sizing: border-box !important;
+  align-items: flex-start !important;
+}
+
+/* Cada columna - ancho fijo */
+.converter-column {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+}
+
+/* Columna de divisas - ancho fijo */
+.column-divisa {
+  width: 350px !important;
+  min-width: 350px !important;
+}
+
+/* Columna de pago - ancho fijo */
+.column-pago {
+  width: 450px !important;
+  min-width: 450px !important;
+}
+
+/* Columna de cobro - ancho fijo */
+.column-cobro {
+  width: 450px !important;
+  min-width: 450px !important;
+}
+
+/* Subtítulos de columnas - centrados */
+.converter-column .converter-subtitle {
+  text-align: center !important;
+  margin-bottom: 20px !important;
+  width: 100% !important;
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  color: #FFFFFF !important;
+}
+
+/* Formulario de divisa centrado */
+.column-divisa .converter-form {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 15px !important;
+  width: 100% !important;
+}
+
+/* Campos de divisa centrados */
+.column-divisa .converter-field {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+/* Labels centrados */
+.column-divisa .field-label {
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* Resultado centrado */
+.column-divisa .converter-result {
+  text-align: center !important;
+  margin-top: 15px !important;
+}
+
+/* Tabs de métodos - layout vertical centrado */
+.converter-column .metodo-tabs {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 15px !important;
+  width: 100% !important;
+}
+
+/* Botones de método en columnas - ancho fijo */
+.converter-column .metodo-btn {
+  width: 396px !important;
+  max-width: 100% !important;
+}
+
+/* Contenido de método - posición relativa para contener absolutos */
+.converter-column .metodo-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  gap: 15px !important;
+  position: relative !important;
+  min-height: 380px !important;
+}
+
+/* ===========================
+   ALINEACIÓN EN ESTADO EXPANDIDO - POSICIÓN ABSOLUTA PARA ALINEACIÓN PERFECTA
+   ========================== */
+
+/* Contenedor expandido - posición relativa para hijos absolutos */
+.converter-column .metodo-content.expanded {
+  position: relative !important;
+  min-height: 220px !important;
+  padding: 0 !important;
+}
+
+/* Tab-row en estado expandido */
+.converter-column .metodo-content.expanded .metodo-tabs {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+/* Centrar elementos cuando está expandido - SIN position absolute */
+.converter-column .metodo-content.expanded .metodo-btn.selected-method {
+  width: 396px !important;
+  min-width: 396px !important;
+  max-width: 396px !important;
+}
+
+.converter-column .metodo-content.expanded .metodo-select-expanded {
+  width: 396px !important;
+  max-width: 396px !important;
+  margin-top: 15px !important;
+}
+
+/* Select blanco dentro del wrapper */
+.converter-column .metodo-content.expanded .metodo-select-white {
+  width: 100% !important;
+}
+
+.converter-column .metodo-content.expanded .metodo-btn-atras {
+  width: 125px !important;
+  margin-top: 15px !important;
+}
+
+/* Responsive: volver a vertical en pantallas pequeñas */
+@media (max-width: 1400px) {
+  .converter-horizontal-layout {
+    gap: 60px !important;
+    max-width: 1200px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .converter-horizontal-layout {
+    grid-template-columns: 1fr !important;
+    gap: 60px !important;
+    padding: 20px !important;
+    max-width: 500px !important;
+  }
+  
+  .converter-column {
+    max-width: 480px !important;
+    width: 100% !important;
+    align-items: center !important;
+  }
+  
+  .column-divisa,
+  .column-pago,
+  .column-cobro {
+    max-width: 480px !important;
+    align-items: center !important;
+  }
+  
+  .column-divisa .converter-subtitle,
+  .column-divisa .field-label,
+  .column-divisa .converter-result {
+    text-align: center !important;
+  }
+  
+  .column-divisa .converter-form,
+  .column-divisa .converter-field {
+    align-items: center !important;
+  }
+}
+
+/* Responsive para medios de pago */
+@media (max-width: 480px) {
+  .metodo-btn,
+  .metodo-select-wrapper {
+    width: 100% !important;
+    max-width: 396px !important;
+  }
+  
+  .metodo-text {
+    font-size: 18px !important;
+  }
+  
+  .metodo-btn {
+    height: 52px !important;
+    padding: 0 15px !important;
+    gap: 10px !important;
+  }
+  
+  .metodo-btn-atras {
+    width: 100px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+  }
+  
+  .metodo-select-white {
+    width: 100% !important;
+    max-width: 396px !important;
+  }
+  
+  .converter-horizontal-layout {
+    padding: 0 10px !important;
+    gap: 30px !important;
+  }
 }
