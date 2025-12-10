@@ -36,8 +36,19 @@
         </div>
     </div>
 </section>
+{% else %}
+<!-- Hero público para visitantes no autenticados (centrado, sin CTA) -->
+<section class="hero-welcome-section hero-guest">
+    <div class="hero-welcome-container">
+        <div class="hero-left">
+            <h1 class="hero-title">Un mundo de elecciones<br><span class="hero-title-accent">con Global Exchange</span></h1>
+            <p class="hero-subtitle">¡Visitanos en nuestras sucursales!</p>
+        </div>
+    </div>
+</section>
+{% endif %}
 
-<!-- Carrusel de Sucursales -->
+<!-- Carrusel de Sucursales (visible para todo público) -->
 <section class="branches-carousel-section">
     <div class="branches-carousel-wrapper">
         <!-- Botón anterior -->
@@ -120,7 +131,6 @@
         </button>
     </div>
 </section>
-{% endif %}
 
 <!-- ===== SECCIÓN ORIGINAL: TABLA DE COTIZACIONES Y CONVERSOR ===== -->
 

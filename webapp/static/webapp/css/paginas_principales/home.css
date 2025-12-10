@@ -1260,6 +1260,31 @@ html body .btn-text,
     font-style: italic;
 }
 
+/* Estilos para hero público (visitantes) - centrado y destacado */
+.hero-guest {
+    background-color: #000000 !important;
+    padding: 30px 40px;
+}
+
+.hero-guest .hero-welcome-container {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.hero-guest .hero-left {
+    align-items: center;
+}
+
+.hero-guest .hero-title {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.hero-guest .hero-subtitle {
+    font-size: 20px;
+}
+
 /* ===== CARRUSEL DE SUCURSALES ===== */
 .branches-carousel-section {
     width: 100%;
