@@ -193,7 +193,6 @@ body {
   padding: 0 10px !important;
   cursor: pointer !important;
   box-sizing: border-box !important;
-  transition: box-shadow 0.2s ease !important;
 }
 
 .currency-dropdown-button:hover {
@@ -254,7 +253,6 @@ body {
   align-items: center !important;
   padding: 12px 15px !important;
   cursor: pointer !important;
-  transition: background 0.2s ease !important;
 }
 
 .currency-dropdown-option:hover {
@@ -385,14 +383,13 @@ body {
   font-size: 24px !important;
   color: #FFFFFF !important;
   cursor: pointer !important;
-  transition: transform 0.2s !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
 
 .intercambiar-button:hover {
-  transform: scale(1.02) !important;
+  box-shadow: 0 0 15px rgba(91, 21, 194, 0.5) !important;
 }
 
 /* Texto de conversión debajo del botón intercambiar */
@@ -450,7 +447,6 @@ body {
   font-size: 15px;
   color: #ffffff;
   cursor: pointer;
-  transition: all 0.3s;
   white-space: nowrap;
   text-align: center;
   display: flex;
@@ -481,7 +477,6 @@ body {
 
 .tab-btn:hover {
   opacity: 0.9;
-  transform: translateY(-2px);
 }
 
 .tab-btn.active {
@@ -515,28 +510,29 @@ body {
 }
 
 /* ===========================
-   BOTÓN CONTINUAR
+   BOTÓN CONTINUAR - mismo estilo que botones de método
    ========================== */
 
+/* Contenedor del botón Continuar - centrado horizontal */
+.continuar-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin-top: -190px !important;
+    margin-bottom: 20px !important;
+}
+
 #next-step {
-    width: 200px;
-    height: 60px;
-    border-radius: 5px;
-    background: linear-gradient(90deg, #0A052F 6%, #381194 50%, #5B15C1 100%);
-    border: none;
-    font-family: 'Roboto', sans-serif;
-    font-weight: bold;
-    font-size: 24px;
-    color: #FFFFFF;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: block;
-    margin: 2rem auto 0;
+    width: 396px !important;
+    height: 58px !important;
+    border-radius: 20px !important;
+    margin: 0 auto !important;
+    justify-content: center !important;
 }
 
 #next-step:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(91, 21, 193, 0.4);
+  box-shadow: 0 0 15px rgba(91, 21, 194, 0.5) !important;
 }
 
 /* ===========================
@@ -588,7 +584,6 @@ body {
   font-size: 20px;
   padding: 0 2rem;
   cursor: pointer;
-  transition: all 0.3s;
 }
 
 #prev-step {
@@ -603,7 +598,6 @@ body {
 
 #prev-step:hover,
 #step-2 button[type="submit"]:hover {
-  transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
@@ -631,7 +625,6 @@ body {
   color: #ffffff;
   font-family: "Roboto", sans-serif;
   text-align: left;
-  animation: fadeIn 0.3s ease-in-out;
 }
 
 .transferencia-titulo {
@@ -653,12 +646,6 @@ body {
   color: #cccccc;
   margin-top: 1rem;
   font-style: italic;
-}
-
-/* Animación de aparición */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ===========================
@@ -772,36 +759,63 @@ header nav a,
   max-width: none !important;
 }
 
-/* Botón de método de pago - NUEVO DISEÑO */
+/* Botón de método de pago - ESTADO BASE (valores explícitos para reset completo) */
 .metodo-btn {
+  /* Dimensiones fijas */
   width: 396px !important;
+  min-width: 396px !important;
+  max-width: 396px !important;
   height: 58px !important;
+  min-height: 58px !important;
+  max-height: 70px !important;
+  
+  /* Posicionamiento - reset explícito */
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  
+  /* Apariencia */
   border-radius: 20px !important;
   background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
   border: none !important;
   outline: none !important;
+  box-shadow: none !important;
+  
+  /* Espaciado - reset explícito */
   padding: 0 20px !important;
+  margin: 0 !important;
+  
+  /* Tipografía */
   font-family: 'Roboto', sans-serif !important;
   font-weight: 400 !important;
   font-size: 24px !important;
   color: #FFFFFF !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
+  
+  /* Layout */
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
   gap: 15px !important;
+  
+  /* Estado */
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  
+  /* Otros */
   overflow: hidden !important;
   box-sizing: border-box !important;
 }
 
 .metodo-btn:hover {
   box-shadow: 0 0 15px rgba(91, 21, 194, 0.5) !important;
-  transform: translateY(-2px) !important;
 }
 
 .metodo-btn.active {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), inset 0 0 0 2px #8B5CF6 !important;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6) !important;
 }
 
 /* Íconos dentro del botón */
@@ -904,82 +918,70 @@ header nav a,
 }
 
 /* ===========================
-   ANIMACIÓN DE EXPANSIÓN DE MÉTODOS DE PAGO
+   ESTADOS DE BOTONES DE MÉTODO (SIN ANIMACIONES)
    ========================== */
 
-/* Contenedor de tabs - transiciones para reorganización */
-.metodo-tabs {
-  transition: all 0.35s ease-in-out !important;
-}
-
-/* Botones de método - transiciones completas */
+/* Botones de método - SIN transiciones, cambios instantáneos */
 .metodo-tabs .metodo-btn {
-  transition: opacity 0.4s ease-in-out, 
-              transform 0.4s ease-in-out, 
-              max-height 0.4s ease-in-out, 
-              margin 0.4s ease-in-out,
-              padding 0.4s ease-in-out,
-              box-shadow 0.3s ease !important;
   max-height: 70px !important;
   overflow: hidden !important;
 }
 
-/* Estado de ocultamiento animado para botones no seleccionados */
+/* Estado de ocultamiento - cambio instantáneo */
 .metodo-tabs .metodo-btn.hiding {
-  opacity: 0 !important;
-  transform: scale(0.95) !important;
-  max-height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  pointer-events: none !important;
+  display: none !important;
 }
 
-/* El botón seleccionado permanece visible y destacado */
-.metodo-tabs .metodo-btn.selected-method {
+/* Estado normal - valores fijos */
+.metodo-tabs .metodo-btn:not(.hiding):not(.selected-method) {
+  display: flex !important;
   opacity: 1 !important;
-  transform: translateY(0) !important;
-  pointer-events: none !important;
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), inset 0 0 0 2px #8B5CF6 !important;
-}
-
-/* Estado inicial: selector oculto (NO usar display: none) */
-.metodo-select-expanded {
-  opacity: 0 !important;
-  max-height: 0 !important;
-  overflow: hidden !important;
-  pointer-events: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  transition: opacity 0.4s ease-out, 
-              max-height 0.4s ease-out,
-              margin 0.4s ease-out !important;
-}
-
-/* Estado expandido: selector visible con transición suave */
-.metodo-content.expanded .metodo-select-expanded {
-  opacity: 1 !important;
-  max-height: 80px !important;
+  height: 58px !important;
+  width: 396px !important;
+  padding: 0 20px !important;
   pointer-events: auto !important;
+}
+
+/* Botón seleccionado - dimensiones fijas, sin animación */
+.metodo-tabs .metodo-btn.selected-method {
+  display: flex !important;
+  opacity: 1 !important;
+  width: 396px !important;
+  min-width: 396px !important;
+  max-width: 396px !important;
+  height: 58px !important;
+  padding: 0 20px !important;
+  border-radius: 20px !important;
+  border: none !important;
+  pointer-events: none !important;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6) !important;
+  position: relative !important;
+}
+
+/* Estado inicial: selector oculto */
+.metodo-select-expanded {
+  display: none !important;
+}
+
+/* Estado expandido: selector visible */
+.metodo-content.expanded .metodo-select-expanded {
+  display: block !important;
+  opacity: 1 !important;
   margin-top: 15px !important;
 }
 
-/* Keyframes para aparición del selector - solo opacidad */
-@keyframes slideDown {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* FORZAR OCULTAR select para transferencias (sobrescribe expanded) */
+.metodo-content.expanded .metodo-select-expanded.select-hidden {
+  display: none !important;
 }
 
-/* Estado inicial: botón Atrás oculto (NO usar display: none) */
+/* Keyframes eliminados - cambios instantáneos */
+
+/* Estado inicial: botón Atrás oculto */
 .metodo-btn-atras {
-  opacity: 0 !important;
-  max-height: 0 !important;
-  overflow: hidden !important;
-  pointer-events: none !important;
+  display: none !important;
   width: 125px !important;
+  height: 36px !important;
   border-radius: 20px !important;
   background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
   border: none !important;
@@ -990,37 +992,20 @@ header nav a,
   font-size: 16px !important;
   color: #FFFFFF !important;
   cursor: pointer !important;
-  transition: opacity 0.3s ease-in-out 0.1s, 
-              max-height 0.3s ease-in-out,
-              box-shadow 0.2s ease !important;
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 0 20px !important;
   align-self: center !important;
 }
 
-/* Estado expandido: botón Atrás visible con transición suave */
+/* Estado expandido: botón Atrás visible */
 .metodo-content.expanded .metodo-btn-atras {
-  opacity: 1 !important;
-  max-height: 50px !important;
-  height: 36px !important;
-  pointer-events: auto !important;
+  display: block !important;
   margin-top: 15px !important;
-  padding: 0 20px !important;
 }
 
-/* Keyframes para aparición del botón Atrás - solo opacidad */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
+/* Hover del botón Atrás */
 .metodo-btn-atras:hover {
   box-shadow: 0 0 15px rgba(91, 21, 194, 0.5) !important;
-  transform: translateY(-2px) !important;
 }
 
 /* Select blanco - estado expandido */
@@ -1064,7 +1049,6 @@ header nav a,
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-start !important;
-  transition: all 0.35s ease-in-out !important;
 }
 
 /* Centrar elementos cuando está expandido */
@@ -1076,40 +1060,45 @@ header nav a,
    LAYOUT HORIZONTAL DE 3 COLUMNAS
    ========================== */
 
-/* Contenedor principal horizontal - GRID de 3 columnas iguales */
+/* Contenedor principal horizontal - LAYOUT COMPACTO */
 .converter-horizontal-layout {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr !important;
-  gap: 80px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  gap: 60px !important;
   width: 100% !important;
   max-width: 1600px !important;
-  margin: 0 auto !important;
-  padding: 20px 40px !important;
+  margin: 0 !important;
+  margin-left: -90px !important;
+  padding: 20px 10px !important;
   box-sizing: border-box !important;
-  align-items: start !important;
+  align-items: flex-start !important;
 }
 
-/* Cada columna - centrada */
+/* Cada columna - ancho fijo */
 .converter-column {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  min-width: 0 !important;
+  flex-shrink: 0 !important;
 }
 
-/* Columna de divisas */
+/* Columna de divisas - ancho fijo */
 .column-divisa {
-  align-items: center !important;
+  width: 350px !important;
+  min-width: 350px !important;
 }
 
-/* Columna de pago */
+/* Columna de pago - ancho fijo */
 .column-pago {
-  align-items: center !important;
+  width: 450px !important;
+  min-width: 450px !important;
 }
 
-/* Columna de cobro */
+/* Columna de cobro - ancho fijo */
 .column-cobro {
-  align-items: center !important;
+  width: 450px !important;
+  min-width: 450px !important;
 }
 
 /* Subtítulos de columnas - centrados */
@@ -1179,13 +1168,13 @@ header nav a,
 }
 
 /* ===========================
-   ALINEACIÓN EN ESTADO EXPANDIDO - POSICIÓN ABSOLUTA FIJA
+   ALINEACIÓN EN ESTADO EXPANDIDO - POSICIÓN ABSOLUTA PARA ALINEACIÓN PERFECTA
    ========================== */
 
 /* Contenedor expandido - posición relativa para hijos absolutos */
 .converter-column .metodo-content.expanded {
   position: relative !important;
-  min-height: 200px !important;
+  min-height: 220px !important;
   padding: 0 !important;
 }
 
@@ -1195,32 +1184,19 @@ header nav a,
   flex-direction: column !important;
   align-items: center !important;
   width: 100% !important;
-  position: relative !important;
 }
 
-/* Botón seleccionado - POSICIÓN ABSOLUTA FIJA en top: 0 */
-/* Usa margin-left negativo para centrar SIN transform (evita movimiento horizontal) */
+/* Centrar elementos cuando está expandido - SIN position absolute */
 .converter-column .metodo-content.expanded .metodo-btn.selected-method {
-  position: absolute !important;
-  top: 0 !important;
-  left: 50% !important;
-  margin-left: -150px !important;
   width: 396px !important;
-  max-width: calc(100%) !important;
-  z-index: 10 !important;
-  transition: top 0.4s ease-in-out, opacity 0.3s ease-in-out !important;
+  min-width: 396px !important;
+  max-width: 396px !important;
 }
 
-/* Selector expandido - POSICIÓN ABSOLUTA debajo del botón */
-/* Usa margin-left negativo para centrar SIN transform */
 .converter-column .metodo-content.expanded .metodo-select-expanded {
-  position: absolute !important;
-  top: 73px !important;
-  left: 50% !important;
-  margin-left: -178px !important;
   width: 396px !important;
-  max-width: calc(100% - 20px) !important;
-  z-index: 9 !important;
+  max-width: 396px !important;
+  margin-top: 15px !important;
 }
 
 /* Select blanco dentro del wrapper */
@@ -1228,15 +1204,9 @@ header nav a,
   width: 100% !important;
 }
 
-/* Botón atrás - POSICIÓN ABSOLUTA debajo del selector */
-/* Usa margin-left negativo para centrar SIN transform */
 .converter-column .metodo-content.expanded .metodo-btn-atras {
-  position: absolute !important;
-  top: 146px !important;
-  left: 50% !important;
-  margin-left: -62.5px !important;
   width: 125px !important;
-  z-index: 8 !important;
+  margin-top: 15px !important;
 }
 
 /* Responsive: volver a vertical en pantallas pequeñas */

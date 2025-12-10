@@ -15,8 +15,8 @@
         <span class="yellow-text">Compra</span> <span class="black-text">venta</span>
     </h2>
 
-    <!-- 🆕 Indicador superior de pasos -->
-    <div class="wizard-header">
+    <!-- 🆕 Indicador superior de pasos - OCULTO -->
+    <div class="wizard-header d-none">
         <div id="indicator-step1" class="wizard-step-indicator active">
             <span>1</span> Selección
         </div>
@@ -51,7 +51,7 @@
                                             <div class="currency-dropdown-button" id="btn-from">
                                                 <img id="simu-from-flag" src="" alt="bandera" class="currency-flag">
                                                 <span id="simu-from-code" class="currency-code">USD</span>
-                                                <img src="{% static 'webapp/pantalla_compra_venta/tick.png' %}" alt="dropdown" class="select-arrow">
+                                                <img src="{% static 'webapp/pantalla_compra_venta/tick2.png' %}" alt="dropdown" class="select-arrow">
                                             </div>
                                             <div class="currency-dropdown-menu" id="menu-from">
                                                 <!-- Opciones se llenan con JS -->
@@ -81,7 +81,7 @@
                                             <div class="currency-dropdown-button" id="btn-to">
                                                 <img id="simu-to-flag" src="" alt="bandera" class="currency-flag">
                                                 <span id="simu-to-code" class="currency-code">PYG</span>
-                                                <img src="{% static 'webapp/pantalla_compra_venta/tick.png' %}" alt="dropdown" class="select-arrow">
+                                                <img src="{% static 'webapp/pantalla_compra_venta/tick2.png' %}" alt="dropdown" class="select-arrow">
                                             </div>
                                             <div class="currency-dropdown-menu" id="menu-to">
                                                 <!-- Opciones se llenan con JS -->
@@ -146,7 +146,7 @@
                                     <select id="simu-metodo-pago" name="medio_pago" class="metodo-select metodo-select-white">
                                         <option value="" disabled selected>Seleccione una opción</option>
                                     </select>
-                                    <img src="{% static 'webapp/pantalla_compra_venta/tick.png' %}" alt="dropdown" class="metodo-select-arrow metodo-select-arrow-dark">
+                                    <img src="{% static 'webapp/pantalla_compra_venta/tick2.png' %}" alt="dropdown" class="metodo-select-arrow metodo-select-arrow-dark">
                                 </div>
                                 
                                 <button type="button" class="metodo-btn-atras" id="pago-btn-atras">Atrás</button>
@@ -198,7 +198,7 @@
                                     <select id="simu-metodo-cobro" name="medio_cobro" class="metodo-select metodo-select-white">
                                         <option value="" disabled selected>Seleccione una opción</option>
                                     </select>
-                                    <img src="{% static 'webapp/pantalla_compra_venta/tick.png' %}" alt="dropdown" class="metodo-select-arrow metodo-select-arrow-dark">
+                                    <img src="{% static 'webapp/pantalla_compra_venta/tick2.png' %}" alt="dropdown" class="metodo-select-arrow metodo-select-arrow-dark">
                                 </div>
                                 
                                 <button type="button" class="metodo-btn-atras" id="cobro-btn-atras">Atrás</button>
@@ -220,8 +220,10 @@
                     <input type="hidden" id="input-medio-pago-tipo" name="medio_pago_tipo">
                     <input type="hidden" id="input-medio-cobro-tipo" name="medio_cobro_tipo">
             </div>
-            <div class="converter-actions mt-4 d-flex justify-content-end">
-                <button type="button" id="next-step" class="btn btn-primary">Continuar</button>
+            <div class="continuar-container">
+                <button type="button" id="next-step" class="metodo-btn">
+                    <span class="metodo-text">Continuar</span>
+                </button>
             </div>
         </div>
          <!-- 🆕 PASO 2: Revisión -->
@@ -842,7 +844,7 @@
             const agregarOpcionInicial = (selectEl) => {
                 const opt = document.createElement("option");
                 opt.value = "";
-                opt.textContent = "---Seleccione una opción---";
+                opt.textContent = "Selecciona una opción";
                 opt.disabled = true;
                 opt.selected = true;
                 selectEl.appendChild(opt);
@@ -1093,66 +1095,80 @@
         const btnAtrasPago = document.getElementById("pago-btn-atras");
         const btnAtrasCobro = document.getElementById("cobro-btn-atras");
 
-        // Función para expandir la sección de método de pago CON ANIMACIONES SECUENCIADAS
+        // Función para expandir la sección de método de pago - CAMBIOS INSTANTÁNEOS (sin animación)
+        // VERSIÓN ACTUALIZADA: 2025-12-10 - Oculta select para transferencias en pago y cobro
         const expandirMetodo = async (contentEl, tabsEl, btn, tipo, selectEl) => {
             const todosLosBotones = tabsEl.querySelectorAll(".metodo-btn");
             
-            // Paso 1 [0ms]: Agregar clase 'hiding' a botones no seleccionados (inicia fade-out)
+            // Ocultar todos los botones excepto el seleccionado (instantáneo)
             todosLosBotones.forEach(b => {
                 if (b !== btn) {
                     b.classList.add("hiding");
                 }
             });
             
-            // Paso 2 [100ms]: Marcar botón seleccionado
-            setTimeout(() => {
-                btn.classList.add("active", "selected-method");
-            }, 100);
+            // Marcar botón seleccionado (instantáneo)
+            btn.classList.add("active", "selected-method");
             
-            // Paso 3 [400ms]: Agregar clase 'expanded' al contenedor (inicia animación de selector y botón atrás)
-            setTimeout(() => {
-                contentEl.classList.add("expanded");
+            // Expandir contenedor (instantáneo)
+            contentEl.classList.add("expanded");
+            
+            // Obtener nombre del botón para verificar si es transferencia
+            const nombre = (btn.dataset.tipoNombre || btn.textContent.trim()).toLowerCase();
+            const esTransferencia = nombre.includes("cuenta bancaria") || nombre.includes("transferencia");
+            
+            console.log("DEBUG expandirMetodo:", { tipo, nombre, esTransferencia });
+            
+            // Controlar visibilidad del select según el tipo
+            // Solo ocultar select para PAGO con transferencia (el cliente paga al negocio)
+            // Para COBRO siempre mostrar select (el cliente elige dónde recibir)
+            if (esTransferencia && tipo === "pago") {
+                // Ocultar el select solo para PAGO con transferencia
+                selectEl.parentElement.classList.add("select-hidden");
+                console.log("DEBUG: Ocultando select para transferencia en PAGO");
                 
-                // 🔹 Si es un botón de pago, controlamos la visibilidad del select y la tarjeta de cuenta
-                if (tipo === "pago") {
-                    const nombre = (btn.dataset.tipoNombre || btn.textContent.trim()).toLowerCase();
-                    const esTransferencia = nombre.includes("cuenta bancaria") || nombre.includes("transferencia");
-
-                    if (esTransferencia) {
-                        // Oculta el select y muestra los datos bancarios
-                        selectEl.parentElement.classList.add("d-none");
-                        infoTransferencia.classList.remove("d-none");
-                    } else {
-                        // Restaura el select normal y oculta los datos bancarios
-                        selectEl.parentElement.classList.remove("d-none");
-                        infoTransferencia.classList.add("d-none");
-                    }
+                // Mostrar info de transferencia (datos de cuenta del negocio)
+                if (infoTransferencia) {
+                    infoTransferencia.classList.remove("d-none");
                 }
-            }, 400);
+            } else {
+                // Mostrar select para otros métodos y para COBRO
+                selectEl.parentElement.classList.remove("select-hidden");
+                
+                // Ocultar info transferencia si existe
+                if (infoTransferencia) {
+                    infoTransferencia.classList.add("d-none");
+                }
+            }
 
-            // Cargar métodos y calcular (ejecutar de forma async)
+            // Cargar métodos y calcular
             await recargarMetodos(tipo);
             compute();
         };
 
-        // Función para colapsar la sección CON ANIMACIONES SECUENCIADAS
+        // Función para colapsar la sección - CAMBIOS INSTANTÁNEOS (sin animación)
         const colapsarMetodo = (contentEl, tabsEl) => {
             const todosLosBotones = tabsEl.querySelectorAll(".metodo-btn");
+            const selectWrapper = contentEl.querySelector(".metodo-select-wrapper");
             
-            // Paso 1 [0ms]: Remover clase 'expanded' (inicia animación de salida del selector y botón atrás)
+            // Remover clase 'expanded' (instantáneo)
             contentEl.classList.remove("expanded");
+            
+            // Limpiar clase de ocultamiento del select
+            if (selectWrapper) {
+                selectWrapper.classList.remove("select-hidden");
+            }
             
             // Ocultar info transferencia
             if (infoTransferencia) {
                 infoTransferencia.classList.add("d-none");
             }
             
-            // Paso 2 [300ms]: Restaurar botones (fade-in de botones ocultos)
-            setTimeout(() => {
-                todosLosBotones.forEach(b => {
-                    b.classList.remove("hiding", "selected-method", "active");
-                });
-            }, 300);
+            // Restaurar todos los botones (instantáneo)
+            todosLosBotones.forEach(b => {
+                b.classList.remove("hiding", "selected-method", "active");
+                b.removeAttribute('style');
+            });
         };
 
         // Event listeners para botones de pago
