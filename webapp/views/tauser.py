@@ -16,6 +16,7 @@ from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
 from webapp.tasks import pagar_al_cliente_task
 from ..decorators import role_required
 from decimal import Decimal
+from typing import Union
 
 User = get_user_model()
 
@@ -195,6 +196,8 @@ def tauser_pagar(request, pk):
 
             if not isinstance(transaccion.medio_cobro, Tauser):
                 pagar_al_cliente_task.delay(transaccion.id)
+            else:
+                reservarStock(transaccion.medio_cobro.id, transaccion.moneda_destino.code, transaccion.monto_destino)
 
             return redirect("tauser_home")
 
@@ -396,3 +399,74 @@ def manage_tausers(request):
         "total_tausers": tausers.count(),
         "total_denominations": len(stock),
     })
+
+
+def reservarStock(
+    tauser_id: int,
+    moneda_code: str,
+    monto: Union[Decimal, float, int],
+) -> None:
+    """
+    Descuenta del stock del Tauser el monto indicado en una moneda dada.
+
+    - Si la moneda es PYG, no hace nada (no llevás stock en PYG).
+    - Envuelve la llamada a `actualizar_stock_tauser` para centralizar la lógica.
+
+    Parámetros:
+        tauser_id: ID del Tauser (medio de cobro).
+        moneda_code: Código de la moneda (por ejemplo 'USD', 'EUR').
+        monto: Monto a egresar del stock del Tauser.
+    """
+
+    if moneda_code == "PYG":
+        # No manejás stock de PYG en Tauser, salís silenciosamente
+        return
+
+    if not monto:
+        return
+
+    # Aseguramos Decimal si estás manejando así los montos
+    if not isinstance(monto, Decimal):
+        monto = Decimal(str(monto))
+
+    actualizar_stock_tauser(
+        tauser_id,
+        moneda_code,
+        monto,
+        "egreso",   # mismo modo que usabas en la view
+    )
+
+def liberarStock(
+    tauser_id: int,
+    moneda_code: str,
+    monto: Union[Decimal, float, int],
+) -> None:
+    """
+    Descuenta del stock del Tauser el monto indicado en una moneda dada.
+
+    - Si la moneda es PYG, no hace nada (no llevás stock en PYG).
+    - Envuelve la llamada a `actualizar_stock_tauser` para centralizar la lógica.
+
+    Parámetros:
+        tauser_id: ID del Tauser (medio de cobro).
+        moneda_code: Código de la moneda (por ejemplo 'USD', 'EUR').
+        monto: Monto a egresar del stock del Tauser.
+    """
+
+    if moneda_code == "PYG":
+        # No manejás stock de PYG en Tauser, salís silenciosamente
+        return
+
+    if not monto:
+        return
+
+    # Aseguramos Decimal si estás manejando así los montos
+    if not isinstance(monto, Decimal):
+        monto = Decimal(str(monto))
+
+    actualizar_stock_tauser(
+        tauser_id,
+        moneda_code,
+        monto,
+        "ingreso",   # mismo modo que usabas en la view
+    )

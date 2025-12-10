@@ -19,6 +19,9 @@ from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_naci
 from webapp.tasks import pagar_al_cliente_task
 from django.template.loader import get_template
 from django.http import HttpResponse
+from django.db import transaction
+from webapp.views.tauser import reservarStock
+
 try:
     from weasyprint import HTML
     WEASYPRINT_AVAILABLE = True
@@ -390,6 +393,8 @@ def compraventa_view(request):
                 # --- Pago al cliente en background ---
                 if tipo_cobro_nombre != "tauser" and tipo_pago_nombre != "tauser":
                     pagar_al_cliente_task.delay(transaccion.id)
+                elif tipo_cobro_nombre == "tauser" and transaccion.tipo == "VENTA" and transaccion.estado == Transaccion.Estado.PAGADA:
+                    reservarStock(tipo_cobro_general.id, transaccion.moneda_destino.code, transaccion.monto_destino)
 
                 if estado == Transaccion.Estado.PAGADA:
                     try:
@@ -678,6 +683,11 @@ def ingresar_idTransferencia(request, transaccion_id: int):
         transaccion.fecha_pago = timezone.now().date()  # registra la fecha de pago (solo día)
         transaccion.save(update_fields=["id_transferencia", "estado", "fecha_pago", "fecha_actualizacion"])
 
+        if not isinstance(transaccion.medio_cobro, Tauser):
+            pagar_al_cliente_task.delay(transaccion.id)
+        else:
+            reservarStock(transaccion.medio_cobro.id, transaccion.moneda_destino.code, transaccion.monto_destino)
+
         messages.success(
             request,
             "Transferencia validada correctamente. "
@@ -814,3 +824,17 @@ def set_cliente_seleccionado(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
+def cancelar_transaccion(request, pk):
+    transaccion = get_object_or_404(Transaccion, pk=pk)
+
+    # Solo se deben cancelar transacciones aún pendientes
+    if transaccion.estado != Transaccion.Estado.PENDIENTE:
+        messages.warning(request, "La transacción ya no puede cancelarse.")
+        return redirect("home")
+
+    # Cancelar formalmente
+    transaccion.estado = Transaccion.Estado.CANCELADA
+    transaccion.save(update_fields=["estado"])
+
+    messages.success(request, "Tu transacción fue cancelada correctamente.")
+    return redirect("transaccion_list")

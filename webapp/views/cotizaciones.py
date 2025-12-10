@@ -7,12 +7,13 @@ from django.views.decorators.http import require_GET
 from django.utils.timezone import now, timedelta
 from django.db.models import Q
 from ..decorators import role_required
-from ..models import CurrencyHistory, CustomUser, EmailScheduleConfig, Transaccion, Currency
-from decimal import Decimal, InvalidOperation
+from ..models import CurrencyHistory, Transaccion, Currency, CuentaBancaria
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
-
+from webapp.emails import send_transaction_cancellation_prompt
+from django.contrib.contenttypes.models import ContentType
 
 # ---------------------------------
 # Vistas para modificar cotizaciones (Posibles vistas nuevas)
@@ -96,13 +97,9 @@ def modify_quote(request, currency_id):
             currency.is_active = is_active
             currency.save()
             
-            # Cancelar todas las transacciones PENDIENTE donde la moneda esté en origen o destino
-            transacciones = Transaccion.objects.filter(
-                Q(moneda_origen=currency) | Q(moneda_destino=currency),
-                estado=Transaccion.Estado.PENDIENTE
-            )
+            # Avisar sobre los cambios a los usuarios con transacciones pendientes
+            promtCancelacionTransaccionCambioCotizacion(request)
 
-            transacciones.update(estado=Transaccion.Estado.CANCELADA)
             messages.success(request, f"Cotización de '{currency.name}' actualizada correctamente.")
             return redirect("manage_quotes")
             
@@ -237,3 +234,130 @@ def unsubscribe_confirm(request):
 def unsubscribe_error(request):
     """Página que muestra mensaje de error en desuscripción."""
     return render(request, 'webapp/cotizaciones/unsubscribe_error.html')
+
+# -------------------------------------------------------------------------
+# Vistas para cancelación de transacción por cambio de tasa
+# -------------------------------------------------------------------------
+
+def calcularTasa(transaccion):
+    descuentoCategoria = Decimal('0')
+
+    try:
+        categoria = transaccion.cliente.categoria
+    except Exception:
+        categoria = None
+
+    if categoria:
+        descuentoCategoria = categoria.descuento or Decimal('0')
+
+    if transaccion.tipo == "VENTA":
+        moneda = transaccion.moneda_destino
+    else:
+        moneda = transaccion.moneda_origen
+
+    # Intentar obtener IDs de método de pago/cobro
+    tipo_metodo_pago_id = transaccion.medio_pago
+    tipo_metodo_cobro_id = transaccion.medio_cobro
+
+    medio_pago = None
+    medio_cobro = None
+    if tipo_metodo_pago_id:
+        medio_pago = transaccion.medio_pago
+    if tipo_metodo_cobro_id:
+        medio_cobro = transaccion.medio_cobro
+
+
+    base = Decimal(moneda.base_price)
+    com_venta = Decimal(moneda.comision_venta)
+    com_compra = Decimal(moneda.comision_compra)
+
+    # Porcentajes de comisión, seguros
+    porc_medio_pago = Decimal('0')
+    porc_medio_cobro = Decimal('0')
+
+    if medio_pago and getattr(medio_pago, "tipo_pago", None):
+        porc_medio_pago = Decimal(medio_pago.tipo_pago.comision or 0)
+
+    if medio_cobro and getattr(medio_cobro, "tipo_cobro", None):
+        porc_medio_cobro = Decimal(medio_cobro.tipo_cobro.comision or 0)
+
+    # Aplicar fórmulas según descuento del cliente
+    venta = base + (com_venta * (1 - descuentoCategoria))
+    compra = base - (com_compra * (1 - descuentoCategoria))
+
+    # Aplicar comisiones del método seleccionado si existen
+    try:
+        if porc_medio_cobro and porc_medio_pago:
+            # Ajusta la venta y la compra con las comisiones
+            venta = venta * (1 + porc_medio_pago/100 + porc_medio_cobro/100)
+            compra = compra * (1 - porc_medio_cobro/100 - porc_medio_pago/100)
+        elif porc_medio_pago:
+            # Solo existe método de pago
+            venta = venta * (1 + porc_medio_pago/100)
+            compra = compra * (1 - porc_medio_pago/100)
+            # compra queda igual o se deja como estaba
+        elif porc_medio_cobro:
+            # Solo existe método de cobro
+            compra = compra * (1 - porc_medio_cobro/100)
+            venta = venta * (1 + porc_medio_cobro/100)
+            # venta queda igual o se deja como estaba
+    except (AttributeError, TypeError, ValueError) as e:
+        # Aquí podés decidir qué hacer si algo falla:
+        # - loguear el error
+        # - usar comisiones 0
+        # - dejar venta/compra sin modificar
+        print("Error al aplicar comisiones:", e)
+
+    # ✅ Siempre devolver venta/compra sin decimales (PYG siempre)
+    venta = venta.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    compra = compra.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+
+    if transaccion.tipo == "VENTA":
+        return venta
+
+    return compra
+
+
+def promtCancelacionTransaccionCambioCotizacion(request, moneda: str | None = None) -> int:
+    """
+    Recorre transacciones pendientes y, si la tasa actual difiere
+    de la tasa almacenada en la transacción, envía un correo al usuario
+    preguntando si desea cancelar.
+
+    Devuelve la cantidad de transacciones notificadas.
+    """
+    ct_cuenta_bancaria = ContentType.objects.get_for_model(CuentaBancaria)
+
+    transacciones = Transaccion.objects.filter(
+        estado=Transaccion.Estado.PENDIENTE,
+    ).exclude(
+        medio_pago_type=ct_cuenta_bancaria
+    )
+
+    if moneda:
+        transacciones = transacciones.filter(
+            Q(moneda_origen__code=moneda) |
+            Q(moneda_destino__code=moneda)
+        )
+
+    notificados = 0
+
+    for transaccion in transacciones:
+        tasa_actual = calcularTasa(transaccion)
+
+        try:
+            tasa_antigua = transaccion.tasa_cambio
+        except:
+            # Si no hay tasa guardada o es inválida, la salteamos
+            continue
+
+        if tasa_actual != tasa_antigua:
+            send_transaction_cancellation_prompt(
+                request,
+                transaccion,
+                tasa_actual=tasa_actual,
+                tasa_antigua=tasa_antigua,
+            )
+            notificados += 1
+
+    return notificados

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Actualización de Transacción por cambio en la cotización</title>
+  <style>
+    body { font-family: 'Roboto', sans-serif; background: #f5f5f5; color: #333; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h1 { color: #391196; font-size: 24px; }
+    a.button { display: inline-block; padding: 10px 20px; background: #5B15C2; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 500; margin-top: 20px; }
+    p { line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Hola {{ user.get_full_name|default:user.username }},</h1>
+
+    <p>
+      La cotización de tu transacción <strong>#{{ transaccion.id }}</strong> se ha actualizado debido a un cambio en la cotización en la moneda: {{ moneda.code }}
+    </p>
+
+    <p>
+      <strong>Tasa anterior:</strong> {{ tasa_anterior }} PYG
+    </p>
+
+    <p>
+      <strong>Nueva tasa:</strong> {{ tasa_actual }} PYG
+    </p>
+
+    <p>
+      Para visualizar los cambios en el monto de su transacción o cancelarla, podés consultar los detalles aquí:
+    </p>
+
+    <p>
+      <a href="{{ detalles_transaccion_url }}" class="button">Ver Detalles</a>
+    </p>
+
+    <p>Si no creaste esta operación, ignorá este mensaje.</p>
+  </div>
+</body>
+</html>
