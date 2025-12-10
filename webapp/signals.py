@@ -161,8 +161,10 @@ def setup_database(sender, **kwargs):
             "Can change Límite de Intercambio", "Can view Límite de Intercambio",
             "Can change Método de Cobro", "Can view Método de Cobro",
             "Can change Medio de Pago", "Can view Medio de Pago",
+            "Puede ver los reportes de la empresa"
         ]
         analyst_group.permissions.set(Permission.objects.filter(name__in=nombres_permisos))
+        #print(f"✅ Asignados permisos al analista: {Permission.objects.filter(name__in=nombres_permisos)}")
 
         for data in USUARIOS_POR_DEFECTO:
             user, created = User.objects.get_or_create(username=data["username"], defaults={"email": data["email"]})
