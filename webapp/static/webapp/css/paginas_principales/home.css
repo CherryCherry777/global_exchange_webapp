@@ -1172,3 +1172,360 @@ html body .btn-text,
         padding: 20px 15px;
     }
 }
+
+/* ===================================================================
+   NUEVA SECCIÓN: HERO BIENVENIDA + CARRUSEL DE SUCURSALES
+   =================================================================== */
+
+/* Contenedor principal de la sección hero */
+.hero-welcome-section {
+    width: 100%;
+    min-height: 150px;
+    background-color: rgba(238, 233, 210, 0.1);
+    padding: 15px 40px;
+    box-sizing: border-box;
+    margin-bottom: 30px;
+}
+
+.hero-welcome-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+}
+
+/* Lado izquierdo - Título y subtítulo */
+.hero-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.hero-title {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 16px;
+    color: #ffffff;
+    margin: 0;
+}
+
+/* Lado derecho - Bienvenida del usuario */
+.hero-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    text-align: right;
+}
+
+.hero-welcome-user {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #ffffff;
+    margin: 0 0 5px 0;
+}
+
+.hero-welcome-user .user-highlight {
+    color: #4F14B3;
+}
+
+.hero-client-info {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #ffffff;
+    margin: 0;
+}
+
+.hero-client-info .client-highlight {
+    color: #4F14B3;
+}
+
+.hero-no-client {
+    color: #C7A601;
+    font-style: italic;
+}
+
+/* ===== CARRUSEL DE SUCURSALES ===== */
+.branches-carousel-section {
+    width: 100%;
+    padding: 20px 0 40px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.branches-carousel-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    padding: 0 90px; /* Espacio para las flechas */
+}
+
+/* Contenedor del carrusel con efecto fade en bordes */
+.branches-carousel-container {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Efecto de desvanecimiento en los bordes */
+.branches-carousel-container::before,
+.branches-carousel-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.branches-carousel-container::before {
+    left: 0;
+    background: linear-gradient(to right, #000000 0%, transparent 100%);
+}
+
+.branches-carousel-container::after {
+    right: 0;
+    background: linear-gradient(to left, #000000 0%, transparent 100%);
+}
+
+/* Track del carrusel */
+.branches-carousel-track {
+    display: flex;
+    gap: 20px;
+    transition: transform 0.5s ease-in-out;
+    will-change: transform;
+}
+
+/* Cada slide de sucursal */
+.branch-slide {
+    flex: 0 0 424px;
+    width: 424px;
+    height: 283px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.branch-slide:hover {
+    transform: scale(1.02);
+}
+
+/* Imagen de la sucursal */
+.branch-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Overlay con nombre de sucursal */
+.branch-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 15px;
+    background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 94%);
+    border-radius: 0 0 12px 12px;
+}
+
+.branch-name {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    font-size: 24px;
+    color: #ffffff;
+    margin: 0;
+    text-align: center;
+}
+
+/* Botones de navegación del carrusel */
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 71px;
+    height: 71px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    padding: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.carousel-nav-btn:hover {
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.carousel-nav-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.carousel-prev {
+    left: 0;
+}
+
+.carousel-next {
+    right: 0;
+}
+
+/* ===== RESPONSIVE HERO + CARRUSEL ===== */
+@media (max-width: 1200px) {
+    .hero-title {
+        font-size: 28px;
+    }
+    
+    .branch-slide {
+        flex: 0 0 350px;
+        width: 350px;
+        height: 233px;
+    }
+    
+    .branch-name {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .hero-welcome-container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .hero-left {
+        align-items: center;
+        text-align: center;
+    }
+    
+    .hero-right {
+        align-items: center;
+        text-align: center;
+    }
+    
+    .hero-title {
+        font-size: 24px;
+    }
+    
+    .hero-welcome-user,
+    .hero-client-info {
+        font-size: 16px;
+    }
+    
+    .branches-carousel-wrapper {
+        padding: 0 60px;
+    }
+    
+    .carousel-nav-btn {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-welcome-section {
+        padding: 12px 20px;
+        min-height: auto;
+    }
+    
+    .hero-title {
+        font-size: 20px;
+    }
+    
+    .hero-subtitle {
+        font-size: 14px;
+    }
+    
+    .hero-welcome-user,
+    .hero-client-info {
+        font-size: 14px;
+    }
+    
+    .branch-slide {
+        flex: 0 0 280px;
+        width: 280px;
+        height: 187px;
+    }
+    
+    .branch-name {
+        font-size: 18px;
+    }
+    
+    .branch-overlay {
+        padding: 8px 12px;
+    }
+    
+    .branches-carousel-container::before,
+    .branches-carousel-container::after {
+        width: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-welcome-section {
+        padding: 10px 15px;
+    }
+    
+    .hero-title {
+        font-size: 18px;
+    }
+    
+    .hero-subtitle {
+        font-size: 12px;
+    }
+    
+    .hero-welcome-user,
+    .hero-client-info {
+        font-size: 12px;
+    }
+    
+    .branches-carousel-wrapper {
+        padding: 0 40px;
+    }
+    
+    .carousel-nav-btn {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .branch-slide {
+        flex: 0 0 240px;
+        width: 240px;
+        height: 160px;
+    }
+    
+    .branch-name {
+        font-size: 14px;
+    }
+    
+    .branch-overlay {
+        padding: 6px 10px;
+    }
+}
+
