@@ -22,7 +22,7 @@ Contenido
    introduccion
    instalacion
    uso
-   modulos_documentacion
+   documentacion_modulos
    documentacion_vistas
    nuevos_modulos
    testing_suite
