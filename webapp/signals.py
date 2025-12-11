@@ -16,6 +16,11 @@ from django.db import connections, transaction
 from decimal import Decimal
 import logging
 
+from datetime import timedelta
+
+import hashlib
+from django.utils import timezone
+
 from django.db.models import Q
 from django.core.files.base import ContentFile
 import requests
@@ -639,7 +644,82 @@ def setup_database(sender, **kwargs):
 
         print("✅ Imagenes de banderas asignadas a las monedas")
 
+    def backfill_currency_history():
+        """
+        Fills up to 1 year of historical prices for each Currency, excluding today.
+        - Uses Currency.comision_compra / comision_venta as the basis.
+        - Generates a small daily variation so the series looks realistic.
+        - PYG is treated as base (kept constant or nearly constant).
+        - Runs ONLY the first time (if any CurrencyHistory exists, it exits).
+        """
+        # Only run for this app
+        if sender.name != "webapp":
+            return
 
+        Currency = apps.get_model("webapp", "Currency")
+        CurrencyHistory = apps.get_model("webapp", "CurrencyHistory")
+
+        # If there is already history, assume this has already run → no-op
+        if CurrencyHistory.objects.exists():
+            print(f"✅ Datos historicos para tasas ya existen (ambiente de prueba)")
+            return
+
+        today = timezone.localdate()
+        days_back = 365  # 1 year
+
+        currencies = list(Currency.objects.filter(is_active=True))
+        history_to_create = []
+
+        for currency in currencies:
+            code = currency.code.upper()
+
+            # Base currency PYG: keep stable (no fake noise if you don't want)
+            if code == "PYG":
+                compra_today = currency.comision_compra
+                venta_today = currency.comision_venta
+
+                for i in range(1, days_back + 1):
+                    date = today - timedelta(days=i)
+                    history_to_create.append(
+                        CurrencyHistory(
+                            currency=currency,
+                            date=date,
+                            compra=compra_today,
+                            venta=venta_today,
+                        )
+                    )
+                continue
+
+            # Other currencies: realistic-ish random walk back in time
+            compra = Decimal(currency.comision_compra)
+            venta = Decimal(currency.comision_venta)
+
+            for i in range(1, days_back + 1):
+                date = today - timedelta(days=i)
+
+                delta_c = _daily_variation(code, i, "C")
+                delta_v = _daily_variation(code, i, "V")
+
+                compra = compra * (Decimal("1") + delta_c)
+                venta = venta * (Decimal("1") + delta_v)
+
+                # Safety: never go non-positive
+                if compra <= 0:
+                    compra = Decimal("0.01")
+                if venta <= 0:
+                    venta = Decimal("0.01")
+
+                history_to_create.append(
+                    CurrencyHistory(
+                        currency=currency,
+                        date=date,
+                        compra=compra,
+                        venta=venta,
+                    )
+                )
+
+        CurrencyHistory.objects.bulk_create(history_to_create, ignore_conflicts=True)
+        print(f"✅ Creados datos historicos para tasas (ambiente de prueba)")
 
 
     # -------------------------------------------------------------
@@ -657,6 +737,35 @@ def setup_database(sender, **kwargs):
     safe_run("Stock inicial de Tauser", setup_tauser_stock)
     safe_run("Asignacion de nombres a los Tauser", setup_tauser_names)
     safe_run("Asignacion de banderas a las monedas", setup_imagenes_monedas)
+    safe_run("Generacion de datos historicos de tasas (ambiente de pruebas)", backfill_currency_history)
+
+def _daily_variation(code: str, day_index: int, field: str) -> Decimal:
+    """
+    Deterministic pseudo-random variation in [-max_change, max_change],
+    so results are realistic but reproducible.
+
+    field = "C" (compra) or "V" (venta)
+    """
+    # Volatility per currency (roughly daily % max change)
+    vol_map = {
+        "USD": Decimal("0.004"),  # ±0.4% per day
+        "EUR": Decimal("0.004"),  # ±0.4%
+        "BRL": Decimal("0.008"),  # ±0.8%
+        "ARS": Decimal("0.020"),  # ±2%
+    }
+    default_vol = Decimal("0.003")  # ±0.3%
+
+    max_change = vol_map.get(code.upper(), default_vol)
+
+    # Turn (code, day_index, field) into a deterministic "random" number
+    key = f"{code}-{day_index}-{field}"
+    h = int(hashlib.sha256(key.encode()).hexdigest(), 16)
+
+    # Map hash → [-1, 1]
+    frac = Decimal(h % 10001) / Decimal("5000") - Decimal("1")  # [-1, 1]
+
+    # Scale to [-max_change, max_change]
+    return frac * max_change
 
 """
 @receiver(post_migrate)
