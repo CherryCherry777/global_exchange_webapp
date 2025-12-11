@@ -225,6 +225,8 @@ body {
   width: 22px !important;
   height: 22px !important;
   flex-shrink: 0 !important;
+  color: #ffffff !important; /* caret white for dropdown buttons */
+  filter: none !important;
 }
 
 /* Menú desplegable */
@@ -906,6 +908,7 @@ header nav a,
   width: 20px !important;
   height: 20px !important;
   pointer-events: none !important;
+  color: #ffffff !important; /* caret white for metodo selects */
 }
 
 /* Ocultar los estilos antiguos de tabs cuando se usan las nuevas clases */
@@ -1041,7 +1044,8 @@ header nav a,
 
 /* Flecha oscura para select blanco */
 .metodo-select-arrow-dark {
-  filter: brightness(0) saturate(100%) !important;
+  color: #000000 !important; /* caret black for medio pago/cobro */
+  filter: none !important;
 }
 
 /* Estilos para el contenedor de contenido del método */
