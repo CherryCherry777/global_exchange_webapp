@@ -751,11 +751,11 @@ class CurrencyDenominationForm(forms.ModelForm):
 class ReporteTransaccionesForm(forms.Form):
     fecha_inicio = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={'type': 'date'})
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'date-input'})
     )
     fecha_fin = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={'type': 'date'})
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'date-input'})
     )
     tipo = forms.ChoiceField(
         required=False,
@@ -767,5 +767,6 @@ class ReporteTransaccionesForm(forms.Form):
     )
     moneda = forms.ModelChoiceField(
         required=False,
-        queryset=Currency.objects.all()
+        queryset=Currency.objects.all(),
+        empty_label="Seleccione una moneda"
     )
