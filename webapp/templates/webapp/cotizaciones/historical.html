@@ -38,6 +38,7 @@
     const select = document.getElementById("history-currency");
     select.innerHTML = "";
     payload.items.forEach(item => {
+      if (item.code === "PYG") return;  // ❌ Don't add PYG
       const opt = document.createElement("option");
       opt.value = item.code;
       opt.textContent = item.name;

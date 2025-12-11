@@ -71,12 +71,26 @@
                         <th>Monto Origen</th>
                         <th>Monto Destino</th>
                         <th>Ganancia (En Gs.)</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if transacciones %}
                         {% for t in transacciones %}
-                            <tr>
+                            <tr
+                                {% with fac=t.factura_asociada %}
+                                    {% if fac %}
+                                        data-invoice-number="{{ fac.d_num_doc|default:'' }}"
+                                        data-invoice-date="{{ fac.fechaEmision|date:'d-m-Y'|default:'' }}"
+                                        data-invoice-status="{{ fac.estado|default:'' }}"
+                                    {% else %}
+                                        data-invoice-number=""
+                                        data-invoice-date=""
+                                        data-invoice-status=""
+                                    {% endif %}
+                                {% endwith %}
+
+                            >
                                 <td>{{ t.id }}</td>
                                 <td>{{ t.fecha_creacion }}</td>
                                 <td>{{ t.tipo }}</td>
@@ -89,11 +103,53 @@
                                     <td>{{ t.monto_destino|floatformat:0 }} {{ t.moneda_destino.code }}</td>
                                 {% endif %}
                                 <td>{{ t.ganancia_en_pyg|floatformat:0 }} Gs</td>
+                                <td >
+                                    <button style="margin-bottom: 10px;" class="action-button view-data-btn"
+                                        data-transaction-id="{{ t.id }}"
+                                        data-tipo="{{ t.tipo }}"
+                                        data-estado="{{ t.estado }}"
+                                        data-fecha-creacion="{{ t.fecha_creacion|date:'d-m-Y H:i' }}"
+                                        data-fecha-pago="{% if t.fecha_pago %}{{ t.fecha_pago|date:'d-m-Y H:i' }}{% else %}-{% endif %}"
+                                        data-cliente="{{ t.cliente.nombre }}"
+                                        data-cliente-documento="{{ t.cliente.documento }}"
+                                        data-usuario="{{ t.usuario.get_full_name }}"
+                                        data-usuario-username="{{ t.usuario.username }}"
+                                        data-moneda-origen="{{ t.moneda_origen.code }}"
+                                        data-moneda-destino="{{ t.moneda_destino.code }}"
+                                        data-monto-origen="{{ t.monto_origen }}"
+                                        data-monto-destino="{{ t.monto_destino }}"
+                                        data-tasa="{{ t.tasa_cambio }}"
+                                        data-ganancia="{{ t.ganancia_en_pyg|floatformat:0 }}"
+                                        data-medio-pago="{{ t.medio_pago }}"
+                                        data-medio-cobro="{{ t.medio_cobro }}"
+                                        data-factura-numero="{{ t.factura.numero|default:'-' }}"
+                                        data-factura-fecha="{{ t.factura.fecha_emision|date:'d-m-Y H:i'|default:'-' }}"
+                                        data-factura-estado="{{ t.factura.estado|default:'No emitida' }}"
+                                        data-cancelacion-fecha="{{ t.fecha_cancelacion|date:'d-m-Y H:i'|default:'-' }}"
+                                        data-cancelacion-motivo="{{ t.motivo_cancelacion|default:'-' }}"
+                                        data-anulacion-fecha="{{ t.fecha_anulacion|date:'d-m-Y H:i'|default:'-' }}"
+                                        data-anulacion-motivo="{{ t.motivo_anulacion|default:'-' }}"
+                                        data-descuento="{{ t.desc_cliente|default:'0' }}"
+                                        data-comision="{{ t.comision_vta_com|default_if_none:0|floatformat:0 }}"
+
+                                    >Ver Detalles</button>
+                                    {# --- Botones de documentos si hay factura asociada con archivos --- #}
+                                    {% if t.factura_asociada and t.factura_asociada.estado == 'aprobada' %}
+                                        {% if t.factura_asociada.pdf_file %}
+                                            <a href="{{ t.factura_asociada.pdf_file.url }}" class="action-button ingresar-id-btn" target="_blank" rel="noopener" style="margin-bottom: 10px;">Ver Factura PDF</a>
+                                        {% endif %}
+                                        {% if t.factura_asociada.xml_file %}
+                                            <a href="{{ t.factura_asociada.xml_file.url }}" class="action-button ingresar-id-btn" download rel="noopener" style="margin-bottom: 10px;">Descargar Factura XML</a>
+                                        {% endif %}
+                                    {% endif %}
+
+                                </td>                
                             </tr>
+                            
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="9" class="no-transactions">
+                            <td colspan="8" class="no-transactions">
                                 No hay transacciones encontradas.
                             </td>
                         </tr>
@@ -116,7 +172,216 @@
     </div>
 
 </main>
-
+<!-- MODAL -->
+<!-- Modal para Ver Datos de Transacción -->
+<div id="transactionModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <img src="{% static 'webapp/logo.png' %}" alt="Logo" class="modal-logo">
+            <h2 class="modal-title">Datos de Transacción</h2>
+        </div>
+        <div class="modal-separator"></div>
+        <div class="modal-content">
+            <!-- Sección Información General -->
+            <div class="info-section">
+                <h3 class="section-title">Información General</h3>
+                
+                <div class="info-grid">
+                    <div class="info-left">
+                        <div class="info-item">
+                            <span class="info-label">ID de la transacción:</span>
+                            <span class="info-value" id="transaction-id">5155</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tipo:</span>
+                            <span class="info-value" id="transaction-type">Compra</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-center">
+                        <div class="info-item">
+                            <span class="info-label">Fecha de creación:</span>
+                            <span class="info-value" id="creation-date">30-05-25 15:30</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Fecha de pago:</span>
+                            <span class="info-value" id="payment-date">No se ha registrado pago</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-right">
+                        <div class="status-box">
+                            <div class="status-label">Estado:</div>
+                            <div class="status-value" id="transaction-status">Pendiente</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Cliente y Usuario -->
+            <div class="info-section">
+                <h3 class="section-title">Cliente y Usuario</h3>
+                
+                <div class="info-grid">
+                    <div class="info-left">
+                        <div class="info-item">
+                            <span class="info-label">Cliente:</span>
+                            <span class="info-value" id="client-name">cliente1</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Documento:</span>
+                            <span class="info-value" id="client-document">12345678</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-center">
+                        <div class="info-item">
+                            <span class="info-label">Usuario:</span>
+                            <span class="info-value" id="user-name">admin</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Nombre y Apellido:</span>
+                            <span class="info-value" id="user-fullname">Administrador Sistema</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-right">
+                        <!-- Espacio vacío para mantener el layout -->
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Operación de Cambio -->
+            <div class="info-section">
+                <h3 class="section-title">Operación de Cambio</h3>
+                
+                <div class="exchange-grid">
+                    <div class="exchange-left">
+                        <div class="exchange-item">
+                            <span class="exchange-label">Moneda Origen:</span>
+                            <div class="currency-info">
+                                <img src="/media/currency_flags/3._Argentina_-_Peso_Argentino.png" alt="ARS" class="currency-flag">
+                                <span class="exchange-value" id="origin-currency">ARS - Peso Argentino</span>
+                            </div>
+                        </div>
+                        <div class="exchange-item">
+                            <span class="exchange-label">Moneda Destino:</span>
+                            <div class="currency-info">
+                                <img src="/media/currency_flags/1._USA_-_Dólar_Americano.png" alt="USD" class="currency-flag">
+                                <span class="exchange-value" id="dest-currency">USD - Dólar Estadounidense</span>
+                            </div>
+                        </div>
+                        <div class="exchange-item">
+                            <span class="exchange-label">Tasa de cambio:</span>
+                            <span class="exchange-value" id="exchange-rate">1 USD - 544224 ARS</span>
+                        </div>
+                        
+                    </div>
+                    
+                    <div class="exchange-right">
+                        <div class="exchange-item">
+                            <span class="exchange-label">Monto Origen:</span>
+                            <span class="exchange-value" id="origin-amount">7250 $</span>
+                        </div>
+                        <div class="exchange-item">
+                            <span class="exchange-label">Monto Destino:</span>
+                            <span class="exchange-value" id="dest-amount">15223500 $</span>
+                        </div>
+                        <div class="exchange-item">
+                            <span class="exchange-label">Descuento Cliente:</span>
+                            <span class="exchange-value" id="client-discount">-</span>
+                        </div>
+                        
+                        <div class="exchange-item">
+                            <span class="exchange-label">Comisión:</span>
+                            <span class="exchange-value" id="operation-fee">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Medio de Pago y Cobro -->
+            <div class="info-section">
+                <h3 class="section-title">Medio de Pago y Cobro</h3>
+                
+                <div class="payment-grid">
+                    <div class="payment-item">
+                        <span class="payment-label">Medio de Pago:</span>
+                        <span class="payment-value" id="payment-method">Tauser 1</span>
+                    </div>
+                    <div class="payment-item">
+                        <span class="payment-label">Medio de Cobro:</span>
+                        <span class="payment-value" id="collection-method">Tauser 2</span>
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Facturación -->
+            <div class="info-section">
+                <h3 class="section-title">Facturación</h3>
+                
+                <div class="billing-grid">
+                    <div class="billing-left">
+                        <div class="billing-item">
+                            <span class="billing-label">Número de factura:</span>
+                            <span class="billing-value" id="invoice-number">No emitida</span>
+                        </div>
+                        <div class="billing-item">
+                            <span class="billing-label">Fecha de emisión:</span>
+                            <span class="billing-value" id="invoice-date">No emitida</span>
+                        </div>
+                    </div>
+                    
+                    <div class="billing-right">
+                        <div class="billing-status-box">
+                            <div class="billing-status-label">Estado:</div>
+                            <div class="billing-status-value" id="invoice-status">No emitida</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-separator"></div>
+            </div>
+            
+            <!-- Sección Auditoría y Control -->
+            <div class="info-section">
+                <h3 class="section-title">Auditoría y Control</h3>
+                
+                <div class="audit-grid">
+                    <div class="audit-left">
+                        <div class="audit-item">
+                            <span class="audit-label">Fecha de cancelación:</span>
+                            <span class="audit-value" id="cancellation-date">No aplica</span>
+                        </div>
+                        <div class="audit-item">
+                            <span class="audit-label">Motivo de cancelación:</span>
+                            <span class="audit-value" id="cancellation-reason">No aplica</span>
+                        </div>
+                    </div>
+                    
+                    <div class="audit-right">
+                        <div class="audit-item">
+                            <span class="audit-label">Fecha de anulación:</span>
+                            <span class="audit-value" id="annulment-date">No aplica</span>
+                        </div>
+                        <div class="audit-item">
+                            <span class="audit-label">Motivo de anulación:</span>
+                            <span class="audit-value" id="annulment-reason">No aplica</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -196,5 +461,142 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 </script>
+<script>
+    // Action button handlers
+    document.querySelectorAll('.view-data-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            openTransactionModal(this);
+        });
+    });
+// Modal functionality
+function openTransactionModal(button) {
 
+
+    // Datos generales
+    document.getElementById('transaction-id').textContent = button.dataset.transactionId;
+    document.getElementById('transaction-type').textContent = button.dataset.tipo;
+    document.getElementById('transaction-status').textContent = button.dataset.estado;
+
+    document.getElementById('creation-date').textContent = button.dataset.fechaCreacion;
+    document.getElementById('payment-date').textContent =
+        button.dataset.fechaPago === "-" ? "No se ha registrado pago" : button.dataset.fechaPago;
+
+    // Cliente
+    document.getElementById('client-name').textContent = button.dataset.cliente;
+    document.getElementById('client-document').textContent = button.dataset.clienteDocumento;
+
+    // Usuario
+    document.getElementById('user-name').textContent = button.dataset.usuarioUsername;
+    document.getElementById('user-fullname').textContent = button.dataset.usuario;
+
+    // Monedas y montos
+    document.getElementById('origin-currency').textContent = button.dataset.monedaOrigen;
+    document.getElementById('dest-currency').textContent = button.dataset.monedaDestino;
+
+    document.getElementById('origin-amount').textContent = button.dataset.montoOrigen;
+    document.getElementById('dest-amount').textContent = button.dataset.montoDestino;
+
+    document.getElementById('exchange-rate').textContent = button.dataset.tasa;
+
+    // Descuento del cliente
+    document.getElementById('client-discount').textContent =
+    (button.dataset.descuento || "0") + " %";
+
+    // Comisión según operación
+    document.getElementById('operation-fee').textContent =
+    (button.dataset.comision || "0") + " Gs.";
+
+    // Medios de pago y cobro
+    document.getElementById('payment-method').textContent = button.dataset.medioPago;
+    document.getElementById('collection-method').textContent = button.dataset.medioCobro;
+
+    // Factura
+    document.getElementById('invoice-number').textContent = button.dataset.facturaNumero;
+    document.getElementById('invoice-date').textContent = button.dataset.facturaFecha;
+    document.getElementById('invoice-status').textContent = button.dataset.facturaEstado;
+
+    // Cancelación / Anulación
+    document.getElementById('cancellation-date').textContent = button.dataset.cancelacionFecha;
+    document.getElementById('cancellation-reason').textContent = button.dataset.cancelacionMotivo;
+
+    document.getElementById('annulment-date').textContent = button.dataset.anulacionFecha;
+    document.getElementById('annulment-reason').textContent = button.dataset.anulacionMotivo;
+
+    // Actualizar datos de facturación basados en el estado
+    updateBillingData(button);
+    updateAuditData(button);
+
+    // Abrir modal
+    document.getElementById('transactionModal').style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+function updateBillingData(button) {
+    const row = button.closest("tr");
+
+    const invoiceNumber = row.getAttribute("data-invoice-number");
+    const invoiceDate = row.getAttribute("data-invoice-date");
+    const invoiceStatus = row.getAttribute("data-invoice-status");
+
+    document.getElementById("invoice-number").textContent =
+        invoiceNumber ? invoiceNumber : "No emitida";
+
+    document.getElementById("invoice-date").textContent =
+        invoiceDate ? invoiceDate : "No emitida";
+
+    document.getElementById("invoice-status").textContent =
+        invoiceStatus ? invoiceStatus : "No emitida";
+}
+
+// Función para actualizar datos de auditoría y control (template 2)
+function updateAuditData(button) {
+    const estado = button.dataset.estado;
+
+    if (estado === 'Cancelada') {
+        document.getElementById('cancellation-date').textContent =
+            button.dataset.cancelacionFecha || 'No aplica';
+        document.getElementById('cancellation-reason').textContent =
+            button.dataset.cancelacionMotivo || 'No aplica';
+
+        document.getElementById('annulment-date').textContent = 'No aplica';
+        document.getElementById('annulment-reason').textContent = 'No aplica';
+
+    } else if (estado === 'Anulada') {
+        document.getElementById('cancellation-date').textContent = 'No aplica';
+        document.getElementById('cancellation-reason').textContent = 'No aplica';
+
+        document.getElementById('annulment-date').textContent =
+            button.dataset.anulacionFecha || 'No aplica';
+        document.getElementById('annulment-reason').textContent =
+            button.dataset.anulacionMotivo || 'No aplica';
+
+    } else {
+        document.getElementById('cancellation-date').textContent = 'No aplica';
+        document.getElementById('cancellation-reason').textContent = 'No aplica';
+        document.getElementById('annulment-date').textContent = 'No aplica';
+        document.getElementById('annulment-reason').textContent = 'No aplica';
+    }
+}
+
+
+function closeTransactionModal() {
+    const modal = document.getElementById('transactionModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto'; // Restaurar scroll
+}
+
+// Cerrar modal al hacer clic en el overlay
+document.getElementById('transactionModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeTransactionModal();
+    }
+});
+
+// Cerrar modal con tecla Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeTransactionModal();
+    }
+});
+</script>
 {% endblock %}

@@ -24,11 +24,7 @@
                 <div class="logo-wrapper">
                     <img src="{% static 'webapp/logo.png' %}" alt="Global Exchange Logo" class="logo-image">
                 </div>
-                {% if user.is_authenticated %}
-                    <a href="{% url 'landing' %}" class="logo-link"></a>
-                {% else %}
-                    <a href="{% url 'public_home' %}" class="logo-link"></a>
-                {% endif %}
+                <a href="{% url 'public_home' %}" class="logo-link"></a>
             </div>
     
             <!-- Navigation links in the center -->

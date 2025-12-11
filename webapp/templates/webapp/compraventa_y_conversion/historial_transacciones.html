@@ -43,7 +43,8 @@
                 </thead>
                 <tbody>
                     {% for transaccion in transacciones %}
-                    <tr data-user-name="{{ transaccion.usuario.username }}" 
+                    <tr
+                        data-user-name="{{ transaccion.usuario.username }}" 
                         data-user-fullname="{{ transaccion.usuario.get_full_name }}" 
                         data-client-document="{{ transaccion.cliente.documento }}"
                         data-origin-currency="{{ transaccion.moneda_origen.code }}"
@@ -54,7 +55,20 @@
                         data-origin-amount="{{ transaccion.monto_origen }}"
                         data-dest-amount="{{ transaccion.monto_destino }}"
                         data-payment-method="{{ transaccion.medio_pago }}"
-                        data-collection-method="{{ transaccion.medio_cobro }}">
+                        data-collection-method="{{ transaccion.medio_cobro }}"
+                    
+                        {% with fac=transaccion.factura_asociada %}
+                            {% if fac %}
+                                data-invoice-number="{{ fac.d_num_doc|default:'' }}"
+                                data-invoice-date="{{ fac.fechaEmision|date:'d-m-Y'|default:'' }}"
+                                data-invoice-status="{{ fac.estado|default:'' }}"
+                            {% else %}
+                                data-invoice-number=""
+                                data-invoice-date=""
+                                data-invoice-status=""
+                            {% endif %}
+                        {% endwith %}
+                    >
                         <td class="transaction-type">
                             {% if transaccion.tipo == 'COMPRA' %}
                                 Compra {{ transaccion.moneda_destino.code }}
@@ -464,16 +478,22 @@ function updatePaymentDataFromDB(row) {
 }
 
 // Función para actualizar datos de facturación
-function updateBillingData(transactionId, status) {
-    if (status === 'Pagada') {
-        document.getElementById('invoice-number').textContent = `FAC-${transactionId.toString().padStart(4, '0')}`;
-        document.getElementById('invoice-date').textContent = '08-10-25';
-        document.getElementById('invoice-status').textContent = 'Emitida';
-    } else {
-        document.getElementById('invoice-number').textContent = 'No emitida';
-        document.getElementById('invoice-date').textContent = 'No emitida';
-        document.getElementById('invoice-status').textContent = 'No emitida';
-    }
+function updateBillingData(transactionId, statusText) {
+    const button = document.querySelector(`[data-transaction-id="${transactionId}"]`);
+    const row = button.closest("tr");
+
+    const invoiceNumber = row.getAttribute("data-invoice-number");
+    const invoiceDate = row.getAttribute("data-invoice-date");
+    const invoiceStatus = row.getAttribute("data-invoice-status");
+
+    document.getElementById("invoice-number").textContent =
+        invoiceNumber ? invoiceNumber : "No emitida";
+
+    document.getElementById("invoice-date").textContent =
+        invoiceDate ? invoiceDate : "No emitida";
+
+    document.getElementById("invoice-status").textContent =
+        invoiceStatus ? invoiceStatus : "No emitida";
 }
 
 // Función para actualizar datos de auditoría y control
