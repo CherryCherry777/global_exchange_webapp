@@ -920,6 +920,43 @@ def calcularTasa(transaccion):
 
     return compra
 
+def formatearMontos(monto: Decimal, moneda: Currency, como_str: bool = False):
+    """
+    - Redondea monto según moneda:
+        * PYG → 0 decimales
+        * Otras → moneda.decimales_monto
+    - Si como_str=True → devuelve string con formato latino:
+        * Miles con punto "."
+        * Decimales con coma ","
+    """
+
+    # 1) Determinar decimales según moneda
+    if moneda.code == "PYG":
+        decimales = 0
+    else:
+        decimales = int(moneda.decimales_monto or 0)
+
+    # 2) quantum = 10^-decimales
+    quantum = Decimal(10) ** (-decimales)
+
+    # 3) Redondear
+    monto_redondeado = monto.quantize(quantum, rounding=ROUND_HALF_UP)
+
+    # 4) Si no quieren string, devolvemos Decimal
+    if not como_str:
+        return monto_redondeado
+
+    # 5) Formato base con separador inglés (1,234,567.89)
+    formato = f"{{:,.{decimales}f}}"
+    monto_str = formato.format(monto_redondeado)
+
+    # 6) Convertir al formato latino:
+    #    - Coma decimal
+    #    - Punto miles
+    monto_str = monto_str.replace(",", "X").replace(".", ",").replace("X", ".")
+
+    return monto_str
+
 def calcularMontosCambio(transaccion) -> Dict[str, Any]:
     """
     Calcula los montos nuevos ante un cambio de tasa, según la combinación
@@ -935,27 +972,29 @@ def calcularMontosCambio(transaccion) -> Dict[str, Any]:
 
     medio_pago = transaccion.medio_pago
     medio_cobro = transaccion.medio_cobro
-    monto_origen_viejo: Decimal = transaccion.monto_origen
-    monto_destino_viejo: Decimal = transaccion.monto_destino
+    monto_origen_viejo = transaccion.monto_origen
+    monto_destino_viejo = transaccion.monto_destino
     moneda_origen = transaccion.moneda_origen
     moneda_destino = transaccion.moneda_destino
 
-    tasa_actual: Decimal = calcularTasa(transaccion)
+    tasa_actual = calcularTasa(transaccion)
 
-    monto_origen_nuevo: Decimal | None = None
-    monto_destino_nuevo: Decimal | None = None
+    monto_origen_nuevo= None
+    monto_destino_nuevo= None
 
     # -------------------------------------------------------
     # 1) Transferencia -> Tauser  (CuentaBancaria -> Tauser)
     #    Se respeta el monto DESTINO y se recalcula ORIGEN
     # -------------------------------------------------------
-    if isinstance(medio_pago, CuentaBancaria) and isinstance(medio_cobro, Tauser):
+    if isinstance(medio_pago, CuentaBancariaNegocio) and isinstance(medio_cobro, Tauser):
         if moneda_destino.code == "PYG":
             # Cliente recibe PYG, tasa = PYG / X → origen = destino / tasa
             monto_origen_nuevo = (monto_destino_viejo / tasa_actual)
         else:
             # Cliente recibe moneda extranjera, tasa = PYG / X → origen = destino * tasa
             monto_origen_nuevo = (monto_destino_viejo * tasa_actual)
+
+        monto_destino_nuevo = monto_destino_viejo
 
     # -------------------------------------------------------
     # 2) Tauser -> Tauser
@@ -979,13 +1018,13 @@ def calcularMontosCambio(transaccion) -> Dict[str, Any]:
         else:
             # Cliente paga X, recibe PYG → destino = origen * tasa
             monto_destino_nuevo = (monto_origen_viejo * tasa_actual)
+        
+        monto_origen_nuevo = monto_origen_viejo
 
     return {
-        "tasa_actual": tasa_actual,
-        "monto_origen_viejo": monto_origen_viejo,
-        "monto_destino_viejo": monto_destino_viejo,
-        "monto_origen_nuevo": monto_origen_nuevo,
-        "monto_destino_nuevo": monto_destino_nuevo,
+        "tasaActual": tasa_actual,
+        "montoOrigenNuevo": monto_origen_nuevo,
+        "montoDestinoNuevo": monto_destino_nuevo,
     }
 
 
@@ -1157,14 +1196,13 @@ def recalcularMontosAmbosTauser(
     tasa_actual: Optional[Decimal] = None,
 ) -> Tuple[Optional[Decimal], Optional[Decimal]]:
     """
-    Busca un monto ORIGEN workable para una transacción Tauser->Tauser tal que:
-      - El Tauser del medio_pago pueda RECIBIR ese monto en moneda_origen.
-      - El Tauser del medio_cobro pueda ENTREGAR el monto destino convertido
-        en moneda_destino (respetando su stock).
-      - El CLIENTE no supere sus límites de intercambio en moneda de origen/destino.
+    Tauser -> Tauser:
 
-    Devuelve (monto_origen_nuevo, monto_destino_nuevo).
-    Si no encuentra un monto razonable, devuelve (None, None).
+    - Respeta stock del Tauser que RECIBE (medio_pago) en moneda_origen.
+    - Respeta stock del Tauser que ENTREGA (medio_cobro) en moneda_destino.
+    - Respeta límites del cliente SOLO cuando:
+        * Es una VENTA, y
+        * La moneda destino NO es PYG (la divisa que le damos al cliente).
     """
 
     medio_pago = transaccion.medio_pago
@@ -1185,20 +1223,26 @@ def recalcularMontosAmbosTauser(
     if not monto_inicial or monto_inicial <= 0:
         return (None, None)
 
-    # 🔹 Tope por cliente en moneda origen / destino
-    tope_origen = obtener_tope_moneda_cliente(cliente, moneda_origen)
-    tope_destino = obtener_tope_moneda_cliente(cliente, moneda_destino)
+    # ============================================
+    # 🔹 LÍMITES DEL CLIENTE SEGÚN TU REGLA
+    # ============================================
+    tope_origen: Optional[Decimal] = None
+    tope_destino: Optional[Decimal] = None
 
-    # Si alguno de los topes es 0 → no hay nada que hacer
-    if (tope_origen is not None and tope_origen <= 0) or (
-        tope_destino is not None and tope_destino <= 0
-    ):
-        return (None, None)
+    # Si es VENTA, el cliente recibe divisa = moneda_destino
+    # Solo si moneda_destino NO es PYG aplicamos límite.
+    if transaccion.tipo == Transaccion.Tipo.VENTA and moneda_destino.code != "PYG":
+        tope_destino = obtener_tope_moneda_cliente(cliente, moneda_destino)
+        # Si el tope es 0 o negativo, directamente no hay nada que hacer
+        if tope_destino is not None and tope_destino <= 0:
+            return (None, None)
+
+    # En COMPRA, o si alguna moneda es PYG, tus reglas dicen que NO hay límite.
+    # Así que tope_origen/tope_destino se quedan en None en esos casos.
 
     # Paso mínimo según denominaciones del Tauser que RECIBE (medio_pago)
     step = paso_minimo_para(medio_pago, moneda_origen)
 
-    # Alineamos el monto inicial al siguiente múltiplo del paso
     def align(x: Decimal, s: Decimal) -> Decimal:
         # ceil(x / s) * s pero en Decimal
         return ((x + s - Decimal("0.00000001")) // s) * s
@@ -1208,9 +1252,8 @@ def recalcularMontosAmbosTauser(
     LIMITE_ABSURDO = Decimal("1000000000000")  # 1 billón
 
     while intento <= LIMITE_ABSURDO:
-        # 🔹 Respetar límite del cliente en moneda ORIGEN
+        # 🔹 Límite en ORIGEN: en tu regla actual, no se usa (queda por si algún día lo necesitás)
         if tope_origen is not None and intento > tope_origen:
-            # Como intento solo crece, ya no habrá valores válidos más adelante
             break
 
         # Monto destino según conversión
@@ -1221,9 +1264,8 @@ def recalcularMontosAmbosTauser(
             tasa=tasa_actual,
         )
 
-        # 🔹 Respetar límite del cliente en moneda DESTINO (si aplica)
+        # 🔹 Límite en DESTINO (solo si es VENTA de divisa ≠ PYG)
         if tope_destino is not None and intento_destino > tope_destino:
-            # Igual razonamiento: seguir aumentando solo empeora esto
             break
 
         ok_recibir = tauser_puede_recibir(
@@ -1243,5 +1285,4 @@ def recalcularMontosAmbosTauser(
 
         intento += step
 
-    # No se encontró un monto workable dentro de stock + límites
     return (None, None)

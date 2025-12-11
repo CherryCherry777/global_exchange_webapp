@@ -1,4 +1,4 @@
-from webapp.views.compraventa_y_conversión import calcularMontosCambio, calcularTasa
+from webapp.views.compraventa_y_conversión import calcularMontosCambio, calcularTasa, formatearMontos
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -99,7 +99,9 @@ def modify_quote(request, currency_id):
             currency.save()
             
             # Avisar sobre los cambios a los usuarios con transacciones pendientes
-            promtCancelacionTransaccionCambioCotizacion(request)
+            notificados = promtCancelacionTransaccionCambioCotizacion(request)
+
+            print(notificados)
 
             messages.success(request, f"Cotización de '{currency.name}' actualizada correctamente.")
             return redirect("manage_quotes")
@@ -266,32 +268,34 @@ def promtCancelacionTransaccionCambioCotizacion(request, moneda: str | None = No
     notificados = 0
 
     for transaccion in transacciones:
-        tasa_actual = calcularTasa(transaccion)
         montos = calcularMontosCambio(transaccion)
-        montoOrigenNuevo = montos["montoOrigenNuevo"]
-        montoDestinoNuevo = montos["montoDestinoNuevo"]
+        if montos["montoOrigenNuevo"] != None and montos["montoDestinoNuevo"] != None:
+            tasa_actual = montos["tasaActual"]
+            montoOrigenNuevo = formatearMontos(montos["montoOrigenNuevo"], transaccion.moneda_origen, True)
+            montoDestinoNuevo = formatearMontos(montos["montoDestinoNuevo"], transaccion.moneda_destino, True)
 
-        try:
-            tasa_antigua = transaccion.tasa_cambio.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-        except:
-            # Si no hay tasa guardada o es inválida, la salteamos
-            continue
+            if montoDestinoNuevo != None and montoOrigenNuevo != None:
+                try:
+                    tasa_antigua = transaccion.tasa_cambio.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+                except:
+                    # Si no hay tasa guardada o es inválida, la salteamos
+                    continue
 
-        if tasa_actual != tasa_antigua:
-            send_transaction_cancellation_prompt(
-                request,
-                transaccion,
-                tasa_actual=tasa_actual,
-                tasa_antigua=tasa_antigua,
-                montoOrigenNuevo=montoOrigenNuevo,
-                montoDestinoNuevo=montoDestinoNuevo,
-            )
-            notificados += 1
+                if tasa_actual != tasa_antigua:
+                    send_transaction_cancellation_prompt(
+                        request,
+                        transaccion,
+                        tasa_actual=tasa_actual,
+                        tasa_antigua=tasa_antigua,
+                        montoOrigenNuevo=montoOrigenNuevo,
+                        montoDestinoNuevo=montoDestinoNuevo,
+                    )
+                    notificados += 1
 
-            # 🔸 Marcar la transacción como con cambio pendiente
-            if not transaccion.cambio_pendiente:
-                transaccion.cambio_pendiente = True
-                transaccion.save(update_fields=["cambio_pendiente"])
+                    # 🔸 Marcar la transacción como con cambio pendiente
+                    if not transaccion.cambio_pendiente:
+                        transaccion.cambio_pendiente = True
+                        transaccion.save(update_fields=["cambio_pendiente"])
 
 
     return notificados

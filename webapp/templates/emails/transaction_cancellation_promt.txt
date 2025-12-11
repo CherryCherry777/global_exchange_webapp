@@ -1,3 +1,5 @@
+{% load static %}
+{% load custom_filters %}
 Hola {{ user.get_full_name|default:user.username }},
 
 La cotización de tu transacción #{{ transaccion.id }} se ha actualizado debido a un cambio en la moneda: {{ moneda.code }}.
@@ -10,8 +12,8 @@ Montos Anteriores:
 - Monto Destino: {{ transaccion.monto_destino }} {{ transaccion.moneda_destino }}
 
 Montos Nuevos:
-- Monto Origen: {{ montoOrigenNuevo }} {{ transaccion.moneda_origen }}
-- Monto Destino: {{ montoDestinoNuevo }} {{ transaccion.moneda_destino }}
+- Monto Origen: {{ transaccion.monto_origen|format_decimals:transaccion.moneda_origen }} {{ transaccion.moneda_origen }}
+- Monto Destino: {{ transaccion.monto_destino|format_decimals:transaccion.moneda_destino }} {{ transaccion.moneda_destino }}
 
 Para cancelar la transacción, podés podés hacerlo en el historial de transacciones:
 
