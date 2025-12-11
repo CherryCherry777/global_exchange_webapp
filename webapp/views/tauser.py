@@ -233,15 +233,6 @@ def tauser_cobrar(request, pk):
             transaccion.estado = Transaccion.Estado.COMPLETA
             transaccion.save(update_fields=["estado", "fecha_actualizacion"])
 
-            # === actualizar stock ===
-            if transaccion.moneda_destino.code != "PYG":
-                actualizar_stock_tauser(
-                    transaccion.medio_cobro_id,           # tauser ID
-                    transaccion.moneda_destino.code,      # currency code
-                    transaccion.monto_destino,            # amount
-                    "egreso"
-                )
-
             messages.success(request, f"Transacción #{pk} completada con éxito.")
             return redirect("tauser_home")
         elif accion == "cancelar":
@@ -298,6 +289,7 @@ def actualizar_stock_tauser(tauser_id, currency_code, monto, operacion):
 
         if usar > 0:
             s.quantity -= usar
+            print(s.quantity)
             s.save(update_fields=["quantity"])
             restante -= denom * usar
 

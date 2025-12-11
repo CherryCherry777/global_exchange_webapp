@@ -1,3 +1,4 @@
+from webapp.views.compraventa_y_conversión import calcularMontosCambio, calcularTasa
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -239,84 +240,6 @@ def unsubscribe_error(request):
 # Vistas para cancelación de transacción por cambio de tasa
 # -------------------------------------------------------------------------
 
-def calcularTasa(transaccion):
-    descuentoCategoria = Decimal('0')
-
-    try:
-        categoria = transaccion.cliente.categoria
-    except Exception:
-        categoria = None
-
-    if categoria:
-        descuentoCategoria = categoria.descuento or Decimal('0')
-
-    if transaccion.tipo == "VENTA":
-        moneda = transaccion.moneda_destino
-    else:
-        moneda = transaccion.moneda_origen
-
-    # Intentar obtener IDs de método de pago/cobro
-    tipo_metodo_pago_id = transaccion.medio_pago
-    tipo_metodo_cobro_id = transaccion.medio_cobro
-
-    medio_pago = None
-    medio_cobro = None
-    if tipo_metodo_pago_id:
-        medio_pago = transaccion.medio_pago
-    if tipo_metodo_cobro_id:
-        medio_cobro = transaccion.medio_cobro
-
-
-    base = Decimal(moneda.base_price)
-    com_venta = Decimal(moneda.comision_venta)
-    com_compra = Decimal(moneda.comision_compra)
-
-    # Porcentajes de comisión, seguros
-    porc_medio_pago = Decimal('0')
-    porc_medio_cobro = Decimal('0')
-
-    if medio_pago and getattr(medio_pago, "tipo_pago", None):
-        porc_medio_pago = Decimal(medio_pago.tipo_pago.comision or 0)
-
-    if medio_cobro and getattr(medio_cobro, "tipo_cobro", None):
-        porc_medio_cobro = Decimal(medio_cobro.tipo_cobro.comision or 0)
-
-    # Aplicar fórmulas según descuento del cliente
-    venta = base + (com_venta * (1 - descuentoCategoria))
-    compra = base - (com_compra * (1 - descuentoCategoria))
-
-    # Aplicar comisiones del método seleccionado si existen
-    try:
-        if porc_medio_cobro and porc_medio_pago:
-            # Ajusta la venta y la compra con las comisiones
-            venta = venta * (1 + porc_medio_pago/100 + porc_medio_cobro/100)
-            compra = compra * (1 - porc_medio_cobro/100 - porc_medio_pago/100)
-        elif porc_medio_pago:
-            # Solo existe método de pago
-            venta = venta * (1 + porc_medio_pago/100)
-            compra = compra * (1 - porc_medio_pago/100)
-            # compra queda igual o se deja como estaba
-        elif porc_medio_cobro:
-            # Solo existe método de cobro
-            compra = compra * (1 - porc_medio_cobro/100)
-            venta = venta * (1 + porc_medio_cobro/100)
-            # venta queda igual o se deja como estaba
-    except (AttributeError, TypeError, ValueError) as e:
-        # Aquí podés decidir qué hacer si algo falla:
-        # - loguear el error
-        # - usar comisiones 0
-        # - dejar venta/compra sin modificar
-        print("Error al aplicar comisiones:", e)
-
-    # ✅ Siempre devolver venta/compra sin decimales (PYG siempre)
-    venta = venta.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-    compra = compra.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-
-    if transaccion.tipo == "VENTA":
-        return venta
-
-    return compra
-
 
 def promtCancelacionTransaccionCambioCotizacion(request, moneda: str | None = None) -> int:
     """
@@ -344,9 +267,12 @@ def promtCancelacionTransaccionCambioCotizacion(request, moneda: str | None = No
 
     for transaccion in transacciones:
         tasa_actual = calcularTasa(transaccion)
+        montos = calcularMontosCambio(transaccion)
+        montoOrigenNuevo = montos["montoOrigenNuevo"]
+        montoDestinoNuevo = montos["montoDestinoNuevo"]
 
         try:
-            tasa_antigua = transaccion.tasa_cambio
+            tasa_antigua = transaccion.tasa_cambio.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
         except:
             # Si no hay tasa guardada o es inválida, la salteamos
             continue
@@ -357,7 +283,15 @@ def promtCancelacionTransaccionCambioCotizacion(request, moneda: str | None = No
                 transaccion,
                 tasa_actual=tasa_actual,
                 tasa_antigua=tasa_antigua,
+                montoOrigenNuevo=montoOrigenNuevo,
+                montoDestinoNuevo=montoDestinoNuevo,
             )
             notificados += 1
+
+            # 🔸 Marcar la transacción como con cambio pendiente
+            if not transaccion.cambio_pendiente:
+                transaccion.cambio_pendiente = True
+                transaccion.save(update_fields=["cambio_pendiente"])
+
 
     return notificados

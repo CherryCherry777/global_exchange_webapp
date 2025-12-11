@@ -1,13 +1,21 @@
-Actualización de Transacción por cambio en la cotización
 Hola {{ user.get_full_name|default:user.username }},
-La cotización de tu transacción <strong>#{{ transaccion.id }}</strong> se ha actualizado debido a un cambio en la cotización en la moneda: {{ moneda.code }}
 
-Tasa anterior:</strong> {{ tasa_anterior }} PYG
+La cotización de tu transacción #{{ transaccion.id }} se ha actualizado debido a un cambio en la moneda: {{ moneda.code }}.
 
-Nueva tasa:</strong> {{ tasa_actual }} PYG
+Tasa anterior: {{ tasa_anterior }} PYG
+Tasa actual: {{ tasa_actual }} PYG
 
-Para visualizar los cambios en el monto de su transacción o cancelarla, podés consultar los detalles aquí:
+Montos Anteriores:
+- Monto Origen: {{ transaccion.monto_origen }} {{ transaccion.moneda_origen }}
+- Monto Destino: {{ transaccion.monto_destino }} {{ transaccion.moneda_destino }}
 
+Montos Nuevos:
+- Monto Origen: {{ montoOrigenNuevo }} {{ transaccion.moneda_origen }}
+- Monto Destino: {{ montoDestinoNuevo }} {{ transaccion.moneda_destino }}
+
+Para cancelar la transacción, podés podés hacerlo en el historial de transacciones:
+
+Ver detalles:
 {{ detalles_transaccion_url }}
 
 Si no creaste esta operación, ignorá este mensaje.

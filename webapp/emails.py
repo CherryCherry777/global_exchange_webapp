@@ -205,6 +205,8 @@ def send_transaction_cancellation_prompt(
     *,
     tasa_actual: Decimal,
     tasa_antigua: Decimal,
+    montoOrigenNuevo: Decimal,
+    montoDestinoNuevo: Decimal,
 ) -> None:
     """
     Envía aviso al usuario cuando la cotización cambia.
@@ -237,6 +239,8 @@ def send_transaction_cancellation_prompt(
         "detalles_transaccion_url": detalle_transaccion_url,  # ← URL relativa segura
         "tasa_anterior": tasa_antigua,
         "tasa_actual": tasa_actual,
+        "montoOrigenNuevo": montoOrigenNuevo,
+        "montoDestinoNuevo": montoDestinoNuevo,
         "moneda": moneda,
     }
 

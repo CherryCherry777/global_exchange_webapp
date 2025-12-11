@@ -87,13 +87,12 @@
                                 Ver Datos
                             </button>
                             {% if transaccion.estado == 'PENDIENTE' %}
-                                <button class="action-button cancel-btn" data-transaction-id="{{ transaccion.id }}">
+                            <form method="POST" action="{% url 'cancelar_transaccion' transaccion.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="action-button cancel-btn">
                                     Cancelar
                                 </button>
-                            {% elif transaccion.estado == 'PAGADA' %}
-                                <button class="action-button anular-btn" data-transaction-id="{{ transaccion.id }}">
-                                    Anular
-                                </button>
+                            </form>
                             {% endif %}
                             {# --- Botones de documentos si hay factura asociada con archivos --- #}
                                 {% with fac=transaccion.factura_asociada %}

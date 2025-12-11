@@ -990,6 +990,11 @@ class Transaccion(models.Model):
         related_name="transacciones"
     )
 
+    cambio_pendiente = models.BooleanField(
+        default=False,
+        help_text="Indica si hubo un cambio de cotización que el usuario aún no confirmó."
+    )
+
     # ----------------------------------------------------------------------
     # 🔹 Control automático de fechas según estado
     # ----------------------------------------------------------------------
@@ -1098,6 +1103,74 @@ class Transaccion(models.Model):
             ("ver_reportes", "Puede ver los reportes de la empresa"),
         ]
 
+
+class TransaccionAuditoria(models.Model):
+    """
+    Snapshot del estado de una Transaccion en el momento de un save().
+    Cada fila representa cómo estaba la transacción en ese instante.
+    """
+
+    transaccion = models.ForeignKey(
+        "Transaccion",
+        on_delete=models.CASCADE,
+        related_name="auditorias"
+    )
+
+    # Quién causó el cambio (opcional: puede ser None si es el sistema)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="transacciones_auditadas"
+    )
+
+    # Para registrar si fue sistema, tarea, usuario, etc. (opcional)
+    origen = models.CharField(
+        max_length=20,
+        default="sistema",
+        help_text="usuario | sistema | tarea | otro"
+    )
+
+    # Copia de los campos principales de Transaccion
+    tipo = models.CharField(max_length=10)     # COMPRA / VENTA
+    estado = models.CharField(max_length=10)   # PENDIENTE / PAGADA / etc.
+
+    moneda_origen = models.CharField(max_length=10)
+    moneda_destino = models.CharField(max_length=10)
+
+    tasa_cambio = models.DecimalField(max_digits=16, decimal_places=8)
+    monto_origen = models.DecimalField(max_digits=20, decimal_places=8)
+    monto_destino = models.DecimalField(max_digits=20, decimal_places=8)
+
+    medio_pago_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="+"
+    )
+    medio_pago_id = models.PositiveIntegerField()
+
+    medio_cobro_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="+"
+    )
+    medio_cobro_id = models.PositiveIntegerField()
+
+    medio_pago_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    medio_cobro_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    desc_cliente = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    monto_base_moneda = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    comision_vta_com = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+
+    # Marca temporal del snapshot
+    fecha_snapshot = models.DateTimeField(auto_now_add=True)
+
+    # Comentario opcional por si querés registrar algo específico
+    comentario = models.TextField(blank=True, default="")
+
+    def __str__(self) -> str:
+        return f"Snapshot T#{self.transaccion_id} – {self.estado} @ {self.fecha_snapshot}"
     
 # --------------------------------------------
 # Modelos para facturación y notas de crédito
@@ -1444,8 +1517,6 @@ class MFACode(models.Model):
         email.send()
 
         return mfa
-
-
 
 
 class SyncLog(models.Model):

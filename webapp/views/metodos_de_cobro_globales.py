@@ -1,3 +1,4 @@
+from webapp.views.cotizaciones import promtCancelacionTransaccionCambioCotizacion
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -64,6 +65,9 @@ def modify_cobro_method(request, cobro_method_id):
             cobro_method.comision = comision_decimal
             cobro_method.activo = activo
             cobro_method.save()
+
+            # Avisar de actualizaciones en transacciones pendientes
+            promtCancelacionTransaccionCambioCotizacion()
             
             messages.success(request, f"El método de cobro '{cobro_method.nombre}' ha sido actualizado exitosamente.")
             return redirect("manage_cobro_methods")
