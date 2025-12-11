@@ -646,41 +646,44 @@ def setup_database(sender, **kwargs):
 
     def backfill_currency_history():
         """
-        Fills up to 1 year of historical prices for each Currency, excluding today.
-        - Uses Currency.comision_compra / comision_venta as the basis.
-        - Generates a small daily variation so the series looks realistic.
-        - PYG is treated as base (kept constant or nearly constant).
-        - Runs ONLY the first time (if any CurrencyHistory exists, it exits).
+        Generate up to 1 year of historical FX prices using base_price.
+
+        - compra = base_price * (1 - spread)
+        - venta  = base_price * (1 + spread)
+
+        - Applies realistic random-walk behavior.
+        - PYG is the base currency → stays constant.
+        - Runs only once.
         """
-        # Only run for this app
         if sender.name != "webapp":
             return
 
         Currency = apps.get_model("webapp", "Currency")
         CurrencyHistory = apps.get_model("webapp", "CurrencyHistory")
 
-        # If there is already history, assume this has already run → no-op
+        # If any history exists, assume already created → do nothing
         if CurrencyHistory.objects.exists():
-            print(f"✅ Datos historicos para tasas ya existen (ambiente de prueba)")
+            print("✅ Ya existen datos historicos de tasas de prueba")
             return
 
         today = timezone.localdate()
-        days_back = 365  # 1 year
+        days_back = 365
 
+        histories = []
         currencies = list(Currency.objects.filter(is_active=True))
-        history_to_create = []
 
         for currency in currencies:
             code = currency.code.upper()
+            base_price = Decimal(currency.base_price)
 
-            # Base currency PYG: keep stable (no fake noise if you don't want)
+            # PYG stays stable
             if code == "PYG":
-                compra_today = currency.comision_compra
-                venta_today = currency.comision_venta
+                compra_today = base_price
+                venta_today = base_price
 
                 for i in range(1, days_back + 1):
                     date = today - timedelta(days=i)
-                    history_to_create.append(
+                    histories.append(
                         CurrencyHistory(
                             currency=currency,
                             date=date,
@@ -690,26 +693,29 @@ def setup_database(sender, **kwargs):
                     )
                 continue
 
-            # Other currencies: realistic-ish random walk back in time
-            compra = Decimal(currency.comision_compra)
-            venta = Decimal(currency.comision_venta)
+            # Other currencies: realistic daily changes
+            current_price = base_price
 
-            for i in range(1, days_back + 1):
+            for i in range(0, days_back + 1):
                 date = today - timedelta(days=i)
 
-                delta_c = _daily_variation(code, i, "C")
-                delta_v = _daily_variation(code, i, "V")
+                # random-walk price change
+                delta = _daily_variation(code, i)
+                current_price = current_price * (Decimal("1") + delta)
 
-                compra = compra * (Decimal("1") + delta_c)
-                venta = venta * (Decimal("1") + delta_v)
+                # Compute the daily spread
+                spread = _daily_spread_variation(code, i)
 
-                # Safety: never go non-positive
+                # Build realistic buy/sell rates
+                compra = current_price * (Decimal("1") - spread)
+                venta = current_price * (Decimal("1") + spread)
+
                 if compra <= 0:
                     compra = Decimal("0.01")
                 if venta <= 0:
                     venta = Decimal("0.01")
 
-                history_to_create.append(
+                histories.append(
                     CurrencyHistory(
                         currency=currency,
                         date=date,
@@ -718,8 +724,8 @@ def setup_database(sender, **kwargs):
                     )
                 )
 
-        CurrencyHistory.objects.bulk_create(history_to_create, ignore_conflicts=True)
-        print(f"✅ Creados datos historicos para tasas (ambiente de prueba)")
+        CurrencyHistory.objects.bulk_create(histories, ignore_conflicts=True)
+        print("✅ Creados datos historicos de tasas de prueba")
 
 
     # -------------------------------------------------------------
@@ -739,12 +745,30 @@ def setup_database(sender, **kwargs):
     safe_run("Asignacion de banderas a las monedas", setup_imagenes_monedas)
     safe_run("Generacion de datos historicos de tasas (ambiente de pruebas)", backfill_currency_history)
 
-def _daily_variation(code: str, day_index: int, field: str) -> Decimal:
+def _daily_spread_variation(code: str, day_index: int) -> Decimal:
+    """
+    Small ± variation applied to the buy/sell spread.
+    """
+    spread_map = {
+        "USD": Decimal("0.01"),   # 1% spread
+        "EUR": Decimal("0.012"),
+        "BRL": Decimal("0.015"),
+        "ARS": Decimal("0.03"),
+    }
+    base_spread = spread_map.get(code.upper(), Decimal("0.01"))
+
+    key = f"{code}-{day_index}-spread"
+    h = int(hashlib.sha256(key.encode()).hexdigest(), 16)
+    frac = Decimal(h % 10001) / Decimal("5000") - Decimal("1")
+
+    # ± 10% variation of the spread
+    variation = base_spread * Decimal("0.10") * frac
+    return base_spread + variation
+
+def _daily_variation(code: str, day_index: int) -> Decimal:
     """
     Deterministic pseudo-random variation in [-max_change, max_change],
     so results are realistic but reproducible.
-
-    field = "C" (compra) or "V" (venta)
     """
     # Volatility per currency (roughly daily % max change)
     vol_map = {
@@ -757,8 +781,8 @@ def _daily_variation(code: str, day_index: int, field: str) -> Decimal:
 
     max_change = vol_map.get(code.upper(), default_vol)
 
-    # Turn (code, day_index, field) into a deterministic "random" number
-    key = f"{code}-{day_index}-{field}"
+    # Turn (code, day_index) into a deterministic "random" number
+    key = f"{code}-{day_index}-base"
     h = int(hashlib.sha256(key.encode()).hexdigest(), 16)
 
     # Map hash → [-1, 1]
