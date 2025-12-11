@@ -648,67 +648,75 @@ def setup_database(sender, **kwargs):
         """
         Generate up to 1 year of historical FX prices using base_price.
 
-        - compra = base_price * (1 - spread)
-        - venta  = base_price * (1 + spread)
+        TODAY is always equal to currency.base_price (no simulation).
+        Historical values are simulated backwards.
 
-        - Applies realistic random-walk behavior.
-        - PYG is the base currency → stays constant.
+        - compra = price * (1 - spread)
+        - venta  = price * (1 + spread)
+
+        - PYG stays constant.
         - Runs only once.
         """
-        if sender.name != "webapp":
-            return
-
         Currency = apps.get_model("webapp", "Currency")
         CurrencyHistory = apps.get_model("webapp", "CurrencyHistory")
 
         # If any history exists, assume already created → do nothing
         if CurrencyHistory.objects.exists():
-            print("✅ Ya existen datos historicos de tasas de prueba")
+            print("✅ Ya existen datos historicos de tasas (ambiente de pruebas)")
             return
 
         today = timezone.localdate()
         days_back = 365
-
         histories = []
+
         currencies = list(Currency.objects.filter(is_active=True))
 
         for currency in currencies:
             code = currency.code.upper()
             base_price = Decimal(currency.base_price)
+            com_com = Decimal(currency.comision_compra)
+            com_ven = Decimal(currency.comision_venta)
 
-            # PYG stays stable
+            # ---- BASE CURRENCY PYG (flat, including today) --------------------------
             if code == "PYG":
-                compra_today = base_price
-                venta_today = base_price
-
-                for i in range(1, days_back + 1):
+                for i in range(0, days_back + 1):
                     date = today - timedelta(days=i)
                     histories.append(
                         CurrencyHistory(
                             currency=currency,
                             date=date,
-                            compra=compra_today,
-                            venta=venta_today,
+                            compra=base_price-com_com,
+                            venta=base_price+com_ven,
                         )
                     )
                 continue
 
-            # Other currencies: realistic daily changes
+            # ---- OTHER CURRENCIES --------------------------------------------------
+            # Today's price is exactly the base_price
+            histories.append(
+                CurrencyHistory(
+                    currency=currency,
+                    date=today,
+                    compra=base_price-com_com,           # compra today based on base_price
+                    venta=base_price+com_ven,            # venta today same (or you may want a spread)
+                )
+            )
+
+            # Start the simulation from today’s base_price
             current_price = base_price
 
-            for i in range(0, days_back + 1):
+            for i in range(1, days_back + 1):  # 1..365 (skip today simulation)
                 date = today - timedelta(days=i)
 
-                # random-walk price change
+                # price random walk for historical days
                 delta = _daily_variation(code, i)
                 current_price = current_price * (Decimal("1") + delta)
 
-                # Compute the daily spread
+                # daily spread
                 spread = _daily_spread_variation(code, i)
 
-                # Build realistic buy/sell rates
-                compra = current_price * (Decimal("1") - spread)
-                venta = current_price * (Decimal("1") + spread)
+                compra = (current_price * (Decimal("1") - spread)) - com_com
+                venta = current_price * (Decimal("1") + spread) + com_ven
 
                 if compra <= 0:
                     compra = Decimal("0.01")
@@ -725,7 +733,8 @@ def setup_database(sender, **kwargs):
                 )
 
         CurrencyHistory.objects.bulk_create(histories, ignore_conflicts=True)
-        print("✅ Creados datos historicos de tasas de prueba")
+        print("✅ Datos historicos de tasas generados (ambiente de pruebas)")
+
 
 
     # -------------------------------------------------------------
