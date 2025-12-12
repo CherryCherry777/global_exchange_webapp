@@ -198,3 +198,67 @@ def send_fallo_acreditacion_email(transaccion, error=None) -> None:
         html_message=html_body_admin,
         fail_silently=True,
     )
+
+def send_transaction_cancellation_prompt(
+    request,
+    transaccion,
+    *,
+    tasa_actual: Decimal,
+    tasa_antigua: Decimal,
+    montoOrigenNuevo: Decimal,
+    montoDestinoNuevo: Decimal,
+) -> None:
+    """
+    Envía aviso al usuario cuando la cotización cambia.
+    NO asume ningún setting adicional como SITE_URL.
+    Devuelve URLs relativas sin tocar configuraciones externas.
+    """
+
+    project_name = getattr(settings, "PROJECT_NAME", "Global Exchange")
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+
+    user = transaccion.usuario
+
+    # URL RELATIVA — no inventamos settings inexistentes
+    detalle_transaccion = reverse("transaccion_list")
+    detalle_transaccion_url = request.build_absolute_uri(detalle_transaccion)
+
+    moneda = None
+    try:
+        if transaccion.tipo == "VENTA":
+            moneda = transaccion.moneda_destino
+        else:
+            moneda = transaccion.moneda_origen
+    except:
+        print("La transacción no tiene asignada moneda")
+
+    context = {
+        "user": user,
+        "transaccion": transaccion,
+        "project_name": project_name,
+        "detalles_transaccion_url": detalle_transaccion_url,  # ← URL relativa segura
+        "tasa_anterior": tasa_antigua,
+        "tasa_actual": tasa_actual,
+        "montoOrigenNuevo": montoOrigenNuevo,
+        "montoDestinoNuevo": montoDestinoNuevo,
+        "moneda": moneda,
+    }
+
+    # --------------------------------------
+    # 1) Correo al usuario
+    # --------------------------------------
+    usuario_email = getattr(user, "email", None)
+    if usuario_email:
+        subject_usuario = "Tu transacción cambió de cotización"
+
+        text_body = render_to_string("emails/transaction_cancellation_promt.txt", context)
+        html_body = render_to_string("emails/transaction_cancellation_promt.html", context)
+
+        send_mail(
+            subject=subject_usuario,
+            message=text_body,
+            from_email=from_email,
+            recipient_list=[usuario_email],
+            html_message=html_body,
+            fail_silently=True,
+        )

@@ -6,19 +6,20 @@ from datetime import datetime, timedelta
 import os
 from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
 from .constants import *
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CurrencyDenomination, LimiteIntercambioCliente, MFACode, MedioCobro, MedioPago, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro, TauserCurrencyStock
+from ..models import LimiteIntercambioCliente, MFACode, MedioCobro, MedioPago, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro, TauserCurrencyStock
 from decimal import Decimal, ROUND_HALF_UP
 from .payments.stripe_utils import procesar_pago_stripe
 from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera, validar_id_transferencia
 from webapp.tasks import pagar_al_cliente_task
-from django.template.loader import get_template
-from django.http import HttpResponse
+from webapp.views.tauser import reservarStock
+from typing import Tuple, Optional, Any, Dict
+
 try:
     from weasyprint import HTML
     WEASYPRINT_AVAILABLE = True
@@ -390,6 +391,8 @@ def compraventa_view(request):
                 # --- Pago al cliente en background ---
                 if tipo_cobro_nombre != "tauser" and tipo_pago_nombre != "tauser":
                     pagar_al_cliente_task.delay(transaccion.id)
+                elif tipo_cobro_nombre == "tauser" and data["tipo"] == "VENTA" and estado == Transaccion.Estado.PAGADA:
+                    reservarStock(data["medio_cobro"], data["moneda_destino"], data["monto_destino"])
 
                 if estado == Transaccion.Estado.PAGADA:
                     try:
@@ -604,12 +607,13 @@ def get_tauser_stock_dict():
 # ----------------------------------
 # Vistas de historial de transacción
 # ----------------------------------
-
 def transaccion_list(request):
     """
     Muestra el historial de transacciones del cliente actual.
-    Si alguna transacción tiene un medio de pago del tipo CuentaBancariaNegocio,
-    se marcará con una propiedad adicional 'es_pago_cuenta_bancaria' para usar en el template.
+    - Marca si el medio de pago es CuentaBancariaNegocio.
+    - Prepara montos formateados para la tabla.
+    - Si la transacción tiene cambio_pendiente y está PENDIENTE, adjunta al objeto
+      las tasas y montos nuevos ya formateados, para usarlos en el modal 'Ver Cambios'.
     """
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
@@ -618,19 +622,79 @@ def transaccion_list(request):
 
     transacciones = (
         Transaccion.objects.select_related(
-            "cliente", "usuario", "moneda_origen", "moneda_destino", "factura_asociada"
+            "cliente",
+            "usuario",
+            "moneda_origen",
+            "moneda_destino",
+            "factura_asociada",
         )
         .filter(cliente_id=cliente_id)
         .order_by("-fecha_creacion")
     )
 
-    # 🔹 Agregamos un atributo dinámico para cada transacción
     for t in transacciones:
+        # 🔹 Flag para saber si se pagó desde cuenta bancaria negocio
         t.es_pago_cuenta_bancaria = isinstance(t.medio_pago, CuentaBancariaNegocio)
 
-    context = {"transacciones": transacciones}
-    return render(request, "webapp/compraventa_y_conversion/historial_transacciones.html", context)
+        # 🔹 Montos actuales formateados (para usar en tabla / modal)
+        t.monto_origen_actual_fmt = formatearMontos(
+            t.monto_origen, t.moneda_origen, True
+        )
+        t.monto_destino_actual_fmt = formatearMontos(
+            t.monto_destino, t.moneda_destino, True
+        )
 
+        # 🔹 Inicializar atributos usados por el modal "Ver Cambios"
+        t.tasa_antigua = None
+        t.tasa_actual = None
+        t.monto_origen_nuevo_fmt = None
+        t.monto_destino_nuevo_fmt = None
+        t.moneda_cambio_code = t.moneda_origen.code  # o moneda_destino, como prefieras
+
+        # 🔹 Solo intentamos calcular cambios si:
+        #     - la transacción tiene cambio_pendiente
+        #     - y sigue en estado PENDIENTE
+        if t.cambio_pendiente and t.estado == Transaccion.Estado.PENDIENTE:
+            montos = calcularMontosCambio(t)
+
+            monto_origen_nuevo = montos.get("montoOrigenNuevo")
+            monto_destino_nuevo = montos.get("montoDestinoNuevo")
+            tasa_actual = montos.get("tasaActual")
+
+            if (
+                monto_origen_nuevo is not None
+                and monto_destino_nuevo is not None
+                and tasa_actual is not None
+            ):
+                # Tasa antigua redondeada como en el prompt de email
+                try:
+                    t.tasa_antigua = t.tasa_cambio.quantize(
+                        Decimal("1"), rounding=ROUND_HALF_UP
+                    )
+                except Exception:
+                    t.tasa_antigua = t.tasa_cambio  # fallback
+
+                t.tasa_actual = tasa_actual
+
+                # Montos nuevos formateados (solo para mostrar)
+                t.monto_origen_nuevo_fmt = formatearMontos(
+                    monto_origen_nuevo, t.moneda_origen, True
+                )
+                t.monto_destino_nuevo_fmt = formatearMontos(
+                    monto_destino_nuevo, t.moneda_destino, True
+                )
+            else:
+                # Si no se pudo calcular, no mostramos "Ver Cambios" en el template
+                t.cambio_pendiente = False  # opcional: o solo dejas los *_nuevo_fmt en None
+
+    context = {
+        "transacciones": transacciones,
+    }
+    return render(
+        request,
+        "webapp/compraventa_y_conversion/historial_transacciones.html",
+        context,
+    )
 
 @login_required
 def ingresar_idTransferencia(request, transaccion_id: int):
@@ -677,6 +741,11 @@ def ingresar_idTransferencia(request, transaccion_id: int):
         transaccion.estado = Transaccion.Estado.PAGADA
         transaccion.fecha_pago = timezone.now().date()  # registra la fecha de pago (solo día)
         transaccion.save(update_fields=["id_transferencia", "estado", "fecha_pago", "fecha_actualizacion"])
+
+        if not isinstance(transaccion.medio_cobro, Tauser):
+            pagar_al_cliente_task.delay(transaccion.id)
+        else:
+            reservarStock(transaccion.medio_cobro.id, transaccion.moneda_destino.code, transaccion.monto_destino)
 
         messages.success(
             request,
@@ -816,3 +885,586 @@ def set_cliente_seleccionado(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
+def calcularTasa(transaccion):
+    descuentoCategoria = Decimal('0')
+
+    try:
+        categoria = transaccion.cliente.categoria
+    except Exception:
+        categoria = None
+
+    if categoria:
+        descuentoCategoria = categoria.descuento or Decimal('0')
+
+    if transaccion.tipo == "VENTA":
+        moneda = transaccion.moneda_destino
+    else:
+        moneda = transaccion.moneda_origen
+
+    # Intentar obtener IDs de método de pago/cobro
+    tipo_metodo_pago_id = transaccion.medio_pago
+    tipo_metodo_cobro_id = transaccion.medio_cobro
+
+    medio_pago = None
+    medio_cobro = None
+    if tipo_metodo_pago_id:
+        medio_pago = transaccion.medio_pago
+    if tipo_metodo_cobro_id:
+        medio_cobro = transaccion.medio_cobro
+
+
+    base = Decimal(moneda.base_price)
+    com_venta = Decimal(moneda.comision_venta)
+    com_compra = Decimal(moneda.comision_compra)
+
+    # Porcentajes de comisión, seguros
+    porc_medio_pago = Decimal('0')
+    porc_medio_cobro = Decimal('0')
+
+    if medio_pago and getattr(medio_pago, "tipo_pago", None):
+        porc_medio_pago = Decimal(medio_pago.tipo_pago.comision or 0)
+
+    if medio_cobro and getattr(medio_cobro, "tipo_cobro", None):
+        porc_medio_cobro = Decimal(medio_cobro.tipo_cobro.comision or 0)
+
+    # Aplicar fórmulas según descuento del cliente
+    venta = base + (com_venta * (1 - descuentoCategoria))
+    compra = base - (com_compra * (1 - descuentoCategoria))
+
+    # Aplicar comisiones del método seleccionado si existen
+    try:
+        if porc_medio_cobro and porc_medio_pago:
+            # Ajusta la venta y la compra con las comisiones
+            venta = venta * (1 + porc_medio_pago/100 + porc_medio_cobro/100)
+            compra = compra * (1 - porc_medio_cobro/100 - porc_medio_pago/100)
+        elif porc_medio_pago:
+            # Solo existe método de pago
+            venta = venta * (1 + porc_medio_pago/100)
+            compra = compra * (1 - porc_medio_pago/100)
+            # compra queda igual o se deja como estaba
+        elif porc_medio_cobro:
+            # Solo existe método de cobro
+            compra = compra * (1 - porc_medio_cobro/100)
+            venta = venta * (1 + porc_medio_cobro/100)
+            # venta queda igual o se deja como estaba
+    except (AttributeError, TypeError, ValueError) as e:
+        # Aquí podés decidir qué hacer si algo falla:
+        # - loguear el error
+        # - usar comisiones 0
+        # - dejar venta/compra sin modificar
+        print("Error al aplicar comisiones:", e)
+
+    # ✅ Siempre devolver venta/compra sin decimales (PYG siempre)
+    venta = venta.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    compra = compra.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+
+    if transaccion.tipo == "VENTA":
+        return venta
+
+    return compra
+
+def formatearMontos(monto: Decimal, moneda: Currency, como_str: bool = False):
+    """
+    - Redondea monto según moneda:
+        * PYG → 0 decimales
+        * Otras → moneda.decimales_monto
+    - Si como_str=True → devuelve string con formato latino:
+        * Miles con punto "."
+        * Decimales con coma ","
+    """
+
+    # 1) Determinar decimales según moneda
+    if moneda.code == "PYG":
+        decimales = 0
+    else:
+        decimales = int(moneda.decimales_monto or 0)
+
+    # 2) quantum = 10^-decimales
+    quantum = Decimal(10) ** (-decimales)
+
+    # 3) Redondear
+    monto_redondeado = monto.quantize(quantum, rounding=ROUND_HALF_UP)
+
+    # 4) Si no quieren string, devolvemos Decimal
+    if not como_str:
+        return monto_redondeado
+
+    # 5) Formato base con separador inglés (1,234,567.89)
+    formato = f"{{:,.{decimales}f}}"
+    monto_str = formato.format(monto_redondeado)
+
+    # 6) Convertir al formato latino:
+    #    - Coma decimal
+    #    - Punto miles
+    monto_str = monto_str.replace(",", "X").replace(".", ",").replace("X", ".")
+
+    return monto_str
+
+def calcularMontosCambio(transaccion) -> Dict[str, Any]:
+    """
+    Calcula los montos nuevos ante un cambio de tasa, según la combinación
+    de medios de pago/cobro.
+
+    Devuelve un diccionario con:
+      - tasa_actual
+      - monto_origen_viejo
+      - monto_destino_viejo
+      - monto_origen_nuevo
+      - monto_destino_nuevo
+    """
+
+    medio_pago = transaccion.medio_pago
+    medio_cobro = transaccion.medio_cobro
+    monto_origen_viejo = transaccion.monto_origen
+    monto_destino_viejo = transaccion.monto_destino
+    moneda_origen = transaccion.moneda_origen
+    moneda_destino = transaccion.moneda_destino
+
+    tasa_actual = calcularTasa(transaccion)
+
+    monto_origen_nuevo= None
+    monto_destino_nuevo= None
+
+    # -------------------------------------------------------
+    # 1) Transferencia -> Tauser  (CuentaBancaria -> Tauser)
+    #    Se respeta el monto DESTINO y se recalcula ORIGEN
+    # -------------------------------------------------------
+    if isinstance(medio_pago, CuentaBancariaNegocio) and isinstance(medio_cobro, Tauser):
+        if moneda_destino.code == "PYG":
+            # Cliente recibe PYG, tasa = PYG / X → origen = destino / tasa
+            monto_origen_nuevo = (monto_destino_viejo / tasa_actual)
+        else:
+            # Cliente recibe moneda extranjera, tasa = PYG / X → origen = destino * tasa
+            monto_origen_nuevo = (monto_destino_viejo * tasa_actual)
+
+        monto_destino_nuevo = monto_destino_viejo
+
+    # -------------------------------------------------------
+    # 2) Tauser -> Tauser
+    #    Se recalculan ambos montos con una función auxiliar
+    # -------------------------------------------------------
+    elif isinstance(medio_pago, Tauser) and isinstance(medio_cobro, Tauser):
+        # Suponemos que esta función te devuelve (nuevo_origen, nuevo_destino)
+        monto_origen_nuevo, monto_destino_nuevo = recalcularMontosAmbosTauser(
+            transaccion=transaccion,
+            tasa_actual=tasa_actual,
+        )
+
+    # -------------------------------------------------------
+    # 3) Cualquier otro caso (incluye Tauser -> no Tauser, no Tauser -> no Tauser)
+    #    Se respeta el monto ORIGEN y se recalcula DESTINO
+    # -------------------------------------------------------
+    else:
+        if moneda_origen.code == "PYG":
+            # Cliente paga PYG, recibe X → destino = origen / tasa
+            monto_destino_nuevo = (monto_origen_viejo / tasa_actual)
+        else:
+            # Cliente paga X, recibe PYG → destino = origen * tasa
+            monto_destino_nuevo = (monto_origen_viejo * tasa_actual)
+        
+        monto_origen_nuevo = monto_origen_viejo
+
+    return {
+        "tasaActual": tasa_actual,
+        "montoOrigenNuevo": monto_origen_nuevo,
+        "montoDestinoNuevo": monto_destino_nuevo,
+    }
+
+
+def paso_minimo_para(tauser: Tauser, currency: Currency) -> Decimal:
+    """
+    Devuelve el paso mínimo (denominación más baja) que maneja un Tauser
+    en una moneda dada. Si no hay stock configurado, usa defaults:
+      - PYG → 50.000
+      - Otras → 1
+    """
+    qs = TauserCurrencyStock.objects.filter(
+        tauser=tauser,
+        currency=currency,
+        quantity__gt=0,
+    ).values_list("denomination__value", flat=True)
+
+    valores = [Decimal(v) for v in qs if Decimal(v) > 0]
+
+    if not valores:
+        if currency.code == "PYG":
+            return Decimal("50000")
+        return Decimal("1")
+
+    return min(valores)
+
+
+def tauser_puede_recibir(tauser: Tauser, currency: Currency, monto: Decimal) -> bool:
+    """
+    Verifica si el Tauser puede recibir 'monto' en 'currency' usando
+    únicamente las denominaciones que maneja (stock ilimitado).
+    Greedy por denominación descendente.
+    """
+    if monto <= 0:
+        return False
+
+    denoms = (
+        TauserCurrencyStock.objects
+        .filter(tauser=tauser, currency=currency)
+        .values_list("denomination__value", flat=True)
+    )
+
+    valores = sorted(
+        [Decimal(v) for v in denoms if Decimal(v) > 0],
+        reverse=True,
+    )
+
+    if not valores:
+        # Si no tiene denominaciones en esa moneda, no puede recibir.
+        return False
+
+    restante = monto
+
+    for v in valores:
+        if v <= 0:
+            continue
+        usar = (restante // v)
+        restante -= usar * v
+        if restante <= 0:
+            return True
+
+    return False
+
+
+def tauser_puede_entregar(tauser: Tauser, currency: Currency, monto: Decimal) -> bool:
+    """
+    Verifica si el Tauser puede ENTREGAR 'monto' en 'currency'
+    respetando su stock de denominaciones.
+    Greedy por denominación descendente.
+    """
+    if monto <= 0:
+        return False
+
+    qs = TauserCurrencyStock.objects.filter(
+        tauser=tauser,
+        currency=currency,
+        quantity__gt=0,
+    ).select_related("denomination")
+
+    if not qs.exists():
+        # Criterio: si no hay stock registrado:
+        #  - para PYG podrías asumir stock "ilimitado" (si querés),
+        #  - para moneda extranjera => no puede entregar.
+        if currency.code == "PYG":
+            return True  # si preferís ignorar stock de PYG
+        return False
+
+    # Ordenar de mayor a menor denominación
+    denoms = sorted(
+        [
+            (Decimal(row.denomination.value), row.quantity)
+            for row in qs
+            if Decimal(row.denomination.value) > 0
+        ],
+        key=lambda x: x[0],
+        reverse=True,
+    )
+
+    restante = monto
+
+    for valor, qty in denoms:
+        if valor <= 0 or qty <= 0:
+            continue
+
+        max_units = restante // valor
+        usar = min(max_units, qty)
+        restante -= usar * valor
+        if restante <= 0:
+            return True
+
+    return False
+
+
+def convertir_monto(moneda_from: Currency, moneda_to: Currency, monto: Decimal, tasa: Decimal) -> Decimal:
+    """
+    Conversión consistente con tu modelo PYG-base:
+
+    - Si from = PYG, to != PYG:   destino = monto / tasa
+    - Si from != PYG, to = PYG:   destino = monto * tasa
+
+    No se contempla from != PYG y to != PYG porque tu UI no deja eso.
+    """
+    if monto <= 0:
+        return Decimal("0")
+
+    if moneda_from.code == "PYG" and moneda_to.code != "PYG":
+        return monto / tasa
+
+    if moneda_from.code != "PYG" and moneda_to.code == "PYG":
+        return monto * tasa
+
+    # Caso no soportado en tu flujo actual
+    return Decimal("0")
+
+def obtener_tope_moneda_cliente(
+    cliente: Cliente,
+    moneda: Currency,
+) -> Optional[Decimal]:
+    """
+    Devuelve el tope disponible (min entre día y mes) para un cliente
+    en una moneda dada, usando LimiteIntercambioCliente.
+
+    Si no existe configuración para esa moneda, devuelve None (sin límite).
+    """
+    limite = (
+        LimiteIntercambioCliente.objects
+        .filter(
+            cliente=cliente,
+            config__moneda=moneda,  # 👈 ajustá el nombre del campo en LimiteIntercambioConfig si es distinto
+        )
+        .first()
+    )
+
+    if not limite:
+        # Sin registro → no se aplica límite explícito
+        return None
+
+    # Tomamos el más restrictivo entre día y mes
+    tope = min(limite.limite_dia_actual, limite.limite_mes_actual)
+
+    # Si ya no hay saldo disponible, devolvemos 0
+    if tope <= 0:
+        return Decimal("0")
+
+    return tope
+
+
+def recalcularMontosAmbosTauser(
+    transaccion: Transaccion,
+    tasa_actual: Optional[Decimal] = None,
+) -> Tuple[Optional[Decimal], Optional[Decimal]]:
+    """
+    Tauser -> Tauser:
+
+    - Respeta stock del Tauser que RECIBE (medio_pago) en moneda_origen.
+    - Respeta stock del Tauser que ENTREGA (medio_cobro) en moneda_destino.
+    - Respeta límites del cliente SOLO cuando:
+        * Es una VENTA, y
+        * La moneda destino NO es PYG (la divisa que le damos al cliente).
+    """
+
+    medio_pago = transaccion.medio_pago
+    medio_cobro = transaccion.medio_cobro
+
+    if not isinstance(medio_pago, Tauser) or not isinstance(medio_cobro, Tauser):
+        return (None, None)
+
+    cliente = transaccion.cliente
+    moneda_origen: Currency = transaccion.moneda_origen
+    moneda_destino: Currency = transaccion.moneda_destino
+
+    if tasa_actual is None:
+        tasa_actual = calcularTasa(transaccion)
+
+    monto_inicial: Decimal = transaccion.monto_origen
+
+    if not monto_inicial or monto_inicial <= 0:
+        return (None, None)
+
+    # ============================================
+    # 🔹 LÍMITES DEL CLIENTE SEGÚN TU REGLA
+    # ============================================
+    tope_origen: Optional[Decimal] = None
+    tope_destino: Optional[Decimal] = None
+
+    # Si es VENTA, el cliente recibe divisa = moneda_destino
+    # Solo si moneda_destino NO es PYG aplicamos límite.
+    if transaccion.tipo == Transaccion.Tipo.VENTA and moneda_destino.code != "PYG":
+        tope_destino = obtener_tope_moneda_cliente(cliente, moneda_destino)
+        # Si el tope es 0 o negativo, directamente no hay nada que hacer
+        if tope_destino is not None and tope_destino <= 0:
+            return (None, None)
+
+    # En COMPRA, o si alguna moneda es PYG, tus reglas dicen que NO hay límite.
+    # Así que tope_origen/tope_destino se quedan en None en esos casos.
+
+    # Paso mínimo según denominaciones del Tauser que RECIBE (medio_pago)
+    step = paso_minimo_para(medio_pago, moneda_origen)
+
+    def align(x: Decimal, s: Decimal) -> Decimal:
+        # ceil(x / s) * s pero en Decimal
+        return ((x + s - Decimal("0.00000001")) // s) * s
+
+    intento: Decimal = align(monto_inicial, step)
+
+    LIMITE_ABSURDO = Decimal("1000000000000")  # 1 billón
+
+    while intento <= LIMITE_ABSURDO:
+        # 🔹 Límite en ORIGEN: en tu regla actual, no se usa (queda por si algún día lo necesitás)
+        if tope_origen is not None and intento > tope_origen:
+            break
+
+        # Monto destino según conversión
+        intento_destino: Decimal = convertir_monto(
+            moneda_from=moneda_origen,
+            moneda_to=moneda_destino,
+            monto=intento,
+            tasa=tasa_actual,
+        )
+
+        # 🔹 Límite en DESTINO (solo si es VENTA de divisa ≠ PYG)
+        if tope_destino is not None and intento_destino > tope_destino:
+            break
+
+        ok_recibir = tauser_puede_recibir(
+            tauser=medio_pago,
+            currency=moneda_origen,
+            monto=intento,
+        )
+
+        ok_entregar = tauser_puede_entregar(
+            tauser=medio_cobro,
+            currency=moneda_destino,
+            monto=intento_destino,
+        )
+
+        if ok_recibir and ok_entregar:
+            return (intento, intento_destino)
+
+        intento += step
+
+    return (None, None)
+
+def _get_next_url(request):
+    """
+    Devuelve la URL a la que hay que volver después de procesar la vista.
+    Prioriza:
+      1) request.POST["next"]
+      2) request.GET["next"]
+      3) histo de transacciones por defecto
+    """
+    next_url = request.POST.get("next") or request.GET.get("next")
+    if not next_url:
+        return reverse("transaccion_list")
+    return next_url
+
+
+def transaccion_aceptar_cambio(request, pk: int):
+    if request.method != "POST":
+        messages.error(request, "Método no permitido.")
+        return redirect(_get_next_url(request))
+    
+    try:
+        transaccion = Transaccion.objects.select_related(
+            "cliente",
+            "cliente__categoria",      # si existe
+            "moneda_origen",
+            "moneda_destino",
+        ).get(pk=pk)
+    except Transaccion.DoesNotExist:
+        messages.error(request, "La transacción no existe.")
+        return redirect(_get_next_url(request))
+
+    # 🔹 Validar que siga pendiente y con cambio pendiente
+    if not transaccion.cambio_pendiente or transaccion.estado != Transaccion.Estado.PENDIENTE:
+        messages.warning(request, "La transacción ya no tiene cambios pendientes.")
+        return redirect(_get_next_url(request))
+
+    # 🔹 Recalcular montos *de cero* en el servidor
+    montos = calcularMontosCambio(transaccion)
+    monto_origen_nuevo = montos.get("montoOrigenNuevo")
+    monto_destino_nuevo = montos.get("montoDestinoNuevo")
+    tasa_actual = montos.get("tasaActual")
+
+    if (
+        monto_origen_nuevo is None
+        or monto_destino_nuevo is None
+        or tasa_actual is None
+    ):
+        messages.error(
+            request,
+            "No se pudieron recalcular los montos con la nueva cotización.",
+        )
+        return redirect(_get_next_url(request))
+
+    # ==============================
+    # 🔹 Actualizar montos/tasa
+    # ==============================
+    transaccion.tasa_cambio = tasa_actual
+    transaccion.monto_origen = monto_origen_nuevo
+    transaccion.monto_destino = monto_destino_nuevo
+
+    # =========================================
+    # 🔹 Volver a cargar datos derivados
+    #     desde los modelos relacionados
+    # =========================================
+
+    # 1) Porcentaje de medio de PAGO
+    medio_pago = transaccion.medio_pago  # GenericFK
+    medio_pago_cfg = getattr(medio_pago, "tipo_pago", None)
+    if medio_pago_cfg and hasattr(medio_pago_cfg, "porcentaje_comision"):
+        transaccion.medio_pago_porc = medio_pago_cfg.comision
+
+    # 2) Porcentaje de medio de COBRO
+    medio_cobro = transaccion.medio_cobro  # GenericFK
+    medio_cobro_cfg = getattr(medio_cobro, "tipo_cobro", None)
+    if medio_cobro_cfg and hasattr(medio_cobro_cfg, "porcentaje_comision"):
+        transaccion.medio_cobro_porc = medio_cobro_cfg.comision
+
+    # 3) Descuento del cliente por categoría
+    categoria = getattr(transaccion.cliente, "categoria", None)
+    if categoria and hasattr(categoria, "descuento"):
+        transaccion.desc_cliente = categoria.descuento
+
+    # 🔹 Volver a cargar datos derivados desde Currency según COMPRA/VENTA
+    moneda_origen = transaccion.moneda_origen
+    moneda_destino = transaccion.moneda_destino
+
+    if transaccion.tipo == Transaccion.Tipo.VENTA:
+        if hasattr(moneda_destino, "precio_base_venta"):
+            transaccion.monto_base_moneda = moneda_destino.base_price
+        if hasattr(moneda_destino, "comision_venta"):
+            transaccion.comision_vta_com = moneda_destino.comision_venta
+
+    elif transaccion.tipo == Transaccion.Tipo.COMPRA:
+        if hasattr(moneda_origen, "precio_base_compra"):
+            transaccion.monto_base_moneda = moneda_origen.base_price
+        if hasattr(moneda_origen, "comision_compra"):
+            transaccion.comision_vta_com = moneda_origen.comision_compra
+
+    # ==============================
+    # 🔹 Limpiar flag de cambio pendiente
+    # ==============================
+    transaccion.cambio_pendiente = False
+
+    transaccion.save(
+        update_fields=[
+            "tasa_cambio",
+            "monto_origen",
+            "monto_destino",
+            "medio_pago_porc",
+            "medio_cobro_porc",
+            "desc_cliente",
+            "monto_base_moneda",
+            "comision_vta_com",
+            "cambio_pendiente",
+        ]
+    )
+
+    messages.success(request, "La transacción fue actualizada con la nueva cotización.")
+    return redirect(_get_next_url(request))
+
+
+def cancelar_transaccion(request, pk):
+    try:
+        transaccion = Transaccion.objects.get(pk=pk)
+    except Transaccion.DoesNotExist:
+        messages.error(request, "La transacción no existe.")
+        return redirect(_get_next_url(request))
+
+    # Solo se deben cancelar transacciones aún pendientes
+    if transaccion.estado != Transaccion.Estado.PENDIENTE:
+        messages.warning(request, "La transacción ya no puede cancelarse.")
+        return redirect(_get_next_url(request))
+
+    # Cancelar formalmente
+    transaccion.estado = Transaccion.Estado.CANCELADA
+    transaccion.save(update_fields=["estado"])
+
+    messages.success(request, "Tu transacción fue cancelada correctamente.")
+    return redirect(_get_next_url(request))

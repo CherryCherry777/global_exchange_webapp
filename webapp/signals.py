@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.contrib.sessions.models import Session
 
 from webapp.services.esi_bootstrap import ensure_esi_global_exchange
-from .models import Billetera, BilleteraCobro, ClienteUsuario, CuentaBancariaCobro, Currency, CurrencyDenomination, Entidad, LimiteIntercambioConfig, Categoria, LimiteIntercambioCliente, LimiteIntercambioLog, MedioCobro, Role, MedioPago, TarjetaInternacional, TarjetaNacional, Tauser, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion, Cliente
+from .models import Billetera, BilleteraCobro, ClienteUsuario, CuentaBancariaCobro, Currency, CurrencyDenomination, Entidad, LimiteIntercambioConfig, Categoria, LimiteIntercambioCliente, LimiteIntercambioLog, MedioCobro, Role, MedioPago, TarjetaInternacional, TarjetaNacional, Tauser, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion, Cliente, TransaccionAuditoria
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
 from django.db import connections, transaction
@@ -1414,3 +1414,41 @@ def actualizar_limite_post_transaccion(sender, instance, **kwargs):
 
     except Exception as e:
         logger.exception(f"Error en actualización de límite post transacción: {e}")
+
+   
+@receiver(post_save, sender=Transaccion)
+def crear_snapshot_transaccion(sender, instance: Transaccion, created: bool, **kwargs):
+    """
+    Crea un snapshot de la transacción cada vez que se hace save().
+    Guarda el estado actual (después de guardar).
+    """
+    # Usuario y origen pueden ser fijados desde la vista/tarea opcionalmente:
+    usuario = getattr(instance, "_usuario_accion", None)
+    origen = getattr(instance, "_origen_accion", "sistema")
+
+    TransaccionAuditoria.objects.create(
+        transaccion=instance,
+        usuario=usuario,
+        origen=origen,
+
+        tipo=instance.tipo,
+        estado=instance.estado,
+
+        moneda_origen=instance.moneda_origen.code,
+        moneda_destino=instance.moneda_destino.code,
+
+        tasa_cambio=instance.tasa_cambio,
+        monto_origen=instance.monto_origen,
+        monto_destino=instance.monto_destino,
+
+        medio_pago_type=instance.medio_pago_type,
+        medio_pago_id=instance.medio_pago_id,
+        medio_cobro_type=instance.medio_cobro_type,
+        medio_cobro_id=instance.medio_cobro_id,
+
+        medio_pago_porc=instance.medio_pago_porc,
+        medio_cobro_porc=instance.medio_cobro_porc,
+        desc_cliente=instance.desc_cliente,
+        monto_base_moneda=instance.monto_base_moneda,
+        comision_vta_com=instance.comision_vta_com,
+    )

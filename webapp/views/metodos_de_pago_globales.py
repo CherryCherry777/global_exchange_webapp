@@ -1,3 +1,4 @@
+from webapp.views.cotizaciones import promtCancelacionTransaccionCambioCotizacion
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -65,6 +66,9 @@ def modify_payment_method(request, payment_method_id):
             payment_method.comision = comision_decimal
             payment_method.activo = activo
             payment_method.save()
+
+            # Avisar de actualizaciones en transacciones pendientes
+            promtCancelacionTransaccionCambioCotizacion()
             
             messages.success(request, f"El método de pago '{payment_method.nombre}' ha sido actualizado exitosamente.")
             return redirect("manage_payment_methods")

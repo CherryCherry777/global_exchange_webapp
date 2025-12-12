@@ -1,3 +1,4 @@
+from webapp.views.cotizaciones import promtCancelacionTransaccionCambioCotizacion
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -80,6 +81,9 @@ def modify_category(request, category_id):
             categoria.nombre = nombre
             categoria.descuento = descuento / 100
             categoria.save()
+
+            # Avisar de actualizaciones en transacciones pendientes
+            promtCancelacionTransaccionCambioCotizacion()
             
             messages.success(request, f"Categoría '{categoria.nombre}' actualizada correctamente.")
             return redirect("manage_categories")
