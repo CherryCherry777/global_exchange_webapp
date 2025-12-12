@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.contrib.sessions.models import Session
 
 from webapp.services.esi_bootstrap import ensure_esi_global_exchange
-from .models import Billetera, BilleteraCobro, ClienteUsuario, CuentaBancariaCobro, Currency, CurrencyDenomination, Entidad, LimiteIntercambioConfig, Categoria, LimiteIntercambioCliente, LimiteIntercambioLog, MedioCobro, Role, MedioPago, TarjetaInternacional, TarjetaNacional, Tauser, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion, Cliente, TransaccionAuditoria
+from .models import Billetera, BilleteraCobro, ClienteUsuario, CuentaBancariaCobro, Currency, CurrencyDenomination, CurrencyHistory, Entidad, LimiteIntercambioConfig, Categoria, LimiteIntercambioCliente, LimiteIntercambioLog, MedioCobro, Role, MedioPago, TarjetaInternacional, TarjetaNacional, Tauser, TipoCobro, TipoPago, CuentaBancariaNegocio, Transaccion, Cliente, TransaccionAuditoria
 from django.contrib.auth.models import Group, Permission
 from django.apps import apps
 from django.db import connections, transaction
@@ -23,6 +23,7 @@ from django.utils import timezone
 
 from django.db.models import Q
 from django.core.files.base import ContentFile
+from typing import Any
 import requests
 
 User = get_user_model()
@@ -1451,4 +1452,34 @@ def crear_snapshot_transaccion(sender, instance: Transaccion, created: bool, **k
         desc_cliente=instance.desc_cliente,
         monto_base_moneda=instance.monto_base_moneda,
         comision_vta_com=instance.comision_vta_com,
+    )
+
+@receiver(post_save, sender=Currency)
+def create_currency_history(
+    sender: type[Currency],
+    instance: Currency,
+    created: bool,
+    **kwargs: Any,
+) -> None:
+    """
+    Registra un histórico diario de la moneda cuando se guardan cambios.
+
+    - Guarda SOLO un registro por moneda y por día
+    - Si ya existe el histórico del día, lo actualiza
+    - Evita duplicados gracias a unique_together(currency, date)
+    """
+
+    today: date = date.today()
+
+    # Valores actuales de la moneda
+    compra: Decimal = instance.comision_compra
+    venta: Decimal = instance.comision_venta
+
+    CurrencyHistory.objects.update_or_create(
+        currency=instance,
+        date=today,
+        defaults={
+            "compra": compra,
+            "venta": venta,
+        },
     )
