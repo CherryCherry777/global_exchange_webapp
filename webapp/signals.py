@@ -660,12 +660,7 @@ def setup_database(sender, **kwargs):
         """
         Currency = apps.get_model("webapp", "Currency")
         CurrencyHistory = apps.get_model("webapp", "CurrencyHistory")
-
-        # If any history exists, assume already created → do nothing
-        if CurrencyHistory.objects.exists():
-            print("✅ Ya existen datos historicos de tasas (ambiente de pruebas)")
-            return
-
+        
         today = timezone.localdate()
         days_back = 365
         histories = []
