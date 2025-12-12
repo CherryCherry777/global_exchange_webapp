@@ -6,13 +6,13 @@ from datetime import datetime, timedelta
 import os
 from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
 from .constants import *
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.contenttypes.models import ContentType
-from ..models import CuentaBancaria, LimiteIntercambioCliente, MFACode, MedioCobro, MedioPago, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro, TauserCurrencyStock
+from ..models import LimiteIntercambioCliente, MFACode, MedioCobro, MedioPago, Transaccion, Tauser, Currency, Cliente, ClienteUsuario, TarjetaNacional, TarjetaInternacional, CuentaBancariaNegocio, Billetera, TipoCobro, TipoPago, CuentaBancariaCobro, BilleteraCobro, TauserCurrencyStock
 from decimal import Decimal, ROUND_HALF_UP
 from .payments.stripe_utils import procesar_pago_stripe
 from .payments.cobros_simulados_a_clientes import cobrar_al_cliente_tarjeta_nacional, cobrar_al_cliente_billetera, validar_id_transferencia
@@ -607,12 +607,13 @@ def get_tauser_stock_dict():
 # ----------------------------------
 # Vistas de historial de transacción
 # ----------------------------------
-
 def transaccion_list(request):
     """
     Muestra el historial de transacciones del cliente actual.
-    Si alguna transacción tiene un medio de pago del tipo CuentaBancariaNegocio,
-    se marcará con una propiedad adicional 'es_pago_cuenta_bancaria' para usar en el template.
+    - Marca si el medio de pago es CuentaBancariaNegocio.
+    - Prepara montos formateados para la tabla.
+    - Si la transacción tiene cambio_pendiente y está PENDIENTE, adjunta al objeto
+      las tasas y montos nuevos ya formateados, para usarlos en el modal 'Ver Cambios'.
     """
     cliente_id = request.session.get("cliente_id")
     if not cliente_id:
@@ -621,19 +622,79 @@ def transaccion_list(request):
 
     transacciones = (
         Transaccion.objects.select_related(
-            "cliente", "usuario", "moneda_origen", "moneda_destino", "factura_asociada"
+            "cliente",
+            "usuario",
+            "moneda_origen",
+            "moneda_destino",
+            "factura_asociada",
         )
         .filter(cliente_id=cliente_id)
         .order_by("-fecha_creacion")
     )
 
-    # 🔹 Agregamos un atributo dinámico para cada transacción
     for t in transacciones:
+        # 🔹 Flag para saber si se pagó desde cuenta bancaria negocio
         t.es_pago_cuenta_bancaria = isinstance(t.medio_pago, CuentaBancariaNegocio)
 
-    context = {"transacciones": transacciones}
-    return render(request, "webapp/compraventa_y_conversion/historial_transacciones.html", context)
+        # 🔹 Montos actuales formateados (para usar en tabla / modal)
+        t.monto_origen_actual_fmt = formatearMontos(
+            t.monto_origen, t.moneda_origen, True
+        )
+        t.monto_destino_actual_fmt = formatearMontos(
+            t.monto_destino, t.moneda_destino, True
+        )
 
+        # 🔹 Inicializar atributos usados por el modal "Ver Cambios"
+        t.tasa_antigua = None
+        t.tasa_actual = None
+        t.monto_origen_nuevo_fmt = None
+        t.monto_destino_nuevo_fmt = None
+        t.moneda_cambio_code = t.moneda_origen.code  # o moneda_destino, como prefieras
+
+        # 🔹 Solo intentamos calcular cambios si:
+        #     - la transacción tiene cambio_pendiente
+        #     - y sigue en estado PENDIENTE
+        if t.cambio_pendiente and t.estado == Transaccion.Estado.PENDIENTE:
+            montos = calcularMontosCambio(t)
+
+            monto_origen_nuevo = montos.get("montoOrigenNuevo")
+            monto_destino_nuevo = montos.get("montoDestinoNuevo")
+            tasa_actual = montos.get("tasaActual")
+
+            if (
+                monto_origen_nuevo is not None
+                and monto_destino_nuevo is not None
+                and tasa_actual is not None
+            ):
+                # Tasa antigua redondeada como en el prompt de email
+                try:
+                    t.tasa_antigua = t.tasa_cambio.quantize(
+                        Decimal("1"), rounding=ROUND_HALF_UP
+                    )
+                except Exception:
+                    t.tasa_antigua = t.tasa_cambio  # fallback
+
+                t.tasa_actual = tasa_actual
+
+                # Montos nuevos formateados (solo para mostrar)
+                t.monto_origen_nuevo_fmt = formatearMontos(
+                    monto_origen_nuevo, t.moneda_origen, True
+                )
+                t.monto_destino_nuevo_fmt = formatearMontos(
+                    monto_destino_nuevo, t.moneda_destino, True
+                )
+            else:
+                # Si no se pudo calcular, no mostramos "Ver Cambios" en el template
+                t.cambio_pendiente = False  # opcional: o solo dejas los *_nuevo_fmt en None
+
+    context = {
+        "transacciones": transacciones,
+    }
+    return render(
+        request,
+        "webapp/compraventa_y_conversion/historial_transacciones.html",
+        context,
+    )
 
 @login_required
 def ingresar_idTransferencia(request, transaccion_id: int):
@@ -822,26 +883,6 @@ def set_cliente_seleccionado(request):
     else:
         request.session.pop('cliente_id', None)  # Borra la sesión si no hay cliente
     return redirect(request.META.get('HTTP_REFERER', '/'))
-
-
-def cancelar_transaccion(request, pk):
-    try:
-        transaccion = Transaccion.objects.get(pk=pk)
-    except Transaccion.DoesNotExist:
-        messages.error(request, "La transacción no existe.")
-        return redirect("transaccion_list")
-
-    # Solo se deben cancelar transacciones aún pendientes
-    if transaccion.estado != Transaccion.Estado.PENDIENTE:
-        messages.warning(request, "La transacción ya no puede cancelarse.")
-        return redirect("transaccion_list")
-
-    # Cancelar formalmente
-    transaccion.estado = Transaccion.Estado.CANCELADA
-    transaccion.save(update_fields=["estado"])
-
-    messages.success(request, "Tu transacción fue cancelada correctamente.")
-    return redirect("transaccion_list")
 
 
 def calcularTasa(transaccion):
@@ -1288,3 +1329,142 @@ def recalcularMontosAmbosTauser(
         intento += step
 
     return (None, None)
+
+def _get_next_url(request):
+    """
+    Devuelve la URL a la que hay que volver después de procesar la vista.
+    Prioriza:
+      1) request.POST["next"]
+      2) request.GET["next"]
+      3) histo de transacciones por defecto
+    """
+    next_url = request.POST.get("next") or request.GET.get("next")
+    if not next_url:
+        return reverse("transaccion_list")
+    return next_url
+
+
+def transaccion_aceptar_cambio(request, pk: int):
+    if request.method != "POST":
+        messages.error(request, "Método no permitido.")
+        return redirect(_get_next_url(request))
+    
+    try:
+        transaccion = Transaccion.objects.select_related(
+            "cliente",
+            "cliente__categoria",      # si existe
+            "moneda_origen",
+            "moneda_destino",
+        ).get(pk=pk)
+    except Transaccion.DoesNotExist:
+        messages.error(request, "La transacción no existe.")
+        return redirect(_get_next_url(request))
+
+    # 🔹 Validar que siga pendiente y con cambio pendiente
+    if not transaccion.cambio_pendiente or transaccion.estado != Transaccion.Estado.PENDIENTE:
+        messages.warning(request, "La transacción ya no tiene cambios pendientes.")
+        return redirect(_get_next_url(request))
+
+    # 🔹 Recalcular montos *de cero* en el servidor
+    montos = calcularMontosCambio(transaccion)
+    monto_origen_nuevo = montos.get("montoOrigenNuevo")
+    monto_destino_nuevo = montos.get("montoDestinoNuevo")
+    tasa_actual = montos.get("tasaActual")
+
+    if (
+        monto_origen_nuevo is None
+        or monto_destino_nuevo is None
+        or tasa_actual is None
+    ):
+        messages.error(
+            request,
+            "No se pudieron recalcular los montos con la nueva cotización.",
+        )
+        return redirect(_get_next_url(request))
+
+    # ==============================
+    # 🔹 Actualizar montos/tasa
+    # ==============================
+    transaccion.tasa_cambio = tasa_actual
+    transaccion.monto_origen = monto_origen_nuevo
+    transaccion.monto_destino = monto_destino_nuevo
+
+    # =========================================
+    # 🔹 Volver a cargar datos derivados
+    #     desde los modelos relacionados
+    # =========================================
+
+    # 1) Porcentaje de medio de PAGO
+    medio_pago = transaccion.medio_pago  # GenericFK
+    medio_pago_cfg = getattr(medio_pago, "tipo_pago", None)
+    if medio_pago_cfg and hasattr(medio_pago_cfg, "porcentaje_comision"):
+        transaccion.medio_pago_porc = medio_pago_cfg.comision
+
+    # 2) Porcentaje de medio de COBRO
+    medio_cobro = transaccion.medio_cobro  # GenericFK
+    medio_cobro_cfg = getattr(medio_cobro, "tipo_cobro", None)
+    if medio_cobro_cfg and hasattr(medio_cobro_cfg, "porcentaje_comision"):
+        transaccion.medio_cobro_porc = medio_cobro_cfg.comision
+
+    # 3) Descuento del cliente por categoría
+    categoria = getattr(transaccion.cliente, "categoria", None)
+    if categoria and hasattr(categoria, "descuento"):
+        transaccion.desc_cliente = categoria.descuento
+
+    # 🔹 Volver a cargar datos derivados desde Currency según COMPRA/VENTA
+    moneda_origen = transaccion.moneda_origen
+    moneda_destino = transaccion.moneda_destino
+
+    if transaccion.tipo == Transaccion.Tipo.VENTA:
+        if hasattr(moneda_destino, "precio_base_venta"):
+            transaccion.monto_base_moneda = moneda_destino.base_price
+        if hasattr(moneda_destino, "comision_venta"):
+            transaccion.comision_vta_com = moneda_destino.comision_venta
+
+    elif transaccion.tipo == Transaccion.Tipo.COMPRA:
+        if hasattr(moneda_origen, "precio_base_compra"):
+            transaccion.monto_base_moneda = moneda_origen.base_price
+        if hasattr(moneda_origen, "comision_compra"):
+            transaccion.comision_vta_com = moneda_origen.comision_compra
+
+    # ==============================
+    # 🔹 Limpiar flag de cambio pendiente
+    # ==============================
+    transaccion.cambio_pendiente = False
+
+    transaccion.save(
+        update_fields=[
+            "tasa_cambio",
+            "monto_origen",
+            "monto_destino",
+            "medio_pago_porc",
+            "medio_cobro_porc",
+            "desc_cliente",
+            "monto_base_moneda",
+            "comision_vta_com",
+            "cambio_pendiente",
+        ]
+    )
+
+    messages.success(request, "La transacción fue actualizada con la nueva cotización.")
+    return redirect(_get_next_url(request))
+
+
+def cancelar_transaccion(request, pk):
+    try:
+        transaccion = Transaccion.objects.get(pk=pk)
+    except Transaccion.DoesNotExist:
+        messages.error(request, "La transacción no existe.")
+        return redirect(_get_next_url(request))
+
+    # Solo se deben cancelar transacciones aún pendientes
+    if transaccion.estado != Transaccion.Estado.PENDIENTE:
+        messages.warning(request, "La transacción ya no puede cancelarse.")
+        return redirect(_get_next_url(request))
+
+    # Cancelar formalmente
+    transaccion.estado = Transaccion.Estado.CANCELADA
+    transaccion.save(update_fields=["estado"])
+
+    messages.success(request, "Tu transacción fue cancelada correctamente.")
+    return redirect(_get_next_url(request))

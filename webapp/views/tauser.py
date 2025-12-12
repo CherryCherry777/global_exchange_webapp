@@ -15,7 +15,7 @@ import os
 from webapp.services.invoice_from_tx import generate_invoice_for_transaccion
 from webapp.tasks import pagar_al_cliente_task
 from ..decorators import role_required
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Union
 
 User = get_user_model()
@@ -62,9 +62,19 @@ def tauser_login(request):
 
 
 def tauser_home(request):
+    from webapp.views.compraventa_y_conversión import (
+        calcularMontosCambio,
+        formatearMontos,
+    )
     """
     Lista las transacciones vinculadas a Tausers de la ubicación seleccionada.
     Solo incluye las que no están completas, anuladas, canceladas ni con AC fallida.
+
+    Además:
+    - Marca si el medio de pago/cobro es Tauser (es_pago_tauser / es_cobro_tauser).
+    - Prepara montos formateados.
+    - Si la transacción tiene cambio_pendiente y está PENDIENTE, adjunta al objeto
+      las tasas y montos nuevos ya formateados, para usarlos en el modal 'Ver Cambios'.
     """
     ubicacion = request.session.get("tauser_ubicacion")
 
@@ -113,10 +123,67 @@ def tauser_home(request):
         t.es_pago_tauser = t.medio_pago_type == ct_tauser and t.medio_pago_id in tausers_ids
         t.es_cobro_tauser = t.medio_cobro_type == ct_tauser and t.medio_cobro_id in tausers_ids
 
-    return render(request, "webapp/tauser/tauser_home.html", {
+        # 🔹 Montos actuales formateados (para tabla / modal)
+        t.monto_origen_actual_fmt = formatearMontos(
+            t.monto_origen, t.moneda_origen, True
+        )
+        t.monto_destino_actual_fmt = formatearMontos(
+            t.monto_destino, t.moneda_destino, True
+        )
+
+        # 🔹 Inicializar atributos usados por el modal "Ver Cambios"
+        t.tasa_antigua = None
+        t.tasa_actual = None
+        t.monto_origen_nuevo_fmt = None
+        t.monto_destino_nuevo_fmt = None
+        t.moneda_cambio_code = t.moneda_origen.code  # mismo criterio que en transaccion_list
+
+        # 🔹 Solo calculamos cambios si:
+        #    - la transacción tiene cambio_pendiente
+        #    - y sigue en estado PENDIENTE
+        if t.cambio_pendiente and t.estado == Transaccion.Estado.PENDIENTE:
+            montos = calcularMontosCambio(t)
+
+            monto_origen_nuevo = montos.get("montoOrigenNuevo")
+            monto_destino_nuevo = montos.get("montoDestinoNuevo")
+            tasa_actual = montos.get("tasaActual")
+
+            if (
+                monto_origen_nuevo is not None
+                and monto_destino_nuevo is not None
+                and tasa_actual is not None
+            ):
+                # Tasa antigua redondeada como en el prompt de email
+                try:
+                    t.tasa_antigua = t.tasa_cambio.quantize(
+                        Decimal("1"), rounding=ROUND_HALF_UP
+                    )
+                except Exception:
+                    t.tasa_antigua = t.tasa_cambio  # fallback
+
+                t.tasa_actual = tasa_actual
+
+                # Montos nuevos formateados (solo para mostrar)
+                t.monto_origen_nuevo_fmt = formatearMontos(
+                    monto_origen_nuevo, t.moneda_origen, True
+                )
+                t.monto_destino_nuevo_fmt = formatearMontos(
+                    monto_destino_nuevo, t.moneda_destino, True
+                )
+            else:
+                # Si no se pudo calcular, no mostramos "Ver Cambios" en el template
+                t.cambio_pendiente = False
+
+    context = {
         "transacciones": transacciones,
         "ubicacion": ubicacion,
-    })
+    }
+
+    return render(
+        request,
+        "webapp/tauser/tauser_home.html",
+        context,
+    )
 
 
 def tauser_pagar(request, pk):

@@ -1,5 +1,6 @@
 {% extends "webapp/base.html" %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}Transacciones - Global Exchange{% endblock %}
 
@@ -97,16 +98,39 @@
                                     </a>
                                 {% endif %}
                             {% endif %}
-                            <button class="action-button view-data-btn" data-transaction-id="{{ transaccion.id }}">
-                                Ver Datos
-                            </button>
-                            {% if transaccion.estado == 'PENDIENTE' %}
-                            <form method="POST" action="{% url 'cancelar_transaccion' transaccion.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="action-button cancel-btn">
-                                    Cancelar
+                            {% if transaccion.cambio_pendiente and transaccion.estado == 'PENDIENTE' and transaccion.monto_origen_nuevo_fmt %}
+                                <button
+                                    class="action-button view-change-btn"
+                                    data-transaction-id="{{ transaccion.id }}"
+                                    data-moneda-code="{{ transaccion.moneda_cambio_code }}"
+                                    data-tasa-anterior="{{ transaccion.tasa_antigua }}"
+                                    data-tasa-actual="{{ transaccion.tasa_actual }}"
+                                    data-monto-origen-anterior="{{ transaccion.monto_origen_actual_fmt }} {{ transaccion.moneda_origen.code }}"
+                                    data-monto-destino-anterior="{{ transaccion.monto_destino_actual_fmt }} {{ transaccion.moneda_destino.code }}"
+                                    data-monto-origen-nuevo="{{ transaccion.monto_origen_nuevo_fmt }} {{ transaccion.moneda_origen.code }}"
+                                    data-monto-destino-nuevo="{{ transaccion.monto_destino_nuevo_fmt }} {{ transaccion.moneda_destino.code }}"
+                                    data-url-aceptar="{% url 'transaccion_aceptar_cambio' transaccion.id %}"
+                                    data-url-cancelar="{% url 'cancelar_transaccion' transaccion.id %}"
+                                >
+                                    Ver Cambios
                                 </button>
-                            </form>
+                            {% else %}
+                                <button class="action-button view-data-btn"
+                                        data-transaction-id="{{ transaccion.id }}">
+                                    Ver Datos
+                                </button>
+                            {% endif %}
+                            {% if transaccion.estado == 'PENDIENTE' %}
+                                {% if not transaccion.cambio_pendiente %}
+                                    <button
+                                        type="button"
+                                        class="action-button cancel-open-btn"
+                                        data-transaction-id="{{ transaccion.id }}"
+                                        data-url-cancelar="{% url 'cancelar_transaccion' transaccion.id %}"
+                                    >
+                                        Cancelar
+                                    </button>
+                                {% endif %}
                             {% endif %}
                             {# --- Botones de documentos si hay factura asociada con archivos --- #}
                                 {% with fac=transaccion.factura_asociada %}
@@ -340,6 +364,160 @@
     </div>
 </div>
 
+
+<!-- Modal Prompt Cambio de Cotización -->
+<div id="cambioCotizacionModal" class="modal-overlay" style="display:none;">
+    <div class="modal-container">
+        <!-- Header -->
+        <div class="modal-header">
+            <img src="{% static 'webapp/logo.png' %}" alt="Logo" class="modal-logo">
+            <h2 class="modal-title">Actualización de cotización</h2>
+        </div>
+
+        <div class="modal-separator"></div>
+
+        <div class="modal-content">
+            <!-- Info general -->
+            <div class="info-section">
+                <h3 class="section-title">Información de la transacción</h3>
+                <div class="info-grid">
+                    <div class="info-left">
+                        <div class="info-item">
+                            <span class="info-label">ID de la transacción:</span>
+                            <span class="info-value" id="cc-transaccion-id">—</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Moneda afectada:</span>
+                            <span class="info-value" id="cc-moneda-code">—</span>
+                        </div>
+                    </div>
+                    <div class="info-center">
+                        <div class="info-item">
+                            <span class="info-label">Tasa anterior:</span>
+                            <span class="info-value" id="cc-tasa-anterior">—</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tasa actual:</span>
+                            <span class="info-value" id="cc-tasa-actual">—</span>
+                        </div>
+                    </div>
+                    <div class="info-right">
+                        <!-- vacío para mantener layout, si querés -->
+                    </div>
+                </div>
+
+                <div class="section-separator"></div>
+            </div>
+
+            <!-- Comparación de montos -->
+            <div class="info-section">
+                <h3 class="section-title">Comparación de montos</h3>
+
+                <div class="exchange-grid">
+                    <!-- Montos anteriores -->
+                    <div class="exchange-left">
+                        <h4 class="section-subtitle">Montos anteriores</h4>
+
+                        <div class="exchange-item">
+                            <span class="exchange-label">Monto origen:</span>
+                            <span class="exchange-value" id="cc-monto-origen-anterior">—</span>
+                        </div>
+                        <div class="exchange-item">
+                            <span class="exchange-label">Monto destino:</span>
+                            <span class="exchange-value" id="cc-monto-destino-anterior">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Montos nuevos -->
+                    <div class="exchange-right">
+                        <h4 class="section-subtitle">Montos nuevos</h4>
+
+                        <div class="exchange-item">
+                            <span class="exchange-label">Monto origen:</span>
+                            <span class="exchange-value" id="cc-monto-origen-nuevo">—</span>
+                        </div>
+                        <div class="exchange-item">
+                            <span class="exchange-label">Monto destino:</span>
+                            <span class="exchange-value" id="cc-monto-destino-nuevo">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 12px;">
+                    La cotización de tu transacción ha cambiado. ¿Querés aceptar la nueva cotización
+                    o cancelar la transacción?
+                </p>
+            </div>
+
+            <!-- Acciones -->
+            <div class="section-separator"></div>
+
+            <div class="info-section">
+                <div class="modal-actions">
+                    <!-- Aceptar nueva cotización -->
+                    <form id="cc-form-aceptar" method="post" action="">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="action-button primary">
+                            Aceptar nueva cotización
+                        </button>
+                    </form>
+
+                    <!-- Cancelar transacción -->
+                    <form id="cc-form-cancelar" method="post" action="" class="modal-form-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="action-button cancel-btn">
+                            Cancelar transacción
+                        </button>
+                    </form>
+
+                    <!-- Cerrar solo el popup -->
+                    <button type="button"
+                            class="action-button secondary"
+                            data-close-modal="cambioCotizacionModal">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación de cancelación -->
+<div id="cancelConfirmModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 class="modal-title">Confirmar cancelación</h2>
+        </div>
+
+        <div class="modal-separator"></div>
+
+        <div class="modal-content">
+            <p>
+                ¿Estás seguro de que deseas cancelar la transacción 
+                <strong>#<span id="cancel-transaccion-id"></span></strong>?
+            </p>
+            <p>Esta acción no se puede deshacer.</p>
+
+            <div class="modal-actions" style="margin-top: 20px; display: flex; gap: 10px;">
+                <form id="cancel-confirm-form" method="post" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="action-button cancel-btn">
+                        Sí, cancelar
+                    </button>
+                </form>
+
+                <button type="button" class="action-button secondary" onclick="closeCancelConfirmModal()">
+                    No, volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
 // Search functionality
 document.getElementById('searchInput').addEventListener('input', function(e) {
@@ -359,15 +537,31 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
 // Action button handlers
 document.querySelectorAll('.action-button').forEach(button => {
     button.addEventListener('click', function() {
+        // Los que abren el modal de cancelación se manejan aparte
+        if (this.classList.contains('cancel-open-btn')) {
+            return;
+        }
+        
         const transactionId = this.getAttribute('data-transaction-id');
-        const action = this.classList.contains('view-data-btn') ? 'Ver Datos' : 
-                      this.classList.contains('cancel-btn') ? 'Cancelar' : 'Anular';
+
+        let action;
+        if (this.classList.contains('view-data-btn')) {
+            action = 'Ver Datos';
+        } else if (this.classList.contains('view-change-btn')) {
+            action = 'Ver Cambios';
+        } else if (this.classList.contains('cancel-btn')) {
+            action = 'Cancelar';
+        } else {
+            action = 'Anular';
+        }
         
         if (action === 'Ver Datos') {
             openTransactionModal(transactionId);
+        } else if (action === 'Ver Cambios') {
+            openCambioCotizacionModal(this);  // <-- nuevo modal
         } else {
             console.log(`${action} transacción ID: ${transactionId}`);
-            // Aquí se implementará la funcionalidad específica para Cancelar/Anular
+            // Aquí la lógica para Cancelar/Anular
         }
     });
 });
@@ -535,6 +729,209 @@ document.addEventListener('keydown', function(e) {
         closeTransactionModal();
     }
 });
+
+
+function openCambioCotizacionModal(button) {
+    const transactionId = button.getAttribute('data-transaction-id');
+
+    // Leemos los datos de comparación desde data-* del botón
+    const monedaCode = button.getAttribute('data-moneda-code') || '';
+    const tasaAnterior = button.getAttribute('data-tasa-anterior') || '';
+    const tasaActual = button.getAttribute('data-tasa-actual') || '';
+
+    const montoOrigenAnterior = button.getAttribute('data-monto-origen-anterior') || '';
+    const montoDestinoAnterior = button.getAttribute('data-monto-destino-anterior') || '';
+    const montoOrigenNuevo = button.getAttribute('data-monto-origen-nuevo') || '';
+    const montoDestinoNuevo = button.getAttribute('data-monto-destino-nuevo') || '';
+
+    const urlAceptar = button.getAttribute('data-url-aceptar') || '#';
+    const urlCancelar = button.getAttribute('data-url-cancelar') || '#';
+
+    // Inyectar datos en el modal
+    document.getElementById('cc-transaccion-id').textContent = transactionId;
+    document.getElementById('cc-moneda-code').textContent = monedaCode;
+
+    document.getElementById('cc-tasa-anterior').textContent = tasaAnterior;
+    document.getElementById('cc-tasa-actual').textContent = tasaActual;
+
+    document.getElementById('cc-monto-origen-anterior').textContent = montoOrigenAnterior;
+    document.getElementById('cc-monto-destino-anterior').textContent = montoDestinoAnterior;
+    document.getElementById('cc-monto-origen-nuevo').textContent = montoOrigenNuevo;
+    document.getElementById('cc-monto-destino-nuevo').textContent = montoDestinoNuevo;
+
+    // Setear acciones de los formularios
+    const formAceptar = document.getElementById('cc-form-aceptar');
+    const formCancelar = document.getElementById('cc-form-cancelar');
+
+    if (formAceptar) formAceptar.action = urlAceptar;
+    if (formCancelar) formCancelar.action = urlCancelar;
+
+    const nextValue = window.location.pathname + window.location.search;
+
+    if (formAceptar) {
+        formAceptar.action = urlAceptar;
+
+        let nextInput = formAceptar.querySelector('input[name="next"]');
+        if (!nextInput) {
+            nextInput = document.createElement('input');
+            nextInput.type = 'hidden';
+            nextInput.name = 'next';
+            formAceptar.appendChild(nextInput);
+        }
+        nextInput.value = nextValue;
+    }
+
+    if (formCancelar) {
+        formCancelar.action = urlCancelar;
+
+        let nextInputCancel = formCancelar.querySelector('input[name="next"]');
+        if (!nextInputCancel) {
+            nextInputCancel = document.createElement('input');
+            nextInputCancel.type = 'hidden';
+            nextInputCancel.name = 'next';
+            formCancelar.appendChild(nextInputCancel);
+        }
+        nextInputCancel.value = nextValue;
+
+        // ⚠️ Aquí viene la parte nueva: el botón del prompt abre el modal de confirmación
+        const promptCancelBtn = formCancelar.querySelector('button.cancel-btn');
+        if (promptCancelBtn) {
+            // Que no haga submit directo
+            promptCancelBtn.type = 'button';
+
+            // Le pasamos los datos necesarios para la confirmación
+            promptCancelBtn.setAttribute('data-transaction-id', transactionId);
+            promptCancelBtn.setAttribute('data-url-cancelar', urlCancelar);
+
+            // Handler: cerrar este modal y abrir el de confirmación
+            promptCancelBtn.onclick = function (e) {
+                e.preventDefault();
+
+                // Ocultamos el modal de cambio de cotización
+                const cambioModal = document.getElementById('cambioCotizacionModal');
+                if (cambioModal) {
+                    cambioModal.style.display = 'none';
+                }
+
+                // Abrimos el modal de confirmación reutilizando la función global
+                openCancelConfirmModal(this);
+            };
+        }
+    }
+
+    // Mostrar modal
+    const modal = document.getElementById('cambioCotizacionModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeCambioCotizacionModal() {
+    const modal = document.getElementById('cambioCotizacionModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Cerrar modal de cambios al hacer clic en el overlay
+const cambioModal = document.getElementById('cambioCotizacionModal');
+if (cambioModal) {
+    cambioModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCambioCotizacionModal();
+        }
+    });
+}
+
+// Cerrar modal de cambios con tecla Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCambioCotizacionModal();
+    }
+});
+
+document.addEventListener('click', function(e) {
+    const closeBtn = e.target.closest('[data-close-modal]');
+    if (!closeBtn) return;
+
+    const modalId = closeBtn.getAttribute('data-close-modal');
+    const modal = document.getElementById(modalId);
+
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+});
+
+// ===============================
+// Modal de confirmación de cancelación
+// ===============================
+
+function openCancelConfirmModal(button) {
+    const transactionId = button.getAttribute('data-transaction-id');
+    const urlCancelar = button.getAttribute('data-url-cancelar') || '#';
+
+    // Mostrar el ID de la transacción en el texto del modal
+    const idSpan = document.getElementById('cancel-transaccion-id');
+    if (idSpan) {
+        idSpan.textContent = transactionId || '';
+    }
+
+    // Configurar la acción del formulario que realmente cancela
+    const form = document.getElementById('cancel-confirm-form');
+    if (form) {
+        form.action = urlCancelar;
+
+        // Si quisieras actualizar el "next" dinámicamente:
+        // const nextInput = form.querySelector('input[name="next"]');
+        // if (nextInput) {
+        //     nextInput.value = window.location.pathname + window.location.search;
+        // }
+    }
+
+    // Mostrar el modal
+    const modal = document.getElementById('cancelConfirmModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';  // bloquear scroll de fondo
+    }
+}
+
+function closeCancelConfirmModal() {
+    const modal = document.getElementById('cancelConfirmModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';  // restaurar scroll
+    }
+}
+
+// Vincular los botones "Cancelar" de la tabla (solo cuando NO hay cambio_pendiente)
+document.querySelectorAll('.cancel-open-btn').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();            // no navegamos ni enviamos nada todavía
+        openCancelConfirmModal(this);  // abrimos el modal de confirmación
+    });
+});
+
+// Cerrar el modal haciendo clic fuera del contenido ("overlay")
+const cancelModal = document.getElementById('cancelConfirmModal');
+if (cancelModal) {
+    cancelModal.addEventListener('click', function (e) {
+        if (e.target === this) {       // click directo sobre el overlay
+            closeCancelConfirmModal();
+        }
+    });
+}
+
+// Cerrar el modal con la tecla Escape
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        closeCancelConfirmModal();
+    }
+});
+
 
 </script>
 {% endblock %}

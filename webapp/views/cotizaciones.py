@@ -8,7 +8,7 @@ from django.views.decorators.http import require_GET
 from django.utils.timezone import now, timedelta
 from django.db.models import Q
 from ..decorators import role_required
-from ..models import CurrencyHistory, Transaccion, Currency, CuentaBancaria
+from ..models import CuentaBancariaNegocio, CurrencyHistory, Transaccion, Currency, CuentaBancaria
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
@@ -251,12 +251,12 @@ def promtCancelacionTransaccionCambioCotizacion(request, moneda: str | None = No
 
     Devuelve la cantidad de transacciones notificadas.
     """
-    ct_cuenta_bancaria = ContentType.objects.get_for_model(CuentaBancaria)
+    ct_cuenta_bancaria_negocio = ContentType.objects.get_for_model(CuentaBancariaNegocio)
 
     transacciones = Transaccion.objects.filter(
         estado=Transaccion.Estado.PENDIENTE,
     ).exclude(
-        medio_pago_type=ct_cuenta_bancaria
+        medio_pago_type=ct_cuenta_bancaria_negocio
     )
 
     if moneda:
