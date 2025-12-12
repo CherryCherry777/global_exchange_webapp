@@ -1476,8 +1476,8 @@ def create_currency_history(
     today: date = date.today()
 
     # Valores actuales de la moneda
-    compra: Decimal = instance.comision_compra
-    venta: Decimal = instance.comision_venta
+    compra: Decimal = instance.base_price - instance.comision_compra
+    venta: Decimal = instance.base_price + instance.comision_venta
 
     CurrencyHistory.objects.update_or_create(
         currency=instance,
