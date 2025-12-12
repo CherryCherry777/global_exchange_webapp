@@ -1,0 +1,26 @@
+**10.2 Preguntas Frecuentes (FAQ)**
+=================================
+
+Q: ¿Cómo restauro la documentación anterior?
+-------------------------------------------
+
+A: Hay un backup en `docs/backup_docs_20251211_0000/`. Puedes copiar los archivos que necesites desde ahí o restaurar la carpeta completa.
+
+Q: ¿Debo documentar modelos con `.. automodule::` en cada página?
+---------------------------------------------------------------
+
+A: No. Para evitar advertencias de duplicación, documenta modelos centrales en un archivo `models.rst` y desde otras páginas referencia esas entradas o use `:noindex:` cuando repitas descripciones.
+
+Q: ¿Cuál es el flujo recomendado para editar y publicar la documentación?
+---------------------------------------------------------------------
+
+A:
+
+1. Modifica o añade archivos en `docs/source/`.
+2. Ejecuta `.\make.bat html` desde `docs\` y corrige errores.
+3. Previsualiza `docs/build/html/index.html` en un navegador (puedes levantar `python -m http.server` en ese directorio para servir localmente).
+
+Q: ¿Cómo reporto un bug del sistema?
+-----------------------------------
+
+A: Usa el repositorio (Issues) indicando pasos para reproducir, logs relevantes y la versión del código (commit hash o branch).

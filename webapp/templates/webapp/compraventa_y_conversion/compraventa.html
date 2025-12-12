@@ -159,8 +159,8 @@
                             </div>
                             
                             <!-- Datos de cuenta bancaria para transferencia -->
-                            <div id="transferencia-info" class="transferencia-info d-none mt-3">
-                                <div class="transferencia-card">
+                            <div id="transferencia-info" class="transferencia-info d-none">
+                                <div class="transferencia-card datos-transferencia-container">
                                     <h6 class="transferencia-titulo">Datos para transferencia</h6>
                                     <div class="transferencia-datos">
                                         <p class="mb-1"><strong>Titular:</strong> Global Exchange </p>
@@ -1143,8 +1143,9 @@
                 // Mostrar select para otros métodos y para COBRO
                 selectEl.parentElement.classList.remove("select-hidden");
                 
-                // Ocultar info transferencia si existe
-                if (infoTransferencia) {
+                // Ocultar info transferencia SOLO si estamos en pago y NO es transferencia
+                // (no ocultar cuando el usuario selecciona cobro, para mantener visible los datos de pago)
+                if (tipo === "pago" && infoTransferencia) {
                     infoTransferencia.classList.add("d-none");
                 }
             }
@@ -1155,7 +1156,8 @@
         };
 
         // Función para colapsar la sección - CAMBIOS INSTANTÁNEOS (sin animación)
-        const colapsarMetodo = (contentEl, tabsEl) => {
+        // tipo: "pago" o "cobro" - solo oculta transferencia-info si colapsamos PAGO
+        const colapsarMetodo = (contentEl, tabsEl, tipo) => {
             const todosLosBotones = tabsEl.querySelectorAll(".metodo-btn");
             const selectWrapper = contentEl.querySelector(".metodo-select-wrapper");
             
@@ -1167,8 +1169,8 @@
                 selectWrapper.classList.remove("select-hidden");
             }
             
-            // Ocultar info transferencia
-            if (infoTransferencia) {
+            // Ocultar info transferencia SOLO si colapsamos la sección de PAGO
+            if (tipo === "pago" && infoTransferencia) {
                 infoTransferencia.classList.add("d-none");
             }
             
@@ -1200,14 +1202,14 @@
         // Event listener para botón "Atrás" de pago
         if (btnAtrasPago) {
             btnAtrasPago.addEventListener("click", () => {
-                colapsarMetodo(pagoContent, pagoTabs);
+                colapsarMetodo(pagoContent, pagoTabs, "pago");
             });
         }
 
         // Event listener para botón "Atrás" de cobro
         if (btnAtrasCobro) {
             btnAtrasCobro.addEventListener("click", () => {
-                colapsarMetodo(cobroContent, cobroTabs);
+                colapsarMetodo(cobroContent, cobroTabs, "cobro");
             });
         }
     }

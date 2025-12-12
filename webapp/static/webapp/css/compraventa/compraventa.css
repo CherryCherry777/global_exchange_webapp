@@ -617,6 +617,8 @@ body {
 
 .transferencia-info {
   width: 100%;
+  margin-top: -40px !important; /* aggressive lift to bring near Atrás button */
+  padding-top: 0 !important;
 }
 
 .transferencia-card {
@@ -629,12 +631,39 @@ body {
   text-align: left;
 }
 
+/* Contenedor visible para los Datos para transferencia
+   Option A: Solid purple border (default) */
+.datos-transferencia-container {
+  border: 2px solid #5B15C2 !important;
+  border-radius: 15px !important;
+  padding: 1.25rem 1.75rem !important;
+  background: rgba(9, 6, 22, 0.55) !important;
+  box-shadow: 0 6px 18px rgba(91, 21, 193, 0.18) !important;
+  margin-top: -40px !important; /* aggressive lift – adjust to -60px or -80px if still too low */
+}
+
+/* Option B: Gradient border if you prefer a fancier frame.
+   To use this, remove or comment out the .datos-transferencia-container rule above
+   and uncomment the block below. This uses background-clip trick to draw
+   a gradient border while keeping an inner padding box background. */
+/* .datos-transferencia-container {
+  border-radius: 16px;
+  padding: 1px; /* creates the border width */
+  background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 100%); /* outer gradient */
+}
+.datos-transferencia-container > .transferencia-card {
+  border: none;
+  border-radius: 15px;
+  padding: 1.25rem 1.75rem;
+  background: linear-gradient(180deg, rgba(9,6,22,0.6), rgba(9,6,22,0.5));
+} */
+
 .transferencia-titulo {
-  font-weight: bold;
-  font-size: 18px;
+  font-size: 22px;
   color: #ffd400;
   margin-bottom: 1rem;
   text-transform: uppercase;
+  text-align: center;
 }
 
 .transferencia-datos p {
