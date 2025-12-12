@@ -1,0 +1,10 @@
+Error en la acreditación de la transacción
+Estimado/a {{transaccion.usuario}},
+Se recibió el pago de la transacción correctamente, pero hubo problemas 
+para acreditar el monto correspondiente.
+Detalles:
+- ID de transacción: {{transaccion.id}}
+- Monto: {{transaccion.monto_destino}} {{transaccion.moneda_destino}}
+Por favor, aguarde un momento y en breves su caso será revisado.
+Atentamente,
+El equipo de soporte de {{project_name}}         

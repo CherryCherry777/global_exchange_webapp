@@ -1,5 +1,6 @@
 {% extends "webapp/base.html" %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}
 {% if is_edit %}
@@ -10,125 +11,75 @@ Agregar {{ tipo|capfirst }}
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'webapp/css/metodos_pago/add_payment_method.css' %}" />
+<link rel="stylesheet" href="{% static 'webapp/css/metodos_pago/add_payment_method_new.css' %}" />
 <style>
-/* Estilos inline para forzar la aplicación */
-.add-payment-method-container {
-    min-height: 100vh !important;
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%) !important;
-    padding: 20px 0 !important;
-}
-
-.add-payment-method-header {
-    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%) !important;
-    padding: 40px 0 !important;
-    margin-bottom: 30px !important;
-}
-
-.add-payment-method-title {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: bold !important;
-    font-size: 32px !important;
-    color: white !important;
-    margin: 0 !important;
-}
-
-.add-payment-method-subtitle {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 500 !important;
-    font-style: italic !important;
-    font-size: 20px !important;
-    color: white !important;
-    margin: 10px 0 0 0 !important;
-}
-
-.form-container {
-    max-width: 800px !important;
-    margin: 0 auto !important;
-}
-
-.form-card {
-    background: rgba(238, 233, 210, 0.1) !important;
-    border-radius: 20px !important;
-    padding: 40px !important;
-    backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.form-title {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 28px !important;
-    color: white !important;
-    margin: 0 0 10px 0 !important;
-}
-
-.form-subtitle {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 400 !important;
-    font-size: 16px !important;
-    color: rgba(255, 255, 255, 0.8) !important;
-    margin: 0 !important;
-}
-
 .form-group input,
 .form-group select {
-    width: 100% !important;
-    padding: 15px 20px !important;
-    border: 2px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 10px !important;
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-    font-family: 'Roboto', sans-serif !important;
-    font-size: 16px !important;
-    transition: all 0.3s ease !important;
-    backdrop-filter: blur(5px) !important;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none !important;
-    border-color: #5B15C2 !important;
-    background: rgba(255, 255, 255, 0.15) !important;
-    box-shadow: 0 0 20px rgba(91, 21, 194, 0.2) !important;
+    width: 286px;
+    height: 46px;
+    background: #646464;
+    border: none;
+    border-radius: 5px;
+    padding: 0 15px;
+    color: white;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    outline: none;
+    box-sizing: border-box;
 }
 
 .form-group input::placeholder,
 .form-group select::placeholder {
-    color: rgba(255, 255, 255, 0.5) !important;
-    transition: none !important;
-    animation: none !important;
-    transform: none !important;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 300;
+    font-style: italic;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(91, 21, 194, 0.5);
 }
 
 .form-group input:hover,
 .form-group select:hover {
-    border-color: rgba(255, 255, 255, 0.3) !important;
-    background: rgba(255, 255, 255, 0.12) !important;
-}
-
-.form-group select:hover {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 15px center !important;
-    background-size: 20px !important;
-}
-
-.form-group input[type="text"]:hover,
-.form-group input[type="email"]:hover,
-.form-group input[type="tel"]:hover,
-.form-group input[type="number"]:hover {
-    background-image: none !important;
+    background: #646464;
 }
 
 .form-group select {
-    cursor: pointer !important;
-    appearance: none !important;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 15px center !important;
-    background-size: 20px !important;
-    padding-right: 50px !important;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding: 0 40px 0 15px;
+    background: #646464 url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 12px center;
+    background-size: 16px;
+    cursor: pointer;
+}
+
+.form-group select option {
+    background-color: #1a1a2e;
+    color: white;
+    padding: 10px;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.form-group select option[value=""] {
+    font-weight: 300;
+    font-style: italic;
+}
+
+.form-group select option:hover {
+    background-color: #2a2a3e;
+    color: white;
+}
+
+.form-group select option:checked {
+    background-color: #391196;
+    color: white;
 }
 
 .form-group input[type="text"],
@@ -136,181 +87,210 @@ Agregar {{ tipo|capfirst }}
 .form-group input[type="tel"],
 .form-group input[type="number"] {
     background-image: none !important;
-    padding-right: 20px !important;
-}
-
-.form-group select option {
-    background-color: #1a1a2e !important;
-    color: white !important;
-    padding: 10px !important;
-    font-family: 'Roboto', sans-serif !important;
-    font-size: 16px !important;
+    padding-right: 12px;
 }
 
 .form-label {
-    display: block !important;
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 500 !important;
-    font-size: 16px !important;
-    color: white !important;
-    margin-bottom: 8px !important;
-    transition: none !important;
+    display: block;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 20px;
+    color: white;
+    margin-bottom: 12px;
+    padding: 0;
+}
+
+.form-actions {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    margin-top: 40px;
+    padding: 0;
+    border: none;
+    width: auto;
+}
+
+.submit-button, .cancel-button {
+    width: 125px;
+    height: 36px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
 }
 
 .submit-button {
-    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%) !important;
-    color: white !important;
-    padding: 15px 30px !important;
-    border-radius: 25px !important;
-    border: none !important;
-    cursor: pointer !important;
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 500 !important;
-    font-style: italic !important;
-    font-size: 16px !important;
-    transition: none !important;
-    min-width: 150px !important;
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+}
+
+.submit-button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(91, 21, 194, 0.3);
 }
 
 .cancel-button {
-    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 100%) !important;
-    color: white !important;
-    padding: 15px 30px !important;
-    border-radius: 25px !important;
-    border: none !important;
-    cursor: pointer !important;
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 500 !important;
-    font-style: italic !important;
-    font-size: 16px !important;
-    transition: none !important;
-    min-width: 150px !important;
-    text-decoration: none !important;
-    display: inline-block !important;
-    text-align: center !important;
+    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 94%);
 }
 
-.section-title {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 18px !important;
-    color: white !important;
-    margin-bottom: 20px !important;
-    padding-bottom: 10px !important;
-    border-bottom: 2px solid rgba(91, 21, 194, 0.3) !important;
+.cancel-button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+    color: white;
 }
 
 .error-message {
-    display: block !important;
-    color: #ff6b6b !important;
-    font-family: 'Roboto', sans-serif !important;
-    font-size: 14px !important;
-    margin-top: 5px !important;
+    color: #ff6b6b;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 14px;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.form-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 64px;
+    padding: 0 20px;
+    margin-left: 0;
+    margin-top: 0;
+    border-radius: 20px;
+    background: rgba(238, 233, 210, 0.10);
+    color: white;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    font-family: 'Roboto', Arial, sans-serif;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.15);
+    transform: translateY(-2px);
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="add-payment-method-container">
+    <!-- Header Section -->
     <div class="add-payment-method-header">
         <div class="main-content">
-            <a href="{% url 'my_cobro_methods' %}" class="back-button">
-                ← Volver a Mis Medios de Cobro
-            </a>
+            <a href="{% url 'my_cobro_methods' %}" class="back-button">← Volver a Mis Medios de Cobro</a>
+            
             <div class="header-content">
-                <div class="header-left">
+                <div class="header-text">
                     <h1 class="add-payment-method-title">
                         {% if is_edit %}
-                        Editar {{ tipo|capfirst }}
+                        Editar {{ tipo|replace_underscore|capfirst }}
                         {% else %}
-                        Agregar {{ tipo|capfirst }}
+                        Agregar {{ tipo|replace_underscore|capfirst }}
                         {% endif %}
                     </h1>
                     <p class="add-payment-method-subtitle">
                         {% if is_edit %}
-                        Modifica los datos de tu {{ tipo|capfirst }}
+                        Modifica los datos de tu {{ tipo|replace_underscore|capfirst }}
                         {% else %}
-                        Completa los datos para agregar un nuevo {{ tipo|capfirst }}
+                        Completa los datos para agregar un nuevo {{ tipo|replace_underscore|capfirst }}
                         {% endif %}
                     </p>
-                </div>
-                <div class="header-icon">
-                    <img src="{% static 'webapp/pantalla_metodo_pago/1.metodo_pago.png' %}" alt="{{ tipo|capfirst }}" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); padding: 15px;">
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="main-content">
-        <div class="form-container">
-            <div class="form-card">
+    <!-- Form Container -->
+    <div class="form-container">
+        <div class="form-card">
+            <!-- Icon Section -->
+            <div class="payment-method-icon-circle">
+                <img src="{% static 'webapp/pantalla_administrar_metodos/2. Administrar_metodo2.png' %}" alt="{{ tipo|capfirst }} Icon" class="payment-method-icon">
+            </div>
+
             <div class="form-header">
-                <h3 class="form-title">
-                    {% if is_edit %}
-                    Editar {{ tipo|capfirst }}
-                    {% else %}
-                    Agregar {{ tipo|capfirst }}
-                    {% endif %}
-                </h3>
-                <p class="form-subtitle">
-                    {% if is_edit %}
-                    Modifica los datos de tu {{ tipo|capfirst }}
-                    {% else %}
-                    Completa los datos para agregar un nuevo {{ tipo|capfirst }}
-                    {% endif %}
-                </p>
+                <h2 class="form-title">Información General</h2>
             </div>
 
             <form method="post" class="payment-form">
                 {% csrf_token %}
 
-                <!-- Información General -->
+                <!-- Información General Section -->
                 <div class="form-section">
                     <h4 class="section-title">Información General</h4>
-                    <div class="form-group">
-                        <label class="form-label">{{ medio_cobro_form.nombre.label }}</label>
-                        {{ medio_cobro_form.nombre }}
-                        {% for error in medio_cobro_form.nombre.errors %}
-                            <span class="error-message">{{ error }}</span>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Dropdown de moneda solo al crear -->
-                    {% if not is_edit %}
-                    <div class="form-group">
-                        <label class="form-label">Moneda</label>
-                        <select name="moneda" id="id_moneda" class="form-group select" required>
-                            <option value="">-- Seleccione una moneda --</option>
-                            {% for m in monedas %}
-                                <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    {% endif %}
-
-                    <!-- Mostrar moneda como campo deshabilitado al editar -->
-                    {% if is_edit and medio_cobro and medio_cobro.moneda %}
-                    <div class="form-group">
-                        <label class="form-label">Moneda</label>
-                        <input type="text" class="form-group input" value="{{ medio_cobro.moneda.code }} - {{ medio_cobro.moneda.name }}" disabled>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Datos Específicos -->
-                <div class="form-section">
-                    <h4 class="section-title">Datos del {{ tipo|capfirst }}</h4>
-                    {% for field in form.visible_fields %}
+                    <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">{{ field.label }}</label>
-                            {{ field }}
-                            {% for error in field.errors %}
+                            <label class="form-label">Nombre de {{ tipo|replace_underscore|capfirst }}</label>
+                            {{ medio_cobro_form.nombre }}
+                            {% for error in medio_cobro_form.nombre.errors %}
                                 <span class="error-message">{{ error }}</span>
                             {% endfor %}
                         </div>
-                    {% endfor %}
+
+                        <!-- Dropdown de moneda solo al crear -->
+                        {% if not is_edit %}
+                        <div class="form-group">
+                            <!-- Solo guaranies para medios de cobro billetera y cuenta bancaria
+                            <label class="form-label">Moneda</label>
+                            <select name="moneda" id="id_moneda" required>
+                                <option value="">Seleccione una moneda</option>
+                                {% for m in monedas %}
+                                    <option value="{{ m.id }}">{{ m.code }} - {{ m.name }}</option>
+                                {% endfor %}
+                            </select>-->
+                            <input type="hidden" name="moneda" value="1">
+                        </div>
+                        {% endif %}
+
+                        <!-- Mostrar moneda como campo deshabilitado al editar -->
+                        {% if is_edit and medio_cobro and medio_cobro.moneda %}
+                        <div class="form-group">
+                            <label class="form-label">Moneda</label>
+                            <input type="text" value="{{ medio_cobro.moneda.code }} - {{ medio_cobro.moneda.name }}" disabled>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
 
+                <!-- Datos Específicos Section -->
+                <div class="form-section">
+                    <h4 class="section-title">Datos del {{ tipo|replace_underscore|capfirst }}</h4>
+                    <div class="form-row">
+                        {% for field in form.visible_fields %}
+                            <div class="form-group">
+                                <label class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}
+                                    <span class="error-message">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
                 <div class="form-actions">
                     <a href="{% url 'my_cobro_methods' %}" class="cancel-button">Cancelar</a>
                     <button type="submit" class="submit-button">
@@ -318,7 +298,6 @@ Agregar {{ tipo|capfirst }}
                     </button>
                 </div>
             </form>
-            </div>
         </div>
     </div>
 </div>

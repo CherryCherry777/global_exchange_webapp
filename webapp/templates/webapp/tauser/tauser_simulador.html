@@ -42,6 +42,21 @@
 
             <form method="post">
                 {% csrf_token %}
+
+                {% if modo == 'pagar' %}
+                    <div class="denom-box" style="color: #000;">
+                        <h4>Ingresar billetes recibidos</h4>
+                        {% for d in denominaciones %}
+                            <label class="denom-line">
+                                <span>{{ d.value }}</span>
+                                <input type="number" name="denom_{{ d.id }}" min="0" value="0" class="denom-input">
+                            </label>
+                        {% endfor %}
+                        <p class="denom-note">Debe coincidir exactamente con el monto que paga el cliente.</p>
+                        <hr>
+                    </div>
+                {% endif %}
+
                 <div class="button-group">
                     <button type="submit" name="accion" value="confirmar" class="btn-confirm">
                         {% if modo == 'pagar' %}Confirmar Pago{% else %}Confirmar Cobro{% endif %}

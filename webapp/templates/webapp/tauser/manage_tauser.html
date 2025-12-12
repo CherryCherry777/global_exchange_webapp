@@ -1,0 +1,93 @@
+{% extends 'webapp/base.html' %}
+{% load static %}
+{% block title %}Administrar Stock Tauser{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'webapp/css/tauser/tauser_manage.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="manage-quotes-container">
+
+    <!-- Header Section -->
+    <div class="manage-quotes-header">
+        <div class="main-content">
+            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="manage-quotes-title">Administrar Stock del Tauser</h1>
+                    <p class="manage-quotes-subtitle">Controlar y reponer billetes disponibles</p>
+                </div>
+
+                <!-- Metrics Cards -->
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Tausers Activos</div>
+                        <div class="metric-number">{{ total_tausers }}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Denominaciones</div>
+                        <div class="metric-number">{{ total_denominations }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Select Tauser -->
+    <div class="main-content">
+        <form method="get" class="search-section">
+            <label>Seleccionar Tauser</label>
+            <select name="tauser_id" onchange="this.form.submit()" class="search-input">
+                {% for t in tausers %}
+                    <option value="{{ t.id }}" {% if t.id == selected_tauser.id %}selected{% endif %}>
+                        {{ t.nombre }} ({{ t.ubicacion }})
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <!-- Stock Table -->
+        <div class="quotes-list-container">
+            <h2 class="search-title">Stock Actual</h2>
+            <table class="quotes-table">
+                <thead>
+                    <tr>
+                        <th>Moneda</th>
+                        <th>Denominación</th>
+                        <th>Cantidad</th>
+                        <th>Agregar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in stock %}
+                    <tr class="quote-row">
+                        <td>{{ item.currency }}</td>
+                        <td>{{ item.value|floatformat:0 }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>
+                            <form method="post" style="display:flex; gap:8px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="denomination_id" value="{{ item.denomination_id }}">
+                                <input type="number" name="add_qty" min="1" class="stock-input">
+                                <button type="submit" class="action-button modify-button">Agregar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <br>
+
+            <!-- Botón reset opcional -->
+            <form method="post" onsubmit="return confirm('¿Vaciar stock de este Tauser?');">
+                {% csrf_token %}
+                <input type="hidden" name="reset_tauser" value="1">
+                <button class="action-button deactivate-button">Vaciar Stock Tauser</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

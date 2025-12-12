@@ -20,6 +20,10 @@
 {% has_perms request.user 'webapp.view_limiteintercambio' as p_view_lim %}
 {% has_perms request.user 'webapp.view_mediopago' as p_view_mediopago %}
 {% has_perms request.user 'webapp.view_mediocobro' as p_view_mediocobro %}
+{% has_perms request.user 'webapp.view_emailscheduleconfig' as p_view_emailscheduleconfig %}
+{% has_perms request.user 'webapp.view_limiteintercambioscheduleconfig' as p_view_limiteintercambioscheduleconfig %}
+{% has_perms request.user 'webapp.view_expiraciontransaccionconfig' as p_view_expiraciontransaccionconfig %}
+
 
 {% if can_access_admin_panel or can_access_analyst_panel %}
 <div class="admin-panel">
@@ -155,13 +159,22 @@
             </a>
             {% endif %}
             
-            {% has_perms request.user 'webapp.view_limiteintercambio' as can_view_limiteintercambio %}
+            {% has_perms request.user 'webapp.view_limiteintercambioconfig' as can_view_limiteintercambio %}
             {% if can_view_limiteintercambio %}
             <a href="{% url 'limites_list' %}" class="management-button">
                 <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Límites de Intercambio" class="button-icon">
                 <span class="button-text">Administrar Límites de Intercambio</span>
             </a>
             {% endif %}
+
+            {% has_perms request.user 'webapp.ver_reportes' as can_view_reportes %}
+            {% if can_view_reportes %}
+            <a href="{% url 'reporte_transacciones' %}" class="management-button">
+                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Límites de Intercambio" class="button-icon">
+                <span class="button-text">Reportes de Transacciones</span>
+            </a>
+            {% endif %}
+
         </div>
         {% endif %}
 
@@ -195,89 +208,37 @@
         </div>
         {% endif %}
 
+        <!-- Contenedor 5: Gestión de Temporizadores -->
+        <div class="management-container configuracion-global-container">
+            <h2 class="container-title">Configuraciones Globales</h2>
+            {% if can_access_admin_panel or p_view_emailscheduleconfig or p_view_expiraciontransaccionconfig or p_view_limiteintercambioscheduleconfig %}
+                <a href="{% url 'manage_schedule' %}" class="management-button long-text-button">
+                    <img src="{% static 'webapp/panel_gestiones/15.Administrar_Temporizadores.png' %}" alt="Administrar Temporizadores" class="button-icon">
+                    <span class="button-text">Administrar Temporizadores</span>
+                </a>
+            {% endif %}
+            <a href="{% url 'currency_denominations' %}" class="management-button long-text-button">
+                <img src="{% static 'webapp/panel_gestiones/13. Administrar_Limites_de_Intercambio.png' %}" alt="Administrar Denominaciones de monedas" class="button-icon">
+                <span class="button-text">Administrar Denominaciones</span>
+            </a>
+            <a href="{% url 'manage_tausers' %}" class="management-button long-text-button">
+                <img src="{% static 'webapp/panel_gestiones/16.Administrar_Tausers.png' %}" alt="Administrar Tausers" class="button-icon">
+                <span class="button-text">Administrar Tausers</span>
+            </a>
+        </div>
+        
+
     </div>
 </div>
 {% else %}
 <div class="user-dashboard-container">
-    <!-- Header Section -->
-    <div class="user-dashboard-header">
-        <div class="main-content">
-            <div class="header-content">
-                <div class="header-text">
-                    <h1 class="user-dashboard-title">Bienvenido a Global Exchange!</h1>
-                    <p class="user-dashboard-subtitle">Proveemos el mejor servicio de cambio de monedas</p>
-                </div>
-                
-                <!-- Quick Actions -->
-                <div class="quick-actions">
-                    <a href="{% url 'public_home' %}" class="quick-action-btn">
-                        <div class="btn-icon">
-                            <img src="{% static 'webapp/panel_gestiones/1.Administar_Usuarios.png' %}" alt="Inicio">
-                        </div>
-                        <span class="btn-text">Ir al Inicio</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    {# Header de bienvenida retirado por solicitud #}
 
     <!-- Main Content -->
     <div class="main-content">
         {% is_usuario_asociado request.user as usuario_asociado %}
         {% if usuario_asociado %}
-        <!-- User Management Section -->
-        <div class="user-management-section">
-            <h2 class="section-title">Gestiona tus Métodos de Pago y Cobro</h2>
-            <p class="section-subtitle">Administra tus métodos de pago y cobro personales</p>
-            
-            <div class="user-management-grid">
-                <a href="{% url 'my_payment_methods' %}" class="user-management-card payment-card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <img src="{% static 'webapp/panel_gestiones/9.Administrar_Metodos_de_Pago.png' %}" alt="Métodos de Pago">
-                        </div>
-                        <div class="card-badge payment-badge">Pago</div>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Administrar Métodos de Pago</h3>
-                        <p class="card-description">Gestiona tus billeteras, cuentas bancarias y tarjetas para realizar pagos</p>
-                        <div class="card-features">
-                            <span class="feature-tag">Billeteras</span>
-                            <!--<span class="feature-tag">Cuentas Bancarias</span>-->
-                            <span class="feature-tag">Tarjetas</span>
-                        </div>
-                    </div>
-                    <div class="card-arrow">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </a>
-
-                <a href="{% url 'my_cobro_methods' %}" class="user-management-card cobro-card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <img src="{% static 'webapp/panel_gestiones/11.Administrar_Metodos_de_Cobro.png' %}" alt="Métodos de Cobro">
-                        </div>
-                        <div class="card-badge cobro-badge">Cobro</div>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">Administrar Métodos de Cobro</h3>
-                        <p class="card-description">Configura tus métodos para recibir pagos y transferencias</p>
-                        <div class="card-features">
-                            <span class="feature-tag">Billeteras</span>
-                            <span class="feature-tag">Cuentas Bancarias</span>
-                            <!--<span class="feature-tag">Tarjetas</span>-->
-                        </div>
-                    </div>
-                    <div class="card-arrow">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </a>
-            </div>
-        </div>
+        {# Se removió la sección de Métodos de Pago y Cobro y el CTA del landing. Página independiente: /administar-metodos-pago/ #}
         {% else %}
         <!-- No Associated User Message -->
         <div class="no-access-section">

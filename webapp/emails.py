@@ -62,121 +62,6 @@ def send_mfa_login_email(request, user):
         html_message=html_body,
     )
 
-"""
-def send_exchange_rates_email_debug(user):
-
-    #Envía un correo con las tasas de cambio de todas las monedas activas.
-    #Incluye enlace de desuscripción persistente.
-
-
-
-    # Obtener descuento del cliente relacionado
-    try:
-        cliente_usuario = ClienteUsuario.objects.select_related("cliente__categoria").get(usuario=user)
-        descuento = cliente_usuario.cliente.categoria.descuento
-    except ClienteUsuario.DoesNotExist:
-        descuento = Decimal("0")
-
-    # Preparar lista de monedas (excluyendo PYG)
-    currencies = []
-    for c in Currency.objects.filter(is_active=True).exclude(code="PYG"):
-        precio_compra = c.base_price - c.comision_compra * (1 - descuento)
-        precio_venta = c.base_price + c.comision_venta * (1 - descuento)
-        currencies.append({
-            "name": c.name,
-            "code": c.code,
-            "precio_compra": f"{precio_compra:.2f}",
-            "precio_venta": f"{precio_venta:.2f}"
-        })
-
-    # Generar token persistente para desuscripción
-    if not user.unsubscribe_token:
-        user.unsubscribe_token = secrets.token_urlsafe(32)
-        user.save()
-
-    uidb64 = urlsafe_base64_encode(force_bytes(user.id))
-    unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/{user.unsubscribe_token}/"
-
-    # Renderizar plantillas
-    context = {"currencies": currencies, "unsubscribe_url": unsubscribe_url}
-    text_content = render_to_string("emails/exchange_rates.txt", context)
-    html_content = render_to_string("emails/exchange_rates.html", context)
-
-    # Enviar email
-    subject = "Simulador - Tasas de cambio"
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
-    email = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
-    email.attach_alternative(html_content, "text/html")
-    email.send(fail_silently=False)"""
-
-"""def send_exchange_rates_email_debug(user):
-    
-    #Envía un correo con las tasas de cambio para cada ClienteUsuario asociado al `user`.
-    #Si el usuario no tiene clientes, envía un único correo con descuento 0.
-    
-    connection = get_connection()
-    connection.open()
-
-    # Generar token persistente si no existe (solo una vez)
-    if not getattr(user, "unsubscribe_token", None):
-        user.unsubscribe_token = secrets.token_urlsafe(32)
-        user.save(update_fields=["unsubscribe_token"])
-
-    uidb64 = urlsafe_base64_encode(force_bytes(user.id))
-    unsubscribe_url = f"{settings.SITE_URL}/unsubscribe/{uidb64}/{user.unsubscribe_token}/"
-
-    # Traer todos los ClienteUsuario asociados (cada uno tiene su cliente y categoría)
-    cliente_usuarios = ClienteUsuario.objects.select_related("cliente__categoria").filter(usuario=user)
-
-    # Query de monedas (una sola vez, luego lo usamos por cliente)
-    currency_qs = Currency.objects.filter(is_active=True).exclude(code="PYG")
-
-    # Si no hay clientes asociados, enviamos una vez con descuento 0
-    if not cliente_usuarios.exists():
-        cliente_iterable = [None]  # un único envío con cliente=None y descuento 0
-    else:
-        cliente_iterable = list(cliente_usuarios)
-
-    for cu in cliente_iterable:
-        # obtener descuento (si no hay cliente -> 0)
-        if cu is None:
-            descuento = Decimal("0")
-            cliente = None
-        else:
-            # Manejo defensivo por si la categoría o su descuento son None
-            cliente = cu.cliente
-            descuento = getattr(getattr(cliente, "categoria", None), "descuento", None) or Decimal("0")
-
-        # Preparar lista de monedas con el descuento correspondiente
-        currencies = []
-        for c in currency_qs:
-            precio_compra = c.base_price - (c.comision_compra * (Decimal("1") - descuento))
-            precio_venta  = c.base_price + (c.comision_venta * (Decimal("1") - descuento))
-            currencies.append({
-                "name": c.name,
-                "code": c.code,
-                "precio_compra": f"{precio_compra:.2f}",
-                "precio_venta":  f"{precio_venta:.2f}"
-            })
-
-        # Renderizar y enviar
-        context = {
-            "currencies": currencies,
-            "unsubscribe_url": unsubscribe_url,
-            "cliente": cliente,
-        }
-        text_content = render_to_string("emails/exchange_rates.txt", context)
-        html_content = render_to_string("emails/exchange_rates.html", context)
-
-        subject = "Simulador - Tasas de cambio" + (f" - {cliente}" if cliente else "")
-        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@simulador.com")
-        email = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
-        email.attach_alternative(html_content, "text/html")
-        email.send(fail_silently=False)
-        time.sleep(1)
-
-    connection.close()"""
-
 def send_exchange_rates_email_debug(user):
     """
     Envía un solo correo al usuario con las tasas de cambio
@@ -251,3 +136,129 @@ def send_exchange_rates_email_debug(user):
     email = EmailMultiAlternatives(subject, text_content, from_email, [user.email])
     email.attach_alternative(html_content, "text/html")
     email.send(fail_silently=False)
+
+
+def send_fallo_acreditacion_email(transaccion, error=None) -> None:
+    """
+    Envía correos de notificación cuando una acreditación falla.
+    Usa plantillas ya existentes (.txt y .html) para el cuerpo.
+    """
+
+    project_name = getattr(settings, "PROJECT_NAME", "Global Exchange")
+    soporte_email = getattr(settings, "SUPPORT_EMAIL", "soporte@globalexchange.com")
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+
+    # Contexto común para las plantillas
+    context = {
+        "transaccion": transaccion,
+        "project_name": project_name,
+        "error": error,
+    }
+
+    # 1) Correo al usuario (si tiene email)
+    usuario_email = getattr(transaccion.usuario, "email", None)
+    if usuario_email:
+        subject_usuario = "Error en la acreditación de la transacción"
+
+        text_body_usuario = render_to_string(
+            "emails/accreditation_failed_cliente.txt",
+            context,
+        )
+        html_body_usuario = render_to_string(
+            "emails/accreditation_failed_cliente.html",
+            context,
+        )
+
+        send_mail(
+            subject=subject_usuario,
+            message=text_body_usuario,
+            from_email=from_email,
+            recipient_list=[usuario_email],
+            html_message=html_body_usuario,
+            fail_silently=True,
+        )
+
+    # 2) Correo al soporte (si tenés templates separados, mejor)
+    subject_admin = f"⚠️ Error en la acreditación de la transacción #{transaccion.id}"
+
+    text_body_admin = render_to_string(
+        "emails/accreditation_failed_asistencia.txt",
+        context,
+    )
+    html_body_admin = render_to_string(
+        "emails/accreditation_failed_asistencia.html",
+        context,
+    )
+
+    send_mail(
+        subject=subject_admin,
+        message=text_body_admin,
+        from_email=from_email,
+        recipient_list=[soporte_email],
+        html_message=html_body_admin,
+        fail_silently=True,
+    )
+
+def send_transaction_cancellation_prompt(
+    request,
+    transaccion,
+    *,
+    tasa_actual: Decimal,
+    tasa_antigua: Decimal,
+    montoOrigenNuevo: Decimal,
+    montoDestinoNuevo: Decimal,
+) -> None:
+    """
+    Envía aviso al usuario cuando la cotización cambia.
+    NO asume ningún setting adicional como SITE_URL.
+    Devuelve URLs relativas sin tocar configuraciones externas.
+    """
+
+    project_name = getattr(settings, "PROJECT_NAME", "Global Exchange")
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+
+    user = transaccion.usuario
+
+    # URL RELATIVA — no inventamos settings inexistentes
+    detalle_transaccion = reverse("transaccion_list")
+    detalle_transaccion_url = request.build_absolute_uri(detalle_transaccion)
+
+    moneda = None
+    try:
+        if transaccion.tipo == "VENTA":
+            moneda = transaccion.moneda_destino
+        else:
+            moneda = transaccion.moneda_origen
+    except:
+        print("La transacción no tiene asignada moneda")
+
+    context = {
+        "user": user,
+        "transaccion": transaccion,
+        "project_name": project_name,
+        "detalles_transaccion_url": detalle_transaccion_url,  # ← URL relativa segura
+        "tasa_anterior": tasa_antigua,
+        "tasa_actual": tasa_actual,
+        "montoOrigenNuevo": montoOrigenNuevo,
+        "montoDestinoNuevo": montoDestinoNuevo,
+        "moneda": moneda,
+    }
+
+    # --------------------------------------
+    # 1) Correo al usuario
+    # --------------------------------------
+    usuario_email = getattr(user, "email", None)
+    if usuario_email:
+        subject_usuario = "Tu transacción cambió de cotización"
+
+        text_body = render_to_string("emails/transaction_cancellation_promt.txt", context)
+        html_body = render_to_string("emails/transaction_cancellation_promt.html", context)
+
+        send_mail(
+            subject=subject_usuario,
+            message=text_body,
+            from_email=from_email,
+            recipient_list=[usuario_email],
+            html_message=html_body,
+            fail_silently=True,
+        )

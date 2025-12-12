@@ -332,9 +332,28 @@ def manage_payment_method(request, tipo, medio_pago_id=None):
                     except Exception as detach_error:
                         print(f"No se pudo eliminar el PaymentMethod de Stripe: {detach_error}")
 
-                    messages.error(request, f"Error al registrar la tarjeta")
-                    print("Error:", e)
-                    return redirect("my_payment_methods")
+                    # 2) Extraer mensaje “humano” desde Stripe
+                    error_msg = getattr(e, "user_message", None) or str(e)
+                    # Opcional: evitar mostrar detalles muy técnicos
+                    if ":" in error_msg:
+                        error_msg = error_msg.split(":", 1)[-1].strip()
+
+                    # 3) Mostrar mensaje claro al usuario
+                    messages.error(request, f"Error al registrar la tarjeta: {error_msg}")
+
+                    # Log real para developer
+                    print("Error Stripe (raw):", e)
+                    
+                    monedas = Currency.objects.filter(is_active=True)
+                    return render(request, "webapp/metodos_pago_cliente/manage_payment_method_base.html", {
+                        "tipo": tipo,
+                        "form": form,
+                        "medio_pago_form": medio_pago_form,
+                        "is_edit": is_edit,
+                        "medio_pago": medio_pago,
+                        "monedas": monedas,
+                        "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
+                    })
 
         # Validación y guardado normal
         if form.is_valid() and medio_pago_form.is_valid():

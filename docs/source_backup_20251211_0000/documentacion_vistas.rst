@@ -827,3 +827,295 @@ desasignar_cliente_usuario
 - Verificación de permisos necesarios
 - Actualización automática de relaciones
 - Registro de historial de cambios
+
+Facturación
+-----------
+
+ver_factura
+~~~~~~~~~~~
+**Ubicación:** factura.py
+**Descripción:** Vista principal para mostrar facturas del sistema.
+**Funcionalidad:**
+- Renderiza vista de factura con iframe
+- Muestra datos de facturación
+- Botón para generación de PDF
+- Interfaz de usuario para facturación
+
+factura_view
+~~~~~~~~~~~~
+**Ubicación:** factura.py
+**Descripción:** Vista específica para renderizar contenido de factura por ID.
+**Funcionalidad:**
+- Obtiene datos de factura por ID
+- Renderiza template específico de factura
+- Preparación de datos para PDF
+- Cálculos de impuestos y totales
+
+factura_pdf
+~~~~~~~~~~~
+**Ubicación:** factura.py
+**Descripción:** Vista para generar y descargar facturas en formato PDF.
+**Funcionalidad:**
+- Genera PDF usando weasyprint
+- Configuración de diseño de factura
+- Descarga automática de archivo
+- Compatibilidad con diferentes navegadores
+
+TAUser (Gestión de Terceros Autorizados)
+-----------------------------------------
+
+tauser_login
+~~~~~~~~~~~~
+**Ubicación:** tauser.py
+**Descripción:** Vista de autenticación específica para TAUsers (Terceros Autorizados).
+**Funcionalidad:**
+- Sistema de login independiente para TAUsers
+- Validación de credenciales específicas
+- Redirección a dashboard TAUser
+- Gestión de sesiones TAUser
+
+tauser_home
+~~~~~~~~~~~
+**Ubicación:** tauser.py
+**Descripción:** Dashboard principal para TAUsers autenticados.
+**Funcionalidad:**
+- Panel de control específico para TAUsers
+- Lista de transacciones pendientes
+- Acceso a funciones de pago y cobro
+- Estadísticas de operaciones
+
+tauser_pagar
+~~~~~~~~~~~~
+**Ubicación:** tauser.py
+**Descripción:** Vista para que TAUsers procesen pagos de transacciones.
+**Funcionalidad:**
+- Procesamiento de pagos por TAUsers
+- Validación de transacciones pendientes
+- Actualización de estados de pago
+- Confirmación de operaciones realizadas
+
+tauser_cobrar
+~~~~~~~~~~~~~
+**Ubicación:** tauser.py
+**Descripción:** Vista para que TAUsers procesen cobros de transacciones.
+**Funcionalidad:**
+- Procesamiento de cobros por TAUsers
+- Gestión de transferencias recibidas
+- Validación de montos y referencias
+- Actualización de estados de cobro
+
+Límites de Intercambio
+----------------------
+
+limites_intercambio_list
+~~~~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** limites_de_intercambio.py
+**Descripción:** Vista principal para listar límites de intercambio configurados.
+**Funcionalidad:**
+- Lista todos los límites por categoría de cliente
+- Filtros por moneda y estado
+- Información de límites activos/inactivos
+- Estadísticas de uso de límites
+
+limites_intercambio_tabla_htmx
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** limites_de_intercambio.py
+**Descripción:** Vista HTMX para actualización dinámica de tabla de límites.
+**Funcionalidad:**
+- Actualización parcial de tabla mediante HTMX
+- Respuesta optimizada para frontend dinámico
+- Filtros en tiempo real
+- Mejora de experiencia de usuario
+
+limite_config_edit
+~~~~~~~~~~~~~~~~~~~
+**Ubicación:** limites_de_intercambio.py
+**Descripción:** Vista para editar configuración de límites específicos.
+**Funcionalidad:**
+- Formulario de edición de límites
+- Validación de rangos y montos
+- Actualización de configuración en tiempo real
+- Historial de cambios en límites
+
+Cotizaciones Avanzadas
+----------------------
+
+prices_list
+~~~~~~~~~~~
+**Ubicación:** cotizaciones.py
+**Descripción:** Vista para listar todos los precios configurados en el sistema.
+**Funcionalidad:**
+- Lista precios por moneda
+- Estado activo/inactivo de cotizaciones
+- Información de última actualización
+- Acciones rápidas de edición
+
+edit_prices
+~~~~~~~~~~~
+**Ubicación:** cotizaciones.py
+**Descripción:** Vista para edición masiva de precios del sistema.
+**Funcionalidad:**
+- Formulario de edición múltiple de precios
+- Validación de consistencia entre monedas
+- Actualización simultánea de cotizaciones
+- Confirmación de cambios masivos
+
+api_currency_history
+~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** cotizaciones.py
+**Descripción:** API REST para obtener historial de cotizaciones de monedas.
+**Funcionalidad:**
+- Retorna historial en formato JSON
+- Filtros por fecha y moneda
+- Datos para gráficos y estadísticas
+- Cache optimizado para rendimiento
+
+historical_view
+~~~~~~~~~~~~~~~
+**Ubicación:** cotizaciones.py
+**Descripción:** Vista web para mostrar historial de cotizaciones con gráficos.
+**Funcionalidad:**
+- Interfaz gráfica de historial
+- Gráficos interactivos de cotizaciones
+- Filtros por periodo y moneda
+- Exportación de datos históricos
+
+unsubscribe
+~~~~~~~~~~~
+**Ubicación:** cotizaciones.py
+**Descripción:** Vista para procesar desuscripción de emails de cotizaciones.
+**Funcionalidad:**
+- Procesamiento de token de desuscripción
+- Validación de usuario y token
+- Actualización de preferencias de email
+- Confirmación de desuscripción
+
+unsubscribe_confirm
+~~~~~~~~~~~~~~~~~~~
+**Ubicación:** cotizaciones.py
+**Descripción:** Vista de confirmación de desuscripción exitosa.
+**Funcionalidad:**
+- Página de confirmación de desuscripción
+- Información sobre reactivación futura
+- Enlaces útiles para el usuario
+- Registro de actividad de desuscripción
+
+unsubscribe_error
+~~~~~~~~~~~~~~~~~
+**Ubicación:** cotizaciones.py
+**Descripción:** Vista de error para casos de desuscripción fallida.
+**Funcionalidad:**
+- Manejo de errores en desuscripción
+- Información de resolución de problemas
+- Contacto de soporte técnico
+- Registro de errores para seguimiento
+
+Dashboards Especializados
+--------------------------
+
+analyst_dash
+~~~~~~~~~~~~
+**Ubicación:** vistas_varias.py
+**Descripción:** Dashboard específico para analistas del sistema.
+**Funcionalidad:**
+- Métricas y estadísticas avanzadas
+- Herramientas de análisis de datos
+- Reportes especializados
+- Acceso a información histórica
+
+Páginas Principales Adicionales
+--------------------------------
+
+administar_metodos_pago
+~~~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** paginas_principales.py
+**Descripción:** Nueva página para administración de métodos de pago con diseño moderno.
+**Funcionalidad:**
+- Interfaz moderna para gestión de métodos de pago
+- Cards interactivos con hover effects
+- Navegación intuitiva entre secciones
+- Responsive design para dispositivos móviles
+
+Transacciones Avanzadas
+-----------------------
+
+get_metodos_pago_cobro
+~~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** compraventa_y_conversión.py
+**Descripción:** API para obtener métodos de pago y cobro disponibles para cliente.
+**Funcionalidad:**
+- Retorna métodos disponibles en formato JSON
+- Filtros por cliente y moneda
+- Validación de límites y disponibilidad
+- Información de comisiones aplicables
+
+transaccion_list
+~~~~~~~~~~~~~~~~
+**Ubicación:** compraventa_y_conversión.py
+**Descripción:** Vista para listar transacciones con filtros avanzados.
+**Funcionalidad:**
+- Lista paginada de transacciones
+- Filtros por estado, fecha, cliente
+- Búsqueda por múltiples criterios
+- Exportación de resultados
+
+ingresar_idTransferencia
+~~~~~~~~~~~~~~~~~~~~~~~~
+**Ubicación:** compraventa_y_conversión.py
+**Descripción:** Vista para ingresar ID de transferencia en transacciones pendientes.
+**Funcionalidad:**
+- Formulario para ingreso de ID de transferencia
+- Validación de formato y existencia
+- Actualización automática de estado
+- Confirmación de recepción de fondos
+
+Utilidades del Sistema
+----------------------
+
+guardar_transaccion
+~~~~~~~~~~~~~~~~~~~
+**Ubicación:** compraventa_y_conversión.py
+**Descripción:** Función utilitaria para crear y guardar transacciones en el sistema.
+**Funcionalidad:**
+- Creación de objeto Transaccion
+- Validación de datos de entrada
+- Asignación de estados iniciales
+- Retorno de objeto creado para uso posterior
+
+monto_stripe
+~~~~~~~~~~~~
+**Ubicación:** compraventa_y_conversión.py
+**Descripción:** Función utilitaria para convertir montos a formato compatible con Stripe.
+**Funcionalidad:**
+- Conversión de decimal a centavos
+- Manejo de diferentes monedas
+- Validación de rangos permitidos
+- Formato específico para API de Stripe
+
+Entidades de Pago y Cobro
+--------------------------
+
+**Nota:** Los módulos de entidades incluyen funcionalidades para gestionar entidades bancarias, fintech y otros proveedores de servicios financieros que se integran con el sistema Global Exchange.
+
+Métodos de Pago Cliente
+------------------------
+
+**Nota:** Los módulos de métodos de pago cliente incluyen todas las funcionalidades para que los clientes gestionen sus medios de pago personales, incluyendo tarjetas, cuentas bancarias y billeteras digitales.
+
+Métodos de Cobro Cliente
+-------------------------
+
+**Nota:** Los módulos de métodos de cobro cliente incluyen funcionalidades para que los clientes configuren sus medios de cobro preferidos para recibir pagos y transferencias.
+
+Testing y Validación
+---------------------
+
+**Nota:** El sistema incluye una suite completa de tests automatizados que cubren:
+
+- Tests de modelos y validaciones
+- Tests de vistas y endpoints
+- Tests de integración con servicios externos
+- Tests de rendimiento y carga
+- Tests de seguridad y autenticación
+
+Para más información sobre testing, consulte los archivos de documentación específicos de tests.

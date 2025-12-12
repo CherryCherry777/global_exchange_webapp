@@ -1,0 +1,647 @@
+/* Modify Currency Page Styles */
+
+/* Container */
+.modify-currency-container {
+    min-height: 100vh;
+    background: #000000;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+/* Main Content */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header Section */
+.modify-currency-header {
+    background: linear-gradient(90deg, #000000 0%, #090319 50%, #000000 100%);
+    padding: 20px 0;
+    margin-bottom: 30px;
+}
+
+.header-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 15px;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* Back Button */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(238, 233, 210, 0.1);
+    color: white;
+    text-decoration: none;
+    width: 347px;
+    height: 64px;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.back-button:hover {
+    background: rgba(238, 233, 210, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Titles */
+.modify-currency-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    text-align: left;
+}
+
+.modify-currency-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: white;
+    margin: 0;
+    text-align: left;
+}
+
+/* Modify Section */
+.modify-section {
+    background: linear-gradient(90deg, #000000 0%, #090319 25%, #090319 75%, #000000 100%);
+    border-radius: 45px;
+    padding: 40px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.section-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin: 0 0 30px 0;
+}
+
+/* Modify Content */
+.modify-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+/* Currency Profile Section */
+.currency-profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.currency-icon-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #391196 0%, #08052A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(57, 17, 150, 0.3);
+    overflow: hidden;
+}
+
+.currency-profile-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.currency-flag-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Form Container */
+.form-container {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form Rows */
+.form-row {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.single-field-row {
+    justify-content: center;
+}
+
+/* Form Field */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.field-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+    text-align: center;
+}
+
+.form-input {
+    background: #646464;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 15px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    width: 286px;
+    height: 46px;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(91, 21, 194, 0.5);
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.disabled-input {
+    background: #4a4a4a;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: not-allowed;
+}
+
+.field-note {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* File Upload Container */
+.file-upload-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-upload-button {
+    width: 286px;
+    height: 49px;
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 94%);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-upload-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
+}
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    width: 286px;
+}
+
+.file-status {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    text-align: center;
+}
+
+.file-dimensions {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+}
+
+/* Checkbox */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+}
+
+.checkbox-input {
+    width: 20px;
+    height: 20px;
+    accent-color: #5B15C2;
+    cursor: pointer;
+}
+
+.checkbox-text {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.save-button {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 125px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.save-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
+}
+
+.discard-button {
+    background: linear-gradient(90deg, #C3C3C3 0%, #828281 50%, #2F2F2F 94%);
+    color: white;
+    text-decoration: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    transition: all 0.3s ease;
+    width: 125px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.discard-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(47, 47, 47, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+/* Messages */
+.messages-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    max-width: 300px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    color: white;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    color: white;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1);
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .form-row {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .form-field {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .form-input {
+        width: 100%;
+    }
+    
+    .file-upload-button {
+        width: 100%;
+    }
+    
+    .file-info {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 0 15px;
+    }
+    
+    .modify-section {
+        padding: 30px 20px;
+    }
+    
+    .modify-currency-title {
+        font-size: 28px;
+    }
+    
+    .modify-currency-subtitle {
+        font-size: 18px;
+    }
+    
+    .section-title {
+        font-size: 20px;
+    }
+    
+    .currency-icon-circle {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .currency-profile-icon {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .save-button,
+    .discard-button {
+        width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modify-section {
+        padding: 20px 15px;
+    }
+    
+    .modify-currency-title {
+        font-size: 24px;
+    }
+    
+    .modify-currency-subtitle {
+        font-size: 16px;
+    }
+    
+    .section-title {
+        font-size: 18px;
+    }
+    
+    .currency-icon-circle {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .currency-profile-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .field-label {
+        font-size: 14px;
+    }
+    
+    .form-input {
+        font-size: 14px;
+        height: 40px;
+    }
+    
+    .file-upload-button {
+        font-size: 16px;
+        height: 40px;
+    }
+    
+    .file-status {
+        font-size: 12px;
+    }
+    
+    .file-dimensions {
+        font-size: 10px;
+    }
+    
+    .checkbox-text {
+        font-size: 14px;
+    }
+    
+    .save-button,
+    .discard-button {
+        font-size: 14px;
+        width: 150px;
+        height: 32px;
+    }
+}
+
+/* Badge styles */
+.type-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    margin: 2px;
+    cursor: pointer;
+    text-align: center;
+}
+.type-bill {
+    background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+    color: white;
+}
+.type-coin {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+}
+.type-inactive {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+/* Action button */
+.action-btn {
+    margin-left: 5px;
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Form container styling to match editar moneda */
+.cliente-form-container .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.form-container-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.form-container-row p {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.add-form input, .add-form select, .add-form button {
+    padding: 6px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+.add-btn {
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+}
+.currency-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.currency-table th, .currency-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+.type-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    margin: 2px;
+}
+.type-bill {
+    background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+    color: white;
+}
+.type-coin {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+}
+.edit-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+.edit-button:hover {
+    background-color: #388E3C;
+}

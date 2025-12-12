@@ -36,3 +36,10 @@ staticfiles/
 docs/_build/
 docs/_static/
 docs/_templates/
+
+# Celery
+celerybeat-schedule
+celerybeat-schedule.db
+
+# Depuración
+error.txt

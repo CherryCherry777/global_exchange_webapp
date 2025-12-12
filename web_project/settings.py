@@ -1,6 +1,7 @@
 from pathlib import Path
 import environ
 import os
+from django.contrib import messages
 from django.urls import reverse_lazy
 from celery.schedules import crontab
 #from .celery import app
@@ -95,8 +96,20 @@ DATABASES = {
         'PASSWORD': env('DB_PASSWORD'),
         'HOST': env('DB_HOST', default='localhost'),
         'PORT': env('DB_PORT', default='5432'),
-    }
+    },
+    "fs_proxy": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("FS_PROXY_DB_NAME"),
+        "USER": os.getenv("FS_PROXY_DB_USER"),
+        "PASSWORD": os.getenv("FS_PROXY_DB_PASSWORD"),
+        "HOST": os.getenv("FS_PROXY_DB_HOST", "127.0.0.1"),
+        "PORT": os.getenv("FS_PROXY_DB_PORT", "45432"),
+        "OPTIONS": {"options": "-c statement_timeout=15000"},
+    },
 }
+
+TIMBRADO_NUM = "02595733"
+TIMBRADO_FECHA_INICIO = "2025-03-27"
 
 # Validación de contraseñas
 AUTH_PASSWORD_VALIDATORS = [
@@ -153,25 +166,78 @@ CELERY_BEAT_SCHEDULE = {
         "task": "webapp.tasks.check_and_send_exchange_rates",
         "schedule": 60.0,  # cada 60 segundos
     },
-    "cancelar_transacciones_vencidas_cada_2min": {
-        "task": "webapp.tasks.cancelar_transacciones_vencidas",
+    "cancelar_transacciones_vencidas_cbn": {
+        "task": "webapp.tasks.cancelar_transacciones_vencidas_cbn",
+        "schedule": crontab(minute="*/2"),  # cada 2 minutos
+    },
+    "cancelar_transacciones_vencidas_tauser": {
+        "task": "webapp.tasks.cancelar_transacciones_vencidas_tauser",
         "schedule": crontab(minute="*/2"),  # cada 2 minutos
     },
     "limpiar_codigos_mfa_cada_hora": {
         "task": "webapp.tasks.cleanup_expired_mfa_codes",
         "schedule": crontab(minute=0, hour="*/1"),  # cada hora
     },
+    "check_limite_intercambio_schedule": {
+        "task": "webapp.tasks.check_and_reset_limites_intercambio",
+        "schedule": crontab(minute="*/2"),  # cada 120 segundos
+    },
+    "sync-facturas-cada-2min": {
+        "task": "webapp.tasks.sync_facturas_pendientes_task",
+        "schedule": crontab(minute="*/2"),
+        "args": (200,),
+        "options": {"queue": "celery"},  # <- clave
+    },
 }
+
+MESSAGE_TAGS = {
+    messages.SUCCESS: 'success',
+    messages.ERROR: 'error',
+    messages.WARNING: 'warning',
+    messages.INFO: 'info',
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+FS_PROXY_WEB_URL = os.getenv("FS_PROXY_WEB_URL")  # ej: "https://proxy.tu-dominio.com"
+FS_PROXY_KUDE_USER = os.getenv("FS_PROXY_KUDE_USER")
+FS_PROXY_KUDE_PASS = os.getenv("FS_PROXY_KUDE_PASS")
+
 
 """
 Nota: ejecutar estos comandos en la terminal de linux para  que funcionen los correos temporizados
-sudo apt install redis-server
+
+sudo apt install redis-server <- este solo la primera vez, el resto todas las veces
+
+
 sudo systemctl enable redis-server
 sudo systemctl start redis-server
 
 Y para empezar celery (el handler para tareas temporizadas)
-celery -A web_project worker -l info #En una terminal separada de manage.py
-celery -A web_project beat -l info #En OTRA terminal aparte de la del worker
+#En una terminal separada de manage.py
+celery -A web_project worker -l INFO -Q celery
+
+#En OTRA terminal aparte de la del worker
+celery -A web_project beat   -l INFO
 
 todos los cambios en las configuraciones de django requieren matar los procesos celery y reiniciar
 pkill -f 'celery'

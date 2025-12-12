@@ -82,6 +82,136 @@ body {
     padding: 22px;
 }
 
+/* ===== Form Filters Styling ===== */
+.filter-form {
+    margin-bottom: 18px;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 12px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 600;
+}
+
+.filter-form input[type="date"],
+.filter-form select,
+.filter-form input[type="text"],
+.filter-form input[type="number"] {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #ffffff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    outline: none;
+}
+
+/* Panel background for filters */
+.filter-panel {
+    background: rgba(0,0,0,0.35);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* Date input: give padding-right so calendar native control is visible */
+.filter-form input[type="date"] {
+    appearance: auto;
+    -webkit-appearance: auto;
+    padding-right: 40px;
+}
+
+/* Date input container and icon integrated inside the input */
+.date-input-container { position: relative; width: 100%; }
+.date-input {
+    width: 100%;
+    padding-right: 45px; /* space for the icon */
+    cursor: pointer;
+}
+.date-input-container .calendar-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    pointer-events: none; /* click passes to input */
+    color: #ffffff;
+    display: block;
+}
+/* Make container explicitly clickable */
+.date-input-container { cursor: pointer; }
+
+/* Dropdown option visibility: make options readable */
+.filter-form select option {
+    background: #ffffff;
+    color: #222222;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Centered actions and export below layout */
+.filter-actions-centered { 
+    flex-direction: column;
+    align-items: center;
+}
+.filter-actions-centered .export-below {
+    margin-top: 10px;
+}
+
+/* Reusable button styles matching site */
+.btn {
+    border: none;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, #5B15C2 0%, #391196 50%, #08052A 94%);
+}
+
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59,17,194,0.18); }
+
+.btn-secondary {
+    background: linear-gradient(90deg, #796503 0%, #D2AF00 50%, #E7CB3D 100%);
+    color: #111;
+}
+
+.btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(231,203,61,0.18); }
+
+/* Small utility: align the view-toggle buttons */
+.view-toggle .btn { padding: 6px 10px; border-radius: 14px; }
+
+/* Total ganancia white */
+.total-ganancia {
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 16px;
+}
+
 /* List Header */
 .transactions-list-header {
     display: flex;
@@ -175,6 +305,15 @@ body {
     text-align: center;
 }
 
+/* Oculta solo el contenido, NO la celda completa */
+.transactions-table th.payment-date,
+.transactions-table td.payment-date {
+    color: transparent !important;
+    pointer-events: none;
+    display: none;
+}
+
+
 /* Status Indicators */
 .status-cell {
     display: flex;
@@ -244,12 +383,33 @@ body {
     box-shadow: 0 4px 15px rgba(231, 203, 61, 0.3);
 }
 
+/* Ver Cambios Button */
+.view-change-btn {
+    background: linear-gradient(90deg, #7A2E00 0%, #FF7A00 50%, #FFB347 100%);
+    transition: all 0.2s ease-in-out;
+}
+
+.view-change-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 165, 90, 0.35);
+}
+
 /* Cancelar Button */
 .cancel-btn {
     background: linear-gradient(180deg, #C3C3C3 0%, #828281 20%, #2F2F2F 94%);
 }
 
 .cancel-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(195, 195, 195, 0.3);
+}
+
+/* Cancelar Button */
+.cancel-open-btn {
+    background: linear-gradient(180deg, #C3C3C3 0%, #828281 20%, #2F2F2F 94%);
+}
+
+.cancel-open-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(195, 195, 195, 0.3);
 }
@@ -263,6 +423,28 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
 }
+
+/* Acept Button */
+.acept-btn {
+    background: linear-gradient(180deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+}
+
+.acept-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.3);
+}
+
+/* Close Button */
+.close-btn {
+    background: linear-gradient(180deg, #2A0505 0%, #961111 50%, #C21515 100%);
+    transition: all 0.2s ease-in-out;
+}
+
+.close-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(194, 21, 21, 0.3);
+}
+
 
 /* Enlaces con apariencia de botón */
 .action-button,
@@ -519,6 +701,52 @@ body {
     scrollbar-color: #8D8D8D #2A2824;
 }
 
+/* Overlay exclusivo para el modal de confirmación */
+.modal-cancel-confirmation-overlay {
+    display: none;                  /* el JS lo cambiará a flex */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);  /* fondo oscuro */
+    z-index: 12000;                  /* por encima del resto */
+    justify-content: center;         /* centra horizontalmente */
+    align-items: center;             /* centra verticalmente */
+    padding: 20px;                   /* margen interno para pantallas pequeñas */
+}
+
+.modal-cancel-confirmation-container {
+    width: 400px;
+    min-height: 200px;               /* el modal puede crecer si lo necesita */
+    height: auto;                    /* 🔥 clave para que no corte los botones */
+    background: #36342F;
+    border-radius: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 26px;
+    overflow: visible;               /* por si algún botón sobresale ligeramente */
+}
+
+.modal-actions-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    margin-top: 12px;
+}
+
+/* Modal Separator */
+.modal-cancel-confirmation-separator {
+    width: 280px;
+    height: 1px;
+    background: #8D8D8D;
+    margin: 0 auto 3px auto;
+}
+
 /* ===========================================
    INFORMATION SECTION STYLES
    =========================================== */
@@ -536,6 +764,26 @@ body {
     color: #ffffff;
     text-align: center;
     margin: 8px 0 12px 0;
+}
+
+.section-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 600; /* Regular */
+    color: rgba(255, 255, 255, 0.85);
+    text-align: center;
+    margin: -4px 0 14px 0; /* se acerca al title sin pegarse demasiado */
+    letter-spacing: 0.3px; /* más sutil, más elegante */
+}
+
+.section-subtext {
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    font-weight: 600; /* Light */
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+    margin: 8px 0 12px 0;
+    line-height: 1.4;
 }
 
 /* Info Grid Layout */
@@ -583,6 +831,18 @@ body {
     font-weight: 300; /* Light */
     font-style: italic;
     color: #ffffff;
+}
+/* Centrar el grid solo cuando contiene los botones */
+.acept-cancel-grid {
+    margin: 0 auto;               /* centra el contenedor dentro del grid */
+}
+
+.acept-cancel-btns {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    gap: 5px;
 }
 
 /* Status Box */
@@ -998,3 +1258,4 @@ body {
     font-style: italic;
     color: #ffffff;
 }
+

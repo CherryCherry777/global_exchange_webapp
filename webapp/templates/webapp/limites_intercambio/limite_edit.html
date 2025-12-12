@@ -21,6 +21,9 @@
 
     <!-- Main Content -->
     <div class="limite-edit-content">
+        <h2 class="currency-title">
+            Categoría: <strong>{{ limite.categoria.nombre }}</strong>
+        </h2>
         <!-- Currency Title -->
         <h2 class="currency-title">{{ moneda.name }}</h2>
 
@@ -46,11 +49,11 @@
                     <label for="limite_dia" class="form-label">Limite diario</label>
                     <input type="number"
                            id="limite_dia"
-                           name="limite_dia"
+                           name="limite_dia_max"
                            class="form-input"
                            step="{{ moneda.decimales_cotizacion|decimal_step }}"
-                           value="{{ limite.limite_dia }}"
-                           placeholder="Valor actual: {{ limite.limite_dia }}"
+                           value="{{ limite.limite_dia_max }}"
+                           placeholder="Valor actual: {{ limite.limite_dia_max }}"
                            required>
                 </div>
 
@@ -59,11 +62,11 @@
                     <label for="limite_mes" class="form-label">Limite mensual</label>
                     <input type="number"
                            id="limite_mes"
-                           name="limite_mes"
+                           name="limite_mes_max"
                            class="form-input"
                            step="{{ moneda.decimales_cotizacion|decimal_step }}"
-                           value="{{ limite.limite_mes }}"
-                           placeholder="Valor actual: {{ limite.limite_mes }}"
+                           value="{{ limite.limite_mes_max }}"
+                           placeholder="Valor actual: {{ limite.limite_mes_max }}"
                            required>
                 </div>
 

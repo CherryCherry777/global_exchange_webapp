@@ -10,46 +10,24 @@
 {% block content %}
 <div class="my-cobro-methods-container">
     <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+    
 
     <!-- Header Section -->
     <div class="my-cobro-methods-header">
         <div class="main-content">
-            <a href="{% url 'landing' %}" class="back-button">← Volver al Panel</a>
+            <a href="{% url 'administar_metodos_pago' %}" class="back-button">← Volver a administrar métodos</a>
             
             <div class="header-content">
                 <div class="header-text">
                     <h1 class="my-cobro-methods-title">Mis Métodos de Cobro</h1>
                     <p class="my-cobro-methods-subtitle">Gestiona tus métodos de cobro personales</p>
                 </div>
-                
-                <!-- Metrics Cards -->
-                <div class="header-metrics">
-                    <div class="metric-card">
-                        <div class="metric-label">Total Métodos</div>
-                        <div class="metric-number">{{ medios_cobro|length }}</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Métodos Activos</div>
-                        <div class="metric-number">
-                            {% for medio in medios_cobro %}
-                                {% if medio.activo_global %}{{ forloop.counter0|add:1 }}{% endif %}
-                            {% empty %}0{% endfor %}
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="main-content-wrapper">
         <!-- Add Cobro Methods Section -->
         <div class="add-cobro-methods-section">
             <h2 class="section-title">Agregar Nuevo Método de Cobro</h2>
@@ -171,7 +149,7 @@
                             <td class="actions-cell">
                                 <div class="actions-container">
                                     <a href="{% url 'manage_cobro_method' medio.tipo medio.id %}" class="action-button edit-button">Editar</a>
-                                    <a href="{% url 'confirm_delete_cobro_method' medio.id %}" class="action-button delete-button">Eliminar</a>
+                                    <button type="button" class="action-button delete-button" data-delete-id="{{ medio.id }}" data-delete-tipo="{{ medio.tipo }}" data-delete-nombre="{{ medio.nombre }}" data-delete-moneda="{{ medio.moneda.code }}" data-delete-moneda-name="{{ medio.moneda.name }}" onclick="openDeleteModal(event)">Eliminar</button>
                                 </div>
                             </td>
                         </tr>
@@ -179,9 +157,6 @@
                         <tr class="empty-row">
                             <td colspan="5" class="empty-message">
                                 <div class="empty-state">
-                                    <div class="empty-icon">
-                                        <img src="{% static 'webapp/pantalla_metodo_cobro/1.metodo_cobro.png' %}" alt="No hay métodos">
-                                    </div>
                                     <h3>No tienes métodos de cobro registrados</h3>
                                     <p>Agrega tu primer método de cobro para comenzar</p>
                                 </div>
@@ -194,6 +169,226 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-container">
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <h2 class="modal-title">Confirmar eliminación</h2>
+            <p class="modal-subtitle">¿Estás seguro de que deseas eliminar este método de cobro?</p>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="modal-content">
+            <div class="modal-content-item">
+                <strong>Tipo:</strong>
+                <span class="modal-content-value" id="modalTipo"></span>
+            </div>
+            <div class="modal-content-item">
+                <strong>Nombre:</strong>
+                <span class="modal-content-value" id="modalNombre"></span>
+            </div>
+            <div class="modal-content-item">
+                <strong>Moneda:</strong>
+                <span class="modal-content-value" id="modalMoneda"></span>
+            </div>
+        </div>
+
+        <!-- Modal Actions -->
+        <form method="post" id="deleteForm" style="width: 100%;">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+                <button type="submit" class="modal-btn modal-btn-delete">Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openDeleteModal(event) {
+    event.preventDefault();
+    const button = event.target;
+    const id = button.dataset.deleteId;
+    const tipo = button.dataset.deleteTipo;
+    const nombre = button.dataset.deleteNombre;
+    const moneda = button.dataset.deleteMoneda;
+    const monedaName = button.dataset.deleteMonedaName;
+    
+    // Llenar el modal con los datos
+    document.getElementById('modalTipo').textContent = tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/_/g, ' ');
+    document.getElementById('modalNombre').textContent = nombre;
+    document.getElementById('modalMoneda').textContent = moneda + ' - ' + monedaName;
+    
+    // Actualizar la URL del formulario
+    const deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = `/mis-cobros/delete/${id}/confirm/`;
+    
+    // Mostrar el modal
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+// Cerrar modal cuando se hace clic en el backdrop
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('deleteModal');
+    modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeDeleteModal();
+        }
+    });
+});
+</script>
+
+<style>
+/* Modal Backdrop */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Modal Container */
+.modal-container {
+    background: #0D0C0C;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease-in-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Modal Header */
+.modal-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.modal-title {
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 10px 0;
+}
+
+.modal-subtitle {
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: white;
+    margin: 0;
+}
+
+/* Modal Content */
+.modal-content {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.modal-content-item {
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-content-item strong {
+    color: white;
+    font-weight: 300;
+    min-width: 100px;
+    text-align: right;
+}
+
+.modal-content-value {
+    color: #5B15C2;
+    font-weight: 300;
+}
+
+/* Modal Actions */
+.modal-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.modal-btn {
+    width: 125px;
+    height: 36px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-btn-delete {
+    background: linear-gradient(90deg, #08052A 0%, #391196 50%, #5B15C2 100%);
+    color: white;
+}
+
+.modal-btn-delete:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(91, 21, 194, 0.4);
+}
+
+.modal-btn-cancel {
+    background: linear-gradient(90deg, #2F2F2F 0%, #828281 50%, #C3C3C3 100%);
+    color: white;
+}
+
+.modal-btn-cancel:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+</style>
 
 <script>
 // Search functionality

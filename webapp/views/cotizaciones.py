@@ -1,3 +1,4 @@
+from webapp.views.compraventa_y_conversión import calcularMontosCambio, calcularTasa, formatearMontos
 from .constants import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -7,12 +8,13 @@ from django.views.decorators.http import require_GET
 from django.utils.timezone import now, timedelta
 from django.db.models import Q
 from ..decorators import role_required
-from ..models import CurrencyHistory, CustomUser, EmailScheduleConfig, Transaccion, Currency
-from decimal import Decimal, InvalidOperation
+from ..models import CuentaBancariaNegocio, CurrencyHistory, Transaccion, Currency, CuentaBancaria
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
-
+from webapp.emails import send_transaction_cancellation_prompt
+from django.contrib.contenttypes.models import ContentType
 
 # ---------------------------------
 # Vistas para modificar cotizaciones (Posibles vistas nuevas)
@@ -96,13 +98,11 @@ def modify_quote(request, currency_id):
             currency.is_active = is_active
             currency.save()
             
-            # Cancelar todas las transacciones PENDIENTE donde la moneda esté en origen o destino
-            transacciones = Transaccion.objects.filter(
-                Q(moneda_origen=currency) | Q(moneda_destino=currency),
-                estado=Transaccion.Estado.PENDIENTE
-            )
+            # Avisar sobre los cambios a los usuarios con transacciones pendientes
+            notificados = promtCancelacionTransaccionCambioCotizacion(request)
 
-            transacciones.update(estado=Transaccion.Estado.CANCELADA)
+            print(notificados)
+
             messages.success(request, f"Cotización de '{currency.name}' actualizada correctamente.")
             return redirect("manage_quotes")
             
@@ -215,23 +215,6 @@ def historical_view(request):
     return render(request, "webapp/cotizaciones/historical.html")
 
 
-# Configuracion de frecuencia de emails de cotizaciones de tasas
-def manage_schedule(request):
-    config, _ = EmailScheduleConfig.objects.get_or_create(pk=1)
-
-    if request.method == "POST":
-        config.frequency = request.POST.get("frequency")
-        config.hour = int(request.POST.get("hour", 8))
-        config.minute = int(request.POST.get("minute", 0))
-        if config.frequency == "custom":
-            config.interval_minutes = int(request.POST.get("interval_minutes", 60))
-        else:
-            config.interval_minutes = None
-        config.save()
-        return redirect("manage_schedule")
-
-    return render(request, "webapp/cotizaciones/manage_schedule.html", {"config": config})
-
 # Desuscribirse de los correos de tasas
 def unsubscribe(request, uidb64, token):
     try:
@@ -254,3 +237,65 @@ def unsubscribe_confirm(request):
 def unsubscribe_error(request):
     """Página que muestra mensaje de error en desuscripción."""
     return render(request, 'webapp/cotizaciones/unsubscribe_error.html')
+
+# -------------------------------------------------------------------------
+# Vistas para cancelación de transacción por cambio de tasa
+# -------------------------------------------------------------------------
+
+
+def promtCancelacionTransaccionCambioCotizacion(request, moneda: str | None = None) -> int:
+    """
+    Recorre transacciones pendientes y, si la tasa actual difiere
+    de la tasa almacenada en la transacción, envía un correo al usuario
+    preguntando si desea cancelar.
+
+    Devuelve la cantidad de transacciones notificadas.
+    """
+    ct_cuenta_bancaria_negocio = ContentType.objects.get_for_model(CuentaBancariaNegocio)
+
+    transacciones = Transaccion.objects.filter(
+        estado=Transaccion.Estado.PENDIENTE,
+    ).exclude(
+        medio_pago_type=ct_cuenta_bancaria_negocio
+    )
+
+    if moneda:
+        transacciones = transacciones.filter(
+            Q(moneda_origen__code=moneda) |
+            Q(moneda_destino__code=moneda)
+        )
+
+    notificados = 0
+
+    for transaccion in transacciones:
+        montos = calcularMontosCambio(transaccion)
+        if montos["montoOrigenNuevo"] != None and montos["montoDestinoNuevo"] != None:
+            tasa_actual = montos["tasaActual"]
+            montoOrigenNuevo = formatearMontos(montos["montoOrigenNuevo"], transaccion.moneda_origen, True)
+            montoDestinoNuevo = formatearMontos(montos["montoDestinoNuevo"], transaccion.moneda_destino, True)
+
+            if montoDestinoNuevo != None and montoOrigenNuevo != None:
+                try:
+                    tasa_antigua = transaccion.tasa_cambio.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+                except:
+                    # Si no hay tasa guardada o es inválida, la salteamos
+                    continue
+
+                if tasa_actual != tasa_antigua:
+                    send_transaction_cancellation_prompt(
+                        request,
+                        transaccion,
+                        tasa_actual=tasa_actual,
+                        tasa_antigua=tasa_antigua,
+                        montoOrigenNuevo=montoOrigenNuevo,
+                        montoDestinoNuevo=montoDestinoNuevo,
+                    )
+                    notificados += 1
+
+                    # 🔸 Marcar la transacción como con cambio pendiente
+                    if not transaccion.cambio_pendiente:
+                        transaccion.cambio_pendiente = True
+                        transaccion.save(update_fields=["cambio_pendiente"])
+
+
+    return notificados

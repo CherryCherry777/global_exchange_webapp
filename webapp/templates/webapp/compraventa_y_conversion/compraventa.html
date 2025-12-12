@@ -15,8 +15,8 @@
         <span class="yellow-text">Compra</span> <span class="black-text">venta</span>
     </h2>
 
-    <!-- 🆕 Indicador superior de pasos -->
-    <div class="wizard-header">
+    <!-- 🆕 Indicador superior de pasos - OCULTO -->
+    <div class="wizard-header d-none">
         <div id="indicator-step1" class="wizard-step-indicator active">
             <span>1</span> Selección
         </div>
@@ -31,112 +31,189 @@
         <!-- 🆕 PASO 1: Selección -->
         <div id="step-1" class="wizard-step active">
             <div class="converter-section mb-4">
-                <!-- Select Compra/Venta -->
+                <!-- Layout de 3 columnas horizontales -->
                 <div class="converter-section">
-                    <div class="converter-container">
-                        <p class="converter-subtitle">Selecciona la moneda e ingresa el monto de cotización</p>
+                    <div class="converter-container converter-horizontal-layout">
                         
-                        <div class="converter-form">
-                            <!-- From Currency -->
-                            <div class="converter-field">
-                                <label class="field-label">Tengo esta moneda</label>
-                                <div class="field-row">
-                                    <div class="select-wrapper">
-                                        <select id="simu-from" name="moneda_origen" class="currency-select"></select>
-                                        <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
-                                    </div>
-                                    <input
-                                        id="simu-amount"
-                                        name="monto_origen"
-                                        type="text"
-                                        class="amount-input"
-                                        placeholder="0"
-                                    >
-                                </div>
-                            </div>
-
-                            <!-- To Currency -->
-                            <div class="converter-field">
-                                <label class="field-label">Quiero esta moneda</label>
-                                <div class="field-row">
-                                    <div class="select-wrapper">
-                                        <select id="simu-to" name="moneda_destino" class="currency-select"></select>
-                                        <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
-                                    </div>
-                                    <input name="monto_destino" type="text" readonly class="result-input" id="simu-result-main">
-                                </div>
-                            </div>
-
-                            <div class="converter-actions">
-                                <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>
-                            </div>
-
-                            {% is_usuario_asociado request.user as usuario_asociado %}
-                            {% if usuario_asociado %}
-                                <!-- Método de Pago perspectiva del cliente -->
+                        <!-- ═══════════════════════════════════════════════════════════════
+                             COLUMNA 1: Selección de Divisas
+                             ═══════════════════════════════════════════════════════════════ -->
+                        <div class="converter-column column-divisa">
+                            <p class="converter-subtitle">¿Cómo quiere su divisa?</p>
+                            
+                            <div class="converter-form">
+                                <!-- From Currency -->
                                 <div class="converter-field">
-                                    <label class="field-label">Pagar con:</label>
-                                    
-                                    <div class="converter-field-content">
-                                        <div class="tab-row" id="pago-tabs">
-                                        {% for tipo in tipos_pago %}
-                                            <button type="button" class="tab-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}">
-                                            {{ tipo.nombre }}
-                                            </button>
-                                        {% endfor %}
-                                        </div>
-
-                                        <div class="select-wrapper select-wrapper-inline">
-                                            <select id="simu-metodo-pago" name="medio_pago" class="currency-select">
-                                            </select>
-                                            <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
-                                        </div>
-                                    </div>
-                                    <!-- Datos de cuenta bancaria para transferencia -->
-                                    <div id="transferencia-info" class="transferencia-info d-none mt-3">
-                                        <div class="transferencia-card">
-                                            <h6 class="transferencia-titulo">Datos para transferencia</h6>
-                                            <div class="transferencia-datos">
-                                                <p class="mb-1"><strong>Titular:</strong> Global Exchange </p>
-                                                <p class="mb-1"><strong>RUC:</strong> 80012345-6 </p>
-                                                <p class="mb-1"><strong>Banco:</strong> {{cuenta_negocio.entidad.nombre}}</p>
-                                                <p class="mb-1"><strong>Cuenta:</strong> {{cuenta_negocio.numero_cuenta}}</p>
-                                                <p class="mb-1"><strong>Alias:</strong> {{cuenta_negocio.alias_cbu}}</p>
+                                    <label class="field-label">Tengo esta moneda</label>
+                                    <div class="field-row">
+                                        <!-- Custom Dropdown para moneda origen -->
+                                        <div class="currency-dropdown" id="dropdown-from">
+                                            <div class="currency-dropdown-button" id="btn-from">
+                                                <img id="simu-from-flag" src="" alt="bandera" class="currency-flag">
+                                                <span id="simu-from-code" class="currency-code">USD</span>
+                                                <svg class="select-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                                </svg>
                                             </div>
-                                            <p class="transferencia-nota">Por favor, una vez registrada la operación selecciona "Continuar Pago".</p>
+                                            <div class="currency-dropdown-menu" id="menu-from">
+                                                <!-- Opciones se llenan con JS -->
+                                            </div>
+                                            <!-- Select oculto para mantener compatibilidad con el form -->
+                                            <select id="simu-from" name="moneda_origen" style="display:none;"></select>
                                         </div>
+                                        <input
+                                            id="simu-amount"
+                                            name="monto_origen"
+                                            type="text"
+                                            class="amount-input"
+                                            placeholder="0 USD"
+                                        >
                                     </div>
+                                    <div id="tauser-suggestion-amount" 
+                                        style="display:none; color:#1b73e8; font-size:14px; margin-top:4px;">
+                                    </div>
+                                </div>
+
+                                <!-- To Currency -->
+                                <div class="converter-field">
+                                    <label class="field-label">Quiero esta moneda</label>
+                                    <div class="field-row">
+                                        <!-- Custom Dropdown para moneda destino -->
+                                        <div class="currency-dropdown" id="dropdown-to">
+                                            <div class="currency-dropdown-button" id="btn-to">
+                                                <img id="simu-to-flag" src="" alt="bandera" class="currency-flag">
+                                                <span id="simu-to-code" class="currency-code">PYG</span>
+                                                <svg class="select-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                                </svg>
+                                            </div>
+                                            <div class="currency-dropdown-menu" id="menu-to">
+                                                <!-- Opciones se llenan con JS -->
+                                            </div>
+                                            <!-- Select oculto para mantener compatibilidad con el form -->
+                                            <select id="simu-to" name="moneda_destino" style="display:none;"></select>
+                                        </div>
+                                        <input name="monto_destino" type="text" readonly class="result-input" id="simu-result-main" placeholder="0 PYG">
+                                    </div>
+                                    <!-- ⚠️ Aquí aparece el mensaje inline si NO coincide con billetes reales -->
+                                    <div id="tauser-suggestion-out" 
+                                        style="display:none; color:#1b73e8; font-size:14px; margin-top:4px;">
+                                    </div>
+                                </div>
+
+                                <div class="converter-actions">
+                                    <button id="simu-intercambiar" type="button" class="intercambiar-button">INTERCAMBIAR</button>
                                 </div>
                                 
-                                <!-- Método de Cobro perspectiva del cliente -->
-                                <div class="converter-field">
-                                    <label class="field-label">Recibir en:</label>
+                                <div class="converter-result">
+                                    <p id="simu-result-detail" class="result-detail">Ingresá un monto para calcular</p>
+                                    <p class="result-detail">Cotización exclusiva para la categoria: {{categoria_cliente.nombre}}</p>
+                                </div>
+                            </div>
+                        </div>
 
-                                    <div class="converter-field-content">
-                                        <div class="tab-row" id="cobro-tabs">
-                                        {% for tipo in tipos_cobro %}
-                                            <button type="button" class="tab-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}">
-                                            {{ tipo.nombre }}
-                                            </button>
-                                        {% endfor %}
-                                        </div>
-                                        
-                                        <div class="select-wrapper select-wrapper-inline">
-                                            <select id="simu-metodo-cobro" name="medio_cobro" class="currency-select">
-                                            </select>
-                                            <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
-                                        </div>
-                                    </div>
+                        {% is_usuario_asociado request.user as usuario_asociado %}
+                        {% if usuario_asociado %}
+                        <!-- ═══════════════════════════════════════════════════════════════
+                             COLUMNA 2: Medio de Pago
+                             ═══════════════════════════════════════════════════════════════ -->
+                        <div class="converter-column column-pago">
+                            <p class="converter-subtitle">¿Cómo quiere pagar?</p>
+                            
+                            <div class="converter-field-content metodo-content" id="pago-content">
+                                <div class="tab-row metodo-tabs" id="pago-tabs">
+                                {% for tipo in tipos_pago %}
+                                    <button type="button" class="tab-btn metodo-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}" data-tipo-nombre="{{ tipo.nombre }}">
+                                        {% if tipo.nombre == "Tauser" %}
+                                            <img src="{% static 'webapp/pantalla_compra_venta/1.Tauser.png' %}" alt="Tauser" class="metodo-icon tauser-icon">
+                                            <span class="metodo-text">Tauser (TAS)</span>
+                                        {% elif tipo.nombre == "Tarjeta Nacional" %}
+                                            <img src="{% static 'webapp/pantalla_compra_venta/2.Tarjeta.png' %}" alt="Tarjeta" class="metodo-icon tarjeta-icon">
+                                            <span class="metodo-text">Tarjeta Nacional</span>
+                                        {% elif tipo.nombre == "Tarjeta Internacional" %}
+                                            <img src="{% static 'webapp/pantalla_compra_venta/3.Internacional.png' %}" alt="Internacional" class="metodo-icon internacional-icon">
+                                            <span class="metodo-text">Tarjeta Internacional</span>
+                                        {% elif tipo.nombre == "Cuenta Bancaria" or tipo.nombre == "Transferencia" %}
+                                            <img src="{% static 'webapp/pantalla_compra_venta/4.Transferencia.png' %}" alt="Transferencia" class="metodo-icon transferencia-icon">
+                                            <span class="metodo-text">Transferencia</span>
+                                        {% elif tipo.nombre == "Billetera" %}
+                                            <img src="{% static 'webapp/pantalla_compra_venta/5.Billetera.png' %}" alt="Billetera" class="metodo-icon billetera-icon">
+                                            <span class="metodo-text">Billetera</span>
+                                        {% else %}
+                                            <span class="metodo-text">{{ tipo.nombre }}</span>
+                                        {% endif %}
+                                    </button>
+                                {% endfor %}
                                 </div>
 
-                            {% endif %}
-
-                            <div class="converter-result">
-                                <p id="simu-result-detail" class="result-detail">Ingresá un monto para calcular</p>
-                                <p class="result-detail">Cotización exclusiva para la categoria: {{categoria_cliente.nombre}}</p>
+                                <div class="select-wrapper metodo-select-wrapper metodo-select-expanded" id="pago-select-wrapper">
+                                    <select id="simu-metodo-pago" name="medio_pago" class="metodo-select metodo-select-white">
+                                        <option value="" disabled selected>Selecciona una opción</option>
+                                    </select>
+                                    <svg class="metodo-select-arrow metodo-select-arrow-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                    </svg>
+                                </div>
+                                
+                                <button type="button" class="metodo-btn-atras" id="pago-btn-atras">Atrás</button>
                             </div>
-
+                            
+                            <!-- Datos de cuenta bancaria para transferencia -->
+                            <div id="transferencia-info" class="transferencia-info d-none">
+                                <div class="transferencia-card datos-transferencia-container">
+                                    <h6 class="transferencia-titulo">Datos para transferencia</h6>
+                                    <div class="transferencia-datos">
+                                        <p class="mb-1"><strong>Titular:</strong> Global Exchange </p>
+                                        <p class="mb-1"><strong>RUC:</strong> 80012345-6 </p>
+                                        <p class="mb-1"><strong>Banco:</strong> {{cuenta_negocio.entidad.nombre}}</p>
+                                        <p class="mb-1"><strong>Cuenta:</strong> {{cuenta_negocio.numero_cuenta}}</p>
+                                        <p class="mb-1"><strong>Alias:</strong> {{cuenta_negocio.alias_cbu}}</p>
+                                    </div>
+                                    <p class="transferencia-nota">Por favor, una vez registrada la operación selecciona "Continuar Pago".</p>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- ═══════════════════════════════════════════════════════════════
+                             COLUMNA 3: Medio de Cobro
+                             ═══════════════════════════════════════════════════════════════ -->
+                        <div class="converter-column column-cobro">
+                            <p class="converter-subtitle">¿Cómo quiere cobrar?</p>
+                            
+                            <div class="converter-field-content metodo-content" id="cobro-content">
+                                <div class="tab-row metodo-tabs" id="cobro-tabs">
+                                {% for tipo in tipos_cobro %}
+                                    <button type="button" class="tab-btn metodo-btn {% if forloop.first %}active{% endif %}" data-tipo-general="{{ tipo.id }}" data-tipo-nombre="{{ tipo.nombre }}">
+                                        {% if tipo.nombre == "Tauser" %}
+                                            <img src="{% static 'webapp/pantalla_compra_venta/1.Tauser.png' %}" alt="Tauser" class="metodo-icon tauser-icon">
+                                            <span class="metodo-text">Tauser (TAS)</span>
+                                        {% elif tipo.nombre == "Cuenta Bancaria" or tipo.nombre == "Transferencia" %}
+                                            <img src="{% static 'webapp/pantalla_compra_venta/4.Transferencia.png' %}" alt="Transferencia" class="metodo-icon transferencia-icon">
+                                            <span class="metodo-text">Cuenta Bancaria</span>
+                                        {% elif tipo.nombre == "Billetera" %}
+                                            <img src="{% static 'webapp/pantalla_compra_venta/5.Billetera.png' %}" alt="Billetera" class="metodo-icon billetera-icon">
+                                            <span class="metodo-text">Billetera</span>
+                                        {% else %}
+                                            <span class="metodo-text">{{ tipo.nombre }}</span>
+                                        {% endif %}
+                                    </button>
+                                {% endfor %}
+                                </div>
+                                
+                                <div class="select-wrapper metodo-select-wrapper metodo-select-expanded" id="cobro-select-wrapper">
+                                    <select id="simu-metodo-cobro" name="medio_cobro" class="metodo-select metodo-select-white">
+                                        <option value="" disabled selected>Selecciona una opción</option>
+                                    </select>
+                                    <svg class="metodo-select-arrow metodo-select-arrow-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                    </svg>
+                                </div>
+                                
+                                <button type="button" class="metodo-btn-atras" id="cobro-btn-atras">Atrás</button>
+                            </div>
+                        </div>
+                        {% endif %}
+
                     </div>
                 </div>
 
@@ -151,8 +228,10 @@
                     <input type="hidden" id="input-medio-pago-tipo" name="medio_pago_tipo">
                     <input type="hidden" id="input-medio-cobro-tipo" name="medio_cobro_tipo">
             </div>
-            <div class="converter-actions mt-4 d-flex justify-content-end">
-                <button type="button" id="next-step" class="btn btn-primary">Continuar</button>
+            <div class="continuar-container">
+                <button type="button" id="next-step" class="metodo-btn">
+                    <span class="metodo-text">Continuar</span>
+                </button>
             </div>
         </div>
          <!-- 🆕 PASO 2: Revisión -->
@@ -205,9 +284,127 @@
     const metodoPago = document.getElementById("simu-metodo-pago");
     const metodoCobro = document.getElementById("simu-metodo-cobro");
     const LIMITES_INTERCAMBIO = JSON.parse('{{ limites_intercambio|safe }}');
+    const TAUSER_CT_ID = {{ ct_tauser.id }};
+
+    let TAUSER_STOCK = {}; // { tauserId : { "USD": [{value, qty}, ...], ... } }
 
     let CODES = [];
     const META = Object.create(null);
+
+    // Flag para prevenir clicks múltiples en el botón intercambiar
+    let isSwapping = false;
+
+    // Referencias a elementos del dropdown personalizado
+    const fromFlag = document.getElementById("simu-from-flag");
+    const toFlag = document.getElementById("simu-to-flag");
+    const fromCodeSpan = document.getElementById("simu-from-code");
+    const toCodeSpan = document.getElementById("simu-to-code");
+    const btnFrom = document.getElementById("btn-from");
+    const btnTo = document.getElementById("btn-to");
+    const menuFrom = document.getElementById("menu-from");
+    const menuTo = document.getElementById("menu-to");
+
+    // ===========================
+    // CUSTOM DROPDOWN LOGIC
+    // ===========================
+    
+    // Toggle menú al hacer clic en el botón
+    btnFrom.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menuTo.classList.remove("open");
+        menuFrom.classList.toggle("open");
+    });
+    
+    btnTo.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menuFrom.classList.remove("open");
+        menuTo.classList.toggle("open");
+    });
+    
+    // Cerrar menús al hacer clic fuera
+    document.addEventListener("click", () => {
+        menuFrom.classList.remove("open");
+        menuTo.classList.remove("open");
+    });
+    
+    // Función para construir las opciones del menú dropdown
+    function buildDropdownMenu(menuEl, selectEl, codeSpan, flagImg, excludeCode = null) {
+        menuEl.innerHTML = "";
+        
+        CODES.forEach(code => {
+            if (excludeCode && code === excludeCode) return; // Excluir la moneda del otro dropdown
+            
+            const option = document.createElement("div");
+            option.className = "currency-dropdown-option";
+            if (code === selectEl.value) option.classList.add("selected");
+            option.dataset.code = code;
+            
+            const flagUrl = META[code]?.flag_url || "";
+            option.innerHTML = `
+                <img src="${flagUrl}" alt="${code}" class="option-flag" onerror="this.style.display='none'">
+                <span class="option-code">${code}</span>
+            `;
+            
+            option.addEventListener("click", (e) => {
+                e.stopPropagation();
+                
+                // Actualizar el select oculto
+                selectEl.value = code;
+                
+                // Actualizar el botón visible
+                codeSpan.textContent = code;
+                if (flagImg && META[code]?.flag_url) {
+                    flagImg.src = META[code].flag_url;
+                    flagImg.style.display = 'block';
+                }
+                
+                // Cerrar el menú
+                menuEl.classList.remove("open");
+                
+                // Disparar evento change para mantener la lógica existente
+                selectEl.dispatchEvent(new Event("change"));
+            });
+            
+            menuEl.appendChild(option);
+        });
+    }
+    
+    // Función para actualizar la UI del dropdown desde el select
+    function updateDropdownUI() {
+        const fromValue = from.value;
+        const toValue = to.value;
+        
+        // Actualizar botón FROM
+        fromCodeSpan.textContent = fromValue || "---";
+        if (fromFlag && META[fromValue]?.flag_url) {
+            fromFlag.src = META[fromValue].flag_url;
+            fromFlag.style.display = 'block';
+        } else if (fromFlag) {
+            fromFlag.style.display = 'none';
+        }
+        
+        // Actualizar botón TO
+        toCodeSpan.textContent = toValue || "---";
+        if (toFlag && META[toValue]?.flag_url) {
+            toFlag.src = META[toValue].flag_url;
+            toFlag.style.display = 'block';
+        } else if (toFlag) {
+            toFlag.style.display = 'none';
+        }
+        
+        // Actualizar placeholders dinámicamente
+        if (amount) {
+            amount.placeholder = `0 ${fromValue || 'USD'}`;
+        }
+        if (out) {
+            out.placeholder = `0 ${toValue || 'PYG'}`;
+        }
+        
+        // Reconstruir menús excluyendo la moneda seleccionada en el otro dropdown
+        // Esto previene que el usuario seleccione la misma moneda en ambos
+        buildDropdownMenu(menuFrom, from, fromCodeSpan, fromFlag, toValue);
+        buildDropdownMenu(menuTo, to, toCodeSpan, toFlag, fromValue);
+    }
 
     function nf(value, currencyCode) {
         // Determina cuántos decimales mostrar según la moneda
@@ -224,6 +421,28 @@
         }).format(value); // Aplica el formateador al número recibido
     }
 
+    // Función para extraer solo el número de un valor que puede incluir código de moneda
+    // Ej: "1.234,56 USD" -> 1234.56
+    function extractNumber(text) {
+        if (!text) return NaN;
+        // Elimina cualquier código de moneda (letras al final)
+        const numericPart = text.replace(/[A-Za-z\s]+$/g, "").trim();
+        // Convierte formato español (1.234,56) a formato numérico (1234.56)
+        return parseFloat(
+            numericPart
+                .replace(/\./g, "")   // elimina puntos de miles
+                .replace(",", ".")    // reemplaza coma decimal por punto
+        );
+    }
+
+    // Función para formatear un input con su código de moneda
+    function formatWithCurrency(inputEl, currencyCode) {
+        const num = extractNumber(inputEl.value);
+        if (!isNaN(num) && num > 0) {
+            inputEl.value = `${nf(num, currencyCode)} ${currencyCode}`;
+        }
+    }
+
     function buildOptions(selectEl, preferCode) {
         // Limpia el contenido actual del <select>
         selectEl.innerHTML = "";
@@ -234,14 +453,8 @@
             const opt = document.createElement("option");
             opt.value = code; // el valor de la opción será el código de moneda
 
-            // Obtiene el nombre de la moneda desde META, o usa el código si no existe
-            const name = META[code]?.name || code;
-
-            // Define el texto visible de la opción, con casos especiales
-            if (code === "USD") opt.textContent = "DÓLAR";
-            else if (code === "PYG") opt.textContent = "GUARANÍ";
-            else if (code === "EUR") opt.textContent = "EURO";
-            else opt.textContent = name.toUpperCase(); // para el resto, usa el nombre en mayúsculas
+            // Mostrar solo el código de 3 letras (USD, EUR, PYG, etc.)
+            opt.textContent = code;
 
             // Agrega la opción al <select>
             selectEl.appendChild(opt);
@@ -253,6 +466,9 @@
         // Si no hay preferencia válida, selecciona el primer código disponible
         else if (CODES.length) 
             selectEl.value = CODES[0];
+        
+        // Actualiza el dropdown UI después de construir las opciones
+        updateDropdownUI();
     }
 
     // variables y listeners utilizados en enforceDifferent()
@@ -261,46 +477,46 @@
 
     from.addEventListener("focus", () => lastFrom = from.value);
     to.addEventListener("focus", () => lastTo = to.value);
+    
+    // Actualizar dropdown UI cuando cambia la selección
+    from.addEventListener("change", updateDropdownUI);
+    to.addEventListener("change", updateDropdownUI);
 
     function enforceDifferent(changed, other) {
-        // Caso 1: si el usuario pone PYG en ambos
-        if (from.value === "PYG" && to.value === "PYG") {
-            const prev = (changed === from ? lastFrom : lastTo);
-            const fallback = prev && prev !== "PYG"
-                ? prev
-                : (CODES.includes("USD") ? "USD" : CODES.find(c => c !== "PYG"));
-
-            if (changed === from) to.value = fallback;
-            else from.value = fallback;
+        // Validación de seguridad: si de alguna manera ambas monedas son iguales
+        // (no debería ocurrir porque las opciones están filtradas en el dropdown)
+        if (from.value === to.value) {
+            // Cambiar el otro a una moneda diferente
+            const fallback = from.value === "PYG" ? "USD" : "PYG";
+            if (changed === from) {
+                to.value = fallback;
+            } else {
+                from.value = fallback;
+            }
+            updateDropdownUI();
+            return;
         }
 
-        // Caso 2: si el usuario pone la misma moneda en ambos (pero no es PYG)
-        else if (from.value === to.value) {
-            // el otro se fuerza a PYG
-            if (changed === from) to.value = "PYG";
-            else from.value = "PYG";
-        }
-
-        // Caso 3: si ninguno es PYG
+        // Caso: si ninguno es PYG (ambas son divisas extranjeras)
+        // Solo se permiten conversiones con Guaraníes
         if (from.value !== "PYG" && to.value !== "PYG") {
             // el que no cambió se fuerza a PYG
             if (changed === from) to.value = "PYG";
             else from.value = "PYG";
+            
+            // Actualizar la UI del dropdown
+            updateDropdownUI();
         }
     }
     
     function compute() {
         // Convierte el valor ingresado en el campo "amount" a número decimal.
         const rawText = amount.value || "";
-        const raw = parseFloat(
-            rawText
-                .replace(/\./g, "")   // elimina puntos de miles
-                .replace(",", ".")    // reemplaza coma decimal por punto
-        );
+        const raw = extractNumber(rawText);
 
         // Si no es un número válido o es menor/igual a 0, muestra un mensaje de error.
         if (isNaN(raw) || raw <= 0) {
-            out.value = "—"; // salida vacía con guion
+            out.value = ""; // vacío para mostrar el placeholder
             detail.textContent = "Ingresá un monto para calcular"; // mensaje para el usuario
             return; // corta la ejecución
         }
@@ -328,23 +544,60 @@
         } 
         // Caso inválido: cuando se intenta convertir entre dos monedas que no son PYG
         else {
-            out.value = "—"; 
+            out.value = ""; // vacío para mostrar el placeholder
             detail.textContent = "Sólo se permiten conversiones con Guaraníes"; 
             return;
         }
 
         // Muestra el resultado formateado en el campo de salida
         out.value = `${nf(val, b)} ${b}`;
+        
+        // NO formateamos amount aquí - eso interfiere con la escritura del usuario
+        // El formateo de amount se hace solo en el evento blur
+
     }
 
     function attachListeners() {
+        // Listener para quitar el código de moneda y formato al hacer focus en amount
+        amount.addEventListener("focus", () => {
+            // Extraer el valor numérico limpio del campo formateado
+            // Ej: "1.234.567 USD" -> "1234567"
+            const text = amount.value || "";
+            // Primero quitar el código de moneda
+            const sinMoneda = text.replace(/\s+[A-Za-z]{2,4}$/g, "").trim();
+            // Luego quitar los puntos de miles (formato es-ES)
+            const valorLimpio = sinMoneda.replace(/\./g, "");
+            // Mostrar solo el número limpio para edición
+            amount.value = valorLimpio;
+        });
+
+        // Listener para agregar el código de moneda al salir de amount
+        amount.addEventListener("blur", () => {
+            const num = extractNumber(amount.value);
+            if (!isNaN(num) && num > 0) {
+                amount.value = `${nf(num, from.value)} ${from.value}`;
+            }
+        });
+
         // Agrega listeners a los campos de monto, moneda origen y moneda destino.
         // Se escucha tanto "input" (cuando el usuario escribe) como "change" (cuando cambia el valor).
         ["input","change"].forEach(evt => {
             // Cuando se modifica el monto, recalcula directamente
             amount.addEventListener(evt, () => {
-                actualizarFiltros(); // 🔹 actualiza visibilidad de botones
+                actualizarFiltros(false); // 🔹 actualiza visibilidad de botones SIN colapsar selecciones
                 compute();
+
+                aplicarFiltroTauserEnSelect(metodoPago, true);
+                aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+                // ✅ Si el método seleccionado es Tauser → evaluar
+                const opt = metodoPago?.selectedOptions?.[0];
+                if (opt && opt.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoPago, true);
+                }
+
+                evaluarAmbosTausers();
+
             });
 
             // Cuando cambia la moneda de origen (from)
@@ -353,6 +606,23 @@
                 actualizarFiltros();           // 🔹 antes de recargar métodos, actualiza botones
                 await recargarMetodos();       // recarga métodos de pago/cobro disponibles
                 compute();                     // recalcula el resultado
+
+                aplicarFiltroTauserEnSelect(metodoPago, true);
+                aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+                // evaluar pago tauser
+                const optP = metodoPago?.selectedOptions?.[0];
+                if (optP && optP.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoPago, true);
+                }
+
+                const optC = metodoCobro?.selectedOptions?.[0];
+                if (optC && optC.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoCobro, false);
+                }
+
+                evaluarAmbosTausers();
+
             });
 
             // Cuando cambia la moneda de destino (to)
@@ -361,20 +631,86 @@
                 actualizarFiltros();           // actualizar botones de filtros disponibles
                 await recargarMetodos();       // recarga métodos
                 compute();                     // recalcula
+
+                aplicarFiltroTauserEnSelect(metodoPago, true);
+                aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+                // evaluar pago tauser
+                const optP = metodoPago?.selectedOptions?.[0];
+                if (optP && optP.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoPago, true);
+                }
+
+                const optC = metodoCobro?.selectedOptions?.[0];
+                if (optC && optC.dataset.contentTypeId == TAUSER_CT_ID) {
+                    evaluarSugerenciaTauser(metodoCobro, false);
+                }
+
+                evaluarAmbosTausers();
+
             });
         });
 
         // Listener para el botón de "intercambiar" monedas
         intercambiar.addEventListener("click", async () => {
-            // Intercambia los valores de las monedas
-            const tmp = from.value; 
-            from.value = to.value; 
-            to.value = tmp;
+            // Prevenir clicks múltiples mientras se procesa
+            if (isSwapping) return;
+            isSwapping = true;
 
-            enforceDifferent(from,to);     // asegura que no queden iguales
-            actualizarFiltros();           // 🔹 tras intercambiar, recalcula visibilidad
-            await recargarMetodos();       // recarga métodos acorde a la nueva selección
-            compute();                     // recalcula conversión
+            try {
+                // Extraer los números de los campos (sin códigos de moneda)
+                const numAmount = extractNumber(amount.value);
+                const numOut = extractNumber(out.value);
+
+                // Intercambia los valores de las monedas (selects ocultos)
+                const tmpCurrency = from.value; 
+                from.value = to.value; 
+                to.value = tmpCurrency;
+
+                // Intercambia los números y los formatea con los nuevos códigos de moneda
+                // El valor de amount (que era moneda FROM) ahora es moneda TO
+                // El valor de out (que era moneda TO) ahora es moneda FROM
+                if (!isNaN(numOut) && numOut > 0) {
+                    amount.value = `${nf(numOut, from.value)} ${from.value}`;
+                } else {
+                    amount.value = "";
+                }
+                
+                if (!isNaN(numAmount) && numAmount > 0) {
+                    out.value = `${nf(numAmount, to.value)} ${to.value}`;
+                } else {
+                    out.value = "";
+                }
+
+                // Guardar los valores intercambiados antes de recargar métodos
+                const savedAmountValue = amount.value;
+                const savedOutValue = out.value;
+
+                // Actualiza la interfaz visual (banderas, códigos, placeholders)
+                updateDropdownUI();
+
+                enforceDifferent(from,to);     // asegura que no queden iguales
+                
+                // 🔄 RESET: Al intercambiar, colapsar secciones y resetear selecciones
+                actualizarFiltros(true);       // Colapsa secciones y resetea visibilidad de botones
+                
+                // Resetear los selectores de métodos al placeholder
+                if (metodoPago) {
+                    metodoPago.selectedIndex = 0;
+                }
+                if (metodoCobro) {
+                    metodoCobro.selectedIndex = 0;
+                }
+                
+                await recargarMetodos(null, false);       // recarga métodos SIN preservar selecciones
+                
+                // Restaurar los valores intercambiados (recargarMetodos llama compute que los sobrescribe)
+                amount.value = savedAmountValue;
+                out.value = savedOutValue;
+            } finally {
+                // Permitir nuevo click después de completar
+                isSwapping = false;
+            }
         });
 
         // Si existen selectores de métodos de pago y cobro, agrega listeners
@@ -411,6 +747,18 @@
 
                     await updateRatesForMetodo();
                     compute();
+
+                    aplicarFiltroTauserEnSelect(metodoPago, true);
+                    aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+                    const esPago = (selectEl === metodoPago);
+                    const opt = selectEl.selectedOptions?.[0];
+                    if (opt && opt.dataset.contentTypeId == TAUSER_CT_ID) {
+                        evaluarSugerenciaTauser(selectEl, esPago);
+                    }
+
+                    evaluarAmbosTausers();
+
                 });
             });
         }
@@ -421,22 +769,25 @@
             // Si no existen los selectores de método de pago o cobro, no hace nada
             if (!metodoPago || !metodoCobro) return;
 
-            // Función auxiliar: obtiene el tipo general desde el atributo data-* de la opción seleccionada
-            const getTipoGeneral = (select) => {
-                // Obtiene el índice de la opción actualmente seleccionada en el <select>
-                const idx = select.selectedIndex;
+            // Función para obtener el "tipo general" del botón activo (pago o cobro)
+            const getTipoGeneral = (tipo) => {
+                // Según el parámetro recibido ("pago" o "cobro"), seleccionamos el botón activo del grupo correspondiente
+                const selector = tipo === "pago"
+                    ? "#pago-tabs .tab-btn.active"   // Busca el botón activo dentro del grupo de Pago
+                    : "#cobro-tabs .tab-btn.active"; // Busca el botón activo dentro del grupo de Cobro
 
-                // Si no hay ninguna opción seleccionada (índice < 0), devuelve cadena vacía
-                if (idx < 0) return "";
-
-                // Devuelve el valor del atributo data-tipo-general de la opción seleccionada
-                // Si no existe, devuelve cadena vacía
-                return select.options[idx].dataset.tipoGeneral || "";
+                // Devuelve el valor del atributo data-tipo-general del botón activo,
+                // o cadena vacía si no existe o aún no hay un botón activo
+                return document.querySelector(selector)?.dataset.tipoGeneral || "";
             };
 
-            // Obtiene los IDs (tipoGeneral o value) para pago y cobro
-            const pagoId = getTipoGeneral(metodoPago);
-            const cobroId = getTipoGeneral(metodoCobro);
+            // Obtiene el tipo general del método de pago seleccionado
+            // (proviene del botón activo en la sección "Pagar con")
+            const pagoId = getTipoGeneral("pago");
+
+            // Obtiene el tipo general del método de cobro seleccionado
+            // (proviene del botón activo en la sección "Recibir en")
+            const cobroId = getTipoGeneral("cobro");
 
             // Construye la URL hacia la API de monedas, pasando los IDs como query params
             const url = `{% url 'api_currencies' %}?tipo_metodo_pago_id=${pagoId}&tipo_metodo_cobro_id=${cobroId}`;
@@ -473,7 +824,7 @@
         }
     }
 
-    async function recargarMetodos(tipo = null) {
+    async function recargarMetodos(tipo = null, preservarSeleccion = true) {
         // Si no existen los selectores de método de pago o cobro, no hace nada
         if (!metodoPago || !metodoCobro) return;
 
@@ -490,11 +841,34 @@
             const res = await fetch(`{% url 'get_metodos_pago_cobro' %}?from=${from.value}&to=${to.value}`);
             const data = await res.json(); // Parseo del JSON de respuesta
 
+            // ✅ Guardar stock de Tausers
+            TAUSER_STOCK = {};
+            [...data.metodo_pago, ...data.metodo_cobro].forEach(item => {
+                if (item.tipo === "Tauser" && item.stock) {
+                    TAUSER_STOCK[item.id] = item.stock; 
+                }
+            });
+
+            // ✅ Dar PYG infinito a todos los Tausers (para stock)
+            for (const tauserId in TAUSER_STOCK) {
+
+                // Si no tiene PYG en su estructura, crearla
+                if (!TAUSER_STOCK[tauserId]["PYG"]) {
+                    TAUSER_STOCK[tauserId]["PYG"] = [];
+                }
+
+                // Añadir un “billete” enorme que actúa como infinito
+                TAUSER_STOCK[tauserId]["PYG"].push({
+                    value: 1000000000, // 1.000.000.000 Gs
+                    quantity: Infinity
+                });
+            }
+
             // 🆕 Opción inicial por defecto
             const agregarOpcionInicial = (selectEl) => {
                 const opt = document.createElement("option");
                 opt.value = "";
-                opt.textContent = "---Seleccione una opción---";
+                opt.textContent = "Selecciona una opción";
                 opt.disabled = true;
                 opt.selected = true;
                 selectEl.appendChild(opt);
@@ -517,6 +891,9 @@
             };
 
             // 🟩 === Filtro y actualización según el tipo recibido ===
+            // Guardar selección previa solo si preservarSeleccion es true
+            const prevPagoSeleccionado = preservarSeleccion ? metodoPago.value : null;
+            const prevCobroSeleccionado = preservarSeleccion ? metodoCobro.value : null;
             if (tipo === null || tipo === "pago") {
                 // 🧹 Limpia completamente las opciones actuales del <select> de métodos de pago
                 metodoPago.innerHTML = "";
@@ -533,8 +910,17 @@
                 // 🔧 Crea y agrega cada <option> correspondiente a los métodos filtrados
                 metodosPagoFiltrados.forEach(item => metodoPago.appendChild(crearOption(item)));
 
-                // 🎯 Selecciona la primera opción visible (la inicial)
-                if (metodoPago.options.length) metodoPago.selectedIndex = 0;
+                // 🎯 Intentar restaurar la selección anterior si aún existe
+                if (prevPagoSeleccionado) {
+                    const existePrev = [...metodoPago.options].some(opt => opt.value === prevPagoSeleccionado);
+                    if (existePrev) {
+                        metodoPago.value = prevPagoSeleccionado;
+                    } else if (metodoPago.options.length) {
+                        metodoPago.selectedIndex = 0;
+                    }
+                } else if (metodoPago.options.length) {
+                    metodoPago.selectedIndex = 0;
+                }
             }
 
             if (tipo === null || tipo === "cobro") {
@@ -553,12 +939,36 @@
                 // 🔧 Crea y agrega cada <option> correspondiente a los métodos filtrados
                 metodosCobroFiltrados.forEach(item => metodoCobro.appendChild(crearOption(item)));
 
-                // 🎯 Selecciona la primera opción visible (la inicial)
-                if (metodoCobro.options.length) metodoCobro.selectedIndex = 0;
+                // 🎯 Intentar restaurar la selección anterior si aún existe
+                if (prevCobroSeleccionado) {
+                    const existePrevC = [...metodoCobro.options].some(opt => opt.value === prevCobroSeleccionado);
+                    if (existePrevC) {
+                        metodoCobro.value = prevCobroSeleccionado;
+                    } else if (metodoCobro.options.length) {
+                        metodoCobro.selectedIndex = 0;
+                    }
+                } else if (metodoCobro.options.length) {
+                    metodoCobro.selectedIndex = 0;
+                }
             }
 
             // Luego de recargar métodos, actualiza las tasas de cambio
             await updateRatesForMetodo();
+
+            aplicarFiltroTauserEnSelect(metodoPago, true);
+            aplicarFiltroTauserEnSelect(metodoCobro, false);
+
+            // Tras recargar selects, evaluar si hay tauser seleccionado
+            const optP = metodoPago?.selectedOptions?.[0];
+            if (optP && optP.dataset.contentTypeId == TAUSER_CT_ID) {
+                evaluarSugerenciaTauser(metodoPago, true);
+            }
+            const optC = metodoCobro?.selectedOptions?.[0];
+            if (optC && optC.dataset.contentTypeId == TAUSER_CT_ID) {
+                evaluarSugerenciaTauser(metodoCobro, false);
+            }
+
+            evaluarAmbosTausers();
 
         } catch (error) {
             // Si algo falla (error de red o API), lo muestra en consola
@@ -616,22 +1026,34 @@
     document.addEventListener("DOMContentLoaded", function () {
         const input = document.getElementById("simu-amount");
 
+        // 🔧 NO formateamos en tiempo real durante la edición para preservar la posición del cursor.
+        // El formateo se aplica solo en el evento 'blur' (definido en attachListeners).
+        // Durante la edición, solo permitimos dígitos sin formatear.
+        
         input.addEventListener("input", function (e) {
-            // Eliminar todo lo que no sea dígito
+            // Solo permitir dígitos, sin reformatear (para preservar posición del cursor)
+            // Guardar posición actual del cursor
+            const cursorPos = this.selectionStart;
+            const valorAnterior = this.value;
+            
+            // Eliminar caracteres no numéricos
             let value = e.target.value.replace(/\D/g, "");
-
-            // Formatear con separador de miles
-            if (value) {
-                value = new Intl.NumberFormat("es-ES").format(parseInt(value, 10));
+            
+            // Si el valor cambió, actualizar y restaurar cursor
+            if (value !== valorAnterior) {
+                e.target.value = value;
+                // Calcular nueva posición del cursor (ajustar por caracteres eliminados)
+                const diferencia = valorAnterior.length - value.length;
+                const nuevaPos = Math.max(0, cursorPos - diferencia);
+                this.setSelectionRange(nuevaPos, nuevaPos);
             }
-
-            e.target.value = value;
         });
 
         // Evita pegar texto con caracteres no numéricos
         input.addEventListener("paste", function (e) {
             const paste = (e.clipboardData || window.clipboardData).getData("text");
-            if (/\D/.test(paste)) e.preventDefault();
+            // Permitir pegar solo si contiene números (limpiaremos en input)
+            // No bloqueamos, dejamos que el evento input limpie
         });
     });
 
@@ -648,11 +1070,16 @@
      * 1. Pago: Si `from` ≠ PYG → solo "Tauser" y "Tarjeta Internacional".
      * 2. Cobro: Si `to` ≠ PYG → solo "Tauser".
      * 3. Si `to` = PYG y monto no es múltiplo de 100000 → ocultar "Tauser".
+     *
+     * @param {boolean} colapsarSecciones - Si es true, colapsa las secciones expandidas.
+     *        Pasar false cuando solo cambia el monto para preservar selecciones.
      */
-    function actualizarFiltros() {
+    function actualizarFiltros(colapsarSecciones = true) {
         const amountEl = document.getElementById("simu-amount");
         const fromEl = document.getElementById("simu-from");
         const toEl = document.getElementById("simu-to");
+        const pagoContent = document.getElementById("pago-content");
+        const cobroContent = document.getElementById("cobro-content");
 
         const amount = parseFloat(amountEl?.value?.replace(/\./g, "")) || 0;
         const from = fromEl?.value?.trim() || "";
@@ -661,26 +1088,37 @@
         const pagoTabs = document.querySelectorAll("#pago-tabs .tab-btn");
         const cobroTabs = document.querySelectorAll("#cobro-tabs .tab-btn");
 
+        // Solo colapsar secciones si se indica (cuando cambian monedas, NO cuando cambia solo el monto)
+        if (colapsarSecciones) {
+            if (pagoContent) {
+                pagoContent.classList.remove("expanded");
+                pagoTabs.forEach(b => b.classList.remove("selected-method", "hiding", "active"));
+            }
+            if (cobroContent) {
+                cobroContent.classList.remove("expanded");
+                cobroTabs.forEach(b => b.classList.remove("selected-method", "hiding", "active"));
+            }
+
+            // Ocultar info transferencia solo al cambiar monedas
+            const infoTransferencia = document.getElementById("transferencia-info");
+            if (infoTransferencia) {
+                infoTransferencia.classList.add("d-none");
+            }
+        }
+
         // === FILTRO DE PAGO ===
         pagoTabs.forEach((btn) => {
-            const nombre = btn.textContent.trim();
+            const nombre = btn.dataset.tipoNombre || btn.textContent.trim();
             const esPYG = from === "PYG";
             const esTauser = nombre === "Tauser";
             const permitidoBase = esPYG || ["Tauser", "Tarjeta Internacional"].includes(nombre);
 
-            // 🔹 Regla adicional para Tauser (método de PAGO)
-            // Solo se muestra si el monto termina en 000 (sin decenas, centenas ni unidades)
-            let permitido = permitidoBase;
-            if (esTauser && permitidoBase) {
-                permitido = (amount % 1000 === 0);  // múltiplo de 1000 exacto
-            }
-
-            btn.style.display = permitido ? "" : "none";
+            btn.style.display = permitidoBase ? "" : "none";
         });
 
         // === FILTRO DE COBRO ===
         cobroTabs.forEach((btn) => {
-            const nombre = btn.textContent.trim();
+            const nombre = btn.dataset.tipoNombre || btn.textContent.trim();
             const esPYG = to === "PYG";
             const esTauser = nombre === "Tauser";
 
@@ -688,19 +1126,22 @@
                 // Solo Tauser cuando to ≠ PYG
                 btn.style.display = esTauser ? "" : "none";
             } else {
-                // to = PYG → ocultar Tauser si no es múltiplo de 100000
-                const esMultiplo = amount % 100000 === 0;
-                btn.style.display = esTauser && !esMultiplo ? "none" : "";
+                btn.style.display = ""
             }
         });
 
         // Si el botón activo quedó oculto → activar el primero visible
-        [pagoTabs, cobroTabs].forEach((tabList) => {
+        [pagoTabs, cobroTabs].forEach((tabList, index) => {
             const activo = Array.from(tabList).find((b) => b.classList.contains("active"));
             if (activo && activo.style.display === "none") {
+                const tipo = index === 0 ? "pago" : "cobro"; // para recargar solo el que cambió
+
                 activo.classList.remove("active");
                 const visible = Array.from(tabList).find((b) => b.style.display !== "none");
                 if (visible) visible.classList.add("active");
+
+                // ✅ Recargar solo los métodos correspondientes
+                recargarMetodos(tipo);
             }
         });
     }
@@ -708,40 +1149,123 @@
     function configurarTabsFiltro() {
         const pagoTabs = document.getElementById("pago-tabs");
         const cobroTabs = document.getElementById("cobro-tabs");
+        const pagoContent = document.getElementById("pago-content");
+        const cobroContent = document.getElementById("cobro-content");
         const selectPago = document.getElementById("simu-metodo-pago");
+        const selectCobro = document.getElementById("simu-metodo-cobro");
         const infoTransferencia = document.getElementById("transferencia-info");
+        const btnAtrasPago = document.getElementById("pago-btn-atras");
+        const btnAtrasCobro = document.getElementById("cobro-btn-atras");
 
-        const activar = async (grupo, btn, tipo) => {
-            grupo.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-
-            // 🔹 Si es un botón de pago, controlamos la visibilidad del select y la tarjeta de cuenta
-            if (tipo === "pago") {
-                const nombre = btn.textContent.trim().toLowerCase();
-                const esTransferencia = nombre.includes("transferencia");
-
-                if (esTransferencia) {
-                    // Oculta el select y muestra los datos bancarios
-                    selectPago.classList.add("d-none");
+        // Función para expandir la sección de método de pago - CAMBIOS INSTANTÁNEOS (sin animación)
+        // VERSIÓN ACTUALIZADA: 2025-12-10 - Oculta select para transferencias en pago y cobro
+        const expandirMetodo = async (contentEl, tabsEl, btn, tipo, selectEl) => {
+            const todosLosBotones = tabsEl.querySelectorAll(".metodo-btn");
+            
+            // Ocultar todos los botones excepto el seleccionado (instantáneo)
+            todosLosBotones.forEach(b => {
+                if (b !== btn) {
+                    b.classList.add("hiding");
+                }
+            });
+            
+            // Marcar botón seleccionado (instantáneo)
+            btn.classList.add("active", "selected-method");
+            
+            // Expandir contenedor (instantáneo)
+            contentEl.classList.add("expanded");
+            
+            // Obtener nombre del botón para verificar si es transferencia
+            const nombre = (btn.dataset.tipoNombre || btn.textContent.trim()).toLowerCase();
+            const esTransferencia = nombre.includes("cuenta bancaria") || nombre.includes("transferencia");
+            
+            console.log("DEBUG expandirMetodo:", { tipo, nombre, esTransferencia });
+            
+            // Controlar visibilidad del select según el tipo
+            // Solo ocultar select para PAGO con transferencia (el cliente paga al negocio)
+            // Para COBRO siempre mostrar select (el cliente elige dónde recibir)
+            if (esTransferencia && tipo === "pago") {
+                // Ocultar el select solo para PAGO con transferencia
+                selectEl.parentElement.classList.add("select-hidden");
+                console.log("DEBUG: Ocultando select para transferencia en PAGO");
+                
+                // Mostrar info de transferencia (datos de cuenta del negocio)
+                if (infoTransferencia) {
                     infoTransferencia.classList.remove("d-none");
-                } else {
-                    // Restaura el select normal y oculta los datos bancarios
-                    selectPago.classList.remove("d-none");
+                }
+            } else {
+                // Mostrar select para otros métodos y para COBRO
+                selectEl.parentElement.classList.remove("select-hidden");
+                
+                // Ocultar info transferencia SOLO si estamos en pago y NO es transferencia
+                // (no ocultar cuando el usuario selecciona cobro, para mantener visible los datos de pago)
+                if (tipo === "pago" && infoTransferencia) {
                     infoTransferencia.classList.add("d-none");
                 }
             }
 
+            // Cargar métodos y calcular
             await recargarMetodos(tipo);
             compute();
         };
 
-        pagoTabs.querySelectorAll(".tab-btn").forEach(btn =>
-            btn.addEventListener("click", () => activar(pagoTabs, btn, "pago"))
+        // Función para colapsar la sección - CAMBIOS INSTANTÁNEOS (sin animación)
+        // tipo: "pago" o "cobro" - solo oculta transferencia-info si colapsamos PAGO
+        const colapsarMetodo = (contentEl, tabsEl, tipo) => {
+            const todosLosBotones = tabsEl.querySelectorAll(".metodo-btn");
+            const selectWrapper = contentEl.querySelector(".metodo-select-wrapper");
+            
+            // Remover clase 'expanded' (instantáneo)
+            contentEl.classList.remove("expanded");
+            
+            // Limpiar clase de ocultamiento del select
+            if (selectWrapper) {
+                selectWrapper.classList.remove("select-hidden");
+            }
+            
+            // Ocultar info transferencia SOLO si colapsamos la sección de PAGO
+            if (tipo === "pago" && infoTransferencia) {
+                infoTransferencia.classList.add("d-none");
+            }
+            
+            // Restaurar todos los botones (instantáneo)
+            todosLosBotones.forEach(b => {
+                b.classList.remove("hiding", "selected-method", "active");
+                b.removeAttribute('style');
+            });
+        };
+
+        // Event listeners para botones de pago
+        pagoTabs.querySelectorAll(".metodo-btn").forEach(btn =>
+            btn.addEventListener("click", () => {
+                if (!pagoContent.classList.contains("expanded")) {
+                    expandirMetodo(pagoContent, pagoTabs, btn, "pago", selectPago);
+                }
+            })
         );
 
-        cobroTabs.querySelectorAll(".tab-btn").forEach(btn =>
-            btn.addEventListener("click", () => activar(cobroTabs, btn, "cobro"))
+        // Event listeners para botones de cobro
+        cobroTabs.querySelectorAll(".metodo-btn").forEach(btn =>
+            btn.addEventListener("click", () => {
+                if (!cobroContent.classList.contains("expanded")) {
+                    expandirMetodo(cobroContent, cobroTabs, btn, "cobro", selectCobro);
+                }
+            })
         );
+
+        // Event listener para botón "Atrás" de pago
+        if (btnAtrasPago) {
+            btnAtrasPago.addEventListener("click", () => {
+                colapsarMetodo(pagoContent, pagoTabs, "pago");
+            });
+        }
+
+        // Event listener para botón "Atrás" de cobro
+        if (btnAtrasCobro) {
+            btnAtrasCobro.addEventListener("click", () => {
+                colapsarMetodo(cobroContent, cobroTabs, "cobro");
+            });
+        }
     }
 
 
@@ -830,46 +1354,384 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Validar denominaciones para tauser
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function tauserPuedeEntregar(tauserId, currencyCode, monto) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        if (!stockInfo || !stockInfo[currencyCode]) return false;
+
+        const denoms = stockInfo[currencyCode]
+            .map(d => ({ value: parseFloat(d.value), qty: d.quantity }))
+            .sort((a, b) => b.value - a.value);
+
+        let restante = monto;
+        for (const d of denoms) {
+            if (d.value <= 0) continue;
+            let maxUnits = Math.floor(restante / d.value);
+            let usar = Math.min(maxUnits, d.qty);
+            restante -= usar * d.value;
+            if (restante <= 0) return true;
+        }
+
+        return false;
+    }
+
+    function tauserPuedeRecibir(tauserId, currencyCode, monto) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        if (!stockInfo || !stockInfo[currencyCode]) return false;
+
+        // ✅ Usa las mismas denominaciones que él maneja (como entregar)
+        const denoms = stockInfo[currencyCode]
+            .map(d => ({ value: parseFloat(d.value), qty: Infinity })) // recibe sin límite
+            .sort((a, b) => b.value - a.value);
+
+        let restante = monto;
+        for (const d of denoms) {
+            if (d.value <= 0) continue;
+            let usar = Math.floor(restante / d.value);
+            restante -= usar * d.value;
+            if (restante <= 0) return true;
+        }
+
+        return false;
+    }
+
+    function tauserMontoMinimoEntregar(tauserId, currencyCode, monto) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        if (!stockInfo || !stockInfo[currencyCode]) return null;
+
+        const denoms = stockInfo[currencyCode]
+            .map(d => ({ value: parseFloat(d.value), qty: d.quantity }))
+            .sort((a, b) => b.value - a.value);
+
+        // primero probamos si puede cubrir exacto
+        if (tauserPuedeEntregar(tauserId, currencyCode, monto)) {
+            return monto;
+        }
+
+        // si no puede exacto, vamos buscando hacia arriba
+        let extra = 0;
+        while (extra <= monto * 0.5) { // límite práctico: no crecer más del 50% (evita loops enormes)
+            const intento = monto + extra;
+            let restante = intento;
+
+            for (const d of denoms) {
+                if (d.value <= 0) continue;
+                let usar = Math.min(Math.floor(restante / d.value), d.qty);
+                restante -= usar * d.value;
+                if (restante <= 0) return intento;
+            }
+
+            extra += 1;
+        }
+
+        return null; // no puede entregar ni cercano
+    }
+
+
+    function tauserMontoMinimoRecibir(tauserId, currencyCode, monto) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        if (!stockInfo || !stockInfo[currencyCode]) return null;
+
+        // ✅ Mismas denominaciones que puede recibir
+        const denoms = stockInfo[currencyCode]
+            .map(d => ({ value: parseFloat(d.value), qty: Infinity })) 
+            .sort((a, b) => b.value - a.value);
+
+        // Si puede exacto
+        if (tauserPuedeRecibir(tauserId, currencyCode, monto)) {
+            return monto;
+        }
+
+        let extra = 0;
+        while (extra <= monto * 0.5) {
+            const intento = monto + extra;
+            let restante = intento;
+
+            for (const d of denoms) {
+                if (d.value <= 0) continue;
+                let usar = Math.floor(restante / d.value);
+                restante -= usar * d.value;
+                if (restante <= 0) return intento;
+            }
+            extra++;
+        }
+
+        return null;
+    }
+
+    function mostrarSugerenciaTauser(mensaje, targetId) {
+        const el = document.getElementById(targetId);
+
+        if (!el) return;
+
+        el.textContent = mensaje;
+        el.style.display = mensaje ? "block" : "none";
+    }
+
+    function evaluarSugerenciaTauser(selectEl, es_pago) {
+        const targetId = es_pago ? "tauser-suggestion-amount" : "tauser-suggestion-out";
+        console.log(targetId)
+
+        mostrarSugerenciaTauser("", targetId);
+
+        const monto = es_pago 
+            ? parseFloat((amount.value || "0").replace(/\./g,"").replace(",", ".")) || 0 
+            : parseFloat((out.value || "0").replace(/\./g,"").replace(",", ".")) || 0;
+
+        const moneda = es_pago ? from.value : to.value;
+        const opt = selectEl.selectedOptions[0];
+        if (!opt || opt.dataset.contentTypeId != TAUSER_CT_ID || !monto) return;
+
+        const tauserId = parseInt(opt.value);
+
+        // ✅ Caso 1: Cliente paga → Tauser recibe
+        if (es_pago) {
+            if (tauserPuedeRecibir(tauserId, moneda, monto)) return;
+
+            const minimo = tauserMontoMinimoRecibir(tauserId, moneda, monto);
+
+            mostrarSugerenciaTauser(
+                minimo
+                    ? `Monto sugerido que puede aceptar este Tauser es ${nf(minimo)}`
+                    : `Este monto no se puede formar con billetes reales.`,
+                targetId
+            );
+            return;
+        }
+
+        // ✅ Caso 2: cliente recibe → tauser entrega
+        if (tauserPuedeEntregar(tauserId, moneda, monto)) return;
+
+        const minimo = tauserMontoMinimoEntregar(tauserId, moneda, monto);
+
+        mostrarSugerenciaTauser(
+            minimo
+                ? `El Tauser puede darte ${nf(minimo)}, el más cercano disponible`
+                : `Este Tauser no puede entregar este monto con su stock.`,
+            targetId
+        );
+    }
+
+    function aplicarFiltroTauserEnSelect(selectEl, es_pago) {
+        const moneda = es_pago ? from.value : to.value;
+
+        for (const opt of [...selectEl.options]) {
+            if (!opt.value) continue;
+            const id = parseInt(opt.value);
+
+            // ✅ Detectar si es Tauser
+            const isTauser = opt.dataset.contentTypeId == TAUSER_CT_ID;
+            if (!isTauser) continue;
+
+            const stockInfo = TAUSER_STOCK[id];
+            const denoms = stockInfo && stockInfo[moneda];
+
+            // ❌ No maneja esa moneda → ocultar
+            if (!denoms) {
+                opt.hidden = true;
+                continue;
+            }
+
+            // ✅ Calcular total de stock disponible en esa moneda
+            const totalStock = denoms.reduce((sum, d) => sum + d.value * d.quantity, 0);
+
+            // ✅ Obtener monto actual
+            const monto = es_pago 
+                ? parseFloat((amount.value||"0").replace(/\./g,"").replace(",", ".")) || 0
+                : parseFloat((out.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+
+            // ⚠️ Si monto es 0 → solo validamos moneda, no ocultamos
+            if (!monto) {
+                opt.hidden = false;
+                continue;
+            }
+
+            // ❌ Ocultar si stock total < monto
+            opt.hidden = totalStock < monto;
+        }
+
+        // ✅ Si el seleccionado quedó oculto → elegir otro visible
+        if (selectEl.selectedOptions.length && selectEl.selectedOptions[0].hidden) {
+            const visible = [...selectEl.options].find(o => !o.hidden && o.value);
+            selectEl.value = visible ? visible.value : "";
+        }
+    }
+
+
+    function evaluarAmbosTausers() {
+        const optP = metodoPago?.selectedOptions?.[0];
+        const optC = metodoCobro?.selectedOptions?.[0];
+
+        if (!optP || !optC) return;
+        if (optP.dataset.contentTypeId != TAUSER_CT_ID) return;
+        if (optC.dataset.contentTypeId != TAUSER_CT_ID) return;
+
+        const tauserIdP = parseInt(optP.value);
+        const tauserIdC = parseInt(optC.value);
+
+        const montoP = parseFloat((amount.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+        const montoC = parseFloat((out.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+
+        const monedaP = from.value; 
+        const monedaC = to.value;
+
+        const puedeRecibir = tauserPuedeRecibir(tauserIdP, monedaP, montoP);
+        const puedeEntregar = tauserPuedeEntregar(tauserIdC, monedaC, montoC);
+
+        // ✅ Ambos perfectos → limpiar mensajes
+        if (puedeRecibir && puedeEntregar) {
+            mostrarSugerenciaTauser("", "tauser-suggestion-amount");
+            mostrarSugerenciaTauser("", "tauser-suggestion-out");
+            return;
+        }
+
+        // ✅ Buscar el monto workable para ambos
+        const minimoAmbos = tauserMontoMinimoAmbos(
+            tauserIdP, tauserIdC,
+            monedaP, monedaC,
+            montoP
+        );
+
+        if (minimoAmbos) {
+            // Solo sugerimos editar amount, NO tocamos out
+            mostrarSugerenciaTauser(
+                `Monto compatible entre Tausers: ${nf(minimoAmbos, monedaP)}`,
+                "tauser-suggestion-amount"
+            );
+            mostrarSugerenciaTauser("", "tauser-suggestion-out");
+        } else {
+            mostrarSugerenciaTauser(
+                `Ninguno de los Tausers puede operar este monto. Ajustá el valor.`,
+                "tauser-suggestion-amount"
+            );
+            mostrarSugerenciaTauser("", "tauser-suggestion-out");
+        }
+    }
+
+
+    // === 1) Conversión NUMÉRICA consistente con tu compute() (PYG base) ===
+    function convertirMonto(fromCode, toCode, monto) {
+        if (isNaN(monto) || monto <= 0) return 0;
+        if (fromCode === "PYG" && toCode !== "PYG") {
+            // PYG -> X  (usa VENTA de la moneda destino)
+            return monto / (META[toCode]?.venta ?? 1);
+        } else if (fromCode !== "PYG" && toCode === "PYG") {
+            // X -> PYG  (usa COMPRA de la moneda origen)
+            return monto * (META[fromCode]?.compra ?? 1);
+        } else {
+            // Caso inválido en tu UI (no debería ocurrir por enforceDifferent)
+            return 0;
+        }
+    }
+
+    // === 2) Paso mínimo (granularidad) para aumentar "amount" en la búsqueda ===
+    // Usa denominaciones del Tauser que RECIBE (pago) para el "from".
+    // Si no hay datos, cae a 1; si es PYG y no hay datos, cae a 50.000.
+    function pasoMinimoPara(tauserId, currencyCode) {
+        const stockInfo = TAUSER_STOCK[tauserId];
+        const denoms = stockInfo && stockInfo[currencyCode];
+        if (!denoms || !denoms.length) {
+            // Defaults razonables
+            if (currencyCode === "PYG") return 50000;
+            return 1;
+        }
+        // Elegimos el menor billete como paso (puede reemplazarse por gcd si quieres)
+        let min = Infinity;
+        for (const d of denoms) {
+            const v = Math.floor(parseFloat(d.value));
+            if (v > 0 && v < min) min = v;
+        }
+        if (!isFinite(min)) {
+            if (currencyCode === "PYG") return 50000;
+            return 1;
+        }
+        return min;
+    }
+
+    function tauserMontoMinimoAmbos(tauserIdP, tauserIdC, monedaP, monedaC, montoInicial) {
+        if (!montoInicial || montoInicial <= 0) return null;
+
+        // Paso según denominaciones del tauser que recibe (from)
+        const step = pasoMinimoPara(tauserIdP, monedaP);
+
+        // Redondear
+        const align = (x, s) => Math.ceil(x / s) * s;
+        let intento = align(montoInicial, step);
+
+        // Limite máximo preventivo para que nunca se vuelva infinito
+        // Si llegamos a 1.000.000.000.000 PYG (1 billón) ya paramos
+        const LIMITE_ABSURDO = 1_000_000_000_000;
+
+        while (intento <= LIMITE_ABSURDO) {
+            const intentoDestino = convertirMonto(monedaP, monedaC, intento);
+
+            const okRecibir  = tauserPuedeRecibir(tauserIdP, monedaP, intento);
+            const okEntregar = tauserPuedeEntregar(tauserIdC, monedaC, intentoDestino);
+
+            if (okRecibir && okEntregar) {
+                return intento;
+            }
+
+            intento += step;
+        }
+
+        // Si llegamos acá, no existe coincidencia razonable
+        return null;
+    }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Lógica del Wizard
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function mostrarMensaje(texto, tipo="error", duracion=5000) {
-        // Busca el contenedor; si no existe, lo crea y lo agrega al body
+    function mostrarMensaje(texto, tipo = "success", duracion = 4000) {
+        // 1. Buscar o crear phantom
+        let phantom = document.getElementById("toast-phantom");
+        if (!phantom) {
+            phantom = document.createElement("div");
+            phantom.id = "toast-phantom";
+            document.querySelector("header").insertAdjacentElement("afterend", phantom);
+        }
+
+        // 2. Buscar o crear contenedor
         let container = document.getElementById("toast-container");
         if (!container) {
             container = document.createElement("div");
             container.id = "toast-container";
-            container.style.position = "fixed";
-            container.style.top = "1rem";
-            container.style.right = "1rem";
-            container.style.zIndex = 9999;
-            container.style.display = "flex";
-            container.style.flexDirection = "column";
-            container.style.gap = "0.5rem";
-            document.body.appendChild(container);
+            phantom.insertAdjacentElement("afterend", container);
         }
 
-        // Crear el mensaje
+        // 3. Crear el mensaje
         const msg = document.createElement("div");
         msg.className = `toast-message ${tipo}`;
         msg.textContent = texto;
-        msg.style.padding = "0.8rem 1rem";
-        msg.style.borderRadius = "0.5rem";
-        msg.style.color = "#fff";
-        msg.style.backgroundColor = tipo === "error" ? "#e74c3c" : "#2ecc71";
-        msg.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-        msg.style.opacity = 0;
-        msg.style.transition = "opacity 0.3s";
-
         container.appendChild(msg);
 
-        // Animación de aparición
-        requestAnimationFrame(() => { msg.style.opacity = 1; });
+        // 4. Ajustar phantom al alto exacto del mensaje
+        requestAnimationFrame(() => {
+            phantom.style.height = msg.getBoundingClientRect().height + "px";
+        });
 
-        // Desaparece después de 'duracion' ms
+        // 5. ACTIVAR STICKY DINÁMICO
+        function updateToastPosition() {
+            const phantomTop = phantom.getBoundingClientRect().top;
+            if (phantomTop <= 0) {
+                msg.classList.add("fixed");
+            } else {
+                msg.classList.remove("fixed");
+            }
+        }
+
+        window.addEventListener("scroll", updateToastPosition);
+        updateToastPosition();
+
+        // 6. Auto-remover
         setTimeout(() => {
-            msg.style.opacity = 0;
-            msg.addEventListener("transitionend", () => msg.remove());
+            msg.remove();
+            phantom.remove();
+            if (!container.children.length) container.remove();
         }, duracion);
     }
 
@@ -889,14 +1751,14 @@
 
             const codigoMonedaOrigen = from.value; // Ej: "PYG"
             const codigoMonedaDestino = to.value;  // Ej: "USD"
+            // Tomar monto destino
+            const montoDestinoText = document.getElementById("simu-result-main").value;
+            const montoDestino = parseFloat(
+                (montoDestinoText || "0").replace(/\./g, "").replace(",", ".")
+            );
 
             // ⚠️ Solo validar si el usuario tiene PYG como origen
             if (codigoMonedaOrigen === "PYG" && LIMITES_INTERCAMBIO[codigoMonedaDestino]) {
-                // Tomar monto destino
-                const montoDestinoText = document.getElementById("simu-result-main").value;
-                const montoDestino = parseFloat(
-                    (montoDestinoText || "0").replace(/\./g, "").replace(",", ".")
-                );
 
                 const limiteDia = LIMITES_INTERCAMBIO[codigoMonedaDestino].dia;
                 const limiteMes = LIMITES_INTERCAMBIO[codigoMonedaDestino].mes;
@@ -959,12 +1821,16 @@
 
             // Validaciones para pasar de pestaña en el wizard
             if (isNaN(montoOrigen) || montoOrigen <= 0) return mostrarMensaje("Monto inválido.", "error");
+            if (isNaN(montoDestino) || montoDestino <= 0) return mostrarMensaje("Monto inválido.", "error");
 
             // Solo exige metodoPago si NO es transferencia
             if (!esTransferencia && metodoPago.value === "")
                 return mostrarMensaje("Selecciona un método de pago.", "error");
 
             if (metodoCobro.value === "") return mostrarMensaje("Selecciona un método de cobro.", "error");
+
+            // ✅ Validación Tauser ANTES de cambiar de paso
+            if (!validarTauserAntesDeContinuar()) return;
 
             // Cambia la vista
             step1.classList.add("d-none");
@@ -981,6 +1847,83 @@
             ind1.classList.add("active");
         });
     });
+
+    
+    function validarTauserAntesDeContinuar() {
+        const optP = metodoPago?.selectedOptions?.[0];
+        const optC = metodoCobro?.selectedOptions?.[0];
+
+        const monto = parseFloat((amount.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+        const monedaP = from.value;
+        const monedaC = to.value;
+
+        // ✅ Caso 1: solo Tauser en PAGO (cliente entrega a Tauser)
+        if (optP && optP.dataset.contentTypeId == TAUSER_CT_ID) {
+            const idP = parseInt(optP.value);
+            const nombreP = optP.textContent.trim();
+
+            if (!tauserPuedeRecibir(idP, monedaP, monto)) {
+                mostrarMensaje(
+                    `El Tauser "${nombreP}" no puede manejar el monto ingresado en ${monedaP}. Ajustá el valor.`,
+                    "error"
+                );
+                return false;
+            }
+        }
+
+        // ✅ Caso 2: solo Tauser en COBRO (Tauser entrega al cliente)
+        if (optC && optC.dataset.contentTypeId == TAUSER_CT_ID) {
+            const idC = parseInt(optC.value);
+            const nombreC = optC.textContent.trim();
+
+            // Para cobro, usamos el monto que el Tauser debe entregar (out)
+            const montoDestino = parseFloat((out.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+
+            if (!tauserPuedeEntregar(idC, monedaC, montoDestino)) {
+                mostrarMensaje(
+                    `El Tauser "${nombreC}" no puede manejar el monto ingresado en ${monedaC}. Ajustá el valor.`,
+                    "error"
+                );
+                return false;
+            }
+        }
+
+        // ✅ Caso 3: AMBOS Tausers
+        if (
+            optP && optC &&
+            optP.dataset.contentTypeId == TAUSER_CT_ID &&
+            optC.dataset.contentTypeId == TAUSER_CT_ID
+        ) {
+            const idP = parseInt(optP.value);
+            const idC = parseInt(optC.value);
+            const nombreP = optP.textContent.trim();
+            const nombreC = optC.textContent.trim();
+
+            const montoDestino = parseFloat((out.value||"0").replace(/\./g,"").replace(",", ".")) || 0;
+
+            const puedeRecibir = tauserPuedeRecibir(idP, monedaP, monto);
+            const puedeEntregar = tauserPuedeEntregar(idC, monedaC, montoDestino);
+
+            if (!puedeRecibir) {
+                mostrarMensaje(
+                    `El Tauser "${nombreP}" no puede manejar el monto ingresado en ${monedaP}. Ajustá el valor.`,
+                    "error"
+                );
+                return false;
+            }
+
+            if (!puedeEntregar) {
+                mostrarMensaje(
+                    `El Tauser "${nombreC}" no puede manejar el monto ingresado en ${monedaC}. Ajustá el valor.`,
+                    "error"
+                );
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
 })();
 

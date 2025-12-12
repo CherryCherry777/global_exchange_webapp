@@ -1,0 +1,191 @@
+table_schema,table_name,column_name,data_type,char_max_len,numeric_precision,numeric_scale,is_nullable,column_default,ordinal_position
+public,de,id,bigint,,64,0,NO,nextval('de_id_seq'::regclass),1
+public,de,itide,character varying,10,,,YES,,2
+public,de,dfeemide,character varying,20,,,YES,,3
+public,de,dest,character varying,10,,,YES,,4
+public,de,dpunexp,character varying,10,,,YES,,5
+public,de,dnumdoc,character varying,20,,,YES,,6
+public,de,cdc,character varying,100,,,YES,,7
+public,de,dserienum,character varying,10,,,YES,,8
+public,de,estado,character varying,50,,,YES,,9
+public,de,estado_sifen,character varying,50,,,YES,,10
+public,de,desc_sifen,text,,,,YES,,11
+public,de,error_sifen,text,,,,YES,,12
+public,de,fch_sifen,character varying,20,,,YES,,13
+public,de,estado_can,character varying,50,,,YES,,14
+public,de,desc_can,text,,,,YES,,15
+public,de,error_can,text,,,,YES,,16
+public,de,fch_can,character varying,20,,,YES,,17
+public,de,estado_inu,character varying,50,,,YES,,18
+public,de,desc_inu,text,,,,YES,,19
+public,de,error_inu,text,,,,YES,,20
+public,de,fch_inu,character varying,20,,,YES,,21
+public,de,itipemi,character varying,10,,,YES,,22
+public,de,dnumtim,character varying,20,,,YES,,23
+public,de,dfeinit,character varying,20,,,YES,,24
+public,de,itiptra,character varying,10,,,YES,,25
+public,de,itimp,character varying,10,,,YES,,26
+public,de,cmoneope,character varying,10,,,YES,,27
+public,de,dticam,character varying,20,,,YES,,28
+public,de,dinfofisc,text,,,,YES,,29
+public,de,drucem,character varying,20,,,YES,,30
+public,de,ddvemi,character varying,10,,,YES,,31
+public,de,itipcont,character varying,10,,,YES,,32
+public,de,dnomemi,text,,,,YES,,33
+public,de,ddiremi,text,,,,YES,,34
+public,de,dnumcas,character varying,10,,,YES,,35
+public,de,cdepemi,character varying,10,,,YES,,36
+public,de,ddesdepemi,character varying,50,,,YES,,37
+public,de,cciuemi,character varying,10,,,YES,,38
+public,de,ddesciuemi,character varying,50,,,YES,,39
+public,de,dtelemi,character varying,50,,,YES,,40
+public,de,demaile,character varying,200,,,YES,,41
+public,de,inatrec,character varying,10,,,YES,,42
+public,de,itiope,character varying,10,,,YES,,43
+public,de,cpaisrec,character varying,10,,,YES,,44
+public,de,iticontrec,character varying,10,,,YES,,45
+public,de,drucrec,character varying,20,,,YES,,46
+public,de,ddvrec,character varying,10,,,YES,,47
+public,de,itipidrec,character varying,10,,,YES,,48
+public,de,ddtipidrec,character varying,100,,,YES,,49
+public,de,dnumidrec,character varying,50,,,YES,,50
+public,de,dnomrec,text,,,,YES,,51
+public,de,demailrec,character varying,200,,,YES,,52
+public,de,ddirrec,character varying,20,,,YES,,53
+public,de,dnumcasrec,character varying,10,,,YES,,54
+public,de,cdeprec,character varying,10,,,YES,,55
+public,de,ddesdeprec,character varying,50,,,YES,,56
+public,de,cciurec,character varying,10,,,YES,,57
+public,de,ddesciurec,character varying,50,,,YES,,58
+public,de,inatven,character varying,10,,,YES,,59
+public,de,itipidven,character varying,10,,,YES,,60
+public,de,dnumidven,character varying,50,,,YES,,61
+public,de,dnomven,character varying,100,,,YES,,62
+public,de,ddirven,text,,,,YES,,63
+public,de,dnumcasven,character varying,10,,,YES,,64
+public,de,cdepven,character varying,10,,,YES,,65
+public,de,ddesdepven,character varying,50,,,YES,,66
+public,de,cciuven,character varying,10,,,YES,,67
+public,de,ddesciuven,character varying,50,,,YES,,68
+public,de,ddirprov,text,,,,YES,,69
+public,de,cdepprov,character varying,10,,,YES,,70
+public,de,ddesdepprov,character varying,50,,,YES,,71
+public,de,cciuprov,character varying,10,,,YES,,72
+public,de,ddesciuprov,character varying,50,,,YES,,73
+public,de,imotemi,character varying,10,,,YES,,74
+public,de,iindpres,character varying,10,,,YES,,75
+public,de,icondope,character varying,10,,,YES,,76
+public,de,dplazocre,character varying,50,,,YES,,77
+public,de,dmodcont,character varying,10,,,YES,,78
+public,de,dentcont,character varying,10,,,YES,,79
+public,de,danocont,character varying,10,,,YES,,80
+public,de,dseccont,character varying,20,,,YES,,81
+public,de,dfecodcont,character varying,20,,,YES,,82
+public,de,dsisfact,character varying,10,,,YES,,83
+public,de,dinfadic,text,,,,YES,,84
+public,de,imoteminr,character varying,10,,,YES,,85
+public,de,irespeminr,character varying,10,,,YES,,86
+public,de,itiptrans,character varying,10,,,YES,,87
+public,de,imodtrans,character varying,10,,,YES,,88
+public,de,irespflete,character varying,10,,,YES,,89
+public,de,dinitras,character varying,20,,,YES,,90
+public,de,dfintras,character varying,20,,,YES,,91
+public,de,ddirlocsal,text,,,,YES,,92
+public,de,dnumcassal,character varying,10,,,YES,,93
+public,de,cdepsal,character varying,10,,,YES,,94
+public,de,ddesdepsal,character varying,50,,,YES,,95
+public,de,cciusal,character varying,10,,,YES,,96
+public,de,ddesciusal,character varying,50,,,YES,,97
+public,de,ddirlocent,text,,,,YES,,98
+public,de,dnumcasent,character varying,10,,,YES,,99
+public,de,cdepent,character varying,10,,,YES,,100
+public,de,ddesdepent,character varying,50,,,YES,,101
+public,de,cciuent,character varying,10,,,YES,,102
+public,de,ddesciuent,character varying,50,,,YES,,103
+public,de,dtivehtras,character varying,20,,,YES,,104
+public,de,dmarveh,character varying,20,,,YES,,105
+public,de,dtipidenveh,character varying,10,,,YES,,106
+public,de,dnroidveh,character varying,50,,,YES,,107
+public,de,dnromatveh,character varying,50,,,YES,,108
+public,de,inattrans,character varying,10,,,YES,,109
+public,de,dnomtrans,character varying,100,,,YES,,110
+public,de,dructrans,character varying,20,,,YES,,111
+public,de,ddvtrans,character varying,10,,,YES,,112
+public,de,itipidtrans,character varying,10,,,YES,,113
+public,de,dnumidtrans,character varying,50,,,YES,,114
+public,de,dnumidchof,character varying,50,,,YES,,115
+public,de,dnomchof,character varying,100,,,YES,,116
+public,de,fch_ins,timestamp without time zone,,,,NO,now(),117
+public,de,fch_upd,timestamp without time zone,,,,NO,now(),118
+public,de_file,id,bigint,,64,0,NO,nextval('de_file_id_seq'::regclass),1
+public,de_file,tipo,character varying,10,,,YES,,2
+public,de_file,path,character varying,200,,,YES,,3
+public,de_file,estado,character varying,50,,,YES,,4
+public,de_file,fch_ins,timestamp without time zone,,,,NO,now(),5
+public,de_file,fch_upd,timestamp without time zone,,,,NO,now(),6
+public,de_file,de_id,bigint,,64,0,NO,,7
+public,esi,id,bigint,,64,0,NO,nextval('esi_id_seq'::regclass),1
+public,esi,ruc,character varying,20,,,YES,,2
+public,esi,ruc_dv,character varying,1,,,NO,,3
+public,esi,nombre,character varying,200,,,NO,,4
+public,esi,descripcion,text,,,,YES,,5
+public,esi,estado,character varying,50,,,NO,,6
+public,esi,fch_ins,timestamp without time zone,,,,YES,now(),7
+public,esi,fch_upd,timestamp without time zone,,,,YES,now(),8
+public,esi,esi_email,character varying,200,,,NO,,9
+public,esi,esi_passwd,character varying,200,,,NO,,10
+public,esi,esi_token,text,,,,YES,,11
+public,esi,esi_url,character varying,200,,,NO,,12
+public,gacteco,id,bigint,,64,0,NO,nextval('gacteco_id_seq'::regclass),1
+public,gacteco,cacteco,character varying,20,,,YES,,2
+public,gacteco,ddesacteco,text,,,,YES,,3
+public,gacteco,fch_ins,timestamp without time zone,,,,NO,now(),4
+public,gacteco,fch_upd,timestamp without time zone,,,,NO,now(),5
+public,gacteco,de_id,bigint,,64,0,NO,,6
+public,gcamdeasoc,id,bigint,,64,0,NO,nextval('gcamdeasoc_id_seq'::regclass),1
+public,gcamdeasoc,itipdocaso,character varying,10,,,YES,,2
+public,gcamdeasoc,dcdcderef,character varying,100,,,YES,,3
+public,gcamdeasoc,dntimdi,character varying,20,,,YES,,4
+public,gcamdeasoc,destdocaso,character varying,10,,,YES,,5
+public,gcamdeasoc,dpexpdocaso,character varying,10,,,YES,,6
+public,gcamdeasoc,dnumdocaso,character varying,20,,,YES,,7
+public,gcamdeasoc,itipodocaso,character varying,10,,,YES,,8
+public,gcamdeasoc,dfecemidi,character varying,20,,,YES,,9
+public,gcamdeasoc,dnumcomret,character varying,50,,,YES,,10
+public,gcamdeasoc,dnumrescf,character varying,50,,,YES,,11
+public,gcamdeasoc,itipcons,character varying,10,,,YES,,12
+public,gcamdeasoc,dnumcons,character varying,50,,,YES,,13
+public,gcamdeasoc,dnumcontrol,character varying,20,,,YES,,14
+public,gcamdeasoc,fch_ins,timestamp without time zone,,,,NO,now(),15
+public,gcamdeasoc,fch_upd,timestamp without time zone,,,,NO,now(),16
+public,gcamdeasoc,de_id,bigint,,64,0,NO,,17
+public,gcamitem,id,bigint,,64,0,NO,nextval('gcamitem_id_seq'::regclass),1
+public,gcamitem,dcodint,character varying,100,,,YES,,2
+public,gcamitem,ddesproser,character varying,200,,,YES,,3
+public,gcamitem,dcantproser,character varying,30,,,YES,,4
+public,gcamitem,dpuniproser,character varying,50,,,YES,,5
+public,gcamitem,ddescitem,character varying,50,,,YES,,6
+public,gcamitem,iafeciva,character varying,10,,,YES,,7
+public,gcamitem,dpropiva,character varying,10,,,YES,,8
+public,gcamitem,dtasaiva,character varying,10,,,YES,,9
+public,gcamitem,dpararanc,character varying,10,,,YES,,10
+public,gcamitem,dncm,character varying,20,,,YES,,11
+public,gcamitem,ddncpg,character varying,20,,,YES,,12
+public,gcamitem,ddncpe,character varying,10,,,YES,,13
+public,gcamitem,dgtin,character varying,50,,,YES,,14
+public,gcamitem,dgtinpq,character varying,50,,,YES,,15
+public,gcamitem,fch_ins,timestamp without time zone,,,,NO,now(),16
+public,gcamitem,fch_upd,timestamp without time zone,,,,NO,now(),17
+public,gcamitem,de_id,bigint,,64,0,NO,,18
+public,gpaconeini,id,bigint,,64,0,NO,nextval('gpaconeini_id_seq'::regclass),1
+public,gpaconeini,itipago,character varying,10,,,YES,,2
+public,gpaconeini,dmontipag,character varying,50,,,YES,,3
+public,gpaconeini,cmonetipag,character varying,10,,,YES,,4
+public,gpaconeini,dticamtipag,character varying,20,,,YES,,5
+public,gpaconeini,dnumcheq,character varying,20,,,YES,,6
+public,gpaconeini,dbcoemi,character varying,50,,,YES,,7
+public,gpaconeini,identarj,character varying,10,,,YES,,8
+public,gpaconeini,iforpropa,character varying,10,,,YES,,9
+public,gpaconeini,fch_ins,timestamp without time zone,,,,NO,now(),10
+public,gpaconeini,fch_upd,timestamp without time zone,,,,NO,now(),11
+public,gpaconeini,de_id,bigint,,64,0,NO,,12

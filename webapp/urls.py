@@ -1,5 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+
+from webapp.views.reportes_transacciones_ganancias import reporte_transacciones
 from . import views
 
 urlpatterns = [
@@ -37,6 +39,7 @@ urlpatterns = [
 
     # Landing pages
     path("landing/", views.landing_page, name="landing"),
+    path("administar-metodos-pago/", views.administar_metodos_pago, name="administar_metodos_pago"),
     path("admin-dashboard/", views.admin_dash, name="admin_dashboard"),
     path("employee-dashboard/", views.employee_dash, name="employee_dashboard"),
     path("analyst-dashboard/", views.analyst_dash, name="analyst_dashboard"),
@@ -90,7 +93,8 @@ urlpatterns = [
 
     # Administración de límites de intercambio
     path('limites/', views.limites_intercambio_list, name='limites_list'),
-    path('limites/<int:moneda_id>/editar/', views.limite_edit, name='limite_edit'),
+    path('limites/config/<int:config_id>/editar/', views.limite_config_edit, name='limite_config_edit'),
+    path('limites/cargar-tabla/', views.limites_intercambio_tabla_htmx, name='limites_tabla_htmx'),
 
     # Administración de cotizaciones
     path('prices/', views.prices_list, name='prices_list'),
@@ -135,9 +139,10 @@ urlpatterns = [
     # Transacciones
     path("historial-transacciones/", views.transaccion_list, name="transaccion_list"),
     path("transaccion/<int:transaccion_id>/ingresar-id/", views.ingresar_idTransferencia, name="ingresar_idTransferencia"),
+    path("transacciones/<int:pk>/cancelar-transaccion/", views.cancelar_transaccion, name="cancelar_transaccion"),
+    path("transacciones/<int:pk>/aceptar-cambio/", views.transaccion_aceptar_cambio, name="transaccion_aceptar_cambio"),
 
     #Configuracion de notificaciones de correo
-    path("schedule/", views.manage_schedule, name="manage_schedule"),
     path("unsubscribe/<uidb64>/<token>/", views.unsubscribe, name="unsubscribe"),
     path('unsubscribe/confirm/', views.unsubscribe_confirm, name='unsubscribe_confirm'),
     path('unsubscribe/error/', views.unsubscribe_error, name='unsubscribe_error'),
@@ -148,5 +153,21 @@ urlpatterns = [
     path("tauser/login/", views.tauser_login, name="tauser_login"),
     path("tauser/pagar/<int:pk>/", views.tauser_pagar, name="tauser_pagar"),
     path("tauser/cobrar/<int:pk>/", views.tauser_cobrar, name="tauser_cobrar"),
+    path("tauser/manage/", views.manage_tausers, name="manage_tausers"),
 
+    # Configurar temporizadores (Schedule de celery)
+    path("schedule/", views.manage_schedule, name="manage_schedule"),
+
+    # Configurar denominaciones de monedas
+    path('currency-denominations/', views.manage_currency_denominations, name='currency_denominations'),
+    path('currency-denominations/edit/<int:currency_id>/', views.edit_currency_denominations, name='edit_currency_denominations'),
+
+    # Factura
+    path('ver-factura/', views.ver_factura, name='ver_factura'),
+    path('factura/', views.factura_view, name='factura_view'),
+    path("factura/<int:factura_id>/", views.factura_view, name="factura_view"),
+    path("factura/<int:factura_id>/pdf/", views.factura_pdf, name="factura_pdf"),
+
+    # Administracion global de transacciones
+    path("reportes/", reporte_transacciones, name="reporte_transacciones"),
 ]

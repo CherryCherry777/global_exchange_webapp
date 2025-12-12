@@ -13,3 +13,5 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 # Auto-descubrir tareas en todas las apps
 app.autodiscover_tasks()
 
+
+print("CELERY BROKER:", app.conf.broker_url)

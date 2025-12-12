@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
-from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, MedioCobro, MedioPago, TarjetaInternacional, TarjetaNacional, Billetera, TipoCobro, TipoPago, LimiteIntercambio, Currency, Transaccion
+from .models import BilleteraCobro, CuentaBancaria,CuentaBancariaCobro, CurrencyDenomination, CustomUser, Cliente, ClienteUsuario, Categoria, Entidad, LimiteIntercambioConfig, MedioCobro, MedioPago, TarjetaInternacional, TarjetaNacional, Billetera, TipoCobro, TipoPago, Currency, Transaccion
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
@@ -309,6 +309,7 @@ class TarjetaNacionalForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
         queryset=Entidad.objects.filter(tipo="banco", activo=True),
         label="Banco Emisor",
+        empty_label="Seleccionar banco emisor",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
@@ -378,6 +379,7 @@ class BilleteraForm(forms.ModelForm):
             )
 
         self.fields["entidad"].queryset = qs
+        self.fields["entidad"].empty_label = "Seleccione un proveedor"
 
     def clean_numero_celular(self):
         numero_celular = self.cleaned_data.get("numero_celular") or ""
@@ -391,7 +393,8 @@ class CuentaBancariaForm(forms.ModelForm):
     entidad = forms.ModelChoiceField(
         queryset=Entidad.objects.filter(tipo="banco", activo=True),
         label="Banco",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        empty_label="Seleccionar Banco"
     )
 
     class Meta:
@@ -707,8 +710,12 @@ class CuentaBancariaCobroEditForm(MonedaDisabledMixin, forms.ModelForm):
 
 class LimiteIntercambioForm(forms.ModelForm):
     class Meta:
-        model = LimiteIntercambio
-        fields = ['moneda', 'limite_dia', 'limite_mes']
+        model = LimiteIntercambioConfig  # o LimiteIntercambioConfig si ya migramos al nuevo nombre
+        fields = [
+            "moneda",
+            "limite_dia_max",
+            "limite_mes_max",
+        ]
 
 
 # Entidades bancarias y telefonicas
@@ -730,3 +737,36 @@ class EntidadEditForm(forms.ModelForm):
         #     "tipo": forms.Select(attrs={"disabled": True}),
         # }
 
+class CurrencyDenominationForm(forms.ModelForm):
+    class Meta:
+        model = CurrencyDenomination
+        fields = ['value', 'type', 'is_active']
+        widgets = {
+            'value': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
+            'type': forms.Select(attrs={'class': 'form-select'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class ReporteTransaccionesForm(forms.Form):
+    fecha_inicio = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'date-input'})
+    )
+    fecha_fin = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'date-input'})
+    )
+    tipo = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Todos')] + list(Transaccion.Tipo.choices)
+    )
+    estado = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Todos')] + list(Transaccion.Estado.choices)
+    )
+    moneda = forms.ModelChoiceField(
+        required=False,
+        queryset=Currency.objects.all(),
+        empty_label="Seleccione una moneda"
+    )

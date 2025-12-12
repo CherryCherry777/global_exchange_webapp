@@ -1,0 +1,114 @@
+**10.2 Preguntas Frecuentes (FAQ)**
+===================================
+
+Preguntas frecuentes sobre el uso y administración de Global Exchange Webapp.
+
+Documentación
+-------------
+
+**P: ¿Cómo restauro la documentación anterior?**
+
+R: Existe un respaldo disponible en ``docs/backup_docs_20251211_0000/``. Puedes:
+
+1. Copiar archivos específicos que necesites desde esa ubicación.
+2. Restaurar la carpeta completa si deseas volver a la versión anterior.
+3. Comparar versiones para identificar cambios específicos.
+
+**P: ¿Cómo debo documentar los modelos para evitar duplicados?**
+
+R: Para evitar advertencias de duplicación al construir con Sphinx:
+
+- Documenta los modelos centrales en un único archivo ``models.rst``.
+- En otras páginas que referencien los mismos modelos, usa ``:noindex:`` en las directivas.
+- Evita usar ``.. automodule::`` en múltiples archivos para el mismo módulo.
+
+**P: ¿Cuál es el flujo para editar y publicar documentación?**
+
+R: El flujo recomendado es:
+
+1. Modificar o crear archivos ``.rst`` en ``docs/source/``.
+2. Ejecutar ``.\make.bat html`` desde el directorio ``docs\``.
+3. Revisar y corregir errores mostrados en la consola.
+4. Previsualizar ``docs/build/html/index.html`` en un navegador.
+5. Opcionalmente, ejecutar ``python -m http.server`` en ``docs/build/html/`` para servir localmente.
+6. Una vez validado, hacer commit de los cambios.
+
+Operaciones
+-----------
+
+**P: ¿Cómo cambio la cotización de una moneda?**
+
+R: Accede a Menú → Configuración → Cotizaciones, selecciona la moneda, ingresa las nuevas tasas de compra y venta, documenta el motivo del cambio y guarda. El sistema registrará el cambio en el historial automáticamente.
+
+**P: ¿Qué hago si un cliente excede su límite?**
+
+R: Opciones disponibles:
+
+1. Procesar una operación por un monto menor (dentro del límite disponible).
+2. Solicitar al supervisor una ampliación temporal del límite.
+3. Evaluar un cambio de categoría del cliente si el volumen es recurrente.
+4. Informar al cliente sobre sus límites y cuándo se reinician.
+
+**P: ¿Cómo exporto un reporte de transacciones?**
+
+R: Accede a Menú → Reportes → Transacciones, aplica los filtros deseados (fechas, cliente, moneda), y haz clic en "Exportar CSV". El archivo se descargará automáticamente.
+
+Administración
+--------------
+
+**P: ¿Cómo creo un nuevo usuario del sistema?**
+
+R: Puedes crear usuarios de dos formas:
+
+1. Panel de administración (``/admin/``): Usuarios → Añadir usuario.
+2. Interfaz del sistema: Menú → Configuración → Usuarios → Nuevo usuario.
+
+Recuerda asignar el rol apropiado después de crear el usuario.
+
+**P: ¿Cómo reseteo la contraseña de un usuario?**
+
+R: Opciones disponibles:
+
+1. El usuario puede usar "¿Olvidaste tu contraseña?" en la pantalla de login.
+2. Un administrador puede cambiarla desde ``/admin/auth/user/`` o la interfaz de gestión de usuarios.
+3. Por línea de comandos: ``python manage.py changepassword username``.
+
+**P: ¿Cómo agrego una nueva moneda al sistema?**
+
+R: Accede a Menú → Configuración → Monedas → Nueva moneda. Completa el código ISO, nombre, símbolo, decimales y sube la imagen de bandera. Después de guardar, configura una cotización inicial antes de activar la moneda.
+
+Técnicas
+--------
+
+**P: ¿Dónde están los logs del sistema?**
+
+R: Los logs se encuentran en:
+
+- Consola del servidor durante desarrollo (``runserver``).
+- Archivos de log configurados en ``settings.py`` (variable ``LOGGING``).
+- Logs del servidor web (Nginx, Apache) en producción.
+
+**P: ¿Cómo hago backup de la base de datos?**
+
+R: Para PostgreSQL:
+
+.. code-block:: powershell
+
+   pg_dump -U usuario -h localhost global_exchange > backup.sql
+
+Para restaurar:
+
+.. code-block:: powershell
+
+   psql -U usuario -h localhost -d global_exchange < backup.sql
+
+**P: ¿Cómo reporto un bug del sistema?**
+
+R: Abre un issue en el repositorio del proyecto incluyendo:
+
+1. Descripción clara del problema.
+2. Pasos exactos para reproducirlo.
+3. Comportamiento esperado vs. comportamiento actual.
+4. Fragmentos de logs o tracebacks relevantes.
+5. Versión del código (branch o commit hash).
+6. Capturas de pantalla si es un problema visual.

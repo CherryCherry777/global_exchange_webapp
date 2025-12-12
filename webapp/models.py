@@ -2,12 +2,19 @@ import secrets
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from decimal import Decimal, ROUND_DOWN
+from typing import Optional
+from django.core.validators import RegexValidator, MinLengthValidator, MaxLengthValidator
+
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils import timezone
+import secrets
 
 #Las clases van aqui
 #Los usuarios heredan AbstractUser
@@ -82,6 +89,41 @@ class Currency(models.Model):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+    
+
+#Denominaciones de monedas
+class CurrencyDenomination(models.Model):
+    currency = models.ForeignKey(
+        Currency,
+        on_delete=models.CASCADE,
+        related_name="denominations",
+        verbose_name="Moneda"
+    )
+    # Valor del billete/moneda
+    value = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        verbose_name="Valor",
+        help_text="Valor numérico de la denominación (ej: 100.00)"
+    )
+    # Billete o Moneda
+    type = models.CharField(
+        max_length=20,
+        choices=[("bill", "Billete"), ("coin", "Moneda")],
+        default="bill",
+        verbose_name="Tipo"
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
+
+    class Meta:
+        verbose_name = "Denominación de Moneda"
+        verbose_name_plural = "Denominaciones de Moneda"
+        ordering = ["currency", "-value"]
+        unique_together = ("currency", "value")
+
+    def __str__(self):
+        return f"{self.currency.code} {self.value} ({self.get_type_display()})"
+
 
 class CurrencyHistory(models.Model):
     currency = models.ForeignKey(
@@ -255,7 +297,7 @@ class Categoria(models.Model):
     descuento = models.DecimalField(
         max_digits=4, 
         decimal_places=3,
-        validators=[MinValueValidator(0), MaxValueValidator(1)],
+        #validators=[MinValueValidator(0), MaxValueValidator(1)],
         verbose_name="Descuento"
     )
 
@@ -583,100 +625,6 @@ class TipoPago(models.Model):
 
 
 # -------------------------------------
-# Modelo para definir limites de intercambio por dia y mes
-# -------------------------------------
-
-class LimiteIntercambio(models.Model):
-    moneda = models.ForeignKey(
-        'Currency',
-        on_delete=models.CASCADE,
-        verbose_name="Moneda",
-        related_name="limites_intercambio"
-    )
-    limite_dia = models.DecimalField(
-        max_digits=23,
-        decimal_places=8,
-        verbose_name="Límite Diario",
-        default=Decimal('0'),
-        error_messages={
-            'max_digits': 'El número no puede tener más de 23 dígitos',
-            'max_decimal_places': 'El número no puede tener más de 8 decimales'
-        }
-    )
-    limite_mes = models.DecimalField(
-        max_digits=23,
-        decimal_places=8,
-        verbose_name="Límite Mensual",
-        default=Decimal('0'),
-        error_messages={
-            'max_digits': 'El número no puede tener más de 23 dígitos',
-            'max_decimal_places': 'El número no puede tener más de 8 decimales'
-        }
-    )
-
-    class Meta:
-        verbose_name = "Límite de Intercambio"
-        verbose_name_plural = "Límites de Intercambio"
-        ordering = ['moneda__code']
-        unique_together = ['moneda']
-
-    def clean(self):
-        if not self.moneda:
-            return
-
-        max_dec = self.moneda.decimales_cotizacion
-
-        def check_decimals(value, field_name):
-            if value is None:
-                return
-            str_val = str(value)
-            if '.' in str_val:
-                dec_count = len(str_val.split('.')[1])
-                if dec_count > max_dec:
-                    raise ValidationError(
-                        {field_name: f"El número máximo de decimales permitidos para esta moneda es {max_dec}."}
-                    )
-
-        check_decimals(self.limite_dia, 'limite_dia')
-        check_decimals(self.limite_mes, 'limite_mes')
-
-    def save(self, *args, **kwargs):
-        if self.moneda:
-            dec = int(self.moneda.decimales_cotizacion)
-            factor = Decimal('1').scaleb(-dec)  # Ej: dec=3 -> 0.001
-            if self.limite_dia is not None:
-                self.limite_dia = Decimal(self.limite_dia).quantize(factor, rounding=ROUND_DOWN)
-            if self.limite_mes is not None:
-                self.limite_mes = Decimal(self.limite_mes).quantize(factor, rounding=ROUND_DOWN)
-        super().save(*args, **kwargs)
-
-    def descontar(self, monto: Decimal):
-        """
-        Descuenta un monto del límite diario y mensual (por ejemplo, después de una transacción).
-        Si el monto supera el límite actual, lanza ValidationError.
-        """
-        if monto is None or monto <= 0:
-            return
-
-        # Validar que haya suficiente límite disponible
-        if monto > self.limite_dia:
-            raise ValidationError(f"El monto {monto} supera el límite diario disponible ({self.limite_dia}).")
-
-        if monto > self.limite_mes:
-            raise ValidationError(f"El monto {monto} supera el límite mensual disponible ({self.limite_mes}).")
-
-        # Restar y normalizar según los decimales de la moneda
-        dec = int(self.moneda.decimales_cotizacion)
-        factor = Decimal('1').scaleb(-dec)
-
-        self.limite_dia = (self.limite_dia - monto).quantize(factor, rounding=ROUND_DOWN)
-        self.limite_mes = (self.limite_mes - monto).quantize(factor, rounding=ROUND_DOWN)
-        self.save(update_fields=["limite_dia", "limite_mes"])
-
-    def __str__(self):
-        return f"{self.moneda.code}"
-
-# -------------------------------------
 # Modelo de métodos de cobro genérico
 # -------------------------------------
 class MedioCobro(models.Model):
@@ -900,22 +848,49 @@ class Tauser(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.tipo})"
 
-# Tabla intermedia entre Tauser y Currency
-"""
-class TauserCurrency(models.Model):
-    tauser = models.ForeignKey(Tauser, on_delete=models.CASCADE, related_name="monedas")
-    currency = models.ForeignKey("Currency", on_delete=models.PROTECT, related_name="tausers")
-    stock = models.DecimalField(max_digits=20, decimal_places=2, default=0.0, verbose_name="Stock disponible")
+# Tabla intermedia entre Tauser, Currency y CurrencyDenomination
+class TauserCurrencyStock(models.Model):
+    tauser = models.ForeignKey(
+        Tauser,
+        on_delete=models.CASCADE,
+        related_name="stocks",
+        verbose_name="Tauser"
+    )
+
+    currency = models.ForeignKey(
+        Currency,
+        on_delete=models.CASCADE,
+        related_name="tauser_stocks",
+        verbose_name="Moneda"
+    )
+
+    denomination = models.ForeignKey(
+        CurrencyDenomination,
+        on_delete=models.CASCADE,
+        related_name="tauser_stocks",
+        verbose_name="Denominación"
+    )
+
+    quantity = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Cantidad de billetes/monedas"
+    )
+
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Última actualización")
 
     class Meta:
-        db_table = "tauser_currency"
-        verbose_name = "Stock Tauser por Moneda"
-        verbose_name_plural = "Stocks Tauser por Moneda"
-        unique_together = ("tauser", "currency")
+        verbose_name = "Stock de Tauser"
+        verbose_name_plural = "Stock de Tausers"
+        unique_together = ("tauser", "currency", "denomination")
+        ordering = ["tauser", "currency", "-denomination"]
 
     def __str__(self):
-        return f"{self.tauser.nombre} - {self.currency.code}: {self.stock}"
-"""
+        return f"{self.tauser.nombre} | {self.currency.code} {self.denomination.value} x {self.quantity}"
+
+    @property
+    def total_valor(self):
+        return self.denomination.value * self.quantity
+
 
 # ------------------------------------------------------
 # Modelo Transaccion para el registro de la compraventa
@@ -968,6 +943,14 @@ class Transaccion(models.Model):
     monto_origen = models.DecimalField(max_digits=20, decimal_places=8)
     monto_destino = models.DecimalField(max_digits=20, decimal_places=8)
 
+    medio_pago_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    medio_cobro_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    desc_cliente = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    monto_base_moneda = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+
+    comision_vta_com = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    
+
     # Generic Foreign Key para medio de pago
     medio_pago_type = models.ForeignKey(
         ContentType,
@@ -1007,6 +990,11 @@ class Transaccion(models.Model):
         related_name="transacciones"
     )
 
+    cambio_pendiente = models.BooleanField(
+        default=False,
+        help_text="Indica si hubo un cambio de cotización que el usuario aún no confirmó."
+    )
+
     # ----------------------------------------------------------------------
     # 🔹 Control automático de fechas según estado
     # ----------------------------------------------------------------------
@@ -1043,11 +1031,154 @@ class Transaccion(models.Model):
             return f"{self.medio_cobro.nombre} ({self.medio_cobro.ubicacion})"
         return ""
 
+    @property
+    def ganancia_en_pyg(self):
+        """
+        Calcula la ganancia REAL en guaraníes, según si es COMPRA o VENTA
+        y según cuál moneda es PYG.
+        """
+
+        #rate_origen = Decimal(self.tasa_cambio)
+        #rate_destino = Decimal(self.tasa_cambio)
+
+
+        monto_orig = Decimal(self.monto_origen)
+        monto_dest = Decimal(self.monto_destino)
+        precio_base = int(self.monto_base_moneda)
+        print(self.medio_pago_porc)
+        print(self.desc_cliente)
+
+        #print(f"⬤ Tasa de cambio: {tasa}")
+
+        # 🔹 CASO 1 — VENTA
+        if self.tipo == "VENTA":
+            # El cliente entrega Gs y recibe divisa
+            # Valor real en Gs de la divisa entregada
+            """costo_real = monto_dest * precio_base
+
+            return monto_orig - costo_real
+            """
+
+            comision_vta = Decimal(self.comision_vta_com)
+
+            descuento_categoria = comision_vta * Decimal(self.desc_cliente)
+
+            tasa_venta_base = precio_base + comision_vta
+
+            tasa_venta = int(tasa_venta_base - descuento_categoria)
+
+            tc_venta = tasa_venta * monto_dest
+
+            costo_real = monto_dest * precio_base
+
+            return tc_venta - costo_real
+
+
+        # 🔹 CASO 2 — COMPRA
+        if self.tipo == "COMPRA":
+            # El cliente entrega divisa y recibe Gs
+            #monto_gs_pagado = monto_dest  # ya está expresado en Gs
+            #print(f"⬤ Monto en guaranies pagado: {monto_gs_pagado}")
+            #costo_real = monto_orig * tasa
+            #print(f"⬤ Costo Real: {costo_real}")
+
+            #print(f"⬤ Ganancia: {monto_gs_pagado - costo_real}")
+
+            comision_com = Decimal(self.comision_vta_com)
+
+            descuento_categoria = comision_com * Decimal(self.desc_cliente)
+
+            tasa_compra_base = precio_base - comision_com
+
+            tasa_compra = int(tasa_compra_base + descuento_categoria)
+
+            tc_compra = tasa_compra * monto_orig
+
+            costo_real = monto_orig * precio_base
+
+            return costo_real - tc_compra
+        
+    class Meta:
+        permissions = [
+            ("ver_reportes", "Puede ver los reportes de la empresa"),
+        ]
+
+
+class TransaccionAuditoria(models.Model):
+    """
+    Snapshot del estado de una Transaccion en el momento de un save().
+    Cada fila representa cómo estaba la transacción en ese instante.
+    """
+
+    transaccion = models.ForeignKey(
+        "Transaccion",
+        on_delete=models.CASCADE,
+        related_name="auditorias"
+    )
+
+    # Quién causó el cambio (opcional: puede ser None si es el sistema)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="transacciones_auditadas"
+    )
+
+    # Para registrar si fue sistema, tarea, usuario, etc. (opcional)
+    origen = models.CharField(
+        max_length=20,
+        default="sistema",
+        help_text="usuario | sistema | tarea | otro"
+    )
+
+    # Copia de los campos principales de Transaccion
+    tipo = models.CharField(max_length=10)     # COMPRA / VENTA
+    estado = models.CharField(max_length=10)   # PENDIENTE / PAGADA / etc.
+
+    moneda_origen = models.CharField(max_length=10)
+    moneda_destino = models.CharField(max_length=10)
+
+    tasa_cambio = models.DecimalField(max_digits=16, decimal_places=8)
+    monto_origen = models.DecimalField(max_digits=20, decimal_places=8)
+    monto_destino = models.DecimalField(max_digits=20, decimal_places=8)
+
+    medio_pago_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="+"
+    )
+    medio_pago_id = models.PositiveIntegerField()
+
+    medio_cobro_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="+"
+    )
+    medio_cobro_id = models.PositiveIntegerField()
+
+    medio_pago_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    medio_cobro_porc = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    desc_cliente = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    monto_base_moneda = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+    comision_vta_com = models.DecimalField(max_digits=16, decimal_places=8, default=0)
+
+    # Marca temporal del snapshot
+    fecha_snapshot = models.DateTimeField(auto_now_add=True)
+
+    # Comentario opcional por si querés registrar algo específico
+    comentario = models.TextField(blank=True, default="")
+
+    def __str__(self) -> str:
+        return f"Snapshot T#{self.transaccion_id} – {self.estado} @ {self.fecha_snapshot}"
     
 # --------------------------------------------
 # Modelos para facturación y notas de crédito
 # --------------------------------------------
 
+DIGITOS = RegexValidator(regex=r"^\d+$", message="Solo dígitos.")
+
+# webapp/models.py
 class Factura(models.Model):
     ESTADOS = [
         ("emitida", "Emitida"),
@@ -1061,15 +1192,24 @@ class Factura(models.Model):
     fechaEmision = models.DateField(default=timezone.now)
     detalleFactura = models.ForeignKey("DetalleFactura", on_delete=models.CASCADE)
     estado = models.CharField(max_length=20, choices=ESTADOS, default="emitida")
+
+    # --- NUEVOS: enlace con proxy ---
+    de_id = models.IntegerField(null=True, blank=True, db_index=True)
+    est = models.CharField(max_length=3, default="001")   # establecimiento
+    pun = models.CharField(max_length=3, default="003")   # punto de expedición
+    d_num_doc = models.CharField(max_length=7, null=True, blank=True)  # número (con ceros)
+
+    # Archivos
     xml_file = models.FileField(upload_to="facturas/xml/", blank=True, null=True)
     pdf_file = models.FileField(upload_to="facturas/pdf/", blank=True, null=True)
 
     def __str__(self):
         return f"Factura {self.id} - Cliente {self.cliente} ({self.estado})"
 
+
 class DetalleFactura(models.Model):
     transaccion = models.ForeignKey("Transaccion", on_delete=models.CASCADE)
-    
+
     # Campos para GenericForeignKey
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -1080,8 +1220,225 @@ class DetalleFactura(models.Model):
     def __str__(self):
         return f"Detalle {self.id} - {self.descripcion}"
 
+# -------------------------------------
+# Modelo para definir limites de intercambio por dia y mes
+# -------------------------------------
 
-# Configuracion de frecuencia de correos electronicos
+class LimiteIntercambioLog(models.Model):
+    transaccion = models.OneToOneField(
+        Transaccion,
+        on_delete=models.CASCADE,
+        related_name="limite_log"
+    )
+    monto_descontado = models.DecimalField(max_digits=23, decimal_places=8, default=Decimal('0'))
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+class LimiteIntercambioConfig(models.Model):
+    """
+    Config de límites por CATEGORÍA + MONEDA.
+    SOLO guarda los topes (máximos).
+    """
+    categoria = models.ForeignKey(
+        Categoria, on_delete=models.CASCADE,
+        related_name="limites_config", verbose_name="Categoría"
+    )
+    moneda = models.ForeignKey(
+        Currency, on_delete=models.CASCADE,
+        related_name="limites_config_por_moneda", verbose_name="Moneda"
+    )
+
+    limite_dia_max = models.DecimalField(
+        max_digits=23, decimal_places=8, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))], verbose_name="Límite Diario (Máx.)"
+    )
+    limite_mes_max = models.DecimalField(
+        max_digits=23, decimal_places=8, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))], verbose_name="Límite Mensual (Máx.)"
+    )
+
+    class Meta:
+        verbose_name = "Config. Límite de Intercambio (Categoría)"
+        verbose_name_plural = "Config. Límites de Intercambio (Categoría)"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["categoria", "moneda"],
+                name="uniq_limite_config_categoria_moneda"
+            )
+        ]
+        ordering = ["categoria__id", "moneda__code"]
+
+    def _factor(self) -> Decimal:
+        dec = int(self.moneda.decimales_cotizacion or 0)
+        return Decimal("1").scaleb(-dec)
+
+    def clean(self):
+        factor = self._factor()
+        for f in ["limite_dia_max", "limite_mes_max"]:
+            v = getattr(self, f)
+            if v is not None and Decimal(v).quantize(factor, rounding=ROUND_DOWN) != Decimal(v):
+                raise ValidationError({f: f"Excede decimales permitidos para {self.moneda.code}."})
+
+    def save(self, *args, **kwargs):
+        factor = self._factor()
+        self.limite_dia_max = Decimal(self.limite_dia_max).quantize(factor, rounding=ROUND_DOWN)
+        self.limite_mes_max = Decimal(self.limite_mes_max).quantize(factor, rounding=ROUND_DOWN)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.categoria} / {self.moneda.code} (MAX)"
+
+
+class LimiteIntercambioCliente(models.Model):
+    """
+    Saldo disponible por CLIENTE,
+    vinculado a una configuración específica (Categoría + Moneda).
+    SOLO guarda valores ACTUALES (saldo).
+    """
+    config = models.ForeignKey(
+        LimiteIntercambioConfig,
+        on_delete=models.CASCADE,
+        related_name="saldos_por_cliente",
+        verbose_name="Configuración de límite (Categoría + Moneda)"
+    )
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.CASCADE,
+        related_name="limites_cliente",
+        verbose_name="Cliente"
+    )
+
+    limite_dia_actual = models.DecimalField(
+        max_digits=23, decimal_places=8, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))],
+        verbose_name="Límite Diario (Actual)"
+    )
+    limite_mes_actual = models.DecimalField(
+        max_digits=23, decimal_places=8, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))],
+        verbose_name="Límite Mensual (Actual)"
+    )
+
+    class Meta:
+        verbose_name = "Límite de Intercambio (Cliente)"
+        verbose_name_plural = "Límites de Intercambio (Cliente)"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cliente", "config"],
+                name="uniq_limite_cliente_config"
+            )
+        ]
+        ordering = ["cliente__id"]
+
+    # 🔧 Normalizador de decimales, basado en la moneda real
+    def _quant(self, value: Decimal) -> Decimal:
+        factor = self.config._factor()  # Usa moneda desde la config
+        return Decimal(value).quantize(factor, rounding=ROUND_DOWN)
+
+    # 💰 Descontar cupo (solo se invoca si ya validamos antes)
+    def descontar(self, monto: Decimal):
+        monto = self._quant(monto)
+        if monto <= 0:
+            raise ValidationError("El monto debe ser positivo.")
+
+        if monto > self.limite_dia_actual:
+            raise ValidationError(f"Supera el límite DIARIO ({self.limite_dia_actual}).")
+
+        if monto > self.limite_mes_actual:
+            raise ValidationError(f"Supera el límite MENSUAL ({self.limite_mes_actual}).")
+
+        self.limite_dia_actual = self._quant(self.limite_dia_actual - monto)
+        self.limite_mes_actual = self._quant(self.limite_mes_actual - monto)
+        self.save(update_fields=["limite_dia_actual", "limite_mes_actual"])
+
+    # 🔄 Reset duros (Celery)
+    def reset_diario(self):
+        self.limite_dia_actual = self._quant(self.config.limite_dia_max)
+        self.save(update_fields=["limite_dia_actual"])
+
+    def reset_mensual(self):
+        self.limite_mes_actual = self._quant(self.config.limite_mes_max)
+        self.save(update_fields=["limite_mes_actual"])
+
+    def __str__(self):
+        return f"{self.cliente} / {self.config.moneda.code} (ACTUAL)"
+
+
+# --------------------------------------------
+# Modelos para Schedule
+# --------------------------------------------
+
+class ExpiracionTransaccionConfig(models.Model):
+    MEDIOS = [
+        ("cuenta_bancaria_negocio", "Transferencia"),
+        ("tauser", "Tauser"),
+    ]
+
+    medio = models.CharField(max_length=40, choices=MEDIOS, unique=True)
+    minutos_expiracion = models.PositiveIntegerField(default=2)
+
+    def __str__(self):
+        return f"{self.get_medio_display()} → {self.minutos_expiracion} min"
+
+
+class LimiteIntercambioScheduleConfig(models.Model):
+    """
+    Configuración GLOBAL para el reseteo de límites de intercambio.
+
+    - frequency:
+        - 'daily'   → resetea todos los días a (hour:minute)
+        - 'monthly' → resetea el día `month_day` de cada mes a (hour:minute)
+    - hour/minute: hora exacta local del servidor/APP en la que se ejecutará el reseteo.
+    - month_day: solo aplicable cuando frequency='monthly'.
+    - is_active: permite desactivar el reseteo sin borrar la config.
+
+    Este modelo es SINGLETON: debe existir a lo sumo 1 fila.
+    Se fuerza con UniqueConstraint(true) usando una clave constante.
+    """
+
+    FREQUENCIES = (
+        ("daily", "Diario"),
+        ("monthly", "Mensual"),
+    )
+
+    frequency = models.CharField(max_length=20, choices=FREQUENCIES, unique=True)  # ✅ solo 1 por tipo
+    hour = models.PositiveSmallIntegerField(default=0)    # 0–23
+    minute = models.PositiveSmallIntegerField(default=0)  # 0–59
+
+    month_day = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Día del mes (1–31). Solo si frequency='monthly'."
+    )
+
+    is_active = models.BooleanField(default=True)
+
+    # para evitar reinicios duplicados
+    last_executed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Temporizador global de reseteo de límites"
+        verbose_name_plural = "Temporizador global de reseteo de límites"
+
+    def __str__(self) -> str:
+        base = f"{self.get_frequency_display()} @ {self.hour:02d}:{self.minute:02d}"
+        if self.frequency == "monthly" and self.month_day:
+            base = f"Cada mes el día {self.month_day} @ {self.hour:02d}:{self.minute:02d}"
+        return f"(GLOBAL) {base} | {'Activo' if self.is_active else 'Inactivo'}"
+
+    # ---- Helpers de dominio ----
+    def requires_month_day(self) -> bool:
+        """Indica si el campo month_day es requerido por la frecuencia actual."""
+        return self.frequency == "monthly"
+
+    @classmethod
+    def get_by_frequency(cls, freq: str) -> "LimiteIntercambioScheduleConfig":
+        """Obtiene (o crea) la config específica para daily o monthly."""
+        obj, _ = cls.objects.get_or_create(
+            frequency=freq,
+            defaults=dict(hour=0, minute=0, is_active=True)
+        )
+        return obj
+
 class EmailScheduleConfig(models.Model):
     """
     Configuración para la frecuencia de envío de correos con tasas de cambio.
@@ -1095,12 +1452,32 @@ class EmailScheduleConfig(models.Model):
         ],
         default="daily"
     )
-    hour = models.IntegerField(default=8)  # hora del día (0–23)
-    minute = models.IntegerField(default=0)  # minuto del día
-    interval_minutes = models.IntegerField(null=True, blank=True)  # solo si es "custom"
+    hour = models.IntegerField(default=8)
+    minute = models.IntegerField(default=0)
+    interval_minutes = models.IntegerField(null=True, blank=True)
+
+    # ✅ Nuevo campo para 'weekly'
+    weekday = models.CharField(
+        max_length=10,
+        choices=[
+            ("monday", "Lunes"),
+            ("tuesday", "Martes"),
+            ("wednesday", "Miércoles"),
+            ("thursday", "Jueves"),
+            ("friday", "Viernes"),
+            ("saturday", "Sábado"),
+            ("sunday", "Domingo"),
+        ],
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
-        return f"Envío {self.frequency} a las {self.hour:02d}:{self.minute:02d}"
+        desc = f"Envío {self.frequency} a las {self.hour:02d}:{self.minute:02d}"
+        if self.frequency == "weekly" and self.weekday:
+            desc += f" ({self.get_weekday_display()})"
+        return desc
+
 
 class MFACode(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -1114,11 +1491,34 @@ class MFACode(models.Model):
 
     @staticmethod
     def generate_for_user(user):
-        """Genera y envía un nuevo código MFA al correo del usuario."""
+        """Genera y envía un nuevo código MFA al correo del usuario usando templates HTML y TXT."""
         code = str(secrets.randbelow(1000000)).zfill(6)
         mfa = MFACode.objects.create(user=user, code=code)
-        user.email_user(
-            subject="Tu código de verificación (MFA)",
-            message=f"Tu código de verificación para completar la transacción es: {code}\n\nExpira en 5 minutos.",
+
+        # Context for the templates
+        context = {
+            "user": user,
+            "code": code,
+            "project_name": "Global Exchange"  # or use settings.PROJECT_NAME
+        }
+
+        # Render plain text and HTML versions
+        text_content = render_to_string("emails/mfa_transaccion.txt", context)
+        html_content = render_to_string("emails/mfa_transaccion.html", context)
+
+        # Create email
+        subject = "Tu código de verificación (MFA)"
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            to=[user.email],
         )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+
         return mfa
+
+
+class SyncLog(models.Model):
+    fecha = models.DateTimeField(auto_now_add=True)
+    resumen = models.JSONField()

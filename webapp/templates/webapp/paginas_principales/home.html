@@ -9,25 +9,130 @@
 
 {% block content %}
 
-<!-- Welcome Message - Solo para usuarios autenticados -->
+<!-- ===== NUEVA SECCIÓN: HERO BIENVENIDA + CARRUSEL ===== -->
 {% if user.is_authenticated %}
-<div class="welcome-section">
-    <div class="welcome-container">
-        <h1 class="welcome-title">
-            ¡BIENVENIDO/A <span class="user-name">{{ user.get_full_name|default:user.username|upper }}</span>!
-        </h1>
-        {% if current_client %}
-            <p class="client-info">
-                Actualmente está operando con <span class="client-name">{{ current_client.nombre|upper }}</span>
+<section class="hero-welcome-section">
+    <div class="hero-welcome-container">
+        <!-- Lado izquierdo: Título y subtítulo -->
+        <div class="hero-left">
+            <h1 class="hero-title">Un mundo de elecciones<br><span class="hero-title-accent">con Global Exchange</span></h1>
+            <p class="hero-subtitle">¡Visitanos en nuestras sucursales!</p>
+        </div>
+        
+        <!-- Lado derecho: Bienvenida del usuario -->
+        <div class="hero-right">
+            <p class="hero-welcome-user">
+                ¡BIENVENIDO/A <span class="user-highlight">{{ user.get_full_name|default:user.username|upper }}</span>!
             </p>
-        {% else %}
-            <p class="client-info">
-                <span class="no-client">No hay cliente seleccionado</span>
-            </p>
-        {% endif %}
+            {% if current_client %}
+                <p class="hero-client-info">
+                    Actualmente está operando con <span class="client-highlight">{{ current_client.nombre|upper }}</span>
+                </p>
+            {% else %}
+                <p class="hero-client-info">
+                    <span class="hero-no-client">No hay cliente seleccionado</span>
+                </p>
+            {% endif %}
+        </div>
     </div>
-</div>
+</section>
+{% else %}
+<!-- Hero público para visitantes no autenticados (centrado, sin CTA) -->
+<section class="hero-welcome-section hero-guest">
+    <div class="hero-welcome-container">
+        <div class="hero-left">
+            <h1 class="hero-title">Un mundo de elecciones<br><span class="hero-title-accent">con Global Exchange</span></h1>
+            <p class="hero-subtitle">¡Visitanos en nuestras sucursales!</p>
+        </div>
+    </div>
+</section>
 {% endif %}
+
+<!-- Carrusel de Sucursales (visible para todo público) -->
+<section class="branches-carousel-section">
+    <div class="branches-carousel-wrapper">
+        <!-- Botón anterior -->
+        <button class="carousel-nav-btn carousel-prev" id="carousel-prev" aria-label="Sucursal anterior">
+            <img src="{% static 'webapp/pantalla_sucursales/tick-izquierda.png' %}" alt="Anterior">
+        </button>
+        
+        <!-- Contenedor del carrusel -->
+        <div class="branches-carousel-container">
+            <div class="branches-carousel-track" id="carousel-track">
+                <!-- Sucursal 1: Casa Central -->
+                <div class="branch-slide">
+                    <img src="{% static 'webapp/pantalla_sucursales/1.CasaCentral.png' %}" alt="Casa Central" class="branch-image">
+                    <div class="branch-overlay">
+                        <p class="branch-name">Sucursal Casa Central</p>
+                    </div>
+                </div>
+                
+                <!-- Sucursal 2: Shopping Pinedo -->
+                <div class="branch-slide">
+                    <img src="{% static 'webapp/pantalla_sucursales/2.Pinedo.png' %}" alt="Shopping Pinedo" class="branch-image">
+                    <div class="branch-overlay">
+                        <p class="branch-name">Sucursal Shopping Pinedo</p>
+                    </div>
+                </div>
+                
+                <!-- Sucursal 3: Shopping Villa Morra -->
+                <div class="branch-slide">
+                    <img src="{% static 'webapp/pantalla_sucursales/3.VillaMorra.png' %}" alt="Shopping Villa Morra" class="branch-image">
+                    <div class="branch-overlay">
+                        <p class="branch-name">Sucursal Shopping Villa Morra</p>
+                    </div>
+                </div>
+                
+                <!-- Sucursal 4: Shopping Multiplaza -->
+                <div class="branch-slide">
+                    <img src="{% static 'webapp/pantalla_sucursales/4.Multiplaza.png' %}" alt="Shopping Multiplaza" class="branch-image">
+                    <div class="branch-overlay">
+                        <p class="branch-name">Sucursal Shopping Multiplaza</p>
+                    </div>
+                </div>
+                
+                <!-- Sucursal 5: Mariano Roque Alonso -->
+                <div class="branch-slide">
+                    <img src="{% static 'webapp/pantalla_sucursales/5.MarianoRoqueAlonso.png' %}" alt="Mariano Roque Alonso" class="branch-image">
+                    <div class="branch-overlay">
+                        <p class="branch-name">Sucursal Mariano Roque Alonso</p>
+                    </div>
+                </div>
+                
+                <!-- Sucursal 6: Ciudad del Este -->
+                <div class="branch-slide">
+                    <img src="{% static 'webapp/pantalla_sucursales/6.CiudadDelEste.png' %}" alt="Ciudad del Este" class="branch-image">
+                    <div class="branch-overlay">
+                        <p class="branch-name">Sucursal Ciudad del Este</p>
+                    </div>
+                </div>
+                
+                <!-- Sucursal 7: Encarnación -->
+                <div class="branch-slide">
+                    <img src="{% static 'webapp/pantalla_sucursales/7.Encarnacion.png' %}" alt="Encarnación" class="branch-image">
+                    <div class="branch-overlay">
+                        <p class="branch-name">Sucursal Encarnación</p>
+                    </div>
+                </div>
+                
+                <!-- Sucursal 8: Itauguá -->
+                <div class="branch-slide">
+                    <img src="{% static 'webapp/pantalla_sucursales/9.Itaugua.png' %}" alt="Itauguá" class="branch-image">
+                    <div class="branch-overlay">
+                        <p class="branch-name">Sucursal Itauguá</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botón siguiente -->
+        <button class="carousel-nav-btn carousel-next" id="carousel-next" aria-label="Sucursal siguiente">
+            <img src="{% static 'webapp/pantalla_sucursales/tick-derecha.png' %}" alt="Siguiente">
+        </button>
+    </div>
+</section>
+
+<!-- ===== SECCIÓN ORIGINAL: TABLA DE COTIZACIONES Y CONVERSOR ===== -->
 
 <div class="main-home-container">
     <div class="main-content-row">
@@ -66,8 +171,8 @@
                                             {% endif %}
                                             <span class="currency-name">{{ currency.name }}</span>
                                         </td>
-                                        <td class="rate-cell">{{ currency.totalCompra|floatformat:currency.decimales_monto }}</td>
-                                        <td class="rate-cell">{{ currency.totalVenta|floatformat:currency.decimales_monto }}</td>
+                                        <td class="rate-cell">{{ currency.totalCompra|floatformat:0 }} PYG</td>
+                                        <td class="rate-cell">{{ currency.totalVenta|floatformat:0 }} PYG</td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}
@@ -92,7 +197,9 @@
                         <div class="field-row">
                             <div class="select-wrapper">
                                 <select id="simu-from" class="currency-select"></select>
-                                <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                <svg class="select-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                </svg>
                             </div>
                             <input id="simu-amount" type="number" step="0.01" min="0" class="amount-input">
                         </div>
@@ -104,7 +211,9 @@
                         <div class="field-row">
                             <div class="select-wrapper">
                                 <select id="simu-to" class="currency-select"></select>
-                                <img src="{% static 'webapp/home/tick.png' %}" alt="dropdown" class="select-arrow">
+                                <svg class="select-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                </svg>
                             </div>
                             <input type="text" readonly class="result-input" id="simu-result-main">
                         </div>
@@ -119,7 +228,12 @@
                     </div>
 
                     <div class="reference-text">
-                        <p>*Última actualización: 12/09/2025 - 01:49 - Cotizaciones meramente de referencia.</p>
+                        {% if categoria_cliente %}
+                            <p>Cotización exclusiva para la categoria: {{categoria_cliente.nombre|upper}}</p>
+                        {% else %}
+                            <p>SIN CATEGORÍA</p>
+                        {% endif %}
+                        <p>*Última actualización: {% if last_update %} {{ last_update|date:"d/m/Y H:i" }} {% else %} Fecha: No disponible {% endif %} - Cotizaciones meramente de referencia.</p>
                     </div>
                 </div>
             </div>
@@ -330,6 +444,93 @@ function refreshRates() {
         boot();
     });
 
+})();
+
+// ===== CARRUSEL DE SUCURSALES =====
+(function() {
+    const track = document.getElementById('carousel-track');
+    const prevBtn = document.getElementById('carousel-prev');
+    const nextBtn = document.getElementById('carousel-next');
+    
+    if (!track || !prevBtn || !nextBtn) return; // No existe el carrusel (usuario no autenticado)
+    
+    const slides = track.querySelectorAll('.branch-slide');
+    const slideCount = slides.length;
+    
+    if (slideCount === 0) return;
+    
+    // Configuración
+    const slideWidth = 424; // Ancho de cada slide
+    const slideGap = 20; // Gap entre slides
+    const slidesToShow = 3; // Cuántos slides mostrar a la vez
+    const autoPlayInterval = 5000; // 5 segundos para autoplay
+    
+    let currentIndex = 0;
+    let autoPlayTimer = null;
+    
+    // Calcular el máximo índice permitido
+    const maxIndex = Math.max(0, slideCount - slidesToShow);
+    
+    function updateCarousel() {
+        const offset = currentIndex * (slideWidth + slideGap);
+        track.style.transform = `translateX(-${offset}px)`;
+        
+        // Actualizar estado de los botones
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex >= maxIndex;
+    }
+    
+    function goToNext() {
+        if (currentIndex < maxIndex) {
+            currentIndex++;
+        } else {
+            currentIndex = 0; // Loop back to start
+        }
+        updateCarousel();
+    }
+    
+    function goToPrev() {
+        if (currentIndex > 0) {
+            currentIndex--;
+        } else {
+            currentIndex = maxIndex; // Loop to end
+        }
+        updateCarousel();
+    }
+    
+    // Event listeners para los botones
+    nextBtn.addEventListener('click', () => {
+        goToNext();
+        resetAutoPlay();
+    });
+    
+    prevBtn.addEventListener('click', () => {
+        goToPrev();
+        resetAutoPlay();
+    });
+    
+    // AutoPlay
+    function startAutoPlay() {
+        autoPlayTimer = setInterval(goToNext, autoPlayInterval);
+    }
+    
+    function resetAutoPlay() {
+        clearInterval(autoPlayTimer);
+        startAutoPlay();
+    }
+    
+    // Pausar autoplay cuando el mouse está sobre el carrusel
+    track.addEventListener('mouseenter', () => {
+        clearInterval(autoPlayTimer);
+    });
+    
+    track.addEventListener('mouseleave', () => {
+        startAutoPlay();
+    });
+    
+    // Inicializar
+    updateCarousel();
+    startAutoPlay();
 })();
 
 </script>

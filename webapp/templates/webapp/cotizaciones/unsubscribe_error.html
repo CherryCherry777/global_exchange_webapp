@@ -1,9 +1,32 @@
 {% extends "webapp/base.html" %}
+{% load static %}
 {% block title %}Error de Desuscripción{% endblock %}
 
 {% block content %}
-<div style="text-align:center; padding: 50px;">
-    <h2>No fue posible procesar tu desuscripción</h2>
-    <p>Por favor verifica que el enlace sea correcto o contacta con soporte.</p>
+<link rel="stylesheet" href="{% static 'webapp/css/cotizaciones/modify_quote.css' %}">
+
+<div class="modify-quote-container">
+    <div class="main-content">
+        <!-- Header -->
+        <div class="modify-quote-header">
+            <div class="header-content">
+                <a href="{% url 'landing' %}" class="back-button">← Volver al inicio</a>
+                <div class="header-text">
+                    <h1 class="modify-quote-title" style="color:#dc3545;">Error de Desuscripción</h1>
+                    <p class="modify-quote-subtitle">No fue posible procesar tu desuscripción</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Section -->
+        <div class="modify-section" style="text-align:center;">
+            <h2 class="section-title" style="color:#dc3545;">¡Ups!</h2>
+            <p>Por favor verifica que el enlace sea correcto o contacta con soporte.</p>
+
+            <div class="action-buttons" style="justify-content:center; margin-top:30px;">
+                <a href="{% url 'landing' %}" class="discard-button" style="width: fit-content;">Volver al inicio</a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -1,0 +1,35 @@
+<table class="limites-table">
+    <thead>
+        <tr>
+            <th>Moneda</th>
+            <th>Límite Diario Máx</th>
+            <th>Límite Mensual Máx</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cfg in configs %}
+        <tr class="limite-row" data-currency="{{ cfg.moneda.name|lower }}">
+            <td class="currency-cell">
+                {% if cfg.moneda.flag_image %}
+                    <img src="{{ cfg.moneda.flag_image.url }}" alt="{{ cfg.moneda.name }}" class="currency-flag">
+                {% else %}
+                    <div class="currency-flag-placeholder"></div>
+                {% endif %}
+                <span class="currency-name">{{ cfg.moneda.code }} — {{ cfg.moneda.name }}</span>
+            </td>
+
+            {% with dec=cfg.moneda.decimales_cotizacion %}
+                <td class="limit-value">{{ cfg.limite_dia_max|floatformat:dec }}</td>
+                <td class="limit-value">{{ cfg.limite_mes_max|floatformat:dec }}</td>
+            {% endwith %}
+
+            <td class="actions-cell">
+                <a href="{% url 'limite_config_edit' cfg.id %}" class="modify-button">Modificar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No hay configuraciones para esta categoría.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>

@@ -1,7 +1,19 @@
-Tasas de cambio actuales:
+Tasas de cambio:
 
-{% for currency in currencies %}
-{{ currency.name }} ({{ currency.code }}): Compra {{ currency.precio_compra }} - Venta {{ currency.precio_venta }}
+{% for entry in clientes_data %}
+{% if entry.cliente %}
+{{ entry.cliente.nombre }} — Descuento: {{ entry.descuento }}
+{% else %}
+Sin cliente asociado
+{% endif %}
+
+{% for c in entry.monedas %}
+Moneda: {{ c.name }}
+Código: {{ c.code }}
+Precio Compra: {{ c.precio_compra }}
+Precio Venta: {{ c.precio_venta }}
 {% endfor %}
 
-Para desuscribirte: {{ unsubscribe_url }}
+{% endfor %}
+
+Darse de baja: {{ unsubscribe_url }}

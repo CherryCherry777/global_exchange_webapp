@@ -2,6 +2,7 @@ Integrante 1: Maria Cielito Melgarejo Baez
 	Sprint 1:
 		https://chatgpt.com/share/68d6dbe9-6170-800c-8597-bf339dc9000e
 		https://chatgpt.com/share/68c85fbf-70b0-800c-b2b6-d845e68dcbed
+
 	Sprint 2:
 		https://chatgpt.com/share/68d6dbc5-45e4-800c-8f9f-953b0886f98c
 		https://chatgpt.com/share/68c85fb1-35c4-800c-9edf-1f9cbb99026a
@@ -15,6 +16,15 @@ Integrante 1: Maria Cielito Melgarejo Baez
 		https://chatgpt.com/share/68f28395-b39c-800c-b1a5-032e7710ea39
 		https://chatgpt.com/share/68f283ad-8b10-800c-a21d-40008d3fe9d6
 		https://chatgpt.com/share/68f283be-3678-800c-a37a-c1dd386a1f48
+
+	Sprint 5:
+		https://chatgpt.com/share/693c240c-1588-800c-8957-1af11a63c465
+		https://chatgpt.com/share/693c2424-6388-800c-aab5-9f977cd57134
+		
+	Sprint 6:
+		https://chatgpt.com/share/693c244c-5ae8-800c-a0c5-2a9b559f9597
+		https://chatgpt.com/share/693c246f-79b4-800c-937c-0113cbe16f2e
+		https://chatgpt.com/share/693c24bf-6fbc-800c-ade9-e63a8f5a2254
 		
 Integrante 2: Raquel Panambi Torres Otazú
 	Sprint 1:
@@ -34,12 +44,21 @@ Integrante 2: Raquel Panambi Torres Otazú
 		https://chatgpt.com/share/68f278b4-8748-8003-98bc-0d0a964454d5
 		https://chatgpt.com/share/68f278e0-2500-8003-9a4e-203960f05f47
 		https://chatgpt.com/share/68f2791c-7a5c-8003-80fe-06421129fd9c
+	Sprint 5:
+		https://chatgpt.com/share/693c1c78-ce48-800a-b146-a4a9c419dc3e
+	Sprint 6:
+		https://chatgpt.com/share/693c1b59-5944-8003-bedf-2e2be6059857
+		https://chatgpt.com/share/693c1b83-3110-8003-bb55-628861ea6480
 
 Integrante 3: Sofia Monserrat Sanabria Estigarribia
 	Sprint 1:
 
 Integrante 4: Martin Leonardo Cano Gonzalez
-	Sprint 1:
+	Sprint 6:
+		https://chatgpt.com/share/693c31fb-5a9c-800b-ab13-cb9974004c05
+		https://chatgpt.com/share/693c322b-82cc-800b-b626-4ed0c0a96107
+		https://chatgpt.com/share/693c322b-82cc-800b-b626-4ed0c0a96107
+
 
 Integrante 5: Manuel Antonio Agüero Vera
 	Sprint 1:
@@ -58,3 +77,10 @@ Integrante 5: Manuel Antonio Agüero Vera
 		https://chatgpt.com/share/68f27724-6d70-8003-ad9e-6bd28fe11f4f
 		https://chatgpt.com/share/68f2774d-7014-8003-bb27-79696e2299b3
 		https://chatgpt.com/share/68f2775c-e8a8-8003-8402-0f276584911e
+	Sprint 5:
+
+	Sprint 6:
+		https://chatgpt.com/share/693bbb42-3838-8003-9f8b-b12bacc1358c
+		https://chatgpt.com/share/693bbae4-2550-8003-96b1-90a38a03d4fa
+		https://chatgpt.com/share/693bbabb-62d4-8003-95fa-d298a12f14f7
+		https://chatgpt.com/share/693bba9d-1f10-8003-a9db-a3f8cafc5be3

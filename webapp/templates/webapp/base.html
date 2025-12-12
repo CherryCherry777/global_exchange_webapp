@@ -9,20 +9,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'webapp/icono.png' %}?v=1">
+    <link rel="shortcut icon" type="image/png" href="{% static 'webapp/icono.png' %}?v=1">
     <link rel="stylesheet" href="{% static 'webapp/css/shared/global.css' %}?v=1.4" />
     <link rel="stylesheet" href="{% static 'webapp/css/dashboards/user_menu.css' %}" />
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    {% if messages %}
-        <div id="toast-container">
-            {% for message in messages %}
-                <div class="toast-message {{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
 
     <header class="header-nav">
         <nav class="nav-container">
@@ -31,11 +24,7 @@
                 <div class="logo-wrapper">
                     <img src="{% static 'webapp/logo.png' %}" alt="Global Exchange Logo" class="logo-image">
                 </div>
-                {% if user.is_authenticated %}
-                    <a href="{% url 'landing' %}" class="logo-link"></a>
-                {% else %}
-                    <a href="{% url 'public_home' %}" class="logo-link"></a>
-                {% endif %}
+                <a href="{% url 'public_home' %}" class="logo-link"></a>
             </div>
     
             <!-- Navigation links in the center -->
@@ -100,7 +89,7 @@
                                     <span class="menu-text">Cambiar de Cliente</span>
                                 </a>
                                 
-                                <a href="{% url 'landing' %}" class="menu-item">
+                                <a href="{% url 'administar_metodos_pago' %}" class="menu-item">
                                     <div class="menu-icon">
                                         <img src="{% static 'webapp/home_menu_usuario/4.icono_medio.png' %}" alt="Métodos">
                                     </div>
@@ -137,6 +126,19 @@
             </div>
         </nav>
     </header>
+
+    {% block messages %}
+        {% if messages %}
+            <div id="toast-phantom"></div>
+            <div id="toast-container">
+                {% for message in messages %}
+                    <div class="toast-message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endblock messages %}
 
     <main>
         {% block content %}{% endblock %}
@@ -237,11 +239,37 @@
 
         setTimeout(function() {
             var toasts = document.querySelectorAll('.toast-message');
+            var phantom = document.getElementById('toast-phantom');
+
             toasts.forEach(function(toast) {
                 toast.style.display = 'none';
             });
+
+            if (phantom) {
+                phantom.style.display = 'none'; // ✅ también desaparece el phantom
+            }
         }, 4000); // Oculta después de 4 segundos
 
+        // Sticky dinámico para mensajes
+        document.addEventListener('DOMContentLoaded', function() {
+            const toast = document.querySelector('.toast-message');
+            const phantom = document.getElementById('toast-phantom');
+
+            if (!toast || !phantom) return;
+
+            function updateToastPosition() {
+                const phantomTop = phantom.getBoundingClientRect().top;
+                if (phantomTop <= 0) {
+                    toast.classList.add('fixed');
+                } else {
+                    toast.classList.remove('fixed');
+                }
+            }
+
+            window.addEventListener('scroll', updateToastPosition);
+            updateToastPosition(); // ejecutar al cargar
+        });
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
