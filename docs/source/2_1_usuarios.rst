@@ -24,7 +24,7 @@ Menú → Configuración → Usuarios
 También mediante la interfaz de administración Django (`/admin/`) si tienes permisos.
 
 3. FUNCIONALIDADES PRINCIPALES
------------------------------
+------------------------------
 
 A) Crear usuario
 -----------------
@@ -100,7 +100,7 @@ Al finalizar, el operador podrá iniciar sesión y ver las opciones permitidas p
 - Para pruebas, crea cuentas en entorno de staging con permisos limitados en vez de usar cuentas reales.
 
 Comandos útiles (Django shell)
------------------------------
+------------------------------
 
 .. code-block:: python
 

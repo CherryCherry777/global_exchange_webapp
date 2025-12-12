@@ -24,7 +24,7 @@ Menú → Configuración → Usuarios → Administrar Roles
 También existen endpoints de API y vistas administrativas (`manage_user_roles`, `add_role_to_user`).
 
 3. FUNCIONALIDADES PRINCIPALES
------------------------------
+------------------------------
 
 A) Asignar rol a usuario
 ------------------------
@@ -52,7 +52,7 @@ Pasos:
 Resultado: el usuario pierde los permisos asociados al rol.
 
 C) Auditoría de asignaciones
----------------------------
+----------------------------
 Pasos:
 
 1. Acceder al log de auditoría o a la tabla `role_assignment_log` si existe.
