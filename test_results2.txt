@@ -1,0 +1,2959 @@
+﻿python.exe : Creating test database for alias 'default'...
+En línea: 1 Carácter: 80
++ ... ge_webapp"; & ".\.venv\Scripts\python.exe" manage.py test webapp.test 
+...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Creating test d...as 'default'.. 
+   .:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+.F.....F.......F....Internal Server Error: /modify-client/17/
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\views\clientes.py", line 120, in 
+modify_client
+    stripe_customer = stripe.Customer.create(
+        name=nombre,
+    ...<9 lines>...
+        }
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\stripe\_customer.py", 
+line 422, in create
+    cls._static_request(
+    ~~~~~~~~~~~~~~~~~~~^
+        "post",
+        ^^^^^^^
+        cls.class_url(),
+        ^^^^^^^^^^^^^^^^
+        params=params,
+        ^^^^^^^^^^^^^^
+    ),
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\stripe\_api_resource.py", 
+line 172, in _static_request
+    return _APIRequestor._global_instance().request(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        method_,
+        ^^^^^^^^
+    ...<3 lines>...
+        base_address=base_address,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\stripe\_api_requestor.py", line 191, in request
+    rbody, rcode, rheaders = requestor.request_raw(
+                             ~~~~~~~~~~~~~~~~~~~~~^
+        method.lower(),
+        ^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        usage=usage,
+        ^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\stripe\_api_requestor.py", line 692, in request_raw
+    ) = self._args_for_request_with_retries(
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        method,
+        ^^^^^^^
+    ...<5 lines>...
+        usage=usage,
+        ^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\stripe\_api_requestor.py", line 552, in 
+_args_for_request_with_retries
+    raise error.AuthenticationError(
+    ...<5 lines>...
+    )
+stripe._error.AuthenticationError: No API key provided. (HINT: set your API 
+key using "stripe.api_key = <API-KEY>"). You can generate API keys from the 
+Stripe web interface.  See https://stripe.com/api for details, or email 
+support@stripe.com if you have any questions.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\views\clientes.py", line 139, in 
+modify_client
+    except stripe.error.StripeError as e:
+           ^^^^^^^^^^^^
+AttributeError: module 'stripe' has no attribute 'error'
+E..F...FFEFEEFF.............EEEEEEEEEEEEEE................................EEEE
+.....................Error en actualizaci├│n de l├¡mite post transacci├│n: 
+LimiteIntercambioConfig matching query does not exist.
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\signals.py", line 1376, in 
+actualizar_limite_post_transaccion
+    config = LimiteIntercambioConfig.objects.get(
+        categoria=instance.cliente.categoria,
+        moneda=instance.moneda_destino
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 633, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+webapp.models.LimiteIntercambioConfig.DoesNotExist: LimiteIntercambioConfig 
+matching query does not exist.
+.Error en actualizaci├│n de l├¡mite post transacci├│n: 
+LimiteIntercambioConfig matching query does not exist.
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\signals.py", line 1376, in 
+actualizar_limite_post_transaccion
+    config = LimiteIntercambioConfig.objects.get(
+        categoria=instance.cliente.categoria,
+        moneda=instance.moneda_destino
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 633, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+webapp.models.LimiteIntercambioConfig.DoesNotExist: LimiteIntercambioConfig 
+matching query does not exist.
+.Error en actualizaci├│n de l├¡mite post transacci├│n: 
+LimiteIntercambioConfig matching query does not exist.
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\signals.py", line 1376, in 
+actualizar_limite_post_transaccion
+    config = LimiteIntercambioConfig.objects.get(
+        categoria=instance.cliente.categoria,
+        moneda=instance.moneda_destino
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 633, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+webapp.models.LimiteIntercambioConfig.DoesNotExist: LimiteIntercambioConfig 
+matching query does not exist.
+....................
+======================================================================
+ERROR: test_update_cliente 
+(webapp.tests.test_clientes.ClienteTests.test_update_cliente)
+Prueba la actualizaci├│n de un cliente
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\views\clientes.py", line 120, in 
+modify_client
+    stripe_customer = stripe.Customer.create(
+        name=nombre,
+    ...<9 lines>...
+        }
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\stripe\_customer.py", 
+line 422, in create
+    cls._static_request(
+    ~~~~~~~~~~~~~~~~~~~^
+        "post",
+        ^^^^^^^
+        cls.class_url(),
+        ^^^^^^^^^^^^^^^^
+        params=params,
+        ^^^^^^^^^^^^^^
+    ),
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\stripe\_api_resource.py", 
+line 172, in _static_request
+    return _APIRequestor._global_instance().request(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        method_,
+        ^^^^^^^^
+    ...<3 lines>...
+        base_address=base_address,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\stripe\_api_requestor.py", line 191, in request
+    rbody, rcode, rheaders = requestor.request_raw(
+                             ~~~~~~~~~~~~~~~~~~~~~^
+        method.lower(),
+        ^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        usage=usage,
+        ^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\stripe\_api_requestor.py", line 692, in request_raw
+    ) = self._args_for_request_with_retries(
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        method,
+        ^^^^^^^
+    ...<5 lines>...
+        usage=usage,
+        ^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\stripe\_api_requestor.py", line 552, in 
+_args_for_request_with_retries
+    raise error.AuthenticationError(
+    ...<5 lines>...
+    )
+stripe._error.AuthenticationError: No API key provided. (HINT: set your API 
+key using "stripe.api_key = <API-KEY>"). You can generate API keys from the 
+Stripe web interface.  See https://stripe.com/api for details, or email 
+support@stripe.com if you have any questions.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_clientes.py", line 70, in 
+test_update_cliente
+    response = self.client.post(reverse('modify_client', kwargs={'client_id': 
+self.cliente.id}), {
+        'nombre': 'Cliente Actualizado',
+    ...<6 lines>...
+        'estado': True
+    })
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 1153, in post
+    response = super().post(
+        path,
+    ...<5 lines>...
+        **extra,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 499, in post
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "POST",
+        ^^^^^^^
+    ...<6 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 671, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 1087, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 802, in check_exception
+    raise exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\views\clientes.py", line 139, in 
+modify_client
+    except stripe.error.StripeError as e:
+           ^^^^^^^^^^^^
+AttributeError: module 'stripe' has no attribute 'error'
+
+======================================================================
+ERROR: test_compraventa_crear_transaccion_exitosa (webapp.tests.test_compra_ve
+nta.CompraVentaTests.test_compraventa_crear_transaccion_exitosa)
+Prueba creaci├│n exitosa de transacci├│n
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 535, in 
+test_compraventa_crear_transaccion_exitosa
+    tauser_pago = Tauser.objects.create(
+        nombre='Tauser Pago',
+    ...<3 lines>...
+        tipo_pago=tipo_pago_basico
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 661, in create
+    obj = self.model(**kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 569, in __init__
+    raise TypeError(
+    ...<2 lines>...
+    )
+TypeError: Tauser() got unexpected keyword arguments: 'tipo'
+
+======================================================================
+ERROR: test_compraventa_procesar_pago_stripe_exitoso (webapp.tests.test_compra
+_venta.CompraVentaTests.test_compraventa_procesar_pago_stripe_exitoso)
+Prueba procesamiento exitoso de pago con Stripe
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.NotNullViolation: el valor nulo en la columna ┬½exp_month┬╗ de 
+la relaci├│n ┬½tarjetas_internacionales┬╗ viola la restricci├│n de no nulo
+DETAIL:  La fila que falla contiene (4, pm_test_123, 1234, null, null, null).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\AppData\Local\Programs\Python\Python313\Lib\unittest\
+mock.py", line 1424, in patched
+    return func(*newargs, **newkeywargs)
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 135, in 
+test_compraventa_procesar_pago_stripe_exitoso
+    tarjeta_int = TarjetaInternacional.objects.create(
+        medio_pago=None,  # Simplificado para la prueba
+        ultimos_digitos='1234',
+        stripe_payment_method_id='pm_test_123'
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: el valor nulo en la columna ┬½exp_month┬╗ de 
+la relaci├│n ┬½tarjetas_internacionales┬╗ viola la restricci├│n de no nulo
+DETAIL:  La fila que falla contiene (4, pm_test_123, 1234, null, null, null).
+
+======================================================================
+ERROR: test_compraventa_tarjeta_nacional_solo_pyg (webapp.tests.test_compra_ve
+nta.CompraVentaTests.test_compraventa_tarjeta_nacional_solo_pyg)
+Prueba que tarjeta nacional solo funciona con PYG
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.NotNullViolation: el valor nulo en la columna 
+┬½fecha_vencimiento┬╗ de la relaci├│n ┬½tarjetas_nacionales┬╗ viola la 
+restricci├│n de no nulo
+DETAIL:  La fila que falla contiene (4, token123, null, 1234, null, 11, 1).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 470, in 
+test_compraventa_tarjeta_nacional_solo_pyg
+    tarjeta_nacional = TarjetaNacional.objects.create(
+        medio_pago=medio_pago,
+        ultimos_digitos='1234',
+        numero_tokenizado='token123'
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: el valor nulo en la columna 
+┬½fecha_vencimiento┬╗ de la relaci├│n ┬½tarjetas_nacionales┬╗ viola la 
+restricci├│n de no nulo
+DETAIL:  La fila que falla contiene (4, token123, null, 1234, null, 11, 1).
+
+======================================================================
+ERROR: test_create_currency 
+(webapp.tests.test_currencies.CurrencyTests.test_create_currency)
+Prueba la creaci├│n de una nueva moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_create_currency_view 
+(webapp.tests.test_currencies.CurrencyTests.test_create_currency_view)
+Prueba la vista de creaci├│n de moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_currency_active_property 
+(webapp.tests.test_currencies.CurrencyTests.test_currency_active_property)
+Prueba la propiedad is_active del modelo Currency
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_currency_decimals 
+(webapp.tests.test_currencies.CurrencyTests.test_currency_decimals)
+Prueba los decimales de cotizaci├│n y monto
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_currency_inactive_not_shown_public (webapp.tests.test_currencies.C
+urrencyTests.test_currency_inactive_not_shown_public)
+Prueba que las monedas inactivas no se muestran en la p├ígina p├║blica
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_currency_model_str 
+(webapp.tests.test_currencies.CurrencyTests.test_currency_model_str)
+Prueba el m├®todo __str__ del modelo Currency
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_currency_rates 
+(webapp.tests.test_currencies.CurrencyTests.test_currency_rates)
+Prueba las tasas de compra y venta de la moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_currency_unique_code 
+(webapp.tests.test_currencies.CurrencyTests.test_currency_unique_code)
+Prueba que el c├│digo de moneda debe ser ├║nico
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_currency_update_rates 
+(webapp.tests.test_currencies.CurrencyTests.test_currency_update_rates)
+Prueba la actualizaci├│n de tasas de una moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_currency_validation 
+(webapp.tests.test_currencies.CurrencyTests.test_currency_validation)
+Prueba la validaci├│n de datos de moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_manage_currencies_view 
+(webapp.tests.test_currencies.CurrencyTests.test_manage_currencies_view)
+Prueba la vista de gesti├│n de monedas
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_modify_currency_view 
+(webapp.tests.test_currencies.CurrencyTests.test_modify_currency_view)
+Prueba la vista de modificaci├│n de moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_public_home_with_currencies 
+(webapp.tests.test_currencies.CurrencyTests.test_public_home_with_currencies)
+Prueba que la p├ígina p├║blica muestra las monedas activas
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_toggle_currency 
+(webapp.tests.test_currencies.CurrencyTests.test_toggle_currency)
+Prueba la activaci├│n/desactivaci├│n de una moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 25, in 
+setUp
+    self.currency = Currency.objects.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~~^
+        name="D├│lar Americano",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_limite_config_edit_view (webapp.tests.test_limites_intercambio.Lim
+itesIntercambioTest.test_limite_config_edit_view)
+Test edici├│n de configuraci├│n de l├¡mites
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_limites_intercambio.py", line 
+29, in setUp
+    self.usd = Currency.objects.create(
+               ~~~~~~~~~~~~~~~~~~~~~~~^
+        code="USD",
+        ^^^^^^^^^^^
+    ...<4 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_limite_config_model_validation (webapp.tests.test_limites_intercam
+bio.LimitesIntercambioTest.test_limite_config_model_validation)
+Test validaci├│n del modelo LimiteIntercambioConfig
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_limites_intercambio.py", line 
+29, in setUp
+    self.usd = Currency.objects.create(
+               ~~~~~~~~~~~~~~~~~~~~~~~^
+        code="USD",
+        ^^^^^^^^^^^
+    ...<4 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_limites_list_view_admin_access (webapp.tests.test_limites_intercam
+bio.LimitesIntercambioTest.test_limites_list_view_admin_access)
+Test que admin puede acceder a la lista de l├¡mites
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_limites_intercambio.py", line 
+29, in setUp
+    self.usd = Currency.objects.create(
+               ~~~~~~~~~~~~~~~~~~~~~~~^
+        code="USD",
+        ^^^^^^^^^^^
+    ...<4 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+ERROR: test_limites_tabla_htmx_view (webapp.tests.test_limites_intercambio.Lim
+itesIntercambioTest.test_limites_tabla_htmx_view)
+Test vista HTMX para tabla de l├¡mites
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_limites_intercambio.py", line 
+29, in setUp
+    self.usd = Currency.objects.create(
+               ~~~~~~~~~~~~~~~~~~~~~~~^
+        code="USD",
+        ^^^^^^^^^^^
+    ...<4 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 663, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 1868, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 92, in 
+_execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\psycopg\cursor.py", line 
+97, in execute
+    raise ex.with_traceback(None)
+django.db.utils.IntegrityError: llave duplicada viola restricci├│n de 
+unicidad ┬½webapp_currency_code_key┬╗
+DETAIL:  Ya existe la llave (code)=(USD).
+
+======================================================================
+FAIL: test_assign_client_to_user (webapp.tests.test_assign_clients.AssignClien
+tsTests.test_assign_client_to_user)
+Prueba la asignaci├│n de un cliente a un usuario
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_assign_clients.py", line 66, in 
+test_assign_client_to_user
+    self.assertTrue(ClienteUsuario.objects.filter(
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cliente=self.cliente,
+        ^^^^^^^^^^^^^^^^^^^^^
+        usuario=self.employee_user
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).exists())
+    ^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_category_model_str 
+(webapp.tests.test_categories.CategoryTests.test_category_model_str)
+Prueba el m├®todo __str__ del modelo Categoria
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_categories.py", line 48, in 
+test_category_model_str
+    self.assertEqual(str(self.categoria), expected_str)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Categor├¡a Test (10%)' != 'Categor├¡a Test'
+- Categor├¡a Test (10%)
+?               ------
++ Categor├¡a Test
+
+
+======================================================================
+FAIL: test_create_cliente 
+(webapp.tests.test_clientes.ClienteTests.test_create_cliente)
+Prueba la creaci├│n de un nuevo cliente
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_clientes.py", line 56, in 
+test_create_cliente
+    self.assertTrue(Cliente.objects.filter(documento='87654321').exists())
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_api_active_currencies_aplicar_descuento_categoria (webapp.tests.tes
+t_compra_venta.CompraVentaTests.test_api_active_currencies_aplicar_descuento_c
+ategoria)
+Prueba que se aplica descuento de categor├¡a correctamente
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 512, in 
+test_api_active_currencies_aplicar_descuento_categoria
+    self.assertEqual(pyg_data['venta'], 1.0)  # PYG siempre es 1.0
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2.0 != 1.0
+
+======================================================================
+FAIL: test_compraventa_billetera_con_pin (webapp.tests.test_compra_venta.Compr
+aVentaTests.test_compraventa_billetera_con_pin)
+Prueba flujo de pago con billetera que requiere PIN
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 417, in 
+test_compraventa_billetera_con_pin
+    self.assertTemplateUsed(response, 
+'webapp/compraventa_y_conversion/ingresar_pin.html')
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
+AssertionError: False is not true : Template 
+'webapp/compraventa_y_conversion/ingresar_pin.html' was not a template used 
+to render the response. Actual template(s) used: emails/mfa_transaccion.txt, 
+emails/mfa_transaccion.html, 
+webapp/compraventa_y_conversion/verificar_mfa.html, webapp/base.html
+
+======================================================================
+FAIL: test_compraventa_cancelar_pago_billetera (webapp.tests.test_compra_venta
+.CompraVentaTests.test_compraventa_cancelar_pago_billetera)
+Prueba cancelaci├│n de pago con billetera
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 442, in 
+test_compraventa_cancelar_pago_billetera
+    self.assertEqual(response.status_code, 302)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_compraventa_monto_cero_invalido (webapp.tests.test_compra_venta.Com
+praVentaTests.test_compraventa_monto_cero_invalido)
+Prueba que monto cero es inv├ílido
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 594, in 
+test_compraventa_monto_cero_invalido
+    self.assertEqual(response.status_code, 302)  # Redirecci├│n por error
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_compraventa_tipo_transaccion_invalido (webapp.tests.test_compra_ven
+ta.CompraVentaTests.test_compraventa_tipo_transaccion_invalido)
+Prueba manejo de tipo de transacci├│n inv├ílido
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 333, in 
+test_compraventa_tipo_transaccion_invalido
+    self.assertEqual(response.status_code, 302)  # Redirecci├│n por error
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_compraventa_validacion_monto_invalido (webapp.tests.test_compra_ven
+ta.CompraVentaTests.test_compraventa_validacion_monto_invalido)
+Prueba validaci├│n de monto inv├ílido en compraventa
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 309, in 
+test_compraventa_validacion_monto_invalido
+    self.assertEqual(response.status_code, 302)  # Redirecci├│n por error
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+----------------------------------------------------------------------
+Ran 141 tests in 140.198s
+
+FAILED (failures=9, errors=22)
+Destroying test database for alias 'default'...
+
+CELERY BROKER: redis://localhost:6379/0
+
+-----
+
+WeasyPrint could not import some external libraries. Please carefully follow the installation steps before reporting an issue:
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#troubleshooting 
+
+-----
+
+
+-----
+
+WeasyPrint could not import some external libraries. Please carefully follow the installation steps before reporting an issue:
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#troubleshooting 
+
+-----
+
+Found 141 test(s).
+No se encontr├│ TipoPago o TipoCobro con 'tauser'. No se actualizar├ín Tauser.
+Ô£à All sessions cleared after migration
+Ô£à All sessions cleared after migration
+Ô£à All sessions cleared after migration
+Ô£à All sessions cleared after migration
+Ô£à All sessions cleared after migration
+
+---- Roles y usuarios ----
+Ô£à Rol 'Usuario' listo.
+Ô£à Rol 'Empleado' listo.
+Ô£à Rol 'Administrador' listo.
+Ô£à Rol 'Analista' listo.
+Ô£à Usuario 'superadmin2' creado.
+Ô£à Usuario 'usuario1' creado.
+Ô£à Usuario 'analista1' creado.
+
+---- Entidades, Monedas y Denominaciones ----
+
+---- Clientes ----
+El descuento para la categoria Minorista es 0
+El descuento para la categoria Corporativo es 0.05
+El descuento para la categoria VIP es 0.1
+Ô£à Cliente 'Cliente Persona' asignado a 'usuario1'.
+Ô£à Cliente 'Cliente Jur├¡dico Corporativo' asignado a 'usuario1'.
+Ô£à Cliente 'Cliente Jur├¡dico VIP' asignado a 'usuario1'.
+
+---- L├¡mites de Intercambio ----
+
+---- Tipos de Pago/Cobro ----
+Ô£à Tipos de pago y cobro listos (con comisiones asignadas).
+
+---- Asignar tipos a TAUSER ----
+Ô£à Tipos de pago/cobro asignados a TAUSERs.
+
+---- Cuenta Bancaria del Negocio ----
+Ô£à Cuenta bancaria del negocio creada.
+
+---- Medios de Pago para usuario1 por defecto ----
+Ô£à Billetera creada para Cliente Jur├¡dico VIP
+Ô£à Tarjeta Nacional creada para Cliente Jur├¡dico VIP
+Ô£à Tarjeta Internacional creada para Cliente Jur├¡dico VIP
+Ô£à Billetera creada para Cliente Jur├¡dico Corporativo
+Ô£à Tarjeta Nacional creada para Cliente Jur├¡dico Corporativo
+Ô£à Tarjeta Internacional creada para Cliente Jur├¡dico Corporativo
+Ô£à Billetera creada para Cliente Persona
+Ô£à Tarjeta Nacional creada para Cliente Persona
+Ô£à Tarjeta Internacional creada para Cliente Persona
+
+­ƒÄë Medios de pago por defecto creados correctamente.
+
+
+---- Medios de Cobro para usuario1 por defecto ----
+Ô£à Billetera de cobro creada para Cliente Jur├¡dico VIP
+Ô£à Cuenta Bancaria PYG creada para Cliente Jur├¡dico VIP
+Ô£à Cuenta Bancaria USD creada para Cliente Jur├¡dico VIP
+Ô£à Billetera de cobro creada para Cliente Jur├¡dico Corporativo
+Ô£à Cuenta Bancaria PYG creada para Cliente Jur├¡dico Corporativo
+Ô£à Cuenta Bancaria USD creada para Cliente Jur├¡dico Corporativo
+Ô£à Billetera de cobro creada para Cliente Persona
+Ô£à Cuenta Bancaria PYG creada para Cliente Persona
+Ô£à Cuenta Bancaria USD creada para Cliente Persona
+
+­ƒÄë Medios de cobro por defecto creados correctamente.
+
+
+---- Stock inicial de Tauser ----
+Ô£à Stock inicial cargado: 1000 billetes por denominaci├│n
+
+---- Asignacion de nombres a los Tauser ----
+Ô£à Nombres de Tausers establecidos
+
+---- Asignacion de banderas a las monedas ----
+Ô£à Asignando imagen a la moneda Peso Argentino
+Ô£à Asignando imagen a la moneda Real Brasile├▒o
+Ô£à Asignando imagen a la moneda Euro
+Ô£à Asignando imagen a la moneda Guaran├¡ Paraguayo
+Ô£à Asignando imagen a la moneda D├│lar Estadounidense
+Ô£à Imagenes de banderas asignadas a las monedas
+
+---- Generacion de datos historicos de tasas (ambiente de pruebas) ----
+Ô£à Datos historicos de tasas generados (ambiente de pruebas)
+Ô£à All sessions cleared after migration
+System check identified no issues (0 silenced).
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera

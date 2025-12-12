@@ -1412,6 +1412,10 @@ def actualizar_limite_post_transaccion(sender, instance, **kwargs):
                 log.monto_descontado = Decimal("0")
                 log.save()
 
+    except (LimiteIntercambioConfig.DoesNotExist, LimiteIntercambioCliente.DoesNotExist):
+        # No hay configuración de límite para esta combinación de categoría/moneda
+        # Esto es válido - no todas las combinaciones tienen límites configurados
+        pass
     except Exception as e:
         logger.exception(f"Error en actualización de límite post transacción: {e}")
 

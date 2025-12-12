@@ -46,7 +46,7 @@ class EntidadesPagoCobroTest(TestCase):
         
         entidad_data = {
             'nombre': 'Nueva Entidad',
-            'descripcion': 'Descripción de prueba',
+            'tipo': 'banco',
             'activo': True
         }
         
@@ -64,7 +64,7 @@ class EntidadesPagoCobroTest(TestCase):
         
         updated_data = {
             'nombre': 'Banco Test Actualizado',
-            'descripcion': 'Descripción actualizada',
+            'tipo': 'banco',
             'activo': True
         }
         
@@ -101,5 +101,5 @@ class EntidadesPagoCobroTest(TestCase):
         
     def test_entidad_model_str_representation(self):
         """Test representación string del modelo Entidad"""
-        expected_str = f"{self.entidad.nombre} ({'Activo' if self.entidad.activo else 'Inactivo'})"
+        expected_str = f"{self.entidad.nombre} ({self.entidad.get_tipo_display()})"
         self.assertEqual(str(self.entidad), expected_str)
