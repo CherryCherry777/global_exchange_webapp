@@ -1,9 +1,9 @@
 ﻿Global Exchange Webapp
 ======================
 
-Documentación reiniciada.
+Bienvenido a la documentación oficial del sistema **Global Exchange Webapp**, una plataforma integral para la gestión de operaciones de cambio de divisas, administración de clientes, control de transacciones y generación de reportes.
 
-Este repositorio tiene la documentación reiniciada. Agrega nuevas páginas RST en `docs/source/` cuando quieras comenzar a reconstruir la documentación.
+Esta documentación está organizada en secciones temáticas que abarcan desde la instalación inicial hasta la configuración avanzada del sistema, incluyendo guías operativas y procedimientos de soporte técnico.
 
 SECCIÓN 1: PRIMEROS PASOS
 -------------------------
@@ -44,7 +44,7 @@ SECCIÓN 3: GESTIÓN DE CLIENTES
 
 
 SECCIÓN 4: CONFIGURACIÓN DE MONEDAS Y COTIZACIONES
--------------------------------------------------
+--------------------------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -56,7 +56,7 @@ SECCIÓN 4: CONFIGURACIÓN DE MONEDAS Y COTIZACIONES
 
 
 SECCIÓN 5: MÉTODOS DE PAGO Y COBRO
----------------------------------
+----------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -68,7 +68,7 @@ SECCIÓN 5: MÉTODOS DE PAGO Y COBRO
 
 
 SECCIÓN 6: OPERACIONES Y TRANSACCIONES
--------------------------------------
+--------------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -80,7 +80,7 @@ SECCIÓN 6: OPERACIONES Y TRANSACCIONES
 
 
 SECCIÓN 7: GESTIÓN DE T-AUSERS
------------------------------
+------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -93,7 +93,7 @@ SECCIÓN 7: GESTIÓN DE T-AUSERS
 
 
 SECCIÓN 8: CONFIGURACIONES AVANZADAS
------------------------------------
+------------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -105,7 +105,7 @@ SECCIÓN 8: CONFIGURACIONES AVANZADAS
 
 
 SECCIÓN 9: CASOS DE USO PRÁCTICOS
---------------------------------
+---------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -118,7 +118,7 @@ SECCIÓN 9: CASOS DE USO PRÁCTICOS
 
 
 SECCIÓN 10: SOLUCIÓN DE PROBLEMAS
---------------------------------
+---------------------------------
 
 .. toctree::
    :maxdepth: 1

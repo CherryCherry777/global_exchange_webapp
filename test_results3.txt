@@ -1,0 +1,1719 @@
+﻿python.exe : Creating test database for alias 'default'...
+En línea: 1 Carácter: 80
++ ... ge_webapp"; & ".\.venv\Scripts\python.exe" manage.py test webapp.test 
+...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Creating test d...as 'default'.. 
+   .:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+E.F..........F.......F...FFFFFFFF.............F..F..F...FFFInternal Server 
+Error: /currency/toggle/
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\views\monedas.py", line 261, in 
+toggle_currency
+    return redirect('currency_list')
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\shortcuts.py", 
+line 51, in redirect
+    resolve_url(to, *args, **kwargs),
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\shortcuts.py", 
+line 184, in resolve_url
+    return reverse(to, args=args, kwargs=kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\urls\base.py", 
+line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, 
+**kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'currency_list' not found. 
+'currency_list' is not a valid view function or pattern name.
+E................................EE.F.....................Error en 
+actualizaci├│n de l├¡mite post transacci├│n: LimiteIntercambioConfig matching 
+query does not exist.
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\signals.py", line 1376, in 
+actualizar_limite_post_transaccion
+    config = LimiteIntercambioConfig.objects.get(
+        categoria=instance.cliente.categoria,
+        moneda=instance.moneda_destino
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 633, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+webapp.models.LimiteIntercambioConfig.DoesNotExist: LimiteIntercambioConfig 
+matching query does not exist.
+.Error en actualizaci├│n de l├¡mite post transacci├│n: 
+LimiteIntercambioConfig matching query does not exist.
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\signals.py", line 1376, in 
+actualizar_limite_post_transaccion
+    config = LimiteIntercambioConfig.objects.get(
+        categoria=instance.cliente.categoria,
+        moneda=instance.moneda_destino
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 633, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+webapp.models.LimiteIntercambioConfig.DoesNotExist: LimiteIntercambioConfig 
+matching query does not exist.
+.Error en actualizaci├│n de l├¡mite post transacci├│n: 
+LimiteIntercambioConfig matching query does not exist.
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\signals.py", line 1376, in 
+actualizar_limite_post_transaccion
+    config = LimiteIntercambioConfig.objects.get(
+        categoria=instance.cliente.categoria,
+        moneda=instance.moneda_destino
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\db\models\query.py", line 633, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+webapp.models.LimiteIntercambioConfig.DoesNotExist: LimiteIntercambioConfig 
+matching query does not exist.
+....................
+======================================================================
+ERROR: webapp.tests.test_categories 
+(unittest.loader._FailedTest.webapp.tests.test_categories)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: webapp.tests.test_categories
+Traceback (most recent call last):
+  File "C:\Users\Cielito\AppData\Local\Programs\Python\Python313\Lib\unittest\
+loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "C:\Users\Cielito\AppData\Local\Programs\Python\Python313\Lib\unittest\
+loader.py", line 339, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_categories.py", line 46
+    \"\"\"Prueba el m├®todo __str__ del modelo Categoria\"\"\"
+     ^
+SyntaxError: unexpected character after line continuation character
+
+
+======================================================================
+ERROR: test_toggle_currency 
+(webapp.tests.test_currencies.CurrencyTests.test_toggle_currency)
+Prueba la activaci├│n/desactivaci├│n de una moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 72, in 
+test_toggle_currency
+    response = self.client.post(reverse('toggle_currency'), {
+        'currency_id': self.currency.id
+    })
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 1153, in post
+    response = super().post(
+        path,
+    ...<5 lines>...
+        **extra,
+    )
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 499, in post
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "POST",
+        ^^^^^^^
+    ...<6 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 671, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 1087, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\test\client.py", 
+line 802, in check_exception
+    raise exc_value
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\views\monedas.py", line 261, in 
+toggle_currency
+    return redirect('currency_list')
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\shortcuts.py", 
+line 51, in redirect
+    resolve_url(to, *args, **kwargs),
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\shortcuts.py", 
+line 184, in resolve_url
+    return reverse(to, args=args, kwargs=kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\.venv\Lib\site-packages\django\urls\base.py", 
+line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, 
+**kwargs)
+  File "C:\Users\Cielito\Desktop\proyectos 2025\global_exchange_webapp\.venv\L
+ib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'currency_list' not found. 
+'currency_list' is not a valid view function or pattern name.
+
+======================================================================
+ERROR: test_limite_config_edit_view (webapp.tests.test_limites_intercambio.Lim
+itesIntercambioTest.test_limite_config_edit_view)
+Test edici├│n de configuraci├│n de l├¡mites
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_limites_intercambio.py", line 
+84, in test_limite_config_edit_view
+    self.assertContains(response, str(self.limite_config.moneda_origen))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'LimiteIntercambioConfig' object has no attribute 
+'moneda_origen'
+
+======================================================================
+ERROR: test_limite_config_model_validation (webapp.tests.test_limites_intercam
+bio.LimitesIntercambioTest.test_limite_config_model_validation)
+Test validaci├│n del modelo LimiteIntercambioConfig
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_limites_intercambio.py", line 
+89, in test_limite_config_model_validation
+    self.assertTrue(self.limite_config.monto_min < 
+self.limite_config.monto_max)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'LimiteIntercambioConfig' object has no attribute 'monto_min'
+
+======================================================================
+FAIL: test_assign_client_to_user (webapp.tests.test_assign_clients.AssignClien
+tsTests.test_assign_client_to_user)
+Prueba la asignaci├│n de un cliente a un usuario
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_assign_clients.py", line 66, in 
+test_assign_client_to_user
+    self.assertTrue(ClienteUsuario.objects.filter(
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cliente=self.cliente,
+        ^^^^^^^^^^^^^^^^^^^^^
+        usuario=self.employee_user
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).exists())
+    ^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_create_cliente 
+(webapp.tests.test_clientes.ClienteTests.test_create_cliente)
+Prueba la creaci├│n de un nuevo cliente
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_clientes.py", line 57, in 
+test_create_cliente
+    self.assertTrue(Cliente.objects.filter(documento='87654321').exists())
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_api_active_currencies_aplicar_descuento_categoria (webapp.tests.tes
+t_compra_venta.CompraVentaTests.test_api_active_currencies_aplicar_descuento_c
+ategoria)
+Prueba que se aplica descuento de categor├¡a correctamente
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 531, in 
+test_api_active_currencies_aplicar_descuento_categoria
+    self.assertEqual(pyg_data['venta'], 1.0)  # PYG siempre es 1.0
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2.0 != 1.0
+
+======================================================================
+FAIL: test_compraventa_billetera_con_pin (webapp.tests.test_compra_venta.Compr
+aVentaTests.test_compraventa_billetera_con_pin)
+Prueba flujo de pago con billetera que requiere PIN
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 434, in 
+test_compraventa_billetera_con_pin
+    self.assertTemplateUsed(response, 
+'webapp/compraventa_y_conversion/ingresar_pin.html')
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
+AssertionError: False is not true : Template 
+'webapp/compraventa_y_conversion/ingresar_pin.html' was not a template used 
+to render the response. Actual template(s) used: emails/mfa_transaccion.txt, 
+emails/mfa_transaccion.html, 
+webapp/compraventa_y_conversion/verificar_mfa.html, webapp/base.html
+
+======================================================================
+FAIL: test_compraventa_cancelar_pago_billetera (webapp.tests.test_compra_venta
+.CompraVentaTests.test_compraventa_cancelar_pago_billetera)
+Prueba cancelaci├│n de pago con billetera
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 459, in 
+test_compraventa_cancelar_pago_billetera
+    self.assertEqual(response.status_code, 302)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_compraventa_crear_transaccion_exitosa (webapp.tests.test_compra_ven
+ta.CompraVentaTests.test_compraventa_crear_transaccion_exitosa)
+Prueba creaci├│n exitosa de transacci├│n
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 586, in 
+test_compraventa_crear_transaccion_exitosa
+    self.assertEqual(response.status_code, 302)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_compraventa_monto_cero_invalido (webapp.tests.test_compra_venta.Com
+praVentaTests.test_compraventa_monto_cero_invalido)
+Prueba que monto cero es inv├ílido
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 615, in 
+test_compraventa_monto_cero_invalido
+    self.assertEqual(response.status_code, 302)  # Redirecci├│n por error
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_compraventa_procesar_pago_stripe_exitoso (webapp.tests.test_compra_
+venta.CompraVentaTests.test_compraventa_procesar_pago_stripe_exitoso)
+Prueba procesamiento exitoso de pago con Stripe
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\AppData\Local\Programs\Python\Python313\Lib\unittest\
+mock.py", line 1424, in patched
+    return func(*newargs, **newkeywargs)
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 172, in 
+test_compraventa_procesar_pago_stripe_exitoso
+    self.assertEqual(response.status_code, 302)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_compraventa_tarjeta_nacional_solo_pyg (webapp.tests.test_compra_ven
+ta.CompraVentaTests.test_compraventa_tarjeta_nacional_solo_pyg)
+Prueba que tarjeta nacional solo funciona con PYG
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 513, in 
+test_compraventa_tarjeta_nacional_solo_pyg
+    self.assertEqual(response.status_code, 302)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_compraventa_tipo_transaccion_invalido (webapp.tests.test_compra_ven
+ta.CompraVentaTests.test_compraventa_tipo_transaccion_invalido)
+Prueba manejo de tipo de transacci├│n inv├ílido
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 350, in 
+test_compraventa_tipo_transaccion_invalido
+    self.assertEqual(response.status_code, 302)  # Redirecci├│n por error
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_compraventa_validacion_monto_invalido (webapp.tests.test_compra_ven
+ta.CompraVentaTests.test_compraventa_validacion_monto_invalido)
+Prueba validaci├│n de monto inv├ílido en compraventa
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_compra_venta.py", line 326, in 
+test_compraventa_validacion_monto_invalido
+    self.assertEqual(response.status_code, 302)  # Redirecci├│n por error
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_create_currency 
+(webapp.tests.test_currencies.CurrencyTests.test_create_currency)
+Prueba la creaci├│n de una nueva moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 64, in 
+test_create_currency
+    self.assertEqual(response.status_code, 302)  # Redirige despu├®s de crear
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_currency_decimals 
+(webapp.tests.test_currencies.CurrencyTests.test_currency_decimals)
+Prueba los decimales de cotizaci├│n y monto
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 103, in 
+test_currency_decimals
+    self.assertEqual(self.currency.decimales_cotizacion, 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 4 != 2
+
+======================================================================
+FAIL: test_currency_rates 
+(webapp.tests.test_currencies.CurrencyTests.test_currency_rates)
+Prueba las tasas de compra y venta de la moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 95, in 
+test_currency_rates
+    self.assertEqual(self.currency.base_price, 750.00)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Decimal('7500.00000000') != 750.0
+
+======================================================================
+FAIL: test_manage_currencies_view 
+(webapp.tests.test_currencies.CurrencyTests.test_manage_currencies_view)
+Prueba la vista de gesti├│n de monedas
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 45, in 
+test_manage_currencies_view
+    self.assertContains(response, 'D├│lar Americano')
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : Couldn't find 'D├│lar Americano' in the 
+following response
+b'\n\n<!DOCTYPE html>\n<html lang="es">\n<head>\n    <meta charset="UTF-8" 
+/>\n    <meta name="viewport" content="width=device-width,initial-scale=1" 
+/>\n    <title>Administrar Monedas</title>\n    <link rel="preconnect" 
+href="https://fonts.googleapis.com">\n    <link rel="preconnect" 
+href="https://fonts.gstatic.com" crossorigin>\n    <link href="https://fonts.g
+oogleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" 
+rel="stylesheet">\n    <link rel="icon" type="image/png" 
+href="/static/webapp/icono.png?v=1">\n    <link rel="shortcut icon" 
+type="image/png" href="/static/webapp/icono.png?v=1">\n    <link 
+rel="stylesheet" href="/static/webapp/css/shared/global.css?v=1.4" />\n    
+<link rel="stylesheet" href="/static/webapp/css/dashboards/user_menu.css" 
+/>\n    \n<link rel="stylesheet" href="/static/webapp/css/monedas/manage_curre
+ncies.css">\n\n</head>\n<body>\n\n    <header class="header-nav">\n        
+<nav class="nav-container">\n            <!-- Logo on the left -->\n          
+  <div class="logo-container">\n                <div class="logo-wrapper">\n  
+                  <img src="/static/webapp/logo.png" alt="Global Exchange 
+Logo" class="logo-image">\n                </div>\n                <a 
+href="/" class="logo-link"></a>\n            </div>\n    \n            <!-- 
+Navigation links in the center -->\n            <div class="nav-menu">\n      
+          <a href="/" class="nav-link">Inicio</a>\n                <a 
+href="/historical/" class="nav-link">Hist\xc3\xb3rico</a>\n                <a 
+href="#" class="nav-link">Servicios</a>\n                <a href="#" 
+class="nav-link">Contacto</a>\n                <a href="#" 
+class="nav-link">Acerca de</a>\n                \n                    <a 
+href="/compraventa/" class="nav-link">Comprar/Vender</a>\n                    
+\n                    \n\n                    \n                        <a 
+href="/landing/" class="nav-link admin-nav-link">Ir a Gestiones</a>\n         
+           \n\n                \n            </div>\n    \n            <!-- 
+Auth buttons on the right -->\n            <div class="nav-auth">\n           
+     \n                    <!-- User Menu Dropdown -->\n                    
+<div class="user-menu-container">\n                        <button 
+class="user-menu-button" id="userMenuButton">\n                            
+<img src="/static/webapp/home_menu_usuario/1.icono_usuario.png" alt="Usuario" 
+class="user-icon">\n                        </button>\n                       
+ \n                        <div class="user-menu-dropdown" 
+id="userMenuDropdown">\n                            <div class="user-info">\n 
+                               <div class="user-name">admin</div>\n           
+                     <div class="operating-with">Est\xc3\xa1 operando 
+con:</div>\n                                <div class="client-name">\n       
+                             \n                                        
+Ning\xc3\xban cliente seleccionado\n                                    \n    
+                            </div>\n                            </div>\n      
+                      \n                            <div 
+class="menu-items">\n                                <a href="/profile/" 
+class="menu-item">\n                                    <div 
+class="menu-icon">\n                                        <img 
+src="/static/webapp/home_menu_usuario/2.icono_perfil.png" alt="Perfil">\n     
+                               </div>\n                                    
+<span class="menu-text">Perfil</span>\n                                </a>\n 
+                               \n                                <a 
+href="/change-client/" class="menu-item">\n                                   
+ <div class="menu-icon">\n                                        <img 
+src="/static/webapp/home_menu_usuario/3.icono_clientes.png" alt="Cambiar 
+Cliente">\n                                    </div>\n                       
+             <span class="menu-text">Cambiar de Cliente</span>\n              
+                  </a>\n                                \n                    
+            <a href="/administar-metodos-pago/" class="menu-item">\n          
+                          <div class="menu-icon">\n                           
+             <img src="/static/webapp/home_menu_usuario/4.icono_medio.png" 
+alt="M\xc3\xa9todos">\n                                    </div>\n           
+                         <span class="menu-text">Administrar M\xc3\xa9todos 
+de Pago/Cobro</span>\n                                </a>\n                  
+              \n                                <a 
+href="/historial-transacciones/" class="menu-item">\n                         
+           <div class="menu-icon">\n                                        
+<img src="/static/webapp/home_menu_usuario/5.icono_historial.png" 
+alt="Historial">\n                                    </div>\n                
+                    <span class="menu-text">Historial de 
+Transacciones</span>\n                                </a>\n                  
+              \n                                <a href="/logout/" 
+class="menu-item">\n                                    <div 
+class="menu-icon">\n                                        <img 
+src="/static/webapp/home_menu_usuario/6.icono_salir.png" alt="Salir">\n       
+                             </div>\n                                    
+<span class="menu-text">Cerrar Sesi\xc3\xb3n</span>\n                         
+       </a>\n\n                                <a href="/tauser/login/" 
+class="menu-item">\n                                    <div 
+class="menu-icon">\n                                        <img 
+src="/static/webapp/home_menu_usuario/7.icono_tauser.png" alt="Tauser">\n     
+                               </div>\n                                    
+<span class="menu-text">Tauser</span>\n                                </a>\n 
+                           </div>\n                        </div>\n           
+         </div>\n                \n            </div>\n        </nav>\n    
+</header>\n\n    \n        \n    \n\n    <main>\n        \n<input 
+type="hidden" name="csrfmiddlewaretoken" value="fQqBlvsYKQG3VyFpWtwidj4HOMeIyt
+5FnOefVtQaYus1zdHR7xfhGPmE0jdWkAFA">\n<div 
+class="manage-currencies-container">\n    <!-- Messages -->\n    \n    \n    
+<!-- Header Section -->\n    <div class="manage-currencies-header">\n        
+<div class="main-content">\n            <a href="/landing/" 
+class="back-button">\xe2\x86\x90 Volver al Panel</a>\n            \n          
+  <div class="header-content">\n                <div class="header-text">\n   
+                 <h1 class="manage-currencies-title">Administrar 
+Monedas</h1>\n                    <p 
+class="manage-currencies-subtitle">Visualizar, editar y activar/desactivar 
+monedas</p>\n                </div>\n                \n                <!-- 
+Metrics Cards -->\n                <div class="header-metrics">\n             
+       <div class="metric-card">\n                        <div 
+class="metric-label">Total Monedas</div>\n                        <div 
+class="metric-number">5</div>\n                    </div>\n                   
+ <div class="metric-card">\n                        <div 
+class="metric-label">Monedas Activas</div>\n                        <div 
+class="metric-number">5</div>\n                    </div>\n                
+</div>\n            </div>\n        </div>\n    </div>\n\n    <!-- Main 
+Content -->\n    <div class="main-content">\n        <!-- Create New Currency 
+Button -->\n        <div class="create-currency-section">\n            <a 
+href="/currency/crear/" class="create-currency-button">Crear Nueva 
+Moneda</a>\n        </div>\n\n        <!-- Currencies List Container -->\n    
+    <div class="currencies-list-container">\n            <!-- Search Section 
+-->\n            <div class="search-section">\n                <h2 
+class="search-title">Lista de Monedas</h2>\n                <div 
+class="search-input-container">\n                    <input type="text" 
+id="currency-search" placeholder="Buscar monedas..." class="search-input">\n  
+              </div>\n            </div>\n\n            <!-- Currencies Table 
+-->\n            <div class="currencies-table-container">\n                
+<table class="currencies-table">\n                    <thead>\n               
+         <tr>\n                            <th>Bandera</th>\n                 
+           <th>Nombre</th>\n                            <th>Fecha</th>\n      
+                      <th>C\xc3\xb3digo y S\xc3\xadmbolo</th>\n               
+             <th>Decimales</th>\n                            
+<th>Estado</th>\n                            <th>Acciones</th>\n              
+          </tr>\n                    </thead>\n                    <tbody>\n  
+                      \n                        <tr class="currency-row">\n   
+                         <td class="flag-cell">\n                             
+   <div class="flag-container">\n                                    \n       
+                                 <img 
+src="/media/currency_flags/usd_xxcvqqn.png" alt="D\xc3\xb3lar Estadounidense 
+Flag" class="currency-flag">\n                                    \n          
+                      </div>\n                            </td>\n             
+               <td class="name-cell">\n                                <span 
+class="currency-name">D\xc3\xb3lar Estadounidense</span>\n                    
+        </td>\n                            <td class="date-cell">\n           
+                     <span class="currency-date">12/12/2025</span>\n          
+                  </td>\n                            <td class="code-cell">\n 
+                               <span class="currency-code">USD $</span>\n     
+                       </td>\n                            <td 
+class="decimals-cell">\n                                <div 
+class="decimals-info">\n                                    <div 
+class="decimals-line">Cotizaci\xc3\xb3n: 4</div>\n                            
+        <div class="decimals-line">Monto: 2</div>\n                           
+     </div>\n                            </td>\n                            
+<td class="status-cell">\n                                <div 
+class="status-container">\n                                    \n             
+                           <div class="status-dot active"></div>\n            
+                            <span class="status-text">Activo</span>\n         
+                           \n                                </div>\n         
+                   </td>\n                            <td 
+class="actions-cell">\n                                <div 
+class="actions-container">\n                                    <a 
+href="/modify-currency/2/" class="action-button 
+modify-button">Modificar</a>\n                                    \n          
+                              <form method="post" style="display:inline;" 
+onsubmit="return confirm(\'\xc2\xbfEst\xc3\xa1s seguro de que quieres 
+desactivar esta moneda?\');">\n                                            
+<input type="hidden" name="csrfmiddlewaretoken" 
+value="fQqBlvsYKQG3VyFpWtwidj4HOMeIyt5FnOefVtQaYus1zdHR7xfhGPmE0jdWkAFA">\n   
+                                         <input type="hidden" name="action" 
+value="deactivate">\n                                            <input 
+type="hidden" name="currency_id" value="2">\n                                 
+           <button type="submit" class="action-button 
+deactivate-button">Desactivar</button>\n                                      
+  </form>\n                                    \n                             
+   </div>\n                            </td>\n                        </tr>\n 
+                       \n                        <tr class="currency-row">\n  
+                          <td class="flag-cell">\n                            
+    <div class="flag-container">\n                                    \n      
+                                  <img 
+src="/media/currency_flags/eur_v7HXBym.png" alt="Euro Flag" 
+class="currency-flag">\n                                    \n                
+                </div>\n                            </td>\n                   
+         <td class="name-cell">\n                                <span 
+class="currency-name">Euro</span>\n                            </td>\n        
+                    <td class="date-cell">\n                                
+<span class="currency-date">12/12/2025</span>\n                            
+</td>\n                            <td class="code-cell">\n                   
+             <span class="currency-code">EUR \xe2\x82\xac</span>\n            
+                </td>\n                            <td 
+class="decimals-cell">\n                                <div 
+class="decimals-info">\n                                    <div 
+class="decimals-line">Cotizaci\xc3\xb3n: 4</div>\n                            
+        <div class="decimals-line">Monto: 2</div>\n                           
+     </div>\n                            </td>\n                            
+<td class="status-cell">\n                                <div 
+class="status-container">\n                                    \n             
+                           <div class="status-dot active"></div>\n            
+                            <span class="status-text">Activo</span>\n         
+                           \n                                </div>\n         
+                   </td>\n                            <td 
+class="actions-cell">\n                                <div 
+class="actions-container">\n                                    <a 
+href="/modify-currency/3/" class="action-button 
+modify-button">Modificar</a>\n                                    \n          
+                              <form method="post" style="display:inline;" 
+onsubmit="return confirm(\'\xc2\xbfEst\xc3\xa1s seguro de que quieres 
+desactivar esta moneda?\');">\n                                            
+<input type="hidden" name="csrfmiddlewaretoken" 
+value="fQqBlvsYKQG3VyFpWtwidj4HOMeIyt5FnOefVtQaYus1zdHR7xfhGPmE0jdWkAFA">\n   
+                                         <input type="hidden" name="action" 
+value="deactivate">\n                                            <input 
+type="hidden" name="currency_id" value="3">\n                                 
+           <button type="submit" class="action-button 
+deactivate-button">Desactivar</button>\n                                      
+  </form>\n                                    \n                             
+   </div>\n                            </td>\n                        </tr>\n 
+                       \n                        <tr class="currency-row">\n  
+                          <td class="flag-cell">\n                            
+    <div class="flag-container">\n                                    \n      
+                                  <img 
+src="/media/currency_flags/pyg_5ojf3q2.png" alt="Guaran\xc3\xad Paraguayo 
+Flag" class="currency-flag">\n                                    \n          
+                      </div>\n                            </td>\n             
+               <td class="name-cell">\n                                <span 
+class="currency-name">Guaran\xc3\xad Paraguayo</span>\n                       
+     </td>\n                            <td class="date-cell">\n              
+                  <span class="currency-date">12/12/2025</span>\n             
+               </td>\n                            <td class="code-cell">\n    
+                            <span class="currency-code">PYG G</span>\n        
+                    </td>\n                            <td 
+class="decimals-cell">\n                                <div 
+class="decimals-info">\n                                    <div 
+class="decimals-line">Cotizaci\xc3\xb3n: 2</div>\n                            
+        <div class="decimals-line">Monto: 0</div>\n                           
+     </div>\n                            </td>\n                            
+<td class="status-cell">\n                                <div 
+class="status-container">\n                                    \n             
+                           <div class="status-dot active"></div>\n            
+                            <span class="status-text">Activo</span>\n         
+                           \n                                </div>\n         
+                   </td>\n                            <td 
+class="actions-cell">\n                                <div 
+class="actions-container">\n                                    <a 
+href="/modify-currency/1/" class="action-button 
+modify-button">Modificar</a>\n                                    \n          
+                              <form method="post" style="display:inline;" 
+onsubmit="return confirm(\'\xc2\xbfEst\xc3\xa1s seguro de que quieres 
+desactivar esta moneda?\');">\n                                            
+<input type="hidden" name="csrfmiddlewaretoken" 
+value="fQqBlvsYKQG3VyFpWtwidj4HOMeIyt5FnOefVtQaYus1zdHR7xfhGPmE0jdWkAFA">\n   
+                                         <input type="hidden" name="action" 
+value="deactivate">\n                                            <input 
+type="hidden" name="currency_id" value="1">\n                                 
+           <button type="submit" class="action-button 
+deactivate-button">Desactivar</button>\n                                      
+  </form>\n                                    \n                             
+   </div>\n                            </td>\n                        </tr>\n 
+                       \n                        <tr class="currency-row">\n  
+                          <td class="flag-cell">\n                            
+    <div class="flag-container">\n                                    \n      
+                                  <img 
+src="/media/currency_flags/ars_eR5nl5j.png" alt="Peso Argentino Flag" 
+class="currency-flag">\n                                    \n                
+                </div>\n                            </td>\n                   
+         <td class="name-cell">\n                                <span 
+class="currency-name">Peso Argentino</span>\n                            
+</td>\n                            <td class="date-cell">\n                   
+             <span class="currency-date">12/12/2025</span>\n                  
+          </td>\n                            <td class="code-cell">\n         
+                       <span class="currency-code">ARS $</span>\n             
+               </td>\n                            <td 
+class="decimals-cell">\n                                <div 
+class="decimals-info">\n                                    <div 
+class="decimals-line">Cotizaci\xc3\xb3n: 4</div>\n                            
+        <div class="decimals-line">Monto: 2</div>\n                           
+     </div>\n                            </td>\n                            
+<td class="status-cell">\n                                <div 
+class="status-container">\n                                    \n             
+                           <div class="status-dot active"></div>\n            
+                            <span class="status-text">Activo</span>\n         
+                           \n                                </div>\n         
+                   </td>\n                            <td 
+class="actions-cell">\n                                <div 
+class="actions-container">\n                                    <a 
+href="/modify-currency/5/" class="action-button 
+modify-button">Modificar</a>\n                                    \n          
+                              <form method="post" style="display:inline;" 
+onsubmit="return confirm(\'\xc2\xbfEst\xc3\xa1s seguro de que quieres 
+desactivar esta moneda?\');">\n                                            
+<input type="hidden" name="csrfmiddlewaretoken" 
+value="fQqBlvsYKQG3VyFpWtwidj4HOMeIyt5FnOefVtQaYus1zdHR7xfhGPmE0jdWkAFA">\n   
+                                         <input type="hidden" name="action" 
+value="deactivate">\n                                            <input 
+type="hidden" name="currency_id" value="5">\n                                 
+           <button type="submit" class="action-button 
+deactivate-button">Desactivar</button>\n                                      
+  </form>\n                                    \n                             
+   </div>\n                            </td>\n                        </tr>\n 
+                       \n                        <tr class="currency-row">\n  
+                          <td class="flag-cell">\n                            
+    <div class="flag-container">\n                                    \n      
+                                  <img 
+src="/media/currency_flags/brl_M8tyvzM.png" alt="Real Brasile\xc3\xb1o Flag" 
+class="currency-flag">\n                                    \n                
+                </div>\n                            </td>\n                   
+         <td class="name-cell">\n                                <span 
+class="currency-name">Real Brasile\xc3\xb1o</span>\n                          
+  </td>\n                            <td class="date-cell">\n                 
+               <span class="currency-date">12/12/2025</span>\n                
+            </td>\n                            <td class="code-cell">\n       
+                         <span class="currency-code">BRL R$</span>\n          
+                  </td>\n                            <td 
+class="decimals-cell">\n                                <div 
+class="decimals-info">\n                                    <div 
+class="decimals-line">Cotizaci\xc3\xb3n: 4</div>\n                            
+        <div class="decimals-line">Monto: 2</div>\n                           
+     </div>\n                            </td>\n                            
+<td class="status-cell">\n                                <div 
+class="status-container">\n                                    \n             
+                           <div class="status-dot active"></div>\n            
+                            <span class="status-text">Activo</span>\n         
+                           \n                                </div>\n         
+                   </td>\n                            <td 
+class="actions-cell">\n                                <div 
+class="actions-container">\n                                    <a 
+href="/modify-currency/4/" class="action-button 
+modify-button">Modificar</a>\n                                    \n          
+                              <form method="post" style="display:inline;" 
+onsubmit="return confirm(\'\xc2\xbfEst\xc3\xa1s seguro de que quieres 
+desactivar esta moneda?\');">\n                                            
+<input type="hidden" name="csrfmiddlewaretoken" 
+value="fQqBlvsYKQG3VyFpWtwidj4HOMeIyt5FnOefVtQaYus1zdHR7xfhGPmE0jdWkAFA">\n   
+                                         <input type="hidden" name="action" 
+value="deactivate">\n                                            <input 
+type="hidden" name="currency_id" value="4">\n                                 
+           <button type="submit" class="action-button 
+deactivate-button">Desactivar</button>\n                                      
+  </form>\n                                    \n                             
+   </div>\n                            </td>\n                        </tr>\n 
+                       \n                    </tbody>\n                
+</table>\n            </div>\n        </div>\n    </div>\n</div>\n\n<script>\n
+document.getElementById(\'currency-search\').addEventListener(\'keyup\', 
+function() {\n    let filter = this.value.toLowerCase();\n    let rows = 
+document.querySelectorAll(\'.currencies-table tbody .currency-row\');\n\n    
+rows.forEach(row => {\n        let currencyName = 
+row.querySelector(\'.currency-name\').textContent.toLowerCase();\n        let 
+currencyCode = 
+row.querySelector(\'.currency-code\').textContent.toLowerCase();\n\n        
+if (currencyName.includes(filter) || currencyCode.includes(filter)) {\n       
+     row.style.display = \'\';\n        } else {\n            
+row.style.display = \'none\';\n        }\n    });\n});\n\n// Auto-hide 
+messages after 5 seconds\ndocument.addEventListener(\'DOMContentLoaded\', 
+function() {\n    const alerts = document.querySelectorAll(\'.alert\');\n    
+alerts.forEach(alert => {\n        setTimeout(() => {\n            
+alert.style.animation = \'slideOut 0.3s ease-in forwards\';\n            
+setTimeout(() => {\n                alert.remove();\n            }, 300);\n   
+     }, 5000);\n    });\n});\n</script>\n\n<style>\n@keyframes slideOut {\n   
+ from {\n        transform: translateX(0);\n        opacity: 1;\n    }\n    
+to {\n        transform: translateX(100%);\n        opacity: 0;\n    
+}\n}\n</style>\n\n    </main>\n\n    <footer class="main-footer">\n        
+<div class="footer-container">\n            <div class="footer-content">\n    
+            <div class="footer-section">\n                    <h4>Global 
+Exchange</h4>\n                    <p>Tu plataforma confiable para el 
+intercambio de divisas y servicios financieros globales.</p>\n                
+</div>\n                <div class="footer-section">\n                    
+<h4>Servicios</h4>\n                    <ul>\n                        <li><a 
+href="#">Consulta de Tasas</a></li>\n                        <li><a 
+href="#">Compra y Venta</a></li>\n                    </ul>\n                
+</div>\n                <div class="footer-section">\n                    
+<h4>Enlaces</h4>\n                    <ul>\n                        <li><a 
+href="#">Acerca de</a></li>\n                        <li><a 
+href="#">Contacto</a></li>\n                        <li><a 
+href="#">T\xc3\xa9rminos</a></li>\n                        <li><a 
+href="#">Privacidad</a></li>\n                    </ul>\n                
+</div>\n                <div class="footer-section">\n                    
+<h4>Contacto</h4>\n                    <p>\xf0\x9f\x93\xa7 
+info@globalexchange.com</p>\n                    <p>\xf0\x9f\x93\x9e +595 21 
+123-4567</p>\n                    <p>\xf0\x9f\x93\x8d Asunci\xc3\xb3n, 
+Paraguay</p>\n                </div>\n            </div>\n            <div 
+class="footer-bottom">\n                <p>&copy; 2025 Global Exchange. Todos 
+los derechos reservados.</p>\n            </div>\n        </div>\n    
+</footer>\n\n    <script>\n        // User Menu Dropdown Functionality\n      
+  document.addEventListener(\'DOMContentLoaded\', function() {\n            
+const userMenuButton = document.getElementById(\'userMenuButton\');\n         
+   const userMenuDropdown = document.getElementById(\'userMenuDropdown\');\n  
+          \n            if (userMenuButton && userMenuDropdown) {\n           
+     // Toggle dropdown on button click\n                
+userMenuButton.addEventListener(\'click\', function(e) {\n                    
+e.stopPropagation();\n                    
+userMenuDropdown.classList.toggle(\'show\');\n                });\n           
+     \n                // Close dropdown when clicking outside\n              
+  document.addEventListener(\'click\', function(e) {\n                    if 
+(!userMenuButton.contains(e.target) && !userMenuDropdown.contains(e.target)) 
+{\n                        userMenuDropdown.classList.remove(\'show\');\n     
+               }\n                });\n                \n                // 
+Close dropdown on escape key\n                
+document.addEventListener(\'keydown\', function(e) {\n                    if 
+(e.key === \'Escape\') {\n                        
+userMenuDropdown.classList.remove(\'show\');\n                    }\n         
+       });\n            }\n        });\n\n        // Scroll Animation 
+Observer\n        const observerOptions = {\n            threshold: 0.1,\n    
+        rootMargin: \'0px 0px -50px 0px\'\n        };\n\n        const 
+observer = new IntersectionObserver((entries) => {\n            
+entries.forEach(entry => {\n                if (entry.isIntersecting) {\n     
+               entry.target.classList.add(\'animate-in\');\n                
+}\n            });\n        }, observerOptions);\n\n        // Observe all 
+service rows and title when DOM is loaded\n        
+document.addEventListener(\'DOMContentLoaded\', () => {\n            const 
+serviceRows = document.querySelectorAll(\'.service-row\');\n            const 
+servicesTitle = document.querySelector(\'.homepage-services h2\');\n          
+  \n            serviceRows.forEach(row => {\n                
+observer.observe(row);\n            });\n            \n            if 
+(servicesTitle) {\n                observer.observe(servicesTitle);\n         
+   }\n        });\n\n        setTimeout(function() {\n            var toasts 
+= document.querySelectorAll(\'.toast-message\');\n            var phantom = 
+document.getElementById(\'toast-phantom\');\n\n            
+toasts.forEach(function(toast) {\n                toast.style.display = 
+\'none\';\n            });\n\n            if (phantom) {\n                
+phantom.style.display = \'none\'; // \xe2\x9c\x85 tambi\xc3\xa9n desaparece 
+el phantom\n            }\n        }, 4000); // Oculta despu\xc3\xa9s de 4 
+segundos\n\n        // Sticky din\xc3\xa1mico para mensajes\n        
+document.addEventListener(\'DOMContentLoaded\', function() {\n            
+const toast = document.querySelector(\'.toast-message\');\n            const 
+phantom = document.getElementById(\'toast-phantom\');\n\n            if 
+(!toast || !phantom) return;\n\n            function updateToastPosition() 
+{\n                const phantomTop = phantom.getBoundingClientRect().top;\n  
+              if (phantomTop <= 0) {\n                    
+toast.classList.add(\'fixed\');\n                } else {\n                   
+ toast.classList.remove(\'fixed\');\n                }\n            }\n\n     
+       window.addEventListener(\'scroll\', updateToastPosition);\n            
+updateToastPosition(); // ejecutar al cargar\n        });\n    </script>\n    
+\n</body>\n</html>\n'
+
+======================================================================
+FAIL: test_modify_currency_view 
+(webapp.tests.test_currencies.CurrencyTests.test_modify_currency_view)
+Prueba la vista de modificaci├│n de moneda
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 187, in 
+test_modify_currency_view
+    self.assertContains(response, 'D├│lar Americano')
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : Couldn't find 'D├│lar Americano' in the 
+following response
+b'\n\n<!DOCTYPE html>\n<html lang="es">\n<head>\n    <meta charset="UTF-8" 
+/>\n    <meta name="viewport" content="width=device-width,initial-scale=1" 
+/>\n    <title>Modificar Moneda</title>\n    <link rel="preconnect" 
+href="https://fonts.googleapis.com">\n    <link rel="preconnect" 
+href="https://fonts.gstatic.com" crossorigin>\n    <link href="https://fonts.g
+oogleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" 
+rel="stylesheet">\n    <link rel="icon" type="image/png" 
+href="/static/webapp/icono.png?v=1">\n    <link rel="shortcut icon" 
+type="image/png" href="/static/webapp/icono.png?v=1">\n    <link 
+rel="stylesheet" href="/static/webapp/css/shared/global.css?v=1.4" />\n    
+<link rel="stylesheet" href="/static/webapp/css/dashboards/user_menu.css" 
+/>\n    \n<link rel="stylesheet" 
+href="/static/webapp/css/monedas/modify_currency.css">\n\n</head>\n<body>\n\n 
+   <header class="header-nav">\n        <nav class="nav-container">\n         
+   <!-- Logo on the left -->\n            <div class="logo-container">\n      
+          <div class="logo-wrapper">\n                    <img 
+src="/static/webapp/logo.png" alt="Global Exchange Logo" 
+class="logo-image">\n                </div>\n                <a href="/" 
+class="logo-link"></a>\n            </div>\n    \n            <!-- Navigation 
+links in the center -->\n            <div class="nav-menu">\n                
+<a href="/" class="nav-link">Inicio</a>\n                <a 
+href="/historical/" class="nav-link">Hist\xc3\xb3rico</a>\n                <a 
+href="#" class="nav-link">Servicios</a>\n                <a href="#" 
+class="nav-link">Contacto</a>\n                <a href="#" 
+class="nav-link">Acerca de</a>\n                \n                    <a 
+href="/compraventa/" class="nav-link">Comprar/Vender</a>\n                    
+\n                    \n\n                    \n                        <a 
+href="/landing/" class="nav-link admin-nav-link">Ir a Gestiones</a>\n         
+           \n\n                \n            </div>\n    \n            <!-- 
+Auth buttons on the right -->\n            <div class="nav-auth">\n           
+     \n                    <!-- User Menu Dropdown -->\n                    
+<div class="user-menu-container">\n                        <button 
+class="user-menu-button" id="userMenuButton">\n                            
+<img src="/static/webapp/home_menu_usuario/1.icono_usuario.png" alt="Usuario" 
+class="user-icon">\n                        </button>\n                       
+ \n                        <div class="user-menu-dropdown" 
+id="userMenuDropdown">\n                            <div class="user-info">\n 
+                               <div class="user-name">admin</div>\n           
+                     <div class="operating-with">Est\xc3\xa1 operando 
+con:</div>\n                                <div class="client-name">\n       
+                             \n                                        
+Ning\xc3\xban cliente seleccionado\n                                    \n    
+                            </div>\n                            </div>\n      
+                      \n                            <div 
+class="menu-items">\n                                <a href="/profile/" 
+class="menu-item">\n                                    <div 
+class="menu-icon">\n                                        <img 
+src="/static/webapp/home_menu_usuario/2.icono_perfil.png" alt="Perfil">\n     
+                               </div>\n                                    
+<span class="menu-text">Perfil</span>\n                                </a>\n 
+                               \n                                <a 
+href="/change-client/" class="menu-item">\n                                   
+ <div class="menu-icon">\n                                        <img 
+src="/static/webapp/home_menu_usuario/3.icono_clientes.png" alt="Cambiar 
+Cliente">\n                                    </div>\n                       
+             <span class="menu-text">Cambiar de Cliente</span>\n              
+                  </a>\n                                \n                    
+            <a href="/administar-metodos-pago/" class="menu-item">\n          
+                          <div class="menu-icon">\n                           
+             <img src="/static/webapp/home_menu_usuario/4.icono_medio.png" 
+alt="M\xc3\xa9todos">\n                                    </div>\n           
+                         <span class="menu-text">Administrar M\xc3\xa9todos 
+de Pago/Cobro</span>\n                                </a>\n                  
+              \n                                <a 
+href="/historial-transacciones/" class="menu-item">\n                         
+           <div class="menu-icon">\n                                        
+<img src="/static/webapp/home_menu_usuario/5.icono_historial.png" 
+alt="Historial">\n                                    </div>\n                
+                    <span class="menu-text">Historial de 
+Transacciones</span>\n                                </a>\n                  
+              \n                                <a href="/logout/" 
+class="menu-item">\n                                    <div 
+class="menu-icon">\n                                        <img 
+src="/static/webapp/home_menu_usuario/6.icono_salir.png" alt="Salir">\n       
+                             </div>\n                                    
+<span class="menu-text">Cerrar Sesi\xc3\xb3n</span>\n                         
+       </a>\n\n                                <a href="/tauser/login/" 
+class="menu-item">\n                                    <div 
+class="menu-icon">\n                                        <img 
+src="/static/webapp/home_menu_usuario/7.icono_tauser.png" alt="Tauser">\n     
+                               </div>\n                                    
+<span class="menu-text">Tauser</span>\n                                </a>\n 
+                           </div>\n                        </div>\n           
+         </div>\n                \n            </div>\n        </nav>\n    
+</header>\n\n    \n        \n    \n\n    <main>\n        \n<input 
+type="hidden" name="csrfmiddlewaretoken" value="CkSaQZXEjLmYUXwSeyPPqxHXWxY5xQ
+igq1amDXjK23tWJ9HgqEp4486nQb81u0fn">\n<div 
+class="modify-currency-container">\n    <!-- Messages -->\n    \n    \n    
+<!-- Header Section -->\n    <div class="modify-currency-header">\n        
+<div class="main-content">\n            <a href="/manage-currencies/" 
+class="back-button">\xe2\x86\x90 Volver a Administrar Monedas</a>\n           
+ \n            <div class="header-content">\n                <div 
+class="header-text">\n                    <h1 
+class="modify-currency-title">Modificar Moneda</h1>\n                    <p 
+class="modify-currency-subtitle">Modifica los datos de una moneda</p>\n       
+         </div>\n            </div>\n        </div>\n    </div>\n\n    <!-- 
+Main Content -->\n    <div class="main-content">\n        <!-- Modify 
+Currency Section -->\n        <div class="modify-section">\n            <h2 
+class="section-title">Modificar Moneda</h2>\n            \n            <div 
+class="modify-content">\n                <!-- Currency Profile Section - 
+Inside the gradient container -->\n                <div 
+class="currency-profile-section">\n                    <div 
+class="currency-icon-circle">\n                        \n                     
+       <img src="/media/currency_flags/usd_xxcvqqn.png" alt="D\xc3\xb3lar 
+Estadounidense Flag" class="currency-flag-icon">\n                        \n  
+                  </div>\n                </div>\n                \n          
+      <!-- Form Container -->\n                <div class="form-container">\n 
+                   <form method="post" enctype="multipart/form-data" 
+class="modify-form" id="modify-form">\n                        <input 
+type="hidden" name="csrfmiddlewaretoken" 
+value="CkSaQZXEjLmYUXwSeyPPqxHXWxY5xQigq1amDXjK23tWJ9HgqEp4486nQb81u0fn">\n   
+                     \n                        <!-- First Row: C\xc3\xb3digo, 
+Nombre, S\xc3\xadmbolo -->\n                        <div class="form-row">\n  
+                          <div class="form-field">\n                          
+      <label class="field-label">C\xc3\xb3digo</label>\n                      
+          <input type="text" name="code" class="form-input disabled-input" 
+value="USD" readonly>\n                                <div 
+class="field-note">El c\xc3\xb3digo de moneda no puede modificarse</div>\n    
+                        </div>\n                            <div 
+class="form-field">\n                                <label 
+class="field-label">Nombre</label>\n                                <input 
+type="text" name="name" class="form-input" value="D\xc3\xb3lar 
+Estadounidense" required>\n                            </div>\n               
+             <div class="form-field">\n                                <label 
+class="field-label">S\xc3\xadmbolo</label>\n                                
+<input type="text" name="symbol" class="form-input" value="$" maxlength="5" 
+required>\n                            </div>\n                        
+</div>\n                        \n                        <!-- Second Row: 
+Decimales Tasa, Decimales Monto, Bandera -->\n                        <div 
+class="form-row">\n                            <div class="form-field">\n     
+                           <label class="field-label">Decimales 
+Tasa</label>\n                                <input type="number" 
+name="decimales_cotizacion" class="form-input" value="4" min="0" max="8" 
+required>\n                            </div>\n                            
+<div class="form-field">\n                                <label 
+class="field-label">Decimales Monto</label>\n                                
+<input type="number" name="decimales_monto" class="form-input" value="2" 
+min="0" max="8" required>\n                            </div>\n               
+             <div class="form-field">\n                                <label 
+class="field-label">Bandera</label>\n                                <div 
+class="file-upload-container">\n                                    <input 
+type="file" name="flag_image" id="flag_image" accept="image/*" 
+class="file-input" onchange="updateFileName(this)">\n                         
+           <label for="flag_image" class="file-upload-button">\n              
+                          A\xc3\xb1adir Archivo\n                             
+       </label>\n                                    <div 
+class="file-info">\n                                        <div 
+class="file-status" id="file-status">\n                                       
+     \n                                                usd_xxcvqqn.png\n      
+                                      \n                                      
+  </div>\n                                        <div 
+class="file-dimensions">Dimensi\xc3\xb3n sugerida: 255x135 px</div>\n         
+                           </div>\n                                </div>\n   
+                         </div>\n                        </div>\n             
+           \n                        <!-- Third Row: Activo -->\n             
+           <div class="form-row single-field-row">\n                          
+  <div class="form-field">\n                                <label 
+class="checkbox-label">\n                                    <input 
+type="checkbox" name="is_active" class="checkbox-input" checked>\n            
+                        <span class="checkbox-text">Activo</span>\n           
+                     </label>\n                            </div>\n           
+             </div>\n                    </form>\n                </div>\n    
+            \n                <!-- Action Buttons - Inside gradient container 
+-->\n                <div class="action-buttons">\n                    
+<button type="submit" form="modify-form" 
+class="save-button">Guardar</button>\n                    <a 
+href="/manage-currencies/" class="discard-button">Descartar</a>\n             
+   </div>\n            </div>\n        </div>\n    
+</div>\n</div>\n\n<script>\nfunction updateFileName(input) {\n    const 
+fileStatus = document.getElementById(\'file-status\');\n    if (input.files 
+&& input.files[0]) {\n        fileStatus.textContent = input.files[0].name;\n 
+   } else {\n        fileStatus.textContent = \'No se ha seleccionado 
+ning\xc3\xban archivo\';\n    }\n}\n\n// Auto-hide messages after 5 
+seconds\ndocument.addEventListener(\'DOMContentLoaded\', function() {\n    
+const alerts = document.querySelectorAll(\'.alert\');\n    
+alerts.forEach(alert => {\n        setTimeout(() => {\n            
+alert.style.animation = \'slideOut 0.3s ease-in forwards\';\n            
+setTimeout(() => {\n                alert.remove();\n            }, 300);\n   
+     }, 5000);\n    });\n});\n</script>\n\n<style>\n@keyframes slideOut {\n   
+ from {\n        transform: translateX(0);\n        opacity: 1;\n    }\n    
+to {\n        transform: translateX(100%);\n        opacity: 0;\n    
+}\n}\n</style>\n\n    </main>\n\n    <footer class="main-footer">\n        
+<div class="footer-container">\n            <div class="footer-content">\n    
+            <div class="footer-section">\n                    <h4>Global 
+Exchange</h4>\n                    <p>Tu plataforma confiable para el 
+intercambio de divisas y servicios financieros globales.</p>\n                
+</div>\n                <div class="footer-section">\n                    
+<h4>Servicios</h4>\n                    <ul>\n                        <li><a 
+href="#">Consulta de Tasas</a></li>\n                        <li><a 
+href="#">Compra y Venta</a></li>\n                    </ul>\n                
+</div>\n                <div class="footer-section">\n                    
+<h4>Enlaces</h4>\n                    <ul>\n                        <li><a 
+href="#">Acerca de</a></li>\n                        <li><a 
+href="#">Contacto</a></li>\n                        <li><a 
+href="#">T\xc3\xa9rminos</a></li>\n                        <li><a 
+href="#">Privacidad</a></li>\n                    </ul>\n                
+</div>\n                <div class="footer-section">\n                    
+<h4>Contacto</h4>\n                    <p>\xf0\x9f\x93\xa7 
+info@globalexchange.com</p>\n                    <p>\xf0\x9f\x93\x9e +595 21 
+123-4567</p>\n                    <p>\xf0\x9f\x93\x8d Asunci\xc3\xb3n, 
+Paraguay</p>\n                </div>\n            </div>\n            <div 
+class="footer-bottom">\n                <p>&copy; 2025 Global Exchange. Todos 
+los derechos reservados.</p>\n            </div>\n        </div>\n    
+</footer>\n\n    <script>\n        // User Menu Dropdown Functionality\n      
+  document.addEventListener(\'DOMContentLoaded\', function() {\n            
+const userMenuButton = document.getElementById(\'userMenuButton\');\n         
+   const userMenuDropdown = document.getElementById(\'userMenuDropdown\');\n  
+          \n            if (userMenuButton && userMenuDropdown) {\n           
+     // Toggle dropdown on button click\n                
+userMenuButton.addEventListener(\'click\', function(e) {\n                    
+e.stopPropagation();\n                    
+userMenuDropdown.classList.toggle(\'show\');\n                });\n           
+     \n                // Close dropdown when clicking outside\n              
+  document.addEventListener(\'click\', function(e) {\n                    if 
+(!userMenuButton.contains(e.target) && !userMenuDropdown.contains(e.target)) 
+{\n                        userMenuDropdown.classList.remove(\'show\');\n     
+               }\n                });\n                \n                // 
+Close dropdown on escape key\n                
+document.addEventListener(\'keydown\', function(e) {\n                    if 
+(e.key === \'Escape\') {\n                        
+userMenuDropdown.classList.remove(\'show\');\n                    }\n         
+       });\n            }\n        });\n\n        // Scroll Animation 
+Observer\n        const observerOptions = {\n            threshold: 0.1,\n    
+        rootMargin: \'0px 0px -50px 0px\'\n        };\n\n        const 
+observer = new IntersectionObserver((entries) => {\n            
+entries.forEach(entry => {\n                if (entry.isIntersecting) {\n     
+               entry.target.classList.add(\'animate-in\');\n                
+}\n            });\n        }, observerOptions);\n\n        // Observe all 
+service rows and title when DOM is loaded\n        
+document.addEventListener(\'DOMContentLoaded\', () => {\n            const 
+serviceRows = document.querySelectorAll(\'.service-row\');\n            const 
+servicesTitle = document.querySelector(\'.homepage-services h2\');\n          
+  \n            serviceRows.forEach(row => {\n                
+observer.observe(row);\n            });\n            \n            if 
+(servicesTitle) {\n                observer.observe(servicesTitle);\n         
+   }\n        });\n\n        setTimeout(function() {\n            var toasts 
+= document.querySelectorAll(\'.toast-message\');\n            var phantom = 
+document.getElementById(\'toast-phantom\');\n\n            
+toasts.forEach(function(toast) {\n                toast.style.display = 
+\'none\';\n            });\n\n            if (phantom) {\n                
+phantom.style.display = \'none\'; // \xe2\x9c\x85 tambi\xc3\xa9n desaparece 
+el phantom\n            }\n        }, 4000); // Oculta despu\xc3\xa9s de 4 
+segundos\n\n        // Sticky din\xc3\xa1mico para mensajes\n        
+document.addEventListener(\'DOMContentLoaded\', function() {\n            
+const toast = document.querySelector(\'.toast-message\');\n            const 
+phantom = document.getElementById(\'toast-phantom\');\n\n            if 
+(!toast || !phantom) return;\n\n            function updateToastPosition() 
+{\n                const phantomTop = phantom.getBoundingClientRect().top;\n  
+              if (phantomTop <= 0) {\n                    
+toast.classList.add(\'fixed\');\n                } else {\n                   
+ toast.classList.remove(\'fixed\');\n                }\n            }\n\n     
+       window.addEventListener(\'scroll\', updateToastPosition);\n            
+updateToastPosition(); // ejecutar al cargar\n        });\n    </script>\n    
+\n</body>\n</html>\n'
+
+======================================================================
+FAIL: test_public_home_with_currencies 
+(webapp.tests.test_currencies.CurrencyTests.test_public_home_with_currencies)
+Prueba que la p├ígina p├║blica muestra las monedas activas
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_currencies.py", line 110, in 
+test_public_home_with_currencies
+    self.assertContains(response, 'D├│lar Americano')
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : Couldn't find 'D├│lar Americano' in the 
+following response
+b'\n\n<!DOCTYPE html>\n<html lang="es">\n<head>\n    <meta charset="UTF-8" 
+/>\n    <meta name="viewport" content="width=device-width,initial-scale=1" 
+/>\n    <title>Global Exchange - Inicio</title>\n    <link rel="preconnect" 
+href="https://fonts.googleapis.com">\n    <link rel="preconnect" 
+href="https://fonts.gstatic.com" crossorigin>\n    <link href="https://fonts.g
+oogleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" 
+rel="stylesheet">\n    <link rel="icon" type="image/png" 
+href="/static/webapp/icono.png?v=1">\n    <link rel="shortcut icon" 
+type="image/png" href="/static/webapp/icono.png?v=1">\n    <link 
+rel="stylesheet" href="/static/webapp/css/shared/global.css?v=1.4" />\n    
+<link rel="stylesheet" href="/static/webapp/css/dashboards/user_menu.css" 
+/>\n    \n<link rel="stylesheet" href="/static/webapp/css/paginas_principales/
+home.css?v=2.1">\n\n</head>\n<body>\n\n    <header class="header-nav">\n      
+  <nav class="nav-container">\n            <!-- Logo on the left -->\n        
+    <div class="logo-container">\n                <div 
+class="logo-wrapper">\n                    <img src="/static/webapp/logo.png" 
+alt="Global Exchange Logo" class="logo-image">\n                </div>\n      
+          <a href="/" class="logo-link"></a>\n            </div>\n    \n      
+      <!-- Navigation links in the center -->\n            <div 
+class="nav-menu">\n                <a href="/" class="nav-link">Inicio</a>\n  
+              <a href="/historical/" class="nav-link">Hist\xc3\xb3rico</a>\n  
+              <a href="#" class="nav-link">Servicios</a>\n                <a 
+href="#" class="nav-link">Contacto</a>\n                <a href="#" 
+class="nav-link">Acerca de</a>\n                \n            </div>\n    \n  
+          <!-- Auth buttons on the right -->\n            <div 
+class="nav-auth">\n                \n                    <a href="/login/" 
+class="nav-link">Iniciar Sesi\xc3\xb3n</a>\n                    <a 
+href="/register/" class="btn-register">Registrarse</a>\n                \n    
+        </div>\n        </nav>\n    </header>\n\n    \n        \n    \n\n    
+<main>\n        \n\n<!-- ===== NUEVA SECCI\xc3\x93N: HERO BIENVENIDA + 
+CARRUSEL ===== -->\n\n<!-- Hero p\xc3\xbablico para visitantes no 
+autenticados (centrado, sin CTA) -->\n<section class="hero-welcome-section 
+hero-guest">\n    <div class="hero-welcome-container">\n        <div 
+class="hero-left">\n            <h1 class="hero-title">Un mundo de 
+elecciones<br><span class="hero-title-accent">con Global 
+Exchange</span></h1>\n            <p class="hero-subtitle">\xc2\xa1Visitanos 
+en nuestras sucursales!</p>\n        </div>\n    </div>\n</section>\n\n\n<!-- 
+Carrusel de Sucursales (visible para todo p\xc3\xbablico) -->\n<section 
+class="branches-carousel-section">\n    <div 
+class="branches-carousel-wrapper">\n        <!-- Bot\xc3\xb3n anterior -->\n  
+      <button class="carousel-nav-btn carousel-prev" id="carousel-prev" 
+aria-label="Sucursal anterior">\n            <img 
+src="/static/webapp/pantalla_sucursales/tick-izquierda.png" alt="Anterior">\n 
+       </button>\n        \n        <!-- Contenedor del carrusel -->\n        
+<div class="branches-carousel-container">\n            <div 
+class="branches-carousel-track" id="carousel-track">\n                <!-- 
+Sucursal 1: Casa Central -->\n                <div class="branch-slide">\n    
+                <img 
+src="/static/webapp/pantalla_sucursales/1.CasaCentral.png" alt="Casa Central" 
+class="branch-image">\n                    <div class="branch-overlay">\n     
+                   <p class="branch-name">Sucursal Casa Central</p>\n         
+           </div>\n                </div>\n                \n                
+<!-- Sucursal 2: Shopping Pinedo -->\n                <div 
+class="branch-slide">\n                    <img 
+src="/static/webapp/pantalla_sucursales/2.Pinedo.png" alt="Shopping Pinedo" 
+class="branch-image">\n                    <div class="branch-overlay">\n     
+                   <p class="branch-name">Sucursal Shopping Pinedo</p>\n      
+              </div>\n                </div>\n                \n              
+  <!-- Sucursal 3: Shopping Villa Morra -->\n                <div 
+class="branch-slide">\n                    <img 
+src="/static/webapp/pantalla_sucursales/3.VillaMorra.png" alt="Shopping Villa 
+Morra" class="branch-image">\n                    <div 
+class="branch-overlay">\n                        <p 
+class="branch-name">Sucursal Shopping Villa Morra</p>\n                    
+</div>\n                </div>\n                \n                <!-- 
+Sucursal 4: Shopping Multiplaza -->\n                <div 
+class="branch-slide">\n                    <img 
+src="/static/webapp/pantalla_sucursales/4.Multiplaza.png" alt="Shopping 
+Multiplaza" class="branch-image">\n                    <div 
+class="branch-overlay">\n                        <p 
+class="branch-name">Sucursal Shopping Multiplaza</p>\n                    
+</div>\n                </div>\n                \n                <!-- 
+Sucursal 5: Mariano Roque Alonso -->\n                <div 
+class="branch-slide">\n                    <img 
+src="/static/webapp/pantalla_sucursales/5.MarianoRoqueAlonso.png" 
+alt="Mariano Roque Alonso" class="branch-image">\n                    <div 
+class="branch-overlay">\n                        <p 
+class="branch-name">Sucursal Mariano Roque Alonso</p>\n                    
+</div>\n                </div>\n                \n                <!-- 
+Sucursal 6: Ciudad del Este -->\n                <div class="branch-slide">\n 
+                   <img 
+src="/static/webapp/pantalla_sucursales/6.CiudadDelEste.png" alt="Ciudad del 
+Este" class="branch-image">\n                    <div 
+class="branch-overlay">\n                        <p 
+class="branch-name">Sucursal Ciudad del Este</p>\n                    
+</div>\n                </div>\n                \n                <!-- 
+Sucursal 7: Encarnaci\xc3\xb3n -->\n                <div 
+class="branch-slide">\n                    <img 
+src="/static/webapp/pantalla_sucursales/7.Encarnacion.png" 
+alt="Encarnaci\xc3\xb3n" class="branch-image">\n                    <div 
+class="branch-overlay">\n                        <p 
+class="branch-name">Sucursal Encarnaci\xc3\xb3n</p>\n                    
+</div>\n                </div>\n                \n                <!-- 
+Sucursal 8: Itaugu\xc3\xa1 -->\n                <div class="branch-slide">\n  
+                  <img src="/static/webapp/pantalla_sucursales/9.Itaugua.png" 
+alt="Itaugu\xc3\xa1" class="branch-image">\n                    <div 
+class="branch-overlay">\n                        <p 
+class="branch-name">Sucursal Itaugu\xc3\xa1</p>\n                    </div>\n 
+               </div>\n            </div>\n        </div>\n        \n        
+<!-- Bot\xc3\xb3n siguiente -->\n        <button class="carousel-nav-btn 
+carousel-next" id="carousel-next" aria-label="Sucursal siguiente">\n          
+  <img src="/static/webapp/pantalla_sucursales/tick-derecha.png" 
+alt="Siguiente">\n        </button>\n    </div>\n</section>\n\n<!-- ===== 
+SECCI\xc3\x93N ORIGINAL: TABLA DE COTIZACIONES Y CONVERSOR ===== -->\n\n<div 
+class="main-home-container">\n    <div class="main-content-row">\n\n        
+<!-- Left: Rates Table -->\n        <div class="rates-section">\n            
+<div class="rates-container">\n                <div class="rates-header">\n   
+                 <div class="date-display">\n                        \n       
+                     Fecha: 12/12/2025 07:50\n                        \n      
+              </div>\n                    <button id="refresh-btn" 
+onclick="refreshRates()" class="refresh-button" title="Actualizar 
+cotizaciones">\n                        <img 
+src="/static/webapp/home/actualizar.png" alt="Actualizar" 
+class="refresh-icon">\n                    </button>\n                
+</div>\n                <div class="rates-table-container">\n                 
+   <table class="rates-table">\n                        <thead>\n             
+               <tr>\n                                <th>Moneda</th>\n        
+                        <th>Compra</th>\n                                
+<th>Venta</th>\n                            </tr>\n                        
+</thead>\n                        <tbody>\n                            \n     
+                           \n                                    <tr>\n       
+                                 <td class="currency-cell">\n                 
+                           \n                                                
+<img src="/media/currency_flags/ars_eR5nl5j.png" alt="Peso Argentino" 
+class="currency-flag">\n                                            \n        
+                                    <span class="currency-name">Peso 
+Argentino</span>\n                                        </td>\n             
+                           <td class="rate-cell">3 PYG</td>\n                 
+                       <td class="rate-cell">6 PYG</td>\n                     
+               </tr>\n                                \n                      
+      \n                                \n                                    
+<tr>\n                                        <td class="currency-cell">\n    
+                                        \n                                    
+            <img src="/media/currency_flags/brl_M8tyvzM.png" alt="Real 
+Brasile\xc3\xb1o" class="currency-flag">\n                                    
+        \n                                            <span 
+class="currency-name">Real Brasile\xc3\xb1o</span>\n                          
+              </td>\n                                        <td 
+class="rate-cell">1300 PYG</td>\n                                        <td 
+class="rate-cell">1600 PYG</td>\n                                    </tr>\n  
+                              \n                            \n                
+                \n                                    <tr>\n                  
+                      <td class="currency-cell">\n                            
+                \n                                                <img 
+src="/media/currency_flags/eur_v7HXBym.png" alt="Euro" 
+class="currency-flag">\n                                            \n        
+                                    <span class="currency-name">Euro</span>\n 
+                                       </td>\n                                
+        <td class="rate-cell">7700 PYG</td>\n                                 
+       <td class="rate-cell">8200 PYG</td>\n                                  
+  </tr>\n                                \n                            \n     
+                           \n                                    <tr>\n       
+                                 <td class="currency-cell">\n                 
+                           \n                                                
+<img src="/media/currency_flags/usd_xxcvqqn.png" alt="D\xc3\xb3lar 
+Estadounidense" class="currency-flag">\n                                      
+      \n                                            <span 
+class="currency-name">D\xc3\xb3lar Estadounidense</span>\n                    
+                    </td>\n                                        <td 
+class="rate-cell">7200 PYG</td>\n                                        <td 
+class="rate-cell">7700 PYG</td>\n                                    </tr>\n  
+                              \n                            \n                
+        </tbody>\n                    </table>\n                </div>\n      
+      </div>\n        </div>\n\n        <!-- Right: Currency Converter -->\n  
+      <div class="converter-section">\n            <div 
+class="converter-container">\n                <h2 class="converter-title">\n  
+                  <span class="yellow-text">Conversor de</span> <span 
+class="white-text">moneda</span>\n                </h2>\n                <p 
+class="converter-subtitle">Selecciona la moneda y el monto de 
+cotizaci\xc3\xb3n</p>\n                \n                <div 
+class="converter-form">\n                    <!-- From Currency -->\n         
+           <div class="converter-field">\n                        <label 
+class="field-label">Tengo esta moneda</label>\n                        <div 
+class="field-row">\n                            <div 
+class="select-wrapper">\n                                <select 
+id="simu-from" class="currency-select"></select>\n                            
+    <svg class="select-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
+24 24" aria-hidden="true" focusable="false">\n                                
+    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" 
+stroke-linecap="round" stroke-linejoin="round" fill="none" />\n               
+                 </svg>\n                            </div>\n                 
+           <input id="simu-amount" type="number" step="0.01" min="0" 
+class="amount-input">\n                        </div>\n                    
+</div>\n\n                    <!-- To Currency -->\n                    <div 
+class="converter-field">\n                        <label 
+class="field-label">Quiero esta moneda</label>\n                        <div 
+class="field-row">\n                            <div 
+class="select-wrapper">\n                                <select id="simu-to" 
+class="currency-select"></select>\n                                <svg 
+class="select-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
+aria-hidden="true" focusable="false">\n                                    
+<path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" 
+stroke-linecap="round" stroke-linejoin="round" fill="none" />\n               
+                 </svg>\n                            </div>\n                 
+           <input type="text" readonly class="result-input" 
+id="simu-result-main">\n                        </div>\n                    
+</div>\n                    \n                    <div 
+class="converter-actions">\n                        <button 
+id="simu-intercambiar" type="button" 
+class="intercambiar-button">INTERCAMBIAR</button>\n                    
+</div>\n\n                    <div class="converter-result">\n                
+        <p id="simu-result-detail" class="result-detail">Ingres\xc3\xa1 un 
+monto para calcular</p>\n                    </div>\n\n                    
+<div class="reference-text">\n                        \n                      
+      <p>SIN CATEGOR\xc3\x8dA</p>\n                        \n                 
+       <p>*\xc3\x9altima actualizaci\xc3\xb3n:  12/12/2025 07:50  - 
+Cotizaciones meramente de referencia.</p>\n                    </div>\n       
+         </div>\n            </div>\n        </div>\n\n    
+</div>\n</div>\n\n\n<script>\nfunction refreshRates() {\n    const btn = 
+document.getElementById(\'refresh-btn\');\n    
+btn.classList.add(\'loading\');\n    btn.innerHTML = \'\xe2\x8f\xb3\';\n    
+btn.disabled = true;\n    setTimeout(() => location.reload(), 
+500);\n}\n\n(async function() {\n    const amount = 
+document.getElementById("simu-amount");\n    const from = 
+document.getElementById("simu-from");\n    const to = 
+document.getElementById("simu-to");\n    const intercambiar = 
+document.getElementById("simu-intercambiar");\n    const out = 
+document.getElementById("simu-result-main");\n    const detail = 
+document.getElementById("simu-result-detail");\n    const metodoPago = 
+document.getElementById("simu-metodo-pago");\n    const metodoCobro = 
+document.getElementById("simu-metodo-cobro");\n\n    let CODES = [];\n    
+const META = Object.create(null);\n\n    function nf(value, currencyCode) {\n 
+       const decimals = currencyCode === "PYG" ? 0 : 
+(META[currencyCode]?.decimals ?? 2);\n        return new 
+Intl.NumberFormat("es-ES", {\n            minimumFractionDigits: decimals,\n  
+          maximumFractionDigits: decimals\n        }).format(value);\n    
+}\n\n    function buildOptions(selectEl, preferCode) {\n        
+selectEl.innerHTML = "";\n        CODES.forEach(code => {\n            const 
+opt = document.createElement("option");\n            opt.value = code;\n      
+      const name = META[code]?.name || code;\n            if (code === "USD") 
+opt.textContent = "D\xc3\x93LAR";\n            else if (code === "PYG") 
+opt.textContent = "GUARAN\xc3\x8d";\n            else if (code === "EUR") 
+opt.textContent = "EURO";\n            else opt.textContent = 
+name.toUpperCase();\n            selectEl.appendChild(opt);\n        });\n    
+    if (preferCode && CODES.includes(preferCode)) selectEl.value = 
+preferCode;\n        else if (CODES.length) selectEl.value = CODES[0];\n    
+}\n\n    function enforceDifferent(changed, other) {\n        // Caso 1: si 
+el usuario pone PYG en ambos\n        if (from.value === "PYG" && to.value 
+=== "PYG") {\n            // fijamos que el "otro" se quede en USD (si 
+existe) en vez de tomar el primero al azar\n            const fallback = 
+CODES.includes("USD") ? "USD" : CODES.find(c => c !== "PYG");\n            if 
+(changed === from) to.value = fallback;\n            else from.value = 
+fallback;\n        }\n\n        // Caso 2: si el usuario pone la misma moneda 
+en ambos (pero no es PYG)\n        else if (from.value === to.value) {\n      
+      // el otro se fuerza a PYG\n            if (changed === from) to.value 
+= "PYG";\n            else from.value = "PYG";\n        }\n\n        // Caso 
+3: si ninguno es PYG\n        if (from.value !== "PYG" && to.value !== "PYG") 
+{\n            // el que no cambi\xc3\xb3 se fuerza a PYG\n            if 
+(changed === from) to.value = "PYG";\n            else from.value = "PYG";\n  
+      }\n    }\n\n    function compute() {\n        const raw = 
+parseFloat((amount.value || "").toString().replace(",", "."));\n        if 
+(isNaN(raw) || raw <= 0) {\n            out.value = "";\n            
+detail.textContent = "Ingres\xc3\xa1 un monto para calcular";\n            
+return;\n        }\n        const a = from.value, b = to.value;\n        if 
+(!META[a] || !META[b]) return;\n\n        let val, rateAB;\n\n        if (a 
+=== "PYG" && b !== "PYG") {\n            val = raw / META[b].venta;\n         
+   rateAB = 1 / META[b].venta;\n            detail.innerHTML = `1 ${a} = 
+${nf(rateAB, b)} ${b}`;\n        } \n        else if (a !== "PYG" && b === 
+"PYG") {\n            val = raw * META[a].compra;\n            rateAB = 
+META[a].compra;\n            detail.innerHTML = `1 ${a} = ${nf(rateAB, 
+"PYG")} ${b}`;\n        } \n        else {\n            out.value = "";\n     
+       detail.textContent = "S\xc3\xb3lo se permiten conversiones con 
+Guaran\xc3\xades";\n            return;\n        }\n\n        out.value = 
+`${nf(val, b)} ${b}`;\n    }\n\n    function attachListeners() {\n        
+["input","change"].forEach(evt => {\n            amount.addEventListener(evt, 
+compute);\n            from.addEventListener(evt, () => { 
+enforceDifferent(from,to); compute(); });\n            
+to.addEventListener(evt, () => { enforceDifferent(to,from); compute(); });\n  
+      });\n\n        intercambiar.addEventListener("click", () => {\n         
+   const tmp = from.value; from.value = to.value; to.value = tmp;\n           
+ enforceDifferent(from,to); compute();\n        });\n\n        if (metodoPago 
+&& metodoCobro) {\n            [metodoPago, metodoCobro].forEach(el => 
+el.addEventListener("change", updateRatesForMetodo));\n        }\n    }\n\n   
+ async function updateRatesForMetodo() {\n        try {\n            if 
+(!metodoPago || !metodoCobro) return;\n            const url = `/api/currencie
+s/?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;\n
+            const res = await fetch(url, { cache:"no-store" });\n            
+const payload = await res.json();\n            const items = payload.items || 
+[];\n            const byCode = {};\n            items.forEach(it => 
+byCode[it.code] = it);\n            if (!byCode["PYG"]) byCode["PYG"] = { 
+code:"PYG", name:"Guaran\xc3\xad", decimals:0, venta:1.0, compra:1.0 };\n     
+       CODES = Object.keys(byCode).sort((a,b)=> 
+a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));\n            
+CODES.forEach(code=>META[code]=byCode[code]);\n            // Solo recalcula, 
+no reconstruye select de monedas\n            compute();\n        } catch(e) 
+{\n            console.error("Error al actualizar tasas:", e);\n        }\n   
+ }\n\n    async function recargarMetodos() {\n        if (!metodoPago || 
+!metodoCobro) return; // no existen selects\n\n        try {\n            
+const res = await fetch("/metodos-pago-cobro/");\n            const data = 
+await res.json();\n\n            if (metodoPago.options.length === 0) {\n     
+           data.tipos_pago.forEach(item => {\n                    const opt = 
+document.createElement("option");\n                    opt.value = item.id;\n 
+                   opt.textContent = item.nombre;\n                    if 
+(item.nombre.toLowerCase() === "tauser") opt.selected = true;\n               
+     metodoPago.appendChild(opt);\n                });\n            }\n\n     
+       if (metodoCobro.options.length === 0) {\n                
+data.tipos_cobro.forEach(item => {\n                    const opt = 
+document.createElement("option");\n                    opt.value = item.id;\n 
+                   opt.textContent = item.nombre;\n                    if 
+(item.nombre.toLowerCase() === "tauser") opt.selected = true;\n               
+     metodoCobro.appendChild(opt);\n                });\n            }\n      
+  } catch(error) {\n            console.error("Error al cargar m\xc3\xa9todos 
+de pago/cobro:", error);\n        }\n    }\n\n    async function boot() {\n   
+     try {\n            let url = "/api/currencies/";\n            if 
+(metodoPago && metodoCobro) {\n                url += 
+`?metodo_pago_id=${metodoPago.value}&metodo_cobro_id=${metodoCobro.value}`;\n 
+           }\n\n            const res = await fetch(url, { cache:"no-store" 
+});\n            const payload = await res.json();\n            const items = 
+payload.items || [];\n            const byCode = {};\n            
+items.forEach(it => { byCode[it.code] = it; });\n\n            if 
+(!byCode["PYG"]) byCode["PYG"] = { code:"PYG", name:"Guaran\xc3\xad", 
+decimals:0, venta:1.0, compra:1.0 };\n\n            CODES = 
+Object.keys(byCode).sort((a,b)=> 
+a==="PYG"?-1:b==="PYG"?1:a.localeCompare(b));\n            
+CODES.forEach(code=>META[code]=byCode[code]);\n\n            
+buildOptions(from,"USD");\n            buildOptions(to,"PYG");\n            
+enforceDifferent(from,to);\n            compute();\n        } catch(e) {\n    
+        console.error("No se pudieron cargar monedas:", e);\n        }\n    
+}\n\n    document.addEventListener("DOMContentLoaded", async () => {\n        
+await recargarMetodos();\n        attachListeners();\n        boot();\n    
+});\n\n})();\n\n// ===== CARRUSEL DE SUCURSALES =====\n(function() {\n    
+const track = document.getElementById(\'carousel-track\');\n    const prevBtn 
+= document.getElementById(\'carousel-prev\');\n    const nextBtn = 
+document.getElementById(\'carousel-next\');\n    \n    if (!track || !prevBtn 
+|| !nextBtn) return; // No existe el carrusel (usuario no autenticado)\n    
+\n    const slides = track.querySelectorAll(\'.branch-slide\');\n    const 
+slideCount = slides.length;\n    \n    if (slideCount === 0) return;\n    \n  
+  // Configuraci\xc3\xb3n\n    const slideWidth = 424; // Ancho de cada 
+slide\n    const slideGap = 20; // Gap entre slides\n    const slidesToShow = 
+3; // Cu\xc3\xa1ntos slides mostrar a la vez\n    const autoPlayInterval = 
+5000; // 5 segundos para autoplay\n    \n    let currentIndex = 0;\n    let 
+autoPlayTimer = null;\n    \n    // Calcular el m\xc3\xa1ximo \xc3\xadndice 
+permitido\n    const maxIndex = Math.max(0, slideCount - slidesToShow);\n    
+\n    function updateCarousel() {\n        const offset = currentIndex * 
+(slideWidth + slideGap);\n        track.style.transform = 
+`translateX(-${offset}px)`;\n        \n        // Actualizar estado de los 
+botones\n        prevBtn.disabled = currentIndex === 0;\n        
+nextBtn.disabled = currentIndex >= maxIndex;\n    }\n    \n    function 
+goToNext() {\n        if (currentIndex < maxIndex) {\n            
+currentIndex++;\n        } else {\n            currentIndex = 0; // Loop back 
+to start\n        }\n        updateCarousel();\n    }\n    \n    function 
+goToPrev() {\n        if (currentIndex > 0) {\n            currentIndex--;\n  
+      } else {\n            currentIndex = maxIndex; // Loop to end\n        
+}\n        updateCarousel();\n    }\n    \n    // Event listeners para los 
+botones\n    nextBtn.addEventListener(\'click\', () => {\n        
+goToNext();\n        resetAutoPlay();\n    });\n    \n    
+prevBtn.addEventListener(\'click\', () => {\n        goToPrev();\n        
+resetAutoPlay();\n    });\n    \n    // AutoPlay\n    function 
+startAutoPlay() {\n        autoPlayTimer = setInterval(goToNext, 
+autoPlayInterval);\n    }\n    \n    function resetAutoPlay() {\n        
+clearInterval(autoPlayTimer);\n        startAutoPlay();\n    }\n    \n    // 
+Pausar autoplay cuando el mouse est\xc3\xa1 sobre el carrusel\n    
+track.addEventListener(\'mouseenter\', () => {\n        
+clearInterval(autoPlayTimer);\n    });\n    \n    
+track.addEventListener(\'mouseleave\', () => {\n        startAutoPlay();\n    
+});\n    \n    // Inicializar\n    updateCarousel();\n    
+startAutoPlay();\n})();\n\n</script>\n\n\n    </main>\n\n    <footer 
+class="main-footer">\n        <div class="footer-container">\n            
+<div class="footer-content">\n                <div class="footer-section">\n  
+                  <h4>Global Exchange</h4>\n                    <p>Tu 
+plataforma confiable para el intercambio de divisas y servicios financieros 
+globales.</p>\n                </div>\n                <div 
+class="footer-section">\n                    <h4>Servicios</h4>\n             
+       <ul>\n                        <li><a href="#">Consulta de 
+Tasas</a></li>\n                        <li><a href="#">Compra y 
+Venta</a></li>\n                    </ul>\n                </div>\n           
+     <div class="footer-section">\n                    <h4>Enlaces</h4>\n     
+               <ul>\n                        <li><a href="#">Acerca 
+de</a></li>\n                        <li><a href="#">Contacto</a></li>\n      
+                  <li><a href="#">T\xc3\xa9rminos</a></li>\n                  
+      <li><a href="#">Privacidad</a></li>\n                    </ul>\n        
+        </div>\n                <div class="footer-section">\n                
+    <h4>Contacto</h4>\n                    <p>\xf0\x9f\x93\xa7 
+info@globalexchange.com</p>\n                    <p>\xf0\x9f\x93\x9e +595 21 
+123-4567</p>\n                    <p>\xf0\x9f\x93\x8d Asunci\xc3\xb3n, 
+Paraguay</p>\n                </div>\n            </div>\n            <div 
+class="footer-bottom">\n                <p>&copy; 2025 Global Exchange. Todos 
+los derechos reservados.</p>\n            </div>\n        </div>\n    
+</footer>\n\n    <script>\n        // User Menu Dropdown Functionality\n      
+  document.addEventListener(\'DOMContentLoaded\', function() {\n            
+const userMenuButton = document.getElementById(\'userMenuButton\');\n         
+   const userMenuDropdown = document.getElementById(\'userMenuDropdown\');\n  
+          \n            if (userMenuButton && userMenuDropdown) {\n           
+     // Toggle dropdown on button click\n                
+userMenuButton.addEventListener(\'click\', function(e) {\n                    
+e.stopPropagation();\n                    
+userMenuDropdown.classList.toggle(\'show\');\n                });\n           
+     \n                // Close dropdown when clicking outside\n              
+  document.addEventListener(\'click\', function(e) {\n                    if 
+(!userMenuButton.contains(e.target) && !userMenuDropdown.contains(e.target)) 
+{\n                        userMenuDropdown.classList.remove(\'show\');\n     
+               }\n                });\n                \n                // 
+Close dropdown on escape key\n                
+document.addEventListener(\'keydown\', function(e) {\n                    if 
+(e.key === \'Escape\') {\n                        
+userMenuDropdown.classList.remove(\'show\');\n                    }\n         
+       });\n            }\n        });\n\n        // Scroll Animation 
+Observer\n        const observerOptions = {\n            threshold: 0.1,\n    
+        rootMargin: \'0px 0px -50px 0px\'\n        };\n\n        const 
+observer = new IntersectionObserver((entries) => {\n            
+entries.forEach(entry => {\n                if (entry.isIntersecting) {\n     
+               entry.target.classList.add(\'animate-in\');\n                
+}\n            });\n        }, observerOptions);\n\n        // Observe all 
+service rows and title when DOM is loaded\n        
+document.addEventListener(\'DOMContentLoaded\', () => {\n            const 
+serviceRows = document.querySelectorAll(\'.service-row\');\n            const 
+servicesTitle = document.querySelector(\'.homepage-services h2\');\n          
+  \n            serviceRows.forEach(row => {\n                
+observer.observe(row);\n            });\n            \n            if 
+(servicesTitle) {\n                observer.observe(servicesTitle);\n         
+   }\n        });\n\n        setTimeout(function() {\n            var toasts 
+= document.querySelectorAll(\'.toast-message\');\n            var phantom = 
+document.getElementById(\'toast-phantom\');\n\n            
+toasts.forEach(function(toast) {\n                toast.style.display = 
+\'none\';\n            });\n\n            if (phantom) {\n                
+phantom.style.display = \'none\'; // \xe2\x9c\x85 tambi\xc3\xa9n desaparece 
+el phantom\n            }\n        }, 4000); // Oculta despu\xc3\xa9s de 4 
+segundos\n\n        // Sticky din\xc3\xa1mico para mensajes\n        
+document.addEventListener(\'DOMContentLoaded\', function() {\n            
+const toast = document.querySelector(\'.toast-message\');\n            const 
+phantom = document.getElementById(\'toast-phantom\');\n\n            if 
+(!toast || !phantom) return;\n\n            function updateToastPosition() 
+{\n                const phantomTop = phantom.getBoundingClientRect().top;\n  
+              if (phantomTop <= 0) {\n                    
+toast.classList.add(\'fixed\');\n                } else {\n                   
+ toast.classList.remove(\'fixed\');\n                }\n            }\n\n     
+       window.addEventListener(\'scroll\', updateToastPosition);\n            
+updateToastPosition(); // ejecutar al cargar\n        });\n    </script>\n    
+\n</body>\n</html>\n'
+
+======================================================================
+FAIL: test_limites_tabla_htmx_view (webapp.tests.test_limites_intercambio.Limi
+tesIntercambioTest.test_limites_tabla_htmx_view)
+Test vista HTMX para tabla de l├¡mites
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Cielito\Desktop\proyectos 
+2025\global_exchange_webapp\webapp\tests\test_limites_intercambio.py", line 
+101, in test_limites_tabla_htmx_view
+    self.assertContains(response, self.usd.code)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : Couldn't find 'USD' in the following 
+response
+b'<table class="limites-table">\n    <thead>\n        <tr>\n            
+<th>Moneda</th>\n            <th>L\xc3\xadmite Diario M\xc3\xa1x</th>\n       
+     <th>L\xc3\xadmite Mensual M\xc3\xa1x</th>\n            
+<th>Acciones</th>\n        </tr>\n    </thead>\n    <tbody>\n        \n       
+ <tr><td colspan="4">No hay configuraciones para esta 
+categor\xc3\xada.</td></tr>\n        \n    </tbody>\n</table>\n'
+
+----------------------------------------------------------------------
+Ran 139 tests in 142.622s
+
+FAILED (failures=18, errors=4)
+Destroying test database for alias 'default'...
+
+CELERY BROKER: redis://localhost:6379/0
+
+-----
+
+WeasyPrint could not import some external libraries. Please carefully follow the installation steps before reporting an issue:
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#troubleshooting 
+
+-----
+
+
+-----
+
+WeasyPrint could not import some external libraries. Please carefully follow the installation steps before reporting an issue:
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation
+https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#troubleshooting 
+
+-----
+
+Found 139 test(s).
+No se encontr├│ TipoPago o TipoCobro con 'tauser'. No se actualizar├ín Tauser.
+Ô£à All sessions cleared after migration
+Ô£à All sessions cleared after migration
+Ô£à All sessions cleared after migration
+Ô£à All sessions cleared after migration
+Ô£à All sessions cleared after migration
+
+---- Roles y usuarios ----
+Ô£à Rol 'Usuario' listo.
+Ô£à Rol 'Empleado' listo.
+Ô£à Rol 'Administrador' listo.
+Ô£à Rol 'Analista' listo.
+Ô£à Usuario 'superadmin2' creado.
+Ô£à Usuario 'usuario1' creado.
+Ô£à Usuario 'analista1' creado.
+
+---- Entidades, Monedas y Denominaciones ----
+
+---- Clientes ----
+El descuento para la categoria Minorista es 0
+El descuento para la categoria Corporativo es 0.05
+El descuento para la categoria VIP es 0.1
+Ô£à Cliente 'Cliente Persona' asignado a 'usuario1'.
+Ô£à Cliente 'Cliente Jur├¡dico Corporativo' asignado a 'usuario1'.
+Ô£à Cliente 'Cliente Jur├¡dico VIP' asignado a 'usuario1'.
+
+---- L├¡mites de Intercambio ----
+
+---- Tipos de Pago/Cobro ----
+Ô£à Tipos de pago y cobro listos (con comisiones asignadas).
+
+---- Asignar tipos a TAUSER ----
+Ô£à Tipos de pago/cobro asignados a TAUSERs.
+
+---- Cuenta Bancaria del Negocio ----
+Ô£à Cuenta bancaria del negocio creada.
+
+---- Medios de Pago para usuario1 por defecto ----
+Ô£à Billetera creada para Cliente Jur├¡dico VIP
+Ô£à Tarjeta Nacional creada para Cliente Jur├¡dico VIP
+Ô£à Tarjeta Internacional creada para Cliente Jur├¡dico VIP
+Ô£à Billetera creada para Cliente Jur├¡dico Corporativo
+Ô£à Tarjeta Nacional creada para Cliente Jur├¡dico Corporativo
+Ô£à Tarjeta Internacional creada para Cliente Jur├¡dico Corporativo
+Ô£à Billetera creada para Cliente Persona
+Ô£à Tarjeta Nacional creada para Cliente Persona
+Ô£à Tarjeta Internacional creada para Cliente Persona
+
+­ƒÄë Medios de pago por defecto creados correctamente.
+
+
+---- Medios de Cobro para usuario1 por defecto ----
+Ô£à Billetera de cobro creada para Cliente Jur├¡dico VIP
+Ô£à Cuenta Bancaria PYG creada para Cliente Jur├¡dico VIP
+Ô£à Cuenta Bancaria USD creada para Cliente Jur├¡dico VIP
+Ô£à Billetera de cobro creada para Cliente Jur├¡dico Corporativo
+Ô£à Cuenta Bancaria PYG creada para Cliente Jur├¡dico Corporativo
+Ô£à Cuenta Bancaria USD creada para Cliente Jur├¡dico Corporativo
+Ô£à Billetera de cobro creada para Cliente Persona
+Ô£à Cuenta Bancaria PYG creada para Cliente Persona
+Ô£à Cuenta Bancaria USD creada para Cliente Persona
+
+­ƒÄë Medios de cobro por defecto creados correctamente.
+
+
+---- Stock inicial de Tauser ----
+Ô£à Stock inicial cargado: 1000 billetes por denominaci├│n
+
+---- Asignacion de nombres a los Tauser ----
+Ô£à Nombres de Tausers establecidos
+
+---- Asignacion de banderas a las monedas ----
+Ô£à Asignando imagen a la moneda Peso Argentino
+Ô£à Asignando imagen a la moneda Real Brasile├▒o
+Ô£à Asignando imagen a la moneda Euro
+Ô£à Asignando imagen a la moneda Guaran├¡ Paraguayo
+Ô£à Asignando imagen a la moneda D├│lar Estadounidense
+Ô£à Imagenes de banderas asignadas a las monedas
+
+---- Generacion de datos historicos de tasas (ambiente de pruebas) ----
+Ô£à Datos historicos de tasas generados (ambiente de pruebas)
+Ô£à All sessions cleared after migration
+System check identified no issues (0 silenced).
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera
+None
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera
+Nombre de medio de pago: billetera
+Nombre de medio de cobro: billetera

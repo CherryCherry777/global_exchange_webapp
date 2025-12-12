@@ -24,7 +24,7 @@ Menú → Configuración → Roles
 También se puede gestionar desde `admin` en `/admin/auth/group/` o mediante endpoints internos si existen.
 
 3. FUNCIONALIDADES PRINCIPALES
------------------------------
+------------------------------
 
 A) Crear rol
 ------------

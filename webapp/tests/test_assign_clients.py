@@ -58,8 +58,9 @@ class AssignClientsTests(TestCase):
         self.client.login(username='admin', password='testpass123')
         
         response = self.client.post(reverse('assign_clients'), {
-            'cliente': self.cliente.id,
-            'usuario': self.employee_user.id
+            'action': 'assign',
+            'cliente_id': self.cliente.id,
+            'usuario_id': self.employee_user.id
         })
         
         self.assertEqual(response.status_code, 302)  # Redirige después de asignar
@@ -79,8 +80,9 @@ class AssignClientsTests(TestCase):
         self.client.login(username='admin', password='testpass123')
         
         response = self.client.post(reverse('assign_clients'), {
-            'cliente': self.cliente.id,
-            'usuario': self.employee_user.id
+            'action': 'assign',
+            'cliente_id': self.cliente.id,
+            'usuario_id': self.employee_user.id
         })
         
         # Verificar que solo existe una asignación

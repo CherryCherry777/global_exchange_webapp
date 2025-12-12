@@ -470,7 +470,7 @@ COALESCE(
 def find_reusable_dnumdoc(
     est: str = "001",
     pun: str = "003",
-    start: str = "0000151",
+    start: str = "0000185",
     end: str = "0000200",
 ) -> str | None:
     """
