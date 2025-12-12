@@ -558,12 +558,17 @@
     }
 
     function attachListeners() {
-        // Listener para quitar el código de moneda al hacer focus en amount
+        // Listener para quitar el código de moneda y formato al hacer focus en amount
         amount.addEventListener("focus", () => {
-            // Solo quitar el código de moneda si existe, dejando el número tal cual
+            // Extraer el valor numérico limpio del campo formateado
+            // Ej: "1.234.567 USD" -> "1234567"
             const text = amount.value || "";
-            // Elimina el código de moneda al final (ej: "1.234 USD" -> "1.234")
-            amount.value = text.replace(/\s+[A-Za-z]{2,4}$/g, "").trim();
+            // Primero quitar el código de moneda
+            const sinMoneda = text.replace(/\s+[A-Za-z]{2,4}$/g, "").trim();
+            // Luego quitar los puntos de miles (formato es-ES)
+            const valorLimpio = sinMoneda.replace(/\./g, "");
+            // Mostrar solo el número limpio para edición
+            amount.value = valorLimpio;
         });
 
         // Listener para agregar el código de moneda al salir de amount
@@ -579,7 +584,7 @@
         ["input","change"].forEach(evt => {
             // Cuando se modifica el monto, recalcula directamente
             amount.addEventListener(evt, () => {
-                actualizarFiltros(); // 🔹 actualiza visibilidad de botones
+                actualizarFiltros(false); // 🔹 actualiza visibilidad de botones SIN colapsar selecciones
                 compute();
 
                 aplicarFiltroTauserEnSelect(metodoPago, true);
@@ -685,8 +690,19 @@
                 updateDropdownUI();
 
                 enforceDifferent(from,to);     // asegura que no queden iguales
-                actualizarFiltros();           // 🔹 tras intercambiar, recalcula visibilidad
-                await recargarMetodos();       // recarga métodos acorde a la nueva selección
+                
+                // 🔄 RESET: Al intercambiar, colapsar secciones y resetear selecciones
+                actualizarFiltros(true);       // Colapsa secciones y resetea visibilidad de botones
+                
+                // Resetear los selectores de métodos al placeholder
+                if (metodoPago) {
+                    metodoPago.selectedIndex = 0;
+                }
+                if (metodoCobro) {
+                    metodoCobro.selectedIndex = 0;
+                }
+                
+                await recargarMetodos(null, false);       // recarga métodos SIN preservar selecciones
                 
                 // Restaurar los valores intercambiados (recargarMetodos llama compute que los sobrescribe)
                 amount.value = savedAmountValue;
@@ -808,7 +824,7 @@
         }
     }
 
-    async function recargarMetodos(tipo = null) {
+    async function recargarMetodos(tipo = null, preservarSeleccion = true) {
         // Si no existen los selectores de método de pago o cobro, no hace nada
         if (!metodoPago || !metodoCobro) return;
 
@@ -875,6 +891,9 @@
             };
 
             // 🟩 === Filtro y actualización según el tipo recibido ===
+            // Guardar selección previa solo si preservarSeleccion es true
+            const prevPagoSeleccionado = preservarSeleccion ? metodoPago.value : null;
+            const prevCobroSeleccionado = preservarSeleccion ? metodoCobro.value : null;
             if (tipo === null || tipo === "pago") {
                 // 🧹 Limpia completamente las opciones actuales del <select> de métodos de pago
                 metodoPago.innerHTML = "";
@@ -891,8 +910,17 @@
                 // 🔧 Crea y agrega cada <option> correspondiente a los métodos filtrados
                 metodosPagoFiltrados.forEach(item => metodoPago.appendChild(crearOption(item)));
 
-                // 🎯 Selecciona la primera opción visible (la inicial)
-                if (metodoPago.options.length) metodoPago.selectedIndex = 0;
+                // 🎯 Intentar restaurar la selección anterior si aún existe
+                if (prevPagoSeleccionado) {
+                    const existePrev = [...metodoPago.options].some(opt => opt.value === prevPagoSeleccionado);
+                    if (existePrev) {
+                        metodoPago.value = prevPagoSeleccionado;
+                    } else if (metodoPago.options.length) {
+                        metodoPago.selectedIndex = 0;
+                    }
+                } else if (metodoPago.options.length) {
+                    metodoPago.selectedIndex = 0;
+                }
             }
 
             if (tipo === null || tipo === "cobro") {
@@ -911,8 +939,17 @@
                 // 🔧 Crea y agrega cada <option> correspondiente a los métodos filtrados
                 metodosCobroFiltrados.forEach(item => metodoCobro.appendChild(crearOption(item)));
 
-                // 🎯 Selecciona la primera opción visible (la inicial)
-                if (metodoCobro.options.length) metodoCobro.selectedIndex = 0;
+                // 🎯 Intentar restaurar la selección anterior si aún existe
+                if (prevCobroSeleccionado) {
+                    const existePrevC = [...metodoCobro.options].some(opt => opt.value === prevCobroSeleccionado);
+                    if (existePrevC) {
+                        metodoCobro.value = prevCobroSeleccionado;
+                    } else if (metodoCobro.options.length) {
+                        metodoCobro.selectedIndex = 0;
+                    }
+                } else if (metodoCobro.options.length) {
+                    metodoCobro.selectedIndex = 0;
+                }
             }
 
             // Luego de recargar métodos, actualiza las tasas de cambio
@@ -989,22 +1026,34 @@
     document.addEventListener("DOMContentLoaded", function () {
         const input = document.getElementById("simu-amount");
 
+        // 🔧 NO formateamos en tiempo real durante la edición para preservar la posición del cursor.
+        // El formateo se aplica solo en el evento 'blur' (definido en attachListeners).
+        // Durante la edición, solo permitimos dígitos sin formatear.
+        
         input.addEventListener("input", function (e) {
-            // Eliminar todo lo que no sea dígito
+            // Solo permitir dígitos, sin reformatear (para preservar posición del cursor)
+            // Guardar posición actual del cursor
+            const cursorPos = this.selectionStart;
+            const valorAnterior = this.value;
+            
+            // Eliminar caracteres no numéricos
             let value = e.target.value.replace(/\D/g, "");
-
-            // Formatear con separador de miles
-            if (value) {
-                value = new Intl.NumberFormat("es-ES").format(parseInt(value, 10));
+            
+            // Si el valor cambió, actualizar y restaurar cursor
+            if (value !== valorAnterior) {
+                e.target.value = value;
+                // Calcular nueva posición del cursor (ajustar por caracteres eliminados)
+                const diferencia = valorAnterior.length - value.length;
+                const nuevaPos = Math.max(0, cursorPos - diferencia);
+                this.setSelectionRange(nuevaPos, nuevaPos);
             }
-
-            e.target.value = value;
         });
 
         // Evita pegar texto con caracteres no numéricos
         input.addEventListener("paste", function (e) {
             const paste = (e.clipboardData || window.clipboardData).getData("text");
-            if (/\D/.test(paste)) e.preventDefault();
+            // Permitir pegar solo si contiene números (limpiaremos en input)
+            // No bloqueamos, dejamos que el evento input limpie
         });
     });
 
@@ -1021,8 +1070,11 @@
      * 1. Pago: Si `from` ≠ PYG → solo "Tauser" y "Tarjeta Internacional".
      * 2. Cobro: Si `to` ≠ PYG → solo "Tauser".
      * 3. Si `to` = PYG y monto no es múltiplo de 100000 → ocultar "Tauser".
+     *
+     * @param {boolean} colapsarSecciones - Si es true, colapsa las secciones expandidas.
+     *        Pasar false cuando solo cambia el monto para preservar selecciones.
      */
-    function actualizarFiltros() {
+    function actualizarFiltros(colapsarSecciones = true) {
         const amountEl = document.getElementById("simu-amount");
         const fromEl = document.getElementById("simu-from");
         const toEl = document.getElementById("simu-to");
@@ -1036,20 +1088,22 @@
         const pagoTabs = document.querySelectorAll("#pago-tabs .tab-btn");
         const cobroTabs = document.querySelectorAll("#cobro-tabs .tab-btn");
 
-        // Colapsar secciones expandidas cuando cambian las monedas (sin animación)
-        if (pagoContent) {
-            pagoContent.classList.remove("expanded");
-            pagoTabs.forEach(b => b.classList.remove("selected-method", "hiding", "active"));
-        }
-        if (cobroContent) {
-            cobroContent.classList.remove("expanded");
-            cobroTabs.forEach(b => b.classList.remove("selected-method", "hiding", "active"));
-        }
+        // Solo colapsar secciones si se indica (cuando cambian monedas, NO cuando cambia solo el monto)
+        if (colapsarSecciones) {
+            if (pagoContent) {
+                pagoContent.classList.remove("expanded");
+                pagoTabs.forEach(b => b.classList.remove("selected-method", "hiding", "active"));
+            }
+            if (cobroContent) {
+                cobroContent.classList.remove("expanded");
+                cobroTabs.forEach(b => b.classList.remove("selected-method", "hiding", "active"));
+            }
 
-        // Ocultar info transferencia al cambiar filtros
-        const infoTransferencia = document.getElementById("transferencia-info");
-        if (infoTransferencia) {
-            infoTransferencia.classList.add("d-none");
+            // Ocultar info transferencia solo al cambiar monedas
+            const infoTransferencia = document.getElementById("transferencia-info");
+            if (infoTransferencia) {
+                infoTransferencia.classList.add("d-none");
+            }
         }
 
         // === FILTRO DE PAGO ===
